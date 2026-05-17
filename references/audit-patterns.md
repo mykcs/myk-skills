@@ -1,0 +1,398 @@
+# Audit Patterns Reference
+
+> 从实际运行中提取的检测模式，每个模式都附有**检测命令**，供 AI 在审计时直接运行。
+
+## Config & Rules
+
+### 插件目录失效检测（Plugin Directory Missing）
+
+**现象**: 所有 hook 调用均失败，报错 `Failed to run: Plugin directory does not exist`
+
+**根因**: hooks.json 引用了插件缓存路径，但该目录在插件卸载/升级后残留引用。
+
+**检测命令**:
+```bash
+grep -r "plugins/cache" ~/.claude/settings.json ~/.claude/hooks/ 2>/dev/null | while read line; do
+  path=$(echo "$line" | grep -o '/Users/[^:]*' | head -1); [ -d "$path" ] || echo "MISSING: $path"
+done
+```
+
+### 权限剧场检测（Permission Theater）
+
+**现象**: `~/.claude.json` 与 `~/.claude/.claude.json` 的 `allowedTools` 不一致，导致自动同意授权未实际生效。
+
+**检测命令**:
+```bash
+diff <(jq -S '.allowedTools' ~/.claude.json 2>/dev/null) <(jq -S '.allowedTools' ~/.claude/.claude.json 2>/dev/null) && echo "MATCH" || echo "MISMATCH"
+```
+
+### ECC Fact-Forcing Gate 检测
+
+**现象**: 每次 session 的第一次 Bash/Edit/Write 命令被阻塞，报错插件目录不存在。
+
+**检测命令**:
+```bash
+grep -q "gateguard-fact-force" ~/.claude/settings.json && echo "PROTECTED" || echo "MISSING: ECC_DISABLED_HOOKS"
+```
+
+### 插件残留检测（Plugin Residue）
+
+**检测命令**:
+```bash
+jq -r '.[] | .installPath' ~/.claude/plugins/installed_plugins.json 2>/dev/null | while read p; do [ -d "$p" ] || echo "ORPHAN: $p"; done
+find ~/.claude/plugins/cache -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while read d; do basename "$d" | grep -qvf <(jq -r '.[].version' ~/.claude/plugins/installed_plugins.json 2>/dev/null) && echo "UNREGISTERED: $d"; done
+```
+
+### 插件版本漂移检测（Plugin Version Drift）
+
+**检测命令**:
+```bash
+jq -r '.[] | "\(.version) \(.installPath)"' ~/.claude/plugins/installed_plugins.json 2>/dev/null | while IFS=' ' read -r ver path; do
+  dir=$(dirname "$path")
+  actual=$(basename "$path")
+  [ "$ver" = "$actual" ] || echo "DRIFT: recorded=$ver actual=$actual in $dir"
+done
+```
+
+### fnm 懒加载破坏 MCP 检测
+
+**检测命令**:
+```bash
+grep -l "_fnm_lazy_load" ~/.zshrc ~/.bashrc 2>/dev/null && echo "FOUND: fnm lazy load detected" || echo "OK"
+```
+
+### BATCH MODE 文档-实现同步检测
+
+**检测命令**:
+```bash
+grep -q "BATCH MODE\|\.autopush-batch-mode" ~/.claude/scripts/smart-autopush.sh && echo "IMPLEMENTED" || echo "MISSING: BATCH MODE in smart-autopush.sh"
+```
+
+### Git 运行时污染检测
+
+**检测命令**:
+```bash
+for pattern in ".omc/state" "homunculus" "logs" "plugins/cache" ".scheduled_tasks.lock"; do
+  grep -q "$pattern" ~/.claude/.gitignore || echo "MISSING: $pattern in .gitignore"
+done
+```
+
+### 规则文件 Binary Assertions 缺失检测
+
+**检测命令**:
+```bash
+find ~/.claude/rules -name "*.md" 2>/dev/null | while read f; do
+  if ! grep -q "Binary Assertions" "$f"; then
+    echo "NO_BINARY_ASSERTIONS: $f"
+  elif ! grep -q "\[x\]" "$f"; then
+    echo "EMPTY_BINARY_ASSERTIONS: $f"
+  fi
+done
+```
+
+### Memory Index 漂移检测
+
+**检测命令**:
+```bash
+grep -h '\]\([^)]*\.md\)' ~/.claude/memory/MEMORY.md 2>/dev/null | sed 's/.*](\([^)]*\)).*/\1/' | while read path; do
+  full="${path/#~\/.claude/$HOME/.claude}"
+  [ -f "$full" ] || echo "INDEX_DRIFT: $path"
+done
+```
+
+### Scheduled Tasks Lock 文件污染检测
+
+**检测命令**:
+```bash
+lock=~/.claude/scheduled_tasks.lock
+[ -f "$lock" ] && find "$lock" -mtime +1 2>/dev/null | grep -q . && echo "STALE_LOCK: $(stat -f %Sm -t %Y-%m-%dT%H:%M "$lock" 2>/dev/null || echo 'unknown age')" || echo "OK: lock file fresh or absent"
+```
+
+### Skill 目录失效 symlink 检测
+
+**检测命令**:
+```bash
+find ~/.claude/skills -maxdepth 1 -type l 2>/dev/null | while read link; do
+  target=$(readlink "$link")
+  [ -e "$target" ] || echo "BROKEN_SYMLINK: $link -> $target"
+done
+```
+
+### settings.json 权限错误检测
+
+**检测命令**:
+```bash
+for f in ~/.claude/settings.json ~/.claude/.claude.json ~/.claude.json; do
+  [ -f "$f" ] || continue
+  perm=$(stat -f %Lp "$f" 2>/dev/null)
+  [ "$perm" = "644" ] || [ "$perm" = "600" ] && echo "OK: $f ($perm)" || echo "BAD_PERMS: $f ($perm)"
+done
+```
+
+## Cases & Memory
+
+### Ghost Case 引用检测
+
+**检测命令**:
+```bash
+grep -h "^related:" ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | sed 's/related: \[\(.*\)\]/\1/' | tr ',' '\n' | sed 's/\[//g;s/\]//g;s/ //g' | grep -v "^$" | sort -u | while read ref; do
+  [ -f "$(find ~/.claude/knowledge/cases -name "${ref}*.md" 2>/dev/null | head -1)" ] || echo "GHOST: $ref"
+done
+```
+
+### Frontmatter 日期不匹配检测
+
+**检测命令**:
+```bash
+find ~/.claude/knowledge/cases/wiki -name "CASE-*.md" 2>/dev/null | while read f; do
+  fname_date=$(echo "$f" | grep -o '[0-9]\{8\}' | head -1)
+  front_date=$(awk '/^date:/{print $2; exit}' "$f")
+  [ -n "$fname_date" ] && [ -n "$front_date" ] && [ "$fname_date" != "${front_date//-/}" ] && echo "MISMATCH: $f (file=$fname_date front=$front_date)"
+done
+```
+
+## OMC & Ecosystem
+
+### OMC HUD 冷启动检测
+
+**检测命令**:
+```bash
+output=$(jq -r '.hud.outputFile' ~/.claude/settings.json 2>/dev/null); [ -f "$output" ] && [ ! -s "$output" ] && echo "EMPTY: $output" || echo "OK: $output"
+```
+
+### 多窗口并行整合检查
+
+**检测命令**:
+```bash
+cd ~/.claude && git log --oneline -5 && echo "---" && git diff --name-status HEAD~3..HEAD
+```
+
+## False Positive 修复模式
+
+> 来自 CASE-RICH-AUDIT-FP-FIXES 的经验总结
+
+### 注释行未过滤导致误报
+
+**现象**: grep 命中了注释行中的防御性代码（如 `# NEVER use git add -A`），导致误报 `git add -A` 使用。
+
+**根因**: 全文本匹配未排除 `#` 开头的注释行。
+
+**检测命令**:
+```bash
+# 危险模式检测必须先排除注释行
+grep -rn "git add -A\|git reset\|chmod 777" --include="*.sh" \
+  | grep -v "^[^:]*:[^:]*:#" | grep -v "^[^:]*:#" \
+  | while read line; do
+    # 进一步验证：跳过以 # 开头或包含 # 的行
+    if ! echo "$line" | grep -qE "^[^:]*:[^:]*\s+#"; then
+      echo "PATTERN_FOUND: $line"
+    fi
+  done
+```
+
+### Markdown 相对路径解析 bug
+
+**现象**: `MEMORY.md` 中 `[text](path)` 的 link_path 被 CWD 而非文件所在目录解析，导致所有相对链接报为 missing。
+
+**根因**: 对相对路径直接用 `Path(raw)`，未处理 base dir。
+
+**检测命令**:
+```bash
+# 正确解析 Markdown 相对路径：以被扫描文件的父目录为 base
+python3 -c "
+import re
+from pathlib import Path
+
+md_file = Path('~/.claude/memory/MEMORY.md').expanduser()
+content = md_file.read_text()
+links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+for text, path in links:
+    link_path = Path(path)
+    if not link_path.is_absolute():
+        link_path = md_file.parent / link_path
+    if not link_path.exists():
+        print(f'INDEX_DRIFT: {path} (resolved to {link_path})')
+"
+```
+
+### 插件 Managed Cache 误判
+
+**现象**: 插件系统会在检测到缺失缓存时自动重新下载，导致孤儿目录反复出现。
+
+**根因**: 未区分"真正的 orphan"和"插件自动重建的 managed cache"。
+
+**检测命令**:
+```bash
+# 真正的 orphan：不在 installed_plugins.json 注册，且非 submodule
+jq -r '.[] | .installPath' ~/.claude/plugins/installed_plugins.json 2>/dev/null | \
+  while read p; do [ -d "$p" ] || echo "ORPHAN_REG: $p"; done
+
+# registered 但 cache 被清空的目录（managed cache，会自动重建）
+find ~/.claude/plugins/cache -mindepth 1 -maxdepth 2 -type d 2>/dev/null | \
+  while read d; do
+    basename "$d" | grep -qvf <(jq -r '.[].version' ~/.claude/plugins/installed_plugins.json 2>/dev/null) \
+      && echo "MANAGED_CACHE_REBUILD: $d (will auto-rebuild, not a true orphan)"
+  done
+```
+
+## GitHub Actions 依赖版本检查
+
+**现象**: GitHub Actions workflow 中的 action 版本过旧，存在已知安全漏洞或已被弃用。
+
+**触发条件**: 检测到 `.github/workflows/*.yml` 或 `.github/workflows/*.yaml`。
+
+**常见过时版本**:
+| Action | 过时版本 | 推荐版本 |
+|--------|----------|---------|
+| `actions/cache` | v3, v4 | v5 |
+| `actions/upload-pages-artifact` | v3, v4 | v5 |
+| `actions/download-pages-artifact` | v3, v4 | v5 |
+| `pnpm/action-setup` | v3, v4 | v6 |
+| `actions/setup-node` | v3, v4 | v5 |
+| `actions/checkout` | v3 | v5 |
+| `azure/login` | v1 | v2 |
+| `google-github-actions/auth` | v1 | v2 |
+| `aws-actions/configure-aws-credentials` | v3 | v4+ |
+
+**检测命令**:
+```bash
+# 扫描所有 workflow 文件，检查 action 版本（正向匹配过时版本）
+# @v[34]($|[^0-9]) 匹配 v3/v4 后面是行尾或非数字字符（防止匹配 v34/v40 等）
+for f in .github/workflows/*.yml .github/workflows/*.yaml; do
+  [ -f "$f" ] || continue
+  # actions/cache: 检测 v3/v4（当前是 v5）
+  grep -n "actions/cache@" "$f" | grep -E "@v[34]($|[^0-9])" && echo "OUTDATED: actions/cache"
+  # pnpm/action-setup: 检测 v3/v4/v5（当前是 v6）
+  grep -n "pnpm/action-setup@" "$f" | grep -E "@v[345]($|[^0-9])" && echo "OUTDATED: pnpm/action-setup"
+  # actions/checkout: 检测 v3/v4（当前是 v5）
+  grep -n "actions/checkout@" "$f" | grep -E "@v[34]($|[^0-9])" && echo "OUTDATED: actions/checkout"
+  # actions/setup-node: 检测 v3/v4（当前是 v5）
+  grep -n "actions/setup-node@" "$f" | grep -E "@v[34]($|[^0-9])" && echo "OUTDATED: actions/setup-node"
+  # upload-pages-artifact: 检测 v3/v4（当前是 v5）
+  grep -n "actions/upload-pages-artifact@" "$f" | grep -E "@v[34]($|[^0-9])" && echo "OUTDATED: upload-pages-artifact"
+  # download-pages-artifact: 检测 v3/v4（当前是 v5）
+  grep -n "actions/download-pages-artifact@" "$f" | grep -E "@v[34]($|[^0-9])" && echo "OUTDATED: download-pages-artifact"
+done
+```
+
+**修复建议**:
+```yaml
+# actions/cache: v4 → v5
+- uses: actions/cache@v5
+
+# pnpm/action-setup: v4 → v6
+- uses: pnpm/action-setup@v6
+
+# actions/checkout: v4 → v5
+- uses: actions/checkout@v5
+
+# actions/setup-node: v4 → v5
+- uses: actions/setup-node@v5
+```
+
+**为何重要**: 过时的 GitHub Actions 版本可能包含已知漏洞（CVEs）、缺失的性能优化，或在 GitHub 弃用后导致 build 失败。
+
+## Python / ML 项目审计
+
+### Torch 版本 CVE 检测
+
+**自动修复**: 检测到 torch < 2.5.0 时，建议升级到 2.6.0 并使用 `pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124`
+
+### WandB API Key 硬编码检测
+
+**自动修复**: 将 wandb key 替换为环境变量引用 `os.environ.get("WANDB_API_KEY")`
+
+### MarkupSafe 版本冲突
+
+**自动修复**: 移除 `<3.0.0` 上界约束
+
+**现象**: torch < 2.5.0 存在已知安全漏洞。
+
+**检测命令**:
+```bash
+python3 -c "
+import sys
+try:
+    import torch
+    v = torch.__version__.split('.')
+    major, minor = int(v[0]), int(v[1])
+    if major < 2 or (major == 2 and minor < 5):
+        print('VULNERABLE: torch < 2.5.0')
+    else:
+        print('OK: torch >= 2.5.0')
+except:
+    print('SKIP: torch not installed')
+"
+```
+
+### WandB API Key 硬编码检测
+
+**现象**: wandb login key 直接写在代码中，存在泄露风险。
+
+**检测命令**:
+```bash
+# 高置信度 pattern：sk- 开头的 key
+grep -rn "sk-[a-zA-Z0-9]\{20,\}" --include="*.py" --include="*.sh" \
+  --exclude-dir=".venv" --exclude-dir="venv" | \
+  grep -v "^[^:]*:#" | grep -v "^[^:]*:import" | \
+  while read line; do
+    echo "SECRET_FOUND: $line"
+  done
+```
+
+### MarkupSafe 版本冲突
+
+**现象**: `MarkupSafe>=2.1.5,<3.0.0` 会导致 torch 2.6.0 安装失败。
+
+**检测命令**:
+```bash
+grep -i "markupsafe" pyproject.toml requirements.txt 2>/dev/null && \
+echo "MARKUPSAFE_CONSTRAINT: potential conflict with torch 2.6.0"
+```
+
+### CUDA 版本不一致
+
+**现象**: 不同项目使用不同的 CUDA 编译版本（cu118 vs cu124），导致 GPU 利用率差异。
+
+**检测命令**:
+```bash
+grep -A5 "torch" pyproject.toml 2>/dev/null | grep -i "cu118\|cu124\|cu126" || echo "NO_CUDA_INDEX"
+```
+
+### README 空洞检测
+
+**现象**: README.md 只有 "Add your description here" 模板内容。
+
+**检测命令**:
+```bash
+if [ -f "README.md" ]; then
+    line_count=$(wc -l < README.md)
+    placeholder_count=$(grep -ci "add your description\|todo\|tbd\|placeholder" README.md 2>/dev/null || echo 0)
+    [ "$line_count" -lt 20 ] || [ "$placeholder_count" -gt 2 ] && echo "INCOMPLETE: README needs attention"
+fi
+```
+
+### Type Checker 缺失
+
+**现象**: 无 pyright/mypy 配置，Python 类型检查缺失。
+
+**检测命令**:
+```bash
+grep -q "tool.pyright\|tool.mypy" pyproject.toml 2>/dev/null || \
+echo "TYPE_CHECKER: missing (recommend adding pyright or mypy)"
+```
+
+## Meta-Audit
+
+rich-audit 自身也必须被审计。每次运行时检查：
+
+1. **扫描范围完整性**：`~/.claude/rules/` 是否被包含在扫描路径中？
+2. **量化阈值存在性**：是否有数字红线（如"规则总行数 ≤ 200"）？
+3. **基准对比机制**：是否有外部来源的对比表？
+4. **架构 vs 故障**：是否同时检查"点故障"和"面健康"？
+
+**检测命令**:
+```bash
+grep -q "架构健康度\|Architecture Health\|规则总行数\|max_total_rules_lines" ~/.claude/skills/rich-audit/SKILL.md 2>/dev/null && echo "ARCHITECTURE_CHECK: OK" || echo "ARCHITECTURE_CHECK: MISSING"
+grep -q "外部基准\|Benchmark\|Anthropic\|社区最佳实践" ~/.claude/skills/rich-audit/SKILL.md 2>/dev/null && echo "BENCHMARK_CHECK: OK" || echo "BENCHMARK_CHECK: MISSING"
+```
