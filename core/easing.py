@@ -148,7 +148,7 @@ def ease_back_out(t: float) -> float:
     """Back ease-out (overshoot forward then settle back)."""
     c1 = 1.70158
     c3 = c1 + 1
-    return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
+    return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2
 
 
 def ease_back_in_out(t: float) -> float:
@@ -156,8 +156,8 @@ def ease_back_in_out(t: float) -> float:
     c1 = 1.70158
     c2 = c1 * 1.525
     if t < 0.5:
-        return (pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
-    return (pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2
+        return ((2 * t) ** 2 * ((c2 + 1) * 2 * t - c2)) / 2
+    return ((2 * t - 2) ** 2 * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2
 
 
 def apply_squash_stretch(
