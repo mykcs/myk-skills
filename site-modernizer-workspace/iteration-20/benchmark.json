@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "sonnet",
+    "analyzer_model": "sonnet",
+    "timestamp": "2026-05-15T11:50:00Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 141.9,
+        "tokens": 44490,
+        "tool_calls": 32,
+        "errors": 0
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 131.0,
+        "tokens": 37536,
+        "tool_calls": 32,
+        "errors": 0
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 168.7,
+        "tokens": 46031,
+        "tool_calls": 45,
+        "errors": 0
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 170.7,
+        "tokens": 41731,
+        "tool_calls": 44,
+        "errors": 0
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 136.1,
+        "tokens": 44232,
+        "tool_calls": 34,
+        "errors": 0
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 162.9,
+        "tokens": 38855,
+        "tool_calls": 34,
+        "errors": 0
+      },
+      "expectations": [],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 148.9,
+        "stddev": 17.5,
+        "min": 136.1,
+        "max": 168.7
+      },
+      "tokens": {
+        "mean": 44918,
+        "stddev": 1082,
+        "min": 44232,
+        "max": 46031
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.9333,
+        "stddev": 0.1155,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 154.9,
+        "stddev": 21.6,
+        "min": 131.0,
+        "max": 170.7
+      },
+      "tokens": {
+        "mean": 39374,
+        "stddev": 2143,
+        "min": 37536,
+        "max": 41731
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.07",
+      "time_seconds": "-6.0",
+      "tokens": "+5544"
+    }
+  },
+  "notes": [
+    "All 6 evals: 5/5 \u2014 iteration-20 skill fully converged"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "with_skill",
+  "status": "completed",
+  "expectations": [
+    {
+      "text": "Identifies files to keep vs delete",
+      "passed": true,
+      "evidence": "Explicitly lists target state: keep index.html, README.md, LICENSE, .gitattributes. Step 2 removes astro/, node_modules/, .github/, CLAUDE.md, paper/.DS_Store."
+    },
+    {
+      "text": "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+      "passed": true,
+      "evidence": "Step 4 creates root index.html with `<meta http-equiv='refresh' content='0;url=https://wangrui2025.github.io/'>` plus canonical and noindex."
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Steps 7-9 verify final tree (exactly 4 files), redirect HTML content, and default branch. No traditional 'build' needed since it's static HTML."
+    },
+    {
+      "text": "Includes commit/push steps",
+      "passed": true,
+      "evidence": "Step 6 uses `smart-autopush.sh` with semantic message `refactor(mykcs): strip to root-level static redirect, remove Astro pipeline [BATCH MODE]`."
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "Comprehensive 227-line plan following ASSESS→CLEAN→REDIRECT→VERIFY workflow. Includes rollback, risk matrix, and [BATCH MODE] marker. Excellent operational detail."
+}

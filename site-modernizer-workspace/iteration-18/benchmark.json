@@ -1,0 +1,53 @@
+{
+  "name": "site-modernizer iteration-18",
+  "evals": {
+    "anti-pattern-scan": {
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "total": 5,
+        "tokens": 75752,
+        "duration_s": 702.5
+      },
+      "without_skill": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "total": 5,
+        "tokens": 66278,
+        "duration_s": 218.8
+      }
+    },
+    "i18n-sync-audit": {
+      "with_skill": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "total": 5,
+        "tokens": 80756,
+        "duration_s": 336.1
+      },
+      "without_skill": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "total": 5,
+        "tokens": 58462,
+        "duration_s": 256.7
+      }
+    },
+    "performance-asset-audit": {
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "total": 5,
+        "tokens": 72375,
+        "duration_s": 281.3
+      },
+      "without_skill": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "total": 5,
+        "tokens": 85287,
+        "duration_s": 622.1
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "eval_id": 1,
+  "eval_name": "dedup-cv-page",
+  "configuration": "with_skill",
+  "assertions_total": 4,
+  "assertions_passed": 4,
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "Mentions deleting src/pages/cv.astro",
+      "passed": true,
+      "evidence": "02_clean_redirect_steps.md Step 1: 'git rm src/pages/cv.astro'"
+    },
+    {
+      "text": "Proposes redirect from /cv/ to /zh/cv/",
+      "passed": true,
+      "evidence": "Step 2: created new cv.astro with Astro.redirect('/zh/cv/', 301)"
+    },
+    {
+      "text": "Includes build verification steps",
+      "passed": true,
+      "evidence": "03_verify_report.md: npm run build passed with 0 errors"
+    },
+    {
+      "text": "Uses Conventional Commits for commit message",
+      "passed": true,
+      "evidence": "Step 3: bash scripts/smart-autopush.sh . \"refactor(cv): remove duplicate cv.astro and add 301 redirect to /zh/cv/\" done"
+    }
+  ]
+}

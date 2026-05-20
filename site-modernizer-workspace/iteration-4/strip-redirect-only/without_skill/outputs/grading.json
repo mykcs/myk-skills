@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "without_skill",
+  "assertions_total": 4,
+  "assertions_passed": 4,
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "Identifies files to keep vs delete",
+      "passed": true,
+      "evidence": "Current state analysis lists all files recursively; Phase 2 specifies deletion of every non-essential file/directory"
+    },
+    {
+      "text": "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+      "passed": true,
+      "evidence": "index.html with meta refresh + JS location.replace; also 404.html for deep links; .nojekyll for static serving"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Phase 5 Verification includes root URL test, deep URL test, curl -I -L check, and no-JS meta refresh test"
+    },
+    {
+      "text": "Includes commit/push steps",
+      "passed": true,
+      "evidence": "Phase 4 includes git add, semantic commit message, and smart-autopush.sh push"
+    }
+  ]
+}

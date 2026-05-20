@@ -1,0 +1,50 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-project-page",
+  "configuration": "without_skill",
+  "status": "completed",
+  "expectations": [
+    {
+      "text": "Proposes bilingual structure (en/zh)",
+      "passed": true,
+      "evidence": "Section 2.1 adds i18n config with locales ['en', 'zh']. Section 2.2 routing table has /osa/ (EN) and /osa/zh/ (ZH)."
+    },
+    {
+      "text": "Includes Hero/Abstract/Method/Results/BibTeX sections",
+      "passed": true,
+      "evidence": "Section 3 has 3.1 HeroSection, 3.2 AbstractSection, 3.3 MethodSection, 3.4 ResultsSection, 3.5 BibtexSection, 3.6 FooterSection."
+    },
+    {
+      "text": "Mentions oklch colors",
+      "passed": true,
+      "evidence": "Section 5 defines oklch theme vars: --color-osa-bg: oklch(15% 0.02 260), --color-osa-accent: oklch(65% 0.18 250), etc. Hero and components use oklch inline."
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Section 6 has pre-build checklist, build commands, and post-build validation table with 5 checks."
+    },
+    {
+      "text": "Uses Astro 6 + Tailwind v4",
+      "passed": true,
+      "evidence": "Context notes Astro 6.1.8 + Tailwind 4.2.2. Config uses @tailwindcss/vite and @theme CSS syntax."
+    },
+    {
+      "text": "Mirrors gdkvm quality/patterns",
+      "passed": false,
+      "evidence": "Plan explicitly states in Risk Statement: 'No existing /gdkvm/ reference... This plan defines a standalone high-quality academic project page standard.' Does not mirror gdkvm."
+    },
+    {
+      "text": "Includes asset sourcing plan",
+      "passed": false,
+      "evidence": "No asset sourcing table. Only mentions teaser.jpg, method.png in file structure without specifying sources."
+    },
+    {
+      "text": "Includes risk statement and user action items",
+      "passed": true,
+      "evidence": "Section 8 has Risk Statement (3 risks: no gdkvm reference, image assets, KaTeX CDN dependency, Tailwind v4 syntax). No explicit user action items section."
+    }
+  ],
+  "pass_rate": 0.75,
+  "notes": "Good 624-line plan with dark-first design and detailed component code. Notable differences from skill version: standalone design (does not mirror gdkvm), no asset sourcing plan, uses KaTeX CDN (skill version also mentions CDN but within gdkvm pattern context)."
+}

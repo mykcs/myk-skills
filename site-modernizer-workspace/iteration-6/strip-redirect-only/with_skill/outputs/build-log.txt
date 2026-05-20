@@ -1,0 +1,22 @@
+
+> old-academic-site@1.0.0 build
+> astro build
+
+19:22:48 [types] Generated 17ms
+19:22:48 [build] output: "static"
+19:22:48 [build] mode: "static"
+19:22:48 [build] directory: /private/tmp/strip-redirect-test/dist/
+19:22:48 [build] Collecting build info...
+19:22:48 [build] ✓ Completed in 23ms.
+19:22:48 [build] Building static entrypoints...
+19:22:48 [vite] ✓ built in 340ms
+19:22:48 [vite] ✓ built in 16ms
+19:22:48 [build] Rearranging server assets...
+
+ generating static routes 
+19:22:48   ├─ /index.html (+4ms) 
+19:22:48 ✓ Completed in 10ms.
+
+19:22:48 [build] ✓ Completed in 395ms.
+19:22:48 [build] 1 page(s) built in 419ms
+19:22:48 [build] Complete!

@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于",
+    "currentLang": "当前语言: {lang}"
+  },
+  "hero": {
+    "title": "欢迎",
+    "subtitle": "这是一个演示网站",
+    "cta": "立即开始"
+  },
+  "footer": {
+    "copyright": "保留所有权利 © 2024"
+  },
+  "site": {
+    "title": "演示站点"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T20:00:00Z",
+    "evals_run": [
+      "dedup-cv-page",
+      "anti-pattern-scan",
+      "strip-redirect-only",
+      "create-project-page"
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 198.8,
+      "tokens": 58183,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 156.4,
+      "tokens": 52908,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 312.3,
+      "tokens": 78303,
+      "status": "completed",
+      "source_iteration": "iter-8"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "without_skill",
+      "pass_rate": 0.6,
+      "time_seconds": 241.1,
+      "tokens": 71008,
+      "status": "completed",
+      "source_iteration": "iter-8"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "strip-redirect-only",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 256.6,
+      "tokens": 73269,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "strip-redirect-only",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 111.5,
+      "tokens": 63025,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "create-project-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 161.7,
+      "tokens": 82087,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "create-project-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 89.5,
+      "tokens": 74794,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate_mean": 1.0,
+      "pass_rate_std": 0.0,
+      "time_seconds_mean": 232.4,
+      "time_seconds_std": 66.1,
+      "tokens_mean": 72961,
+      "tokens_std": 9974
+    },
+    "without_skill": {
+      "pass_rate_mean": 0.71,
+      "pass_rate_std": 0.14,
+      "time_seconds_mean": 149.6,
+      "time_seconds_std": 55.4,
+      "tokens_mean": 65434,
+      "tokens_std": 8723
+    },
+    "delta": {
+      "pass_rate": "+0.29",
+      "time_seconds": "+82.8",
+      "tokens": "+7527"
+    }
+  },
+  "notes": [
+    "Eval 1 (dedup-cv-page): with_skill 100% (4/4), baseline 75% (3/4). Reused from iter-6.",
+    "Eval 2 (anti-pattern-scan): with_skill 100% (5/5), baseline 60% (3/5). **Primary iter-8 win**: commit assertion now passes for with_skill (commit 947cdb6 with Conventional Commit message). Skill's strengthened 'MUST EXECUTE' language in 'After SCAN Fixes' section successfully drove commit behavior. Both fresh in iter-8.",
+    "Eval 3 (strip-redirect-only): with_skill 100% (4/4), baseline 75% (3/4). Reused from iter-6.",
+    "Eval 4 (create-project-page): with_skill 100% (8/8), baseline 75% (6/8). Reused from iter-6.",
+    "Overall skill mean pass rate: 100.0% across 4 evals (vs 71.0% baseline). Delta of +29% maintains the strong differentiation established in prior iterations.",
+    "CRITICAL CAVEAT: iter-8 anti-pattern scan suffered from test setup contamination. The mock repo was copied from iter-7's already-modified working directory (containing iter-7 baseline's partial fixes: import.meta.glob and ClientRouter already present). This inflated both with_skill and baseline scores compared to a clean run. The baseline pass rate of 60% is not directly comparable to iter-7's 20%.",
+    "Despite contamination, the commit behavior fix is genuine and verifiable: git log shows commit 947cdb6 made by the with_skill agent, while the baseline made no commit. This validates the SKILL.md wording change.",
+    "Recommendation: For any future iteration targeting anti-pattern scan, reset the mock repo to the original commit (4aa60a2) before each run to avoid working-directory contamination."
+  ]
+}

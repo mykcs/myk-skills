@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Unused dependencies (lodash, moment, jquery) removed",
+      "passed": true,
+      "evidence": "deps: {'@fontsource/inter', 'astro'}"
+    },
+    {
+      "text": "Google Fonts CDN replaced with @fontsource/inter",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Below-the-fold images have loading=lazy and decoding=async",
+      "passed": false,
+      "evidence": "imgs=False lazy=False"
+    },
+    {
+      "text": "Corrupt hero.png replaced with valid image",
+      "passed": true,
+      "evidence": "format: /Users/myk/.claude/skills/site-modernizer-workspace/iteration-19/performance-asset-audit/with_skill/mock-repo/src/assets/hero.png: PNG image data, 800 x 600, 8-bit/color RGB, non-interlaced"
+    },
+    {
+      "text": "Build passes and changes committed",
+      "passed": true,
+      "evidence": "build=True commit=True msg=6d03cd1 perf(site): replace Google Fonts CDN with @fontsourc"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8,
+    "passed": 4,
+    "failed": 1,
+    "total": 5
+  }
+}

@@ -1,0 +1,11 @@
+---
+const { lang } = Astro.props;
+import en from '../content/i18n/en.json';
+import zh from '../content/i18n/zh.json';
+const t = lang === 'zh' ? zh : en;
+---
+<section class="hero">
+  <h1>{t.hero.title}</h1>
+  <p>{t.hero.subtitle}</p>
+  <button>{t.hero.cta}</button>
+</section>

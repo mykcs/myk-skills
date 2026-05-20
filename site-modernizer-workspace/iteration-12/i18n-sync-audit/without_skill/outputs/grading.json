@@ -1,0 +1,29 @@
+{
+  "expectations": [
+    {
+      "text": "检测组件中的硬编码文本并迁移到 i18n JSON",
+      "passed": false,
+      "evidence": "conditional rendering with hardcoded text still present in Hero.astro and [lang]/index.astro"
+    },
+    {
+      "text": "同步 en.json 和 zh.json 键集合，补齐缺失键",
+      "passed": true,
+      "evidence": "en keys: ['footer.backToTop', 'footer.copyright', 'hero.cta', 'hero.subtitle', 'hero.title', 'nav.about', 'nav.contact', 'nav.home']"
+    },
+    {
+      "text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）",
+      "passed": false,
+      "evidence": "lang === 'zh' conditionals found in src/components/Hero.astro and src/pages/[lang]/index.astro"
+    },
+    {
+      "text": "构建通过",
+      "passed": true,
+      "evidence": "Completed in 9ms"
+    },
+    {
+      "text": "修复后通过 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": "no commit, working tree has unstaged changes only"
+    }
+  ]
+}

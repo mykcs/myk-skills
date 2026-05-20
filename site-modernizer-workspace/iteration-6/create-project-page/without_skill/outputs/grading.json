@@ -1,0 +1,50 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-project-page",
+  "configuration": "without_skill",
+  "assertions_total": 8,
+  "assertions_passed": 6,
+  "pass_rate": 0.75,
+  "expectations": [
+    {
+      "text": "Proposes bilingual structure (en/zh)",
+      "passed": true,
+      "evidence": "Nested zh/en objects in osa.json, [lang]/osa.astro with getStaticPaths for en/zh"
+    },
+    {
+      "text": "Includes Hero/Abstract/Method/Results/BibTeX sections",
+      "passed": true,
+      "evidence": "OsaHero, OsaAbstract, OsaMethod, OsaResults, OsaBibTeX components"
+    },
+    {
+      "text": "Mentions oklch colors",
+      "passed": false,
+      "evidence": "No oklch mention; references global.css @theme variables but does not specify oklch color space"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Phase 4 includes dev server verification, npm run build, and 6-item regression checklist"
+    },
+    {
+      "text": "Uses Astro 6 + Tailwind v4",
+      "passed": true,
+      "evidence": "Explicitly stated in tech stack section"
+    },
+    {
+      "text": "Mirrors gdkvm quality/patterns",
+      "passed": false,
+      "evidence": "No mention of gdkvm anywhere in the plan"
+    },
+    {
+      "text": "Includes asset sourcing plan",
+      "passed": true,
+      "evidence": "Lists 13 images with specific usage mappings"
+    },
+    {
+      "text": "Includes risk statement and user action items",
+      "passed": true,
+      "evidence": "Has risk and dependency section with 3 risk items"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Unused dependencies (lodash, moment, jquery) removed",
+      "passed": true,
+      "evidence": "deps: {'astro', '@fontsource/inter'}"
+    },
+    {
+      "text": "Google Fonts CDN replaced with @fontsource/inter",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Below-the-fold images have loading=lazy and decoding=async",
+      "passed": true,
+      "evidence": "imgs=True lazy=True"
+    },
+    {
+      "text": "Corrupt hero.png replaced with valid image",
+      "passed": true,
+      "evidence": "format: /Users/myk/.claude/skills/site-modernizer-workspace/iteration-20/performance-asset-audit/with_skill/mock-repo/src/assets/hero.png: JPEG image data, Exif standard: [TIFF image data, little-endian, direntries=6, orientation=upper-left, xresolution=86, yresolution=94, resolutionunit=2], progressive, precision 8, 800x600, components 3"
+    },
+    {
+      "text": "Build passes and changes committed",
+      "passed": true,
+      "evidence": "build=True commit=True msg=862c6ae docs(audit): add performance audit report to outputs"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  }
+}

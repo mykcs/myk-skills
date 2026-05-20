@@ -1,0 +1,328 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "sonnet",
+    "analyzer_model": "sonnet",
+    "timestamp": "2026-05-15T03:51:44Z",
+    "evals_run": [
+      4,
+      5,
+      6
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 278.9,
+        "tokens": 59918,
+        "tool_calls": 26,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Replaced deprecated Astro.glob with import.meta.glob",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "Replaced deprecated ViewTransitions with ClientRouter",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "Removed deprecated format prop from Image component",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "Build passes with 0 errors",
+          "passed": true,
+          "evidence": "build returned 0"
+        },
+        {
+          "text": "Changes committed via smart-autopush.sh",
+          "passed": false,
+          "evidence": "latest: 12faeea initial mock repo"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 150.0,
+        "tokens": 52501,
+        "tool_calls": 15,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Replaced deprecated Astro.glob with import.meta.glob",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "Replaced deprecated ViewTransitions with ClientRouter",
+          "passed": false,
+          "evidence": "grep: src/pages/index.astro:3:import { ViewTransitions } from 'astro:transitions';\nsrc/pages/index.astro:10:  <ViewTransitions />"
+        },
+        {
+          "text": "Removed deprecated format prop from Image component",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "Build passes with 0 errors",
+          "passed": true,
+          "evidence": "build returned 0"
+        },
+        {
+          "text": "Changes committed via smart-autopush.sh",
+          "passed": false,
+          "evidence": "latest: bf3bd4d initial mock repo"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 606.4,
+        "tokens": 71768,
+        "tool_calls": 57,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "en.json and zh.json have identical key sets",
+          "passed": true,
+          "evidence": "en=5 zh=5 match=True"
+        },
+        {
+          "text": "All lang === conditionals eliminated",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "All hardcoded UI text replaced with t() calls",
+          "passed": true,
+          "evidence": "Chinese chars: none"
+        },
+        {
+          "text": "Build passes with 0 errors",
+          "passed": true,
+          "evidence": "build returned 0"
+        },
+        {
+          "text": "Changes committed via smart-autopush.sh",
+          "passed": true,
+          "evidence": "latest: 1c7cfe9 fix(i18n): sync bilingual translations and eliminate hardcoded text"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 192.0,
+        "tokens": 55221,
+        "tool_calls": 23,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "en.json and zh.json have identical key sets",
+          "passed": true,
+          "evidence": "en=3 zh=3 match=True"
+        },
+        {
+          "text": "All lang === conditionals eliminated",
+          "passed": false,
+          "evidence": "grep: src/components/Hero.astro:5:const t = lang === 'zh' ? zh : en;\nsrc/components/Navbar.astro:5:const t = lang === 'zh' ? zh : en;\nsrc/pages/[lang]/index.astro:13:const t = lang === 'zh' ? zh : en;\nsrc/pages/[lang]/index.astro:15:<Layout title={lang === 'zh' ? '\u6f14\u793a\u7ad9\u70b9' : 'Demo Site'} lang={lang}>"
+        },
+        {
+          "text": "All hardcoded UI text replaced with t() calls",
+          "passed": true,
+          "evidence": "Chinese chars: none"
+        },
+        {
+          "text": "Build passes with 0 errors",
+          "passed": true,
+          "evidence": "build returned 0"
+        },
+        {
+          "text": "Changes committed via smart-autopush.sh",
+          "passed": false,
+          "evidence": "latest: 425a73d initial mock repo"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 336.3,
+        "tokens": 63431,
+        "tool_calls": 36,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Unused dependencies (lodash, moment, jquery) removed",
+          "passed": true,
+          "evidence": "deps: {'astro', '@fontsource/inter'}"
+        },
+        {
+          "text": "Google Fonts CDN replaced with @fontsource/inter",
+          "passed": true,
+          "evidence": "grep: none"
+        },
+        {
+          "text": "Below-the-fold images have loading=lazy and decoding=async",
+          "passed": true,
+          "evidence": "imgs=True lazy=True"
+        },
+        {
+          "text": "Corrupt hero.png replaced with valid image",
+          "passed": true,
+          "evidence": "format: jpeg"
+        },
+        {
+          "text": "Build passes and changes committed",
+          "passed": false,
+          "evidence": "build=True commit=False msg=none"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 252.3,
+        "tokens": 55246,
+        "tool_calls": 22,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Unused dependencies (lodash, moment, jquery) removed",
+          "passed": true,
+          "evidence": "deps: {'astro'}"
+        },
+        {
+          "text": "Google Fonts CDN replaced with @fontsource/inter",
+          "passed": true,
+          "evidence": "grep: src/layouts/Layout.astro:9:  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\nsrc/layouts/Layout.astro:10:  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\nsrc/layouts/Layout.astro:11:  <link rel=\"preload\" href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\">\nsrc/layouts/Layout.astro:12:  <noscript><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\"></noscript>"
+        },
+        {
+          "text": "Below-the-fold images have loading=lazy and decoding=async",
+          "passed": true,
+          "evidence": "imgs=True lazy=True"
+        },
+        {
+          "text": "Corrupt hero.png replaced with valid image",
+          "passed": true,
+          "evidence": "format: png"
+        },
+        {
+          "text": "Build passes and changes committed",
+          "passed": false,
+          "evidence": "build=True commit=False msg=none"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.8667,
+        "stddev": 0.1155,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 407.2,
+        "stddev": 174.8833,
+        "min": 278.9,
+        "max": 606.4
+      },
+      "tokens": {
+        "mean": 65039.0,
+        "stddev": 6086.45,
+        "min": 59918,
+        "max": 71768
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6667,
+        "stddev": 0.1155,
+        "min": 0.6,
+        "max": 0.8
+      },
+      "time_seconds": {
+        "mean": 198.1,
+        "stddev": 51.4221,
+        "min": 150.0,
+        "max": 252.3
+      },
+      "tokens": {
+        "mean": 54322.6667,
+        "stddev": 1577.6591,
+        "min": 52501,
+        "max": 55246
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.20",
+      "time_seconds": "+209.1",
+      "tokens": "+10716"
+    }
+  },
+  "notes": [
+    "anti-pattern-scan: with_skill 4/5 (fixed all patterns but skipped commit), without_skill 3/5 (missed ViewTransitions + no commit)",
+    "i18n-sync-audit: with_skill 5/5 (all fixes + committed), without_skill 3/5 (left lang ternaries + no commit)",
+    "performance-asset-audit: with_skill 4/5 (all fixes but skipped commit), without_skill 4/5 (left Google Fonts + no commit)",
+    "Commit discipline remains inconsistent: 1/3 with_skill agents committed. Iteration-17 will test embedding commit as explicit numbered step in each fix workflow."
+  ]
+}

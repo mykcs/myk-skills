@@ -1,0 +1,2 @@
+ff8313c fix(astro): migrate deprecated APIs to Astro 5/6 compatible equivalents
+0a18c51 chore: initial clean mock repo with anti-patterns

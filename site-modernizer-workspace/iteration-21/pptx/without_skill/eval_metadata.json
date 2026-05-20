@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "pptx-create",
+  "prompt": "Create a simple PPTX presentation at /tmp/demo.pptx with one slide: title 'Test Slide', subtitle 'Created by Claude'. Use python-pptx or pptx npm package.",
+  "assertions": []
+}

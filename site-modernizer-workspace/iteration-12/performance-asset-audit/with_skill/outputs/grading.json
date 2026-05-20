@@ -1,0 +1,29 @@
+{
+  "expectations": [
+    {
+      "text": "检测并移除 CDN 字体链接，替换为本地字体方案",
+      "passed": false,
+      "evidence": "CDN links removed but @fontsource/inter not installed; build fails with missing module"
+    },
+    {
+      "text": "检测并移除 package.json 中未使用的依赖",
+      "passed": false,
+      "evidence": "lodash=True, moment=True, jquery=True still in package.json"
+    },
+    {
+      "text": "为 fold 以下图片添加 loading=\"lazy\"",
+      "passed": true,
+      "evidence": "eager=1, lazy=3, all non-hero images have loading=lazy"
+    },
+    {
+      "text": "构建通过",
+      "passed": false,
+      "evidence": "build fails: Rollup failed to resolve import @fontsource/inter/400.css"
+    },
+    {
+      "text": "修复后通过 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": "no commit, working tree has unstaged changes only"
+    }
+  ]
+}

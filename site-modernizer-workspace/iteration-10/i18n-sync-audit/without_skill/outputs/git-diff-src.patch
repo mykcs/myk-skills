@@ -1,0 +1,154 @@
+diff --git a/src/components/Hero.astro b/src/components/Hero.astro
+index ca28be8..ae50f02 100644
+--- a/src/components/Hero.astro
++++ b/src/components/Hero.astro
+@@ -1,8 +1,8 @@
+ ---
+-const { lang } = Astro.props;
++const { t } = Astro.props;
+ ---
+ <section class="hero">
+-  <h1>{lang === 'zh' ? '欢迎' : 'Welcome'}</h1>
+-  <p>这是一个演示网站</p>
+-  <button>立即开始</button>
++  <h1>{t.hero.title}</h1>
++  <p>{t.hero.subtitle}</p>
++  <button>{t.hero.cta}</button>
+ </section>
+diff --git a/src/components/Navbar.astro b/src/components/Navbar.astro
+index e75c6ca..ef34525 100644
+--- a/src/components/Navbar.astro
++++ b/src/components/Navbar.astro
+@@ -1,8 +1,8 @@
+ ---
+-const lang = Astro.params.lang || 'zh';
++const { t, lang } = Astro.props;
+ ---
+ <nav class="navbar">
+-  <a href="/">首页</a>
+-  <a href="/about/">关于我们</a>
+-  <span>当前语言: {lang}</span>
++  <a href="/">{t.nav.home}</a>
++  <a href="/about/">{t.nav.about}</a>
++  <span>{t.nav.currentLang.replace('{lang}', lang)}</span>
+ </nav>
+diff --git a/src/content/i18n/en.json b/src/content/i18n/en.json
+index 2ce442b..f671b3e 100644
+--- a/src/content/i18n/en.json
++++ b/src/content/i18n/en.json
+@@ -1,13 +1,18 @@
+ {
+   "nav": {
+     "home": "Home",
+-    "about": "About"
++    "about": "About",
++    "currentLang": "Current language: {lang}"
+   },
+   "hero": {
+     "title": "Welcome",
+-    "subtitle": "This is a demo site"
++    "subtitle": "This is a demo site",
++    "cta": "Get Started"
+   },
+   "footer": {
+-    "copyright": "All rights reserved"
++    "copyright": "All rights reserved © 2024"
++  },
++  "site": {
++    "title": "Demo Site"
+   }
+ }
+diff --git a/src/content/i18n/zh.json b/src/content/i18n/zh.json
+index 1a239dc..59abb27 100644
+--- a/src/content/i18n/zh.json
++++ b/src/content/i18n/zh.json
+@@ -2,7 +2,7 @@
+   "nav": {
+     "home": "首页",
+     "about": "关于",
+-    "contact": "联系我们"
++    "currentLang": "当前语言: {lang}"
+   },
+   "hero": {
+     "title": "欢迎",
+@@ -10,7 +10,9 @@
+     "cta": "立即开始"
+   },
+   "footer": {
+-    "copyright": "保留所有权利",
+-    "backToTop": "返回顶部"
++    "copyright": "保留所有权利 © 2024"
++  },
++  "site": {
++    "title": "演示站点"
+   }
+ }
+diff --git a/src/layouts/Layout.astro b/src/layouts/Layout.astro
+index c234f44..fde0bd4 100644
+--- a/src/layouts/Layout.astro
++++ b/src/layouts/Layout.astro
+@@ -1,8 +1,8 @@
+ ---
+-const { title = 'Mock Site' } = Astro.props;
++const { title = 'Mock Site', lang = 'zh' } = Astro.props;
+ ---
+ <!DOCTYPE html>
+-<html lang="zh">
++<html lang={lang}>
+ <head>
+   <meta charset="UTF-8">
+   <title>{title}</title>
+diff --git a/src/pages/[lang]/about.astro b/src/pages/[lang]/about.astro
+new file mode 100644
+index 0000000..d11aa6b
+--- /dev/null
++++ b/src/pages/[lang]/about.astro
+@@ -0,0 +1,21 @@
++---
++import Layout from '../../layouts/Layout.astro';
++import Navbar from '../../components/Navbar.astro';
++import en from '../../content/i18n/en.json';
++import zh from '../../content/i18n/zh.json';
++
++export function getStaticPaths() {
++  return [{ params: { lang: 'en' } }, { params: { lang: 'zh' } }];
++}
++
++const { lang } = Astro.params;
++const t = lang === 'zh' ? zh : en;
++---
++<Layout title={t.site.title} lang={lang}>
++  <Navbar t={t} lang={lang} />
++  <main>
++    <h1>{t.nav.about}</h1>
++    <p>{lang === 'zh' ? '这是关于页面。' : 'This is the about page.'}</p>
++  </main>
++  <footer>{t.footer.copyright}</footer>
++</Layout>
+diff --git a/src/pages/[lang]/index.astro b/src/pages/[lang]/index.astro
+index 5394ef1..3463527 100644
+--- a/src/pages/[lang]/index.astro
++++ b/src/pages/[lang]/index.astro
+@@ -2,15 +2,18 @@
+ import Layout from '../../layouts/Layout.astro';
+ import Navbar from '../../components/Navbar.astro';
+ import Hero from '../../components/Hero.astro';
++import en from '../../content/i18n/en.json';
++import zh from '../../content/i18n/zh.json';
+ 
+ export function getStaticPaths() {
+   return [{ params: { lang: 'en' } }, { params: { lang: 'zh' } }];
+ }
+ 
+ const { lang } = Astro.params;
++const t = lang === 'zh' ? zh : en;
+ ---
+-<Layout title={lang === 'zh' ? '演示站点' : 'Demo Site'}>
+-  <Navbar />
+-  <Hero lang={lang} />
+-  <footer>保留所有权利 © 2024</footer>
++<Layout title={t.site.title} lang={lang}>
++  <Navbar t={t} lang={lang} />
++  <Hero t={t} />
++  <footer>{t.footer.copyright}</footer>
+ </Layout>

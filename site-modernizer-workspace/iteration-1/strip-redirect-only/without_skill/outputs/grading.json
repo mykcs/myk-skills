@@ -1,0 +1,50 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "without_skill",
+  "status": "completed",
+  "expectations": [
+    {
+      "text": "Identifies files to delete vs keep with rationale",
+      "passed": true,
+      "evidence": "Section 2 has tables of 13 retained files and 303 deleted files by category."
+    },
+    {
+      "text": "Proposes redirect to wangrui2025.github.io",
+      "passed": true,
+      "evidence": "Section 5.2 shows expected dist/index.html containing meta http-equiv=\"refresh\" content=\"0;url=https://wangrui2025.github.io/\"."
+    },
+    {
+      "text": "Includes exact git commands",
+      "passed": true,
+      "evidence": "Section 3.2 has a large git rm -r command listing dozens of paths."
+    },
+    {
+      "text": "Mentions smart-autopush.sh",
+      "passed": true,
+      "evidence": "Section 3.4: 'bash scripts/smart-autopush.sh . \"[BATCH MODE] refactor(mykcs): ...\" done'"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Section 5 has local build verification (npm run build), output inspection, and GitHub Actions verification."
+    },
+    {
+      "text": "Follows skill workflow (ASSESS→CLEAN→REDIRECT→VERIFY)",
+      "passed": false,
+      "evidence": "Plan is organized by target vs delete list, git operations, build verification. Does not explicitly follow ASSESS→CLEAN→REDIRECT→VERIFY workflow."
+    },
+    {
+      "text": "Includes risk assessment",
+      "passed": true,
+      "evidence": "Section 6 has a 5-row risk matrix with levels and mitigation."
+    },
+    {
+      "text": "Handles pre-commit hook context",
+      "passed": true,
+      "evidence": "Section 4 discusses pre-commit hooks and verification commands."
+    }
+  ],
+  "pass_rate": 0.875,
+  "notes": "Good plan (214 lines). Notable: correctly identified the repo was already stripped and adapted. Uses Chinese. Less structured than skill version but covers essentials."
+}

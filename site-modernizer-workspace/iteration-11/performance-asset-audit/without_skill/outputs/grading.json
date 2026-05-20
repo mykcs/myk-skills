@@ -1,0 +1,29 @@
+{
+  "expectations": [
+    {
+      "text": "检测并移除 CDN 字体链接，替换为本地字体方案",
+      "passed": false,
+      "evidence": "CDN font still present"
+    },
+    {
+      "text": "检测并移除 package.json 中未使用的依赖",
+      "passed": false,
+      "evidence": "lodash=True, moment=True, jquery=True"
+    },
+    {
+      "text": "为 fold 以下图片添加 loading=\"lazy\"",
+      "passed": false,
+      "evidence": "eager=4, lazy=0"
+    },
+    {
+      "text": "构建通过",
+      "passed": true,
+      "evidence": "at fetchModule (file:///Users/myk/.npm/_npx/aa98e6899c6baff3/node_modules/vite/dist/node/chunks/config.js:34000:34)\n    at fetchModule (file:///Users/myk/.npm/_npx/aa98e6899c6baff3/node_modules/vite/d"
+    },
+    {
+      "text": "修复后通过 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": "bc4debc init"
+    }
+  ]
+}

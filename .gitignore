@@ -1,0 +1,9 @@
+# OMC state — should not be backed up
+.omc/
+
+# Embedded git repositories — tracked as empty submodule pointers, not useful
+claude-skill-docx-batch/
+frontend-slides/
+publishing-astro-websites/
+publishing-astro-websites-agentic-skill/
+web-access/

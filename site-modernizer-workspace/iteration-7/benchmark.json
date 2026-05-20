@@ -1,0 +1,130 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T20:00:00Z",
+    "evals_run": [
+      "dedup-cv-page",
+      "anti-pattern-scan",
+      "strip-redirect-only",
+      "create-project-page"
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 198.8,
+      "tokens": 58183,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 156.4,
+      "tokens": 52908,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "with_skill",
+      "pass_rate": 0.8,
+      "time_seconds": 282.9,
+      "tokens": 76245,
+      "status": "completed",
+      "source_iteration": "iter-7"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "without_skill",
+      "pass_rate": 0.2,
+      "time_seconds": 261.8,
+      "tokens": 71930,
+      "status": "completed",
+      "source_iteration": "iter-7"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "strip-redirect-only",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 256.6,
+      "tokens": 73269,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "strip-redirect-only",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 111.5,
+      "tokens": 63025,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "create-project-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 161.7,
+      "tokens": 82087,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "create-project-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 89.5,
+      "tokens": 74794,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate_mean": 0.95,
+      "pass_rate_std": 0.1,
+      "time_seconds_mean": 225.0,
+      "time_seconds_std": 56.5,
+      "tokens_mean": 72446,
+      "tokens_std": 8911
+    },
+    "without_skill": {
+      "pass_rate_mean": 0.61,
+      "pass_rate_std": 0.24,
+      "time_seconds_mean": 154.8,
+      "time_seconds_std": 62.4,
+      "tokens_mean": 65664,
+      "tokens_std": 9169
+    },
+    "delta": {
+      "pass_rate": "+0.34",
+      "time_seconds": "+70.2",
+      "tokens": "+6782"
+    }
+  },
+  "notes": [
+    "Eval 1 (dedup-cv-page): with_skill 100% (4/4), baseline 75% (3/4). Skill passes commit assertion. Reused from iter-6.",
+    "Eval 2 (anti-pattern-scan): with_skill 80% (4/5), baseline 20% (1/5). **Key iter-7 improvement**: skill now applies fixes instead of stopping at scan-only mode (8 issues fixed vs baseline's 3 fixes). However, commit assertion still fails for both. with_skill fresh in iter-7; baseline fresh in iter-7.",
+    "Eval 3 (strip-redirect-only): with_skill 100% (4/4), baseline 75% (3/4). Reused from iter-6.",
+    "Eval 4 (create-project-page): with_skill 100% (8/8), baseline 75% (6/8). Reused from iter-6.",
+    "Overall skill mean pass rate: 95.0% across 4 evals (vs 61.0% baseline). Delta of +34% is the largest observed across all iterations, driven by anti-pattern scan fix-application differentiation (+60% delta on that eval alone).",
+    "Anti-pattern scan baseline degraded from 40% (iter-5/6) to 20% (iter-7) because the baseline agent became more conservative — it skipped fixing Gallery.astro format props (component unused) and missed define:vars entirely. This actually increases the skill's relative advantage.",
+    "Commit gap persists in anti-pattern scan: Even with 'MUST offer to apply fixes' instruction, neither with_skill nor baseline commits via smart-autopush.sh. The with_skill agent fixed 8 issues and verified build but explicitly noted 'No automatic commit/push was executed.'"
+  ]
+}

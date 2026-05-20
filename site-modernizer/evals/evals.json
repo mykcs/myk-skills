@@ -1,0 +1,41 @@
+{
+  "skill_name": "site-modernizer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我网站里有重复的 CV 页面：src/pages/cv.astro（纯中文）和 src/pages/[lang]/cv.astro（双语）。帮我清理掉重复的那个，让用户访问 /cv/ 时自动跳转到 /zh/cv/。",
+      "expected_output": "删除 src/pages/cv.astro，在 src/pages/cv.astro 位置添加 Astro.redirect('/zh/cv/', 301)，构建通过",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我之前的旧站 mykcs.github.io 已经不用了，现在主站是 wangrui2025.github.io。我想让 mykcs.github.io 只保留一个重定向到 wangrui2025.github.io，其余内容全部删掉。",
+      "expected_output": "精简仓库为最小重定向结构，保留 Astro 核心构建文件 + 301 重定向页，删除所有论文图片/favicon/文档，构建验证通过并推送到 GitHub",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "给我的新论文 CVPR 2026 OSA 创建一个项目展示页，放在 /osa/，对标 GDKVM 的质量。技术栈 Astro 6 + Tailwind v4，需要中英文双语，包含 Hero、Abstract、Method、Results、BibTeX 几个区块。",
+      "expected_output": "创建 Astro 双语项目页（/osa/en/ + /osa/zh/），Hero 有论文标题作者和 venue 徽章，Abstract 中英对照，Method 有架构图，Results 有定量表格，BibTeX 可复制，构建通过",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "我的 Astro 项目用了好几年了，帮我扫描一下有没有过时的写法或反模式，有问题就修掉。",
+      "expected_output": "扫描并识别 Astro 反模式（Astro.glob、Image format、ViewTransitions、define:vars 等），提出 Content Collections / ClientRouter 等现代替代方案",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "我的双语网站好像有些翻译没同步，帮我检查一下 i18n 有没有问题，把没对齐的修掉。",
+      "expected_output": "检测 i18n 同步问题（硬编码文本、en/zh 键不一致、缺失翻译），修复为中英文内容一致，构建通过",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "我网站加载有点慢，帮我看看有没有性能问题，该优化的优化一下。",
+      "expected_output": "检测性能问题（CDN 字体、未使用依赖、图片无 lazy loading），替换为本地字体/移除未使用依赖/添加 lazy loading，构建通过",
+      "files": []
+    }
+  ]
+}

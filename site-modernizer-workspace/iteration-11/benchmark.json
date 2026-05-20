@@ -1,0 +1,175 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T21:20:00Z",
+    "evals_run": [4, 5, 6],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 1988.6,
+        "tokens": 112406,
+        "tool_calls": 199,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "识别 Astro.glob() 用法并迁移到 Content Collections", "passed": true, "evidence": "Astro.glob=False, import.meta.glob=False"},
+        {"text": "标记 Image format prop 为过时并移除", "passed": true, "evidence": "format= removed"},
+        {"text": "标记 ViewTransitions 为过时并替换为 ClientRouter", "passed": true, "evidence": "ViewTransitions=False, ClientRouter=False"},
+        {"text": "标记 define:vars 在 style 上的反模式并移除", "passed": true, "evidence": "define:vars removed"},
+        {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": true, "evidence": "1e49136 refactor(site): modernize anti-patterns and upgrade Astro to v6"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 742.1,
+        "tokens": 66073,
+        "tool_calls": 45,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "识别 Astro.glob() 用法并迁移到 Content Collections", "passed": true, "evidence": "Astro.glob=False, import.meta.glob=True"},
+        {"text": "标记 Image format prop 为过时并移除", "passed": false, "evidence": "format= still present"},
+        {"text": "标记 ViewTransitions 为过时并替换为 ClientRouter", "passed": true, "evidence": "ViewTransitions=False, ClientRouter=False"},
+        {"text": "标记 define:vars 在 style 上的反模式并移除", "passed": false, "evidence": "define:vars present"},
+        {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": false, "evidence": "0a18c51 chore: initial clean mock repo with anti-patterns"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 914.2,
+        "tokens": 71091,
+        "tool_calls": 75,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "检测组件中的硬编码文本并迁移到 i18n JSON", "passed": true, "evidence": "no hardcoded Chinese"},
+        {"text": "同步 en.json 和 zh.json 键集合，补齐缺失键", "passed": true, "evidence": "en keys: ['footer.backToTop', 'footer.copyright', 'hero.cta', 'hero.subtitle', 'hero.title', 'nav.about', 'nav.contact', 'nav.home']"},
+        {"text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）", "passed": false, "evidence": "conditional rendering found"},
+        {"text": "构建通过", "passed": true, "evidence": "Completed in 51ms"},
+        {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": false, "evidence": "2d144c3 init"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 432.3,
+        "tokens": 54762,
+        "tool_calls": 23,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "检测组件中的硬编码文本并迁移到 i18n JSON", "passed": false, "evidence": "hardcoded found"},
+        {"text": "同步 en.json 和 zh.json 键集合，补齐缺失键", "passed": true, "evidence": "en keys: ['footer.backToTop', 'footer.copyright', 'hero.cta', 'hero.subtitle', 'hero.title', 'nav.about', 'nav.contact', 'nav.home']"},
+        {"text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）", "passed": false, "evidence": "conditional rendering found"},
+        {"text": "构建通过", "passed": true, "evidence": "Completed"},
+        {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": false, "evidence": "2d144c3 init"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 539.0,
+        "tokens": 69915,
+        "tool_calls": 56,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "检测并移除 CDN 字体链接，替换为本地字体方案", "passed": false, "evidence": "CDN font still present"},
+        {"text": "检测并移除 package.json 中未使用的依赖", "passed": false, "evidence": "lodash=True, moment=True, jquery=True"},
+        {"text": "为 fold 以下图片添加 loading=\"lazy\"", "passed": false, "evidence": "eager=4, lazy=0"},
+        {"text": "构建通过", "passed": true, "evidence": "build passed"},
+        {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": true, "evidence": "73b7130 perf(site): optimize images, fonts, and layout for Core Web Vitals"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 845.4,
+        "tokens": 64890,
+        "tool_calls": 45,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "检测并移除 CDN 字体链接，替换为本地字体方案", "passed": false, "evidence": "CDN font still present"},
+        {"text": "检测并移除 package.json 中未使用的依赖", "passed": false, "evidence": "lodash=True, moment=True, jquery=True"},
+        {"text": "为 fold 以下图片添加 loading=\"lazy\"", "passed": false, "evidence": "eager=4, lazy=0"},
+        {"text": "构建通过", "passed": true, "evidence": "build passed"},
+        {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": false, "evidence": "bc4debc init"}
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 0.6667, "stddev": 0.2981, "min": 0.4, "max": 1.0},
+      "time_seconds": {"mean": 1147.27, "stddev": 609.21, "min": 539.0, "max": 1988.6},
+      "tokens": {"mean": 84471.0, "stddev": 17155.0, "min": 69915.0, "max": 112406.0}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.3333, "stddev": 0.1155, "min": 0.2, "max": 0.4},
+      "time_seconds": {"mean": 673.27, "stddev": 164.27, "min": 432.3, "max": 845.4},
+      "tokens": {"mean": 61908.0, "stddev": 5122.0, "min": 54762.0, "max": 66073.0}
+    },
+    "delta": {
+      "pass_rate": "+0.33",
+      "time_seconds": "+474.0",
+      "tokens": "+22563"
+    }
+  },
+  "notes": [
+    "Anti-pattern scan (eval 4): with_skill achieves 5/5 by completely rewriting the page to remove all anti-patterns, while without_skill only fixes 2/5 (misses Image format, define:vars, and smart-autopush).",
+    "i18n sync (eval 5): Both configurations struggle with conditional rendering hardcoded text. with_skill (3/5) migrates most hardcoded strings but leaves lang-switching conditionals. without_skill (2/5) only aligns JSON keys.",
+    "Performance audit (eval 6): Both configurations fail to remove CDN fonts, unused deps, and add lazy loading. with_skill (2/5) defers fonts with media=print and commits via smart-autopush but makes misleading claims in commit message. without_skill (1/5) only builds successfully.",
+    "Skill value is clearest on eval 4 (anti-patterns) with +60% pass rate improvement. Evals 5 and 6 show the skill provides modest gains but shared weaknesses remain.",
+    "Token overhead: with_skill uses ~22k more tokens per run on average, primarily driven by eval 4's exhaustive rewrite (112k tokens, 199 tool calls)."
+  ]
+}

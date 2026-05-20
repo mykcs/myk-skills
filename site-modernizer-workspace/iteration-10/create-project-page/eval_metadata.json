@@ -1,0 +1,47 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-project-page",
+  "prompt": "给我的新论文 CVPR 2026 OSA 创建一个项目展示页，放在 /osa/，对标 GDKVM 的质量。技术栈 Astro 6 + Tailwind v4，需要中英文双语，包含 Hero、Abstract、Method、Results、BibTeX 几个区块。",
+  "assertions": [
+    {
+      "text": "创建 /osa/en/ 和 /osa/zh/ 双语页面",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "Hero 包含论文标题、作者、venue 徽章",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "Abstract 中英对照",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "Method 有架构图或说明",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "Results 有定量表格或展示",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "BibTeX 可复制",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "构建通过",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "使用 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": ""
+    }
+  ]
+}

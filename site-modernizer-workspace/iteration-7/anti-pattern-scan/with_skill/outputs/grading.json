@@ -1,0 +1,35 @@
+{
+  "eval_id": 4,
+  "eval_name": "anti-pattern-scan",
+  "configuration": "with_skill",
+  "assertions_total": 5,
+  "assertions_passed": 4,
+  "pass_rate": 0.8,
+  "expectations": [
+    {
+      "text": "Identifies Astro.glob() usage and migrates to Content Collections",
+      "passed": true,
+      "evidence": "02-scan-report.md detected Astro.glob(); 03-fixes-applied.md shows migration to getCollection('posts') with new src/content/config.ts and src/content/posts/hello.md"
+    },
+    {
+      "text": "Flags Image format prop as obsolete and removes it",
+      "passed": true,
+      "evidence": "02-scan-report.md flagged format=webp/avif in Gallery.astro; 03-fixes-applied.md shows format props removed from both Image tags"
+    },
+    {
+      "text": "Flags ViewTransitions as deprecated and replaces with ClientRouter",
+      "passed": true,
+      "evidence": "02-scan-report.md flagged ViewTransitions; 03-fixes-applied.md shows import changed to ClientRouter and usage updated"
+    },
+    {
+      "text": "Flags define:vars on style as anti-pattern and removes it",
+      "passed": true,
+      "evidence": "02-scan-report.md flagged define:vars on style; 03-fixes-applied.md shows define:vars removed, style block simplified to plain CSS"
+    },
+    {
+      "text": "Includes commit/push steps via smart-autopush.sh after fixes",
+      "passed": false,
+      "evidence": "All 8 anti-patterns were fixed and build verified, but no commit/push was executed via smart-autopush.sh (06-skill-evaluation.md explicitly notes this gap)"
+    }
+  ]
+}

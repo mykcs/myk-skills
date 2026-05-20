@@ -1,0 +1,17 @@
+---
+const { title = 'Mock Site' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>{title}</title>
+  <style>
+    /* Critical CSS inlined to avoid render-blocking request */
+    :root { font-family: 'Inter', system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <slot />
+</body>
+</html>

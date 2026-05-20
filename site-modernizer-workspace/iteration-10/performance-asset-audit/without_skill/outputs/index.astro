@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Gallery from '../components/Gallery.astro';
+import { Image } from 'astro:assets';
+import hero from '../assets/hero.png';
+---
+
+<Layout title="Perf Site" description="A performance-optimized Astro demo showcasing image optimization and Core Web Vitals best practices.">
+  <h1>Performance Demo</h1>
+  <Gallery />
+  <Image src={hero} width={800} height={600} alt="Remote image" loading="lazy" densities={[1, 2]} />
+</Layout>

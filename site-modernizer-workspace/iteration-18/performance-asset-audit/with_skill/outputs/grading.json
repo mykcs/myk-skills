@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Unused dependencies (lodash, moment, jquery) removed",
+      "passed": true,
+      "evidence": "deps: {'@fontsource/inter', 'astro'}"
+    },
+    {
+      "text": "Google Fonts CDN replaced with @fontsource/inter",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Below-the-fold images have loading=lazy and decoding=async",
+      "passed": true,
+      "evidence": "imgs=True lazy=True"
+    },
+    {
+      "text": "Corrupt hero.png replaced with valid image",
+      "passed": true,
+      "evidence": "format: png"
+    },
+    {
+      "text": "Build passes and changes committed",
+      "passed": true,
+      "evidence": "build=True commit=True msg=236c6f7 perf(site): remove unused deps, replace Google Fonts"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  }
+}

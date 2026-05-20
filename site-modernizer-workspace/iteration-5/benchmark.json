@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T19:15:00Z",
+    "evals_run": [
+      "dedup-cv-page",
+      "anti-pattern-scan"
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 198.8,
+      "tokens": 58183,
+      "status": "completed"
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 156.4,
+      "tokens": 52908,
+      "status": "completed"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "with_skill",
+      "pass_rate": 0.8,
+      "time_seconds": 160.0,
+      "tokens": 64777,
+      "status": "completed"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "without_skill",
+      "pass_rate": 0.4,
+      "time_seconds": 180.0,
+      "tokens": 58141,
+      "status": "completed"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate_mean": 0.9,
+      "pass_rate_std": 0.141,
+      "time_seconds_mean": 179.4,
+      "time_seconds_std": 27.4,
+      "tokens_mean": 61480,
+      "tokens_std": 4680
+    },
+    "without_skill": {
+      "pass_rate_mean": 0.575,
+      "pass_rate_std": 0.247,
+      "time_seconds_mean": 168.2,
+      "time_seconds_std": 16.7,
+      "tokens_mean": 55524,
+      "tokens_std": 3699
+    },
+    "delta": {
+      "pass_rate": "+0.325",
+      "time_seconds": "+11.2",
+      "tokens": "+5956"
+    }
+  },
+  "notes": [
+    "Eval 1 (dedup-cv-page): BREAKTHROUGH — with_skill scored 100% (4/4) for the first time. The addition of scripts/smart-autopush.sh to the mock repo fixed the persistent commit gap. Skill used Astro.redirect() + smart-autopush.sh; baseline used meta-refresh and skipped commit.",
+    "Eval 2 (anti-pattern-scan): NEW EVAL — with_skill scored 80% (4/5), baseline 40% (2/5). Skill correctly identified all 4 target anti-patterns (Astro.glob, Image format, ViewTransitions, define:vars) and applied Content Collections replacement. Baseline identified issues but proposed import.meta.glob() instead of Content Collections and retained define:vars.",
+    "Skill speed: with_skill was faster on anti-pattern (-20s) due to structured SCAN checklist; slower on dedup (+42s) due to full ASSESS→CLEAN→REDIRECT→VERIFY workflow vs baseline's direct approach.",
+    "Remaining gap: Both versions skipped commit on anti-pattern scan. The SCAN workflow in SKILL.md doesn't explicitly mandate commit after fixes — potential enhancement for iter-6."
+  ]
+}

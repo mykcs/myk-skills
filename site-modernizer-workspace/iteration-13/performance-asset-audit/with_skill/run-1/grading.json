@@ -1,0 +1,17 @@
+{
+  "eval_id": 6,
+  "configuration": "with_skill",
+  "result": {
+    "pass_rate": 0.4,
+    "passed": 2,
+    "failed": 3,
+    "total": 5
+  },
+  "expectations": [
+    {"text": "检测并移除 CDN 字体链接，替换为本地字体方案", "passed": true, "evidence": "CDN links removed from Layout.astro, @fontsource/inter imports added (but package not installed)"},
+    {"text": "检测并移除 package.json 中未使用的依赖", "passed": false, "evidence": "lodash, moment, jquery still present in package.json"},
+    {"text": "为 fold 以下图片添加 loading=\"lazy\"", "passed": true, "evidence": "Gallery thumbnails and remote img both have loading=lazy decoding=async"},
+    {"text": "构建通过", "passed": false, "evidence": "build would fail: @fontsource/inter package not installed, import cannot resolve"},
+    {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": false, "evidence": "no commit, changes remain unstaged in working tree"}
+  ]
+}

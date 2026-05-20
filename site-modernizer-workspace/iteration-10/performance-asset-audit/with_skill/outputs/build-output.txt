@@ -1,0 +1,36 @@
+=== Build Output (After Fixes) ===
+
+> mock-perf-site@1.0.0 build
+> astro build
+
+20:29:52 [content] Syncing content
+20:29:52 [content] Synced content
+20:29:52 [types] Generated 287ms
+20:29:52 [build] output: "static"
+20:29:52 [build] mode: "static"
+20:29:52 [build] directory: dist/
+20:29:52 [build] Collecting build info...
+20:29:52 [build] Completed in 413ms.
+20:29:52 [build] Building static entrypoints...
+20:29:54 [vite] built in 1.88s
+20:29:54 [build] Completed in 2.05s.
+
+ generating static routes 
+20:29:54 ▶ src/pages/index.astro
+20:29:54   └─ /index.html (+32ms)
+20:29:54 ✓ Completed in 54ms.
+
+ generating optimized images 
+20:29:54   ▶ /_astro/hero.CC5awQv4_Z1B1erV.webp (reused cache entry) (+4ms) (1/3)
+20:29:54   ▶ /_astro/hero.CC5awQv4_6RVp8.webp (reused cache entry) (+3ms) (2/3)
+20:29:54   ▶ /_astro/hero.CC5awQv4_Z1jSdJ8.webp (reused cache entry) (+2ms) (3/3)
+20:29:54 ✓ Completed in 11ms.
+
+20:29:54 [build] 1 page(s) built in 2.55s
+20:29:54 [build] Complete!
+
+=== astro check ===
+Result (3 files):
+- 0 errors
+- 0 warnings
+- 0 hints

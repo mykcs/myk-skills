@@ -1,0 +1,11 @@
+---
+const lang = Astro.params.lang || 'zh';
+import en from '../content/i18n/en.json';
+import zh from '../content/i18n/zh.json';
+const t = lang === 'zh' ? zh : en;
+---
+<nav class="navbar">
+  <a href="/">{t.nav.home}</a>
+  <a href="/about/">{t.nav.about}</a>
+  <span>{lang === 'zh' ? '当前语言: ' : 'Language: '}{lang}</span>
+</nav>

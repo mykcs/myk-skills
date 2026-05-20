@@ -1,0 +1,15 @@
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static',
+  site: 'https://example.com',
+  image: {
+    service: { entrypoint: 'astro/assets/services/sharp' },
+    formats: ['avif', 'webp'],
+  },
+  i18n: {
+    locales: ['en', 'zh'],
+    defaultLocale: 'zh',
+    prefixDefaultLocale: false,
+  },
+});

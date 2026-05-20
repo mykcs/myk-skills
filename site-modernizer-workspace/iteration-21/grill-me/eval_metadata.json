@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "grill-me-demo",
+  "prompt": "Use the grill-me skill to interview yourself about the following plan: 'I want to create a personal website with Astro'. Ask one question at a time about goals, audience, and technical constraints.",
+  "assertions": []
+}

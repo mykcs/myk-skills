@@ -1,0 +1,35 @@
+{
+  "eval_id": 2,
+  "eval_name": "anti-pattern-scan",
+  "configuration": "with_skill",
+  "assertions_total": 5,
+  "assertions_passed": 4,
+  "pass_rate": 0.8,
+  "expectations": [
+    {
+      "text": "Identifies Astro.glob() usage and proposes Content Collections replacement",
+      "passed": true,
+      "evidence": "scan-report.txt detected Astro.glob(); terminal-output: Created src/content/config.ts and replaced with getCollection('posts')"
+    },
+    {
+      "text": "Flags Image format prop as obsolete",
+      "passed": true,
+      "evidence": "scan-report.txt detected format=\"webp\" and format=\"avif\"; terminal-output: Removed format attr from <Image/> tags"
+    },
+    {
+      "text": "Flags ViewTransitions as deprecated (should use ClientRouter)",
+      "passed": true,
+      "evidence": "scan-report.txt detected ViewTransitions import; terminal-output: Replaced ViewTransitions with ClientRouter"
+    },
+    {
+      "text": "Flags define:vars on style as anti-pattern",
+      "passed": true,
+      "evidence": "scan-report.txt detected define:vars on <style>; terminal-output: Replaced define:vars with CSS custom property"
+    },
+    {
+      "text": "Includes commit/push steps via smart-autopush.sh",
+      "passed": false,
+      "evidence": "terminal-output shows ASSESS → SCAN → CLEAN+FIX → VERIFY but no commit step mentioned"
+    }
+  ]
+}

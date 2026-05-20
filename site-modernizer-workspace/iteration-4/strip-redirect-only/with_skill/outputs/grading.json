@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "with_skill",
+  "assertions_total": 4,
+  "assertions_passed": 4,
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "Identifies files to keep vs delete",
+      "passed": true,
+      "evidence": "File-by-file verdict table: Keep/Delete for each of 12 tracked/untracked items"
+    },
+    {
+      "text": "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+      "passed": true,
+      "evidence": "Static index.html with meta http-equiv=refresh + JS location.replace() + canonical link"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Step 6 Verify includes git ls-files check, HTML validation, workflow syntax check, and git log verification"
+    },
+    {
+      "text": "Includes commit/push steps",
+      "passed": true,
+      "evidence": "Step 5 uses smart-autopush.sh with semantic message 'refactor(site): replace Astro with static redirect-only index.html'"
+    }
+  ]
+}

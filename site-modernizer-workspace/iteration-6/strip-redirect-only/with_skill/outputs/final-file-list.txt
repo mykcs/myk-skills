@@ -1,0 +1,5 @@
+./.gitignore
+./astro.config.mjs
+./package-lock.json
+./package.json
+./src/pages/index.astro

@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "with_skill",
+  "assertions_total": 4,
+  "assertions_passed": 4,
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "Identifies files to keep vs delete",
+      "passed": true,
+      "evidence": "Lists current HEAD files (10 files) and untracked artifacts to delete (node_modules, .DS_Store)"
+    },
+    {
+      "text": "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+      "passed": true,
+      "evidence": "Current state uses Astro.redirect(); offers optional pure HTML meta-refresh in Phase 3"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Phase 2 includes npm run build and cat dist/index.html verification"
+    },
+    {
+      "text": "Includes commit/push steps",
+      "passed": true,
+      "evidence": "Phase 1 has git commit; Phase 4 has smart-autopush.sh with semantic message"
+    }
+  ]
+}

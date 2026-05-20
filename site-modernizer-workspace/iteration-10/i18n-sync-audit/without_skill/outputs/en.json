@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "currentLang": "Current language: {lang}"
+  },
+  "hero": {
+    "title": "Welcome",
+    "subtitle": "This is a demo site",
+    "cta": "Get Started"
+  },
+  "footer": {
+    "copyright": "All rights reserved © 2024"
+  },
+  "site": {
+    "title": "Demo Site"
+  }
+}

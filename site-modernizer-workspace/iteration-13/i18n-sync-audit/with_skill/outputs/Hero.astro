@@ -1,0 +1,8 @@
+---
+const { lang } = Astro.props;
+---
+<section class="hero">
+  <h1>{lang === 'zh' ? '欢迎' : 'Welcome'}</h1>
+  <p>这是一个演示网站</p>
+  <button>立即开始</button>
+</section>

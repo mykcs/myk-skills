@@ -1,0 +1,50 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "with_skill",
+  "status": "completed",
+  "expectations": [
+    {
+      "text": "Identifies files to delete vs keep with rationale",
+      "passed": true,
+      "evidence": "Section 1.2 has a table of all 13 tracked files with Keep/Delete rationale. Section 2.1 has a Keep vs Delete Matrix."
+    },
+    {
+      "text": "Proposes redirect to wangrui2025.github.io",
+      "passed": true,
+      "evidence": "Section 3.3 provides static index.html with meta http-equiv=\"refresh\" content=\"0;url=https://wangrui2025.github.io/\"."
+    },
+    {
+      "text": "Includes exact git commands",
+      "passed": true,
+      "evidence": "Section 5 has exact git commands organized in 8 phases from checkout through push."
+    },
+    {
+      "text": "Mentions smart-autopush.sh",
+      "passed": true,
+      "evidence": "Phase 7: 'bash /Users/myk/Repo/mykcs/scripts/smart-autopush.sh ...'. Also mentioned in VERIFY checklist."
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Section 4 has a 5-item pre-push checklist and 4 build verification commands (validate HTML, check tracked cruft, curl target, post-push git diff)."
+    },
+    {
+      "text": "Follows skill workflow (ASSESS→CLEAN→REDIRECT→VERIFY)",
+      "passed": true,
+      "evidence": "Plan is explicitly structured with sections 1.ASSESS, 2.CLEAN, 3.REDIRECT, 4.VERIFY, plus metadata table citing 'site-modernizer (ASSESS → CLEAN → REDIRECT → VERIFY)'."
+    },
+    {
+      "text": "Includes risk assessment",
+      "passed": true,
+      "evidence": "Section 7 has a 7-row risk matrix with Likelihood/Impact/Mitigation columns."
+    },
+    {
+      "text": "Handles pre-commit hook context",
+      "passed": true,
+      "evidence": "Section 1.4 discusses pre-commit hook that blocks .DS_Store/node_modules, and Section 2.3 explains how deletions via git rm --cached won't trigger it."
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "Excellent plan. 479 lines, comprehensive, follows skill workflow exactly, includes simplified deploy.yml, rollback plan, and final expected repo state."
+}

@@ -1,0 +1,17 @@
+{
+  "eval_id": 5,
+  "configuration": "without_skill",
+  "result": {
+    "pass_rate": 0.0,
+    "passed": 0,
+    "failed": 5,
+    "total": 5
+  },
+  "expectations": [
+    {"text": "检测组件中的硬编码文本并迁移到 i18n JSON", "passed": false, "evidence": "agent stalled, no outputs produced, mock-repo unchanged"},
+    {"text": "同步 en.json 和 zh.json 键集合，补齐缺失键", "passed": false, "evidence": "agent stalled, no outputs produced"},
+    {"text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）", "passed": false, "evidence": "agent stalled, no outputs produced"},
+    {"text": "构建通过", "passed": false, "evidence": "agent stalled, no build attempted"},
+    {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": false, "evidence": "agent stalled, no commit"}
+  ]
+}

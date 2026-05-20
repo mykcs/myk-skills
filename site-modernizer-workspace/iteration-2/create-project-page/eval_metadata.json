@@ -1,0 +1,15 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-project-page",
+  "prompt": "给我的新论文 CVPR 2026 OSA 创建一个项目展示页，放在 /osa/，对标 GDKVM 的质量。技术栈 Astro 6 + Tailwind v4，需要中英文双语，包含 Hero、Abstract、Method、Results、BibTeX 几个区块。",
+  "assertions": [
+    "Proposes bilingual structure (en/zh)",
+    "Includes Hero/Abstract/Method/Results/BibTeX sections",
+    "Mentions oklch colors",
+    "Includes build verification",
+    "Uses Astro 6 + Tailwind v4",
+    "Mirrors gdkvm quality/patterns",
+    "Includes asset sourcing plan",
+    "Includes risk statement and user action items"
+  ]
+}

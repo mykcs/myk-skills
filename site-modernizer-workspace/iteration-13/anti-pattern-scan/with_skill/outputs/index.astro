@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+<Layout>
+  <h1>Old Site</h1>
+  <ul>
+    {posts.map((p: any) => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
+  </ul>
+</Layout>
+
+<style>
+  h1 { color: #3b82f6; }
+</style>

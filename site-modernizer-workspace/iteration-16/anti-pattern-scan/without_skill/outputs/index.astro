@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ViewTransitions } from 'astro:transitions';
+
+const posts = import.meta.glob('./posts/*.md', { eager: true });
+const themeColor = '#3b82f6';
+---
+
+<Layout title="Old Site">
+  <ViewTransitions />
+  <h1>Old Site</h1>
+  <ul>
+    {Object.values(posts).map((p: any) => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
+  </ul>
+</Layout>
+
+<style define:vars={{ themeColor }}>
+  h1 { color: var(--themeColor); }
+</style>

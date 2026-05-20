@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "en.json and zh.json have identical key sets",
+      "passed": true,
+      "evidence": "en=3 zh=3 match=True"
+    },
+    {
+      "text": "All lang === conditionals eliminated",
+      "passed": false,
+      "evidence": "grep: src/components/Hero.astro:6:const t = lang === 'zh' ? zh : en;\nsrc/components/Navbar.astro:6:const t = lang === 'zh' ? zh : en;\nsrc/components/Navbar.astro:11:  <span>{lang === 'zh' ? '当前语言' : 'Language'}: {lang}</span>\nsrc/pages/[lang]/index.astro:13:const t = lang === 'zh' ? zh : en;\nsrc/pages/[lang]/index.astro:15:<Layout title={lang === 'zh' ? '演示站点' : 'Demo Site'} lang={lang}>"
+    },
+    {
+      "text": "All hardcoded UI text replaced with t() calls",
+      "passed": true,
+      "evidence": "Chinese chars: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": true,
+      "evidence": "build returned 0"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": true,
+      "evidence": "latest: 1ac481f fix(i18n): replace hardcoded text with t() calls, sync en.json/zh.json k"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8,
+    "passed": 4,
+    "failed": 1,
+    "total": 5
+  }
+}

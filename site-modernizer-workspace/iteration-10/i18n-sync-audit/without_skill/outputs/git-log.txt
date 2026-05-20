@@ -1,0 +1,2 @@
+d4f9b0e fix(i18n): sync en/zh translations and remove hardcoded strings
+2d144c3 init

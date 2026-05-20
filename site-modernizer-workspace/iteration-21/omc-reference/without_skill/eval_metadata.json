@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "omc-reference-lookup",
+  "prompt": "Use the omc-reference skill to look up the 'executor' agent and describe its role, tools, and typical use cases. Summarize in 3 sentences.",
+  "assertions": []
+}

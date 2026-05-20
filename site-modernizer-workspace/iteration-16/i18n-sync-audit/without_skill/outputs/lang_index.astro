@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Hero from '../../components/Hero.astro';
+import en from '../../content/i18n/en.json';
+import zh from '../../content/i18n/zh.json';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'zh' } }];
+}
+
+const { lang } = Astro.params;
+const t = lang === 'zh' ? zh : en;
+---
+<Layout title={lang === 'zh' ? '演示站点' : 'Demo Site'} lang={lang}>
+  <Navbar lang={lang} />
+  <Hero lang={lang} />
+  <footer>{t.footer.copyright} © 2024</footer>
+</Layout>

@@ -1,0 +1,11 @@
+{
+  "name": "old-academic-site",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "astro build"
+  },
+  "dependencies": {
+    "astro": "^6.1.0"
+  }
+}

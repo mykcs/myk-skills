@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "en.json and zh.json have identical key sets",
+      "passed": true,
+      "evidence": "en=5 zh=5 match=True"
+    },
+    {
+      "text": "All lang === conditionals eliminated",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "All hardcoded UI text replaced with t() calls",
+      "passed": true,
+      "evidence": "Chinese chars: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": true,
+      "evidence": "build returned 0"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": true,
+      "evidence": "latest: 1c7cfe9 fix(i18n): sync bilingual translations and eliminate hardcoded text"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  },
+  "timing": {
+    "total_tokens": 71768,
+    "tool_uses": 57,
+    "duration_ms": 606364,
+    "total_duration_seconds": 606.4
+  },
+  "execution_metrics": {
+    "total_tool_calls": 57,
+    "output_chars": 0,
+    "errors_encountered": 0
+  }
+}

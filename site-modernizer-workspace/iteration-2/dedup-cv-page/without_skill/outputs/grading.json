@@ -1,0 +1,30 @@
+{
+  "eval_id": 1,
+  "eval_name": "dedup-cv-page",
+  "configuration": "without_skill",
+  "status": "completed",
+  "expectations": [
+    {
+      "text": "Mentions deleting src/pages/cv.astro",
+      "passed": true,
+      "evidence": "步骤 1 explicitly states '删除重复页面 `src/pages/cv.astro`' with `rm src/pages/cv.astro`."
+    },
+    {
+      "text": "Proposes redirect from /cv/ to /zh/cv/",
+      "passed": true,
+      "evidence": "步骤 2 creates a redirect page with `return Astro.redirect('/zh/cv/')` in frontmatter."
+    },
+    {
+      "text": "Includes build verification steps",
+      "passed": true,
+      "evidence": "步骤 3 '验证构建输出' with `npm run build` and checklist for dist files. 步骤 4 '验证重定向行为' with curl tests."
+    },
+    {
+      "text": "Uses Conventional Commits for commit message",
+      "passed": false,
+      "evidence": "Plan does not include a commit step or any commit message. Ends at '验收标准'."
+    }
+  ],
+  "pass_rate": 0.75,
+  "notes": "Well-structured 173-line Chinese plan with detailed comparison table, risk matrix, and rollback command. Missing commit step."
+}

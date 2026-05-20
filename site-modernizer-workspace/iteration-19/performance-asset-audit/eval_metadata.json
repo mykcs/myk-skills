@@ -1,0 +1,12 @@
+{
+  "eval_id": 6,
+  "eval_name": "performance-asset-audit",
+  "prompt": "我网站加载有点慢，帮我看看有没有性能问题，该优化的优化一下。",
+  "assertions": [
+    "Unused dependencies (lodash, moment, jquery) removed",
+    "Google Fonts CDN replaced with @fontsource/inter",
+    "Below-the-fold images have loading=lazy and decoding=async",
+    "Corrupt hero.png replaced with valid image",
+    "Build passes and changes committed"
+  ]
+}

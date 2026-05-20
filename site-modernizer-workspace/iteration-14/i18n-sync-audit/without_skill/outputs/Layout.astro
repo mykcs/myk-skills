@@ -1,0 +1,13 @@
+---
+const { title = 'Mock Site' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang={Astro.props.lang || 'zh'}>
+<head>
+  <meta charset="UTF-8">
+  <title>{title}</title>
+</head>
+<body>
+  <slot />
+</body>
+</html>

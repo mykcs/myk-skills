@@ -1,0 +1,130 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T20:00:00Z",
+    "evals_run": [
+      "dedup-cv-page",
+      "anti-pattern-scan",
+      "strip-redirect-only",
+      "create-project-page"
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 198.8,
+      "tokens": 58183,
+      "status": "completed",
+      "source_iteration": "iter-5"
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 156.4,
+      "tokens": 52908,
+      "status": "completed",
+      "source_iteration": "iter-5"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "with_skill",
+      "pass_rate": 0.8,
+      "time_seconds": 312.6,
+      "tokens": 71603,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "anti-pattern-scan",
+      "configuration": "without_skill",
+      "pass_rate": 0.4,
+      "time_seconds": 180.0,
+      "tokens": 58141,
+      "status": "completed",
+      "source_iteration": "iter-5"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "strip-redirect-only",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 256.6,
+      "tokens": 73269,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "strip-redirect-only",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 111.5,
+      "tokens": 63025,
+      "status": "completed",
+      "source_iteration": "iter-6"
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "create-project-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 161.7,
+      "tokens": 82087,
+      "status": "completed",
+      "source_iteration": "iter-4"
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "create-project-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 89.5,
+      "tokens": 74794,
+      "status": "completed",
+      "source_iteration": "iter-4"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate_mean": 0.95,
+      "pass_rate_std": 0.1,
+      "time_seconds_mean": 232.4,
+      "time_seconds_std": 66.1,
+      "tokens_mean": 71285,
+      "tokens_std": 9709
+    },
+    "without_skill": {
+      "pass_rate_mean": 0.66,
+      "pass_rate_std": 0.17,
+      "time_seconds_mean": 134.4,
+      "time_seconds_std": 37.8,
+      "tokens_mean": 62217,
+      "tokens_std": 8671
+    },
+    "delta": {
+      "pass_rate": "+0.29",
+      "time_seconds": "+98.0",
+      "tokens": "+9068"
+    }
+  },
+  "notes": [
+    "Eval 1 (dedup-cv-page): with_skill 100% (4/4), baseline 75% (3/4). Skill finally passes commit assertion thanks to scripts/smart-autopush.sh in mock repo. Reused from iter-5.",
+    "Eval 2 (anti-pattern-scan): with_skill 80% (4/5), baseline 40% (2/5). Extended SCAN checklist (Sections 5.1-5.8) produced more thorough scan but agent operated in scan-only mode without applying fixes, so commit assertion still fails. with_skill re-run in iter-6; baseline reused from iter-5.",
+    "Eval 3 (strip-redirect-only): with_skill 100% (4/4), baseline 75% (3/4). Skill correctly used git rm, meta-refresh redirect, build verification, and Conventional Commits. Baseline skipped commit. Both runs fresh in iter-6.",
+    "Eval 4 (create-project-page): with_skill 100% (8/8), baseline 75% (6/8). Unchanged from iter-4 — skill continues to produce oklch colors, gdkvm mirroring, and comprehensive plan. Reused from iter-4.",
+    "Overall skill mean pass rate: 95.0% across 4 evals (vs 66.0% baseline). Delta of +29% is the largest observed across all iterations, driven by dedup commit fix and anti-pattern scan differentiation.",
+    "Skill time overhead increased (+98s avg) due to extended SCAN checklist and structured workflow. The overhead buys correctness but may need optimization if speed is a concern.",
+    "Anti-pattern scan commit gap persists: When user says 'scan', agent interprets as scan-only and does not apply fixes. Consider changing the eval prompt to 'scan and fix' or adding stronger 'apply fixes' instruction to the SCAN workflow."
+  ]
+}

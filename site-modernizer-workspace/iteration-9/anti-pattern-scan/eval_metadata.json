@@ -1,0 +1,12 @@
+{
+  "eval_id": 4,
+  "eval_name": "anti-pattern-scan",
+  "prompt": "我的 Astro 项目用了好几年了，帮我扫描一下有没有过时的写法或反模式，有问题就修掉。",
+  "assertions": [
+    "Identifies Astro.glob() usage and migrates to Content Collections",
+    "Flags Image format prop as obsolete and removes it",
+    "Flags ViewTransitions as deprecated and replaces with ClientRouter",
+    "Flags define:vars on style as anti-pattern and removes it",
+    "Includes commit/push steps via smart-autopush.sh after fixes"
+  ]
+}

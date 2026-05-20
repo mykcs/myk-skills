@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "claude-api-hello",
+  "prompt": "Write a minimal Claude API script at /tmp/claude-hello.ts that sends a simple 'Hello' message and prints the response. Use the anthropic SDK with proper imports. Include prompt caching if possible.",
+  "assertions": []
+}

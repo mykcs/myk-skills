@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Replaced deprecated Astro.glob with import.meta.glob",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Replaced deprecated ViewTransitions with ClientRouter",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Removed deprecated format prop from Image component",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": true,
+      "evidence": "build returned 0"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": false,
+      "evidence": "latest: 12faeea initial mock repo"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8,
+    "passed": 4,
+    "failed": 1,
+    "total": 5
+  },
+  "timing": {
+    "total_tokens": 59918,
+    "tool_uses": 26,
+    "duration_ms": 278909,
+    "total_duration_seconds": 278.9
+  },
+  "execution_metrics": {
+    "total_tool_calls": 26,
+    "output_chars": 0,
+    "errors_encountered": 0
+  }
+}

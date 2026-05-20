@@ -1,0 +1,21 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import en from '../../content/i18n/en.json';
+import zh from '../../content/i18n/zh.json';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'zh' } }];
+}
+
+const { lang } = Astro.params;
+const t = lang === 'zh' ? zh : en;
+---
+<Layout title={t.site.title} lang={lang}>
+  <Navbar t={t} lang={lang} />
+  <main>
+    <h1>{t.nav.about}</h1>
+    <p>{lang === 'zh' ? '这是关于页面。' : 'This is the about page.'}</p>
+  </main>
+  <footer>{t.footer.copyright}</footer>
+</Layout>

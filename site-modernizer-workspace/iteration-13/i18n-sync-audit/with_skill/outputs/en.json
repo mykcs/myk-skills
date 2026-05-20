@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "Welcome",
+    "subtitle": "This is a demo site",
+    "cta": "Get Started"
+  },
+  "footer": {
+    "copyright": "All rights reserved",
+    "backToTop": "Back to Top"
+  }
+}

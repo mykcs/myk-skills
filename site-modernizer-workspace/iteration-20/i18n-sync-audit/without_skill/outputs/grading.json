@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "en.json and zh.json have identical key sets",
+      "passed": true,
+      "evidence": "en=3 zh=3 match=True"
+    },
+    {
+      "text": "All lang === conditionals eliminated",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "All hardcoded UI text replaced with t() calls",
+      "passed": true,
+      "evidence": "Chinese chars: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": true,
+      "evidence": "build returned 0"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": true,
+      "evidence": "latest: ec88354 chore(git): add .gitignore to exclude node_modules, dist, .astro\n765d20b fix(i18n): sync en/zh keys, replace conditional rendering with t() calls, add i18n utils\n1078552 initial mock repo (with anti-patterns)"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  }
+}

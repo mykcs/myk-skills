@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=https://wangrui2025.github.io">
+  <link rel="canonical" href="https://wangrui2025.github.io">
+  <title>Redirecting...</title>
+</head>
+<body>
+  <p>This site has moved to <a href="https://wangrui2025.github.io">wangrui2025.github.io</a>.</p>
+</body>
+</html>

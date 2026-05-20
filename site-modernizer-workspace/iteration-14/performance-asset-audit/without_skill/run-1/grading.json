@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Unused dependencies (lodash, moment, jquery) removed",
+      "passed": true,
+      "evidence": "deps: {'astro'}"
+    },
+    {
+      "text": "Google Fonts CDN replaced with @fontsource/inter",
+      "passed": true,
+      "evidence": "grep result: src/layouts/Layout.astro:12:  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\nsrc/layouts/Layout.astro:13:  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\nsrc/layouts/Layout.astro:14:  <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\">"
+    },
+    {
+      "text": "Below-the-fold images have loading=lazy and decoding=async",
+      "passed": true,
+      "evidence": "images found: True, lazy found: True"
+    },
+    {
+      "text": "Corrupt hero.png replaced with valid image",
+      "passed": false,
+      "evidence": "hero.png is PNG: False"
+    },
+    {
+      "text": "Build passes and changes committed",
+      "passed": false,
+      "evidence": "build: False, commit: True, msg: 8ac6afd init"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.6,
+    "passed": 3,
+    "failed": 2,
+    "total": 5
+  },
+  "timing": {
+    "total_tokens": 62697,
+    "tool_uses": 21,
+    "duration_ms": 228807,
+    "total_duration_seconds": 228.8
+  },
+  "execution_metrics": {
+    "total_tool_calls": 21,
+    "output_chars": 0,
+    "errors_encountered": 0
+  }
+}

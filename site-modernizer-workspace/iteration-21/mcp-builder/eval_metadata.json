@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "mcp-builder-simple",
+  "prompt": "Create a minimal MCP server at /tmp/demo-mcp-server.js that has one tool called 'hello' that returns 'Hello from MCP'. Include proper manifest structure. Use Node.js and export the server.",
+  "assertions": []
+}

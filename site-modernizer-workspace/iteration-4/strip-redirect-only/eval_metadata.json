@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "prompt": "我之前的旧站 mykcs.github.io 已经不用了，现在主站是 wangrui2025.github.io。我想让 mykcs.github.io 只保留一个重定向到 wangrui2025.github.io，其余内容全部删掉。",
+  "assertions": [
+    "Identifies files to keep vs delete",
+    "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+    "Includes build verification",
+    "Includes commit/push steps"
+  ]
+}

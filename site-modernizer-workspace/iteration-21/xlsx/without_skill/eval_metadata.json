@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "xlsx-create",
+  "prompt": "Create a simple XLSX spreadsheet at /tmp/demo.xlsx with a header row 'Name,Score' and two data rows. Use openpyxl or xlsxwriter.",
+  "assertions": []
+}

@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "docx-create",
+  "prompt": "Create a simple DOCX document at /tmp/demo.docx with a title 'Test Document' and one paragraph of text. Use python-docx or docx npm package.",
+  "assertions": []
+}

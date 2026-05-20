@@ -1,0 +1,31 @@
+============================================================
+i18n Sync Audit Report
+============================================================
+
+Total EN keys: 5
+Total ZH keys: 8
+
+--- Missing in EN (present in ZH) ---
+  footer.backToTop: "返回顶部"
+  hero.cta: "立即开始"
+  nav.contact: "联系我们"
+
+--- Missing in ZH (present in EN) ---
+  (none)
+
+--- Shared keys (5) ---
+  footer.copyright
+    EN: "All rights reserved"
+    ZH: "保留所有权利"
+  hero.subtitle
+    EN: "This is a demo site"
+    ZH: "这是一个演示网站"
+  hero.title
+    EN: "Welcome"
+    ZH: "欢迎"
+  nav.about
+    EN: "About"
+    ZH: "关于"
+  nav.home
+    EN: "Home"
+    ZH: "首页"

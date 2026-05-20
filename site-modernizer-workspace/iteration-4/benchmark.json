@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T20:30:00Z",
+    "evals_run": [
+      "dedup-cv-page",
+      "strip-redirect-only",
+      "create-project-page"
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "with_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 83.4,
+      "tokens": 57445,
+      "status": "completed"
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 72.9,
+      "tokens": 55014,
+      "status": "completed"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "strip-redirect-only",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 76.9,
+      "tokens": 65006,
+      "status": "completed"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "strip-redirect-only",
+      "configuration": "without_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 115.0,
+      "tokens": 60926,
+      "status": "completed"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "create-project-page",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 161.7,
+      "tokens": 82087,
+      "status": "completed"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "create-project-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 89.5,
+      "tokens": 74794,
+      "status": "completed"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate_mean": 0.917,
+      "pass_rate_std": 0.118,
+      "time_seconds_mean": 107.3,
+      "time_seconds_std": 38.5,
+      "tokens_mean": 68179,
+      "tokens_std": 10307
+    },
+    "without_skill": {
+      "pass_rate_mean": 0.833,
+      "pass_rate_std": 0.118,
+      "time_seconds_mean": 92.5,
+      "time_seconds_std": 17.3,
+      "tokens_mean": 63578,
+      "tokens_std": 8290
+    },
+    "delta": {
+      "pass_rate": "+0.084",
+      "time_seconds": "+14.8",
+      "tokens": "+4601"
+    }
+  },
+  "notes": [
+    "Eval 1 (dedup-cv-page): Both versions scored 75% (3/4). Skill used Astro.redirect() frontmatter; baseline used astro.config.mjs redirects. Both still missing commit step despite iter-4 SKILL.md strengthening and git-initialized mock repo.",
+    "Eval 2 (strip-redirect-only): Both versions scored 100%. Skill version faster (-38s) with structured file-verdict table and smart-autopush.sh. Baseline included useful backup branch + 404.html for deep links.",
+    "Eval 3 (create-project-page): BREAKTHROUGH — Skill scored 100% (8/8), baseline 75% (6/8). First run to ever pass oklch colors assertion. Plan included detailed oklch @theme tokens, extensive gdkvm pattern mirroring (Layout, i18n helper, highlight-title animation, service worker), and Playwright E2E tests.",
+    "Key improvement from iter-3: create-project-page with-skill improved from 87.5% to 100%. The oklch MANDATORY instruction and stronger gdkvm pattern reference in SKILL.md are working.",
+    "Pass rate delta doubled from +4.2% (iter-3) to +8.4% (iter-4), driven entirely by the create-project-page skill improvement.",
+    "Persistent gap: Conventional Commits on mock repo — both dedup-cv-page versions skip commit. Agents may deprioritize commit when they detect no smart-autopush.sh script in the mock repo, despite SKILL.md instruction to include commit commands even in hypothetical plans."
+  ]
+}

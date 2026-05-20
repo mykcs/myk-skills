@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "site-modernizer", "runs": [{"id": "anti-pattern-scan-with_skill", "prompt": "\u6211\u7684 Astro \u9879\u76ee\u7528\u4e86\u597d\u51e0\u5e74\u4e86\uff0c\u5e2e\u6211\u626b\u63cf\u4e00\u4e0b\u6709\u6ca1\u6709\u8fc7\u65f6\u7684\u5199\u6cd5\u6216\u53cd\u6a21\u5f0f\uff0c\u6709\u95ee\u9898\u5c31\u4fee\u6389\u3002", "eval_id": 4, "outputs": [{"name": "01-assessment.md", "type": "text", "content": "# Site Modernizer Assessment Report\n\n## Project Info\n- **Path**: /tmp/site-modernizer-test-repo\n- **Framework**: Astro 5.x\n- **Build**: static output\n- **i18n**: en, zh (default: zh, prefixDefaultLocale: false)\n- **Tailwind**: v3.4 with @astrojs/tailwind\n\n## Files Scanned\n| File | Purpose |\n|------|---------|\n| astro.config.mjs | Framework config |\n| package.json | Dependencies |\n| src/components/Gallery.astro | Image gallery component |\n| src/layouts/Layout.astro | Base layout |\n| src/pages/index.astro | Homepage |\n\n## Anti-Patterns Detected (Pre-Fix)\n\n### P0 \u2014 Astro 6.x Convergence\n1. **Astro.glob()** in `src/pages/index.astro` (line 5) \u2014 deprecated, should use Content Collections\n2. **`<Image format=\"...\">`** in `src/components/Gallery.astro` (lines 7-8) \u2014 `format=\"webp\"` and `format=\"avif\"` should be removed; Astro 6 / Sharp auto-optimizes\n3. **`ViewTransitions`** import in `src/pages/index.astro` (line 3) \u2014 deprecated in Astro 4+, should use `ClientRouter`\n4. **`define:vars` on `<style>`** in `src/pages/index.astro` (line 21) \u2014 should use CSS custom properties instead\n\n### P1 \u2014 Routing & SEO\n5. **Root `<html>` wrapper** in `src/pages/index.astro` (lines 9-19) \u2014 Layout already emits `<html>`, causing nested/duplicate `<html>` tags\n6. **Missing SEO meta tags** \u2014 no `og:title`, `og:description`, canonical URL, or `theme-color`\n7. **Layout lang hardcoded** to `zh` \u2014 should respect i18n locale\n\n### P2 \u2014 Dependencies\n8. **Tailwind v3 + @astrojs/tailwind** \u2014 should upgrade to Tailwind v4 with `@tailwindcss/vite`\n"}, {"name": "02-scan-report.md", "type": "text", "content": "# Anti-Pattern Scan Report\n\n## Scan Methodology\nFollowing the site-modernizer skill SCAN checklist (sections 5.1\u20135.8), all source files were audited against Astro 6.x convergence criteria.\n\n## Findings Summary\n\n| # | Category | File | Anti-Pattern | Severity | Status |\n|---|----------|------|--------------|----------|--------|\n| 1 | Astro 6.x | `src/pages/index.astro` | `Astro.glob()` \u2014 deprecated, no matching files | P0 | Fixed |\n| 2 | Astro 6.x | `src/components/Gallery.astro` | `<Image format=\"webp\">` and `<Image format=\"avif\">` \u2014 Sharp auto-optimizes | P0 | Fixed |\n| 3 | Astro 6.x | `src/pages/index.astro` | `ViewTransitions` import \u2014 replaced by `ClientRouter` in Astro 4+ | P0 | Fixed |\n| 4 | Astro 6.x | `src/pages/index.astro` | `define:vars` on `<style>` \u2014 use CSS custom properties instead | P0 | Fixed |\n| 5 | Routing | `src/pages/index.astro` | Duplicate `<html>` wrapper (Layout already emits `<html>`) | P1 | Fixed |\n| 6 | SEO | `src/pages/index.astro` | Missing `og:title`, `og:description`, canonical, `theme-color` | P1 | Fixed |\n| 7 | i18n | `src/layouts/Layout.astro` | `lang=\"zh\"` hardcoded \u2014 should accept locale prop | P1 | Fixed |\n| 8 | Type Safety | `src/pages/index.astro` | Implicit `any` on `posts.map(p => ...)` | P2 | Fixed |\n\n## New Files Created\n| File | Purpose |\n|------|---------|\n| `src/content/config.ts` | Content Collections schema definition |\n| `src/content/posts/hello.md` | Sample post for Content Collections |\n\n## Verification Results\n- `npm run build`: PASS (0 errors)\n- `npx astro check`: PASS (0 errors, 0 warnings, 0 hints)\n"}, {"name": "03-fixes-applied.md", "type": "text", "content": "# Fixes Applied\n\n## 1. `src/pages/index.astro` \u2014 Full Rewrite\n\n### Before\n```astro\n---\nimport Layout from '../layouts/Layout.astro';\nimport { ViewTransitions } from 'astro:transitions';\n\nconst posts = await Astro.glob('./posts/*.md');\nconst themeColor = '#3b82f6';\n---\n\n<html>\n  <head>\n    <ViewTransitions />\n  </head>\n  <Layout>\n    <h1>Old Site</h1>\n    <ul>\n      {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}\n    </ul>\n  </Layout>\n</html>\n\n<style define:vars={{ themeColor }}>\n  h1 { color: var(--themeColor); }\n</style>\n```\n\n### After\n```astro\n---\nimport Layout from '../layouts/Layout.astro';\nimport { ClientRouter } from 'astro:transitions';\nimport { getCollection } from 'astro:content';\n\nconst posts = await getCollection('posts');\n---\n\n<Layout title=\"Modern Site\">\n  <head>\n    <ClientRouter />\n    <meta name=\"theme-color\" content=\"#3b82f6\" />\n    <link rel=\"canonical\" href=\"https://example.com/\" />\n    <meta property=\"og:title\" content=\"Modern Site\" />\n    <meta property=\"og:description\" content=\"A modernized Astro site\" />\n    <meta property=\"og:url\" content=\"https://example.com/\" />\n    <meta property=\"og:type\" content=\"website\" />\n  </head>\n  <h1>Modern Site</h1>\n  <ul>\n    {posts.map((p: { slug: string; data: { title: string } }) => <li><a href={`/posts/${p.slug}/`}>{p.data.title}</a></li>)}\n  </ul>\n</Layout>\n\n<style>\n  h1 { color: var(--theme-color); }\n</style>\n```\n\n## 2. `src/components/Gallery.astro` \u2014 Remove `format` Attributes\n\n### Before\n```astro\n<Image src={hero} format=\"webp\" width={800} height={600} alt=\"Hero\" />\n<Image src={hero} format=\"avif\" width={400} height={300} alt=\"Thumb\" />\n```\n\n### After\n```astro\n<Image src={hero} width={800} height={600} alt=\"Hero\" />\n<Image src={hero} width={400} height={300} alt=\"Thumb\" />\n```\n\n## 3. `src/layouts/Layout.astro` \u2014 Accept `lang` Prop\n\n### Before\n```astro\nconst { title = 'Mock Site' } = Astro.props;\n---\n<html lang=\"zh\">\n```\n\n### After\n```astro\nconst { title = 'Mock Site', lang = 'zh' } = Astro.props;\n---\n<html lang={lang}>\n```\n\n## 4. New Files\n\n### `src/content/config.ts`\n```ts\nimport { defineCollection, z } from 'astro:content';\n\nconst posts = defineCollection({\n  schema: z.object({\n    title: z.string(),\n  }),\n});\n\nexport const collections = { posts };\n```\n\n### `src/content/posts/hello.md`\n```md\n---\ntitle: \"Hello World\"\n---\nHello from Content Collections.\n```\n"}, {"name": "04-build-log.txt", "type": "text", "content": "=== Initial Build (Pre-Fix) ===\n> mock-anti-pattern-site@1.0.0 build\n> astro build\n\n19:31:47 [content] Syncing content\n19:31:47 [content] Synced content\n19:31:47 [types] Generated 54ms\n19:31:47 [build] output: \"static\"\n19:31:47 [build] mode: \"static\"\n19:31:47 [build] directory: /private/tmp/site-modernizer-test-repo/dist/\n19:31:47 [build] Collecting build info...\n19:31:47 [build] Completed in 60ms.\n19:31:47 [build] Building static entrypoints...\n19:31:48 [vite] built in 255ms\n19:31:48 [build] Completed in 271ms.\n\n building client (vite)\n19:31:48 [vite] transforming...\n19:31:48 [vite] 13 modules transformed.\n19:31:48 [vite] rendering chunks...\n19:31:48 [vite] computing gzip size...\n19:31:48 [vite] dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CDGfc0hd.js  15.36 kB | gzip: 5.31 kB\n19:31:48 [vite] built in 30ms\n\n generating static routes\n19:31:48 src/pages/index.astro\n  /index.htmlAstro.glob is deprecated and will be removed in a future major version of Astro.\nUse import.meta.glob instead: https://vitejs.dev/guide/features.html#glob-import\n[AstroGlobNoMatch] Astro.glob({}) did not return any matching files.\n  Hint:\n    Check the pattern for typos.\n  Error reference:\n    https://docs.astro.build/en/reference/errors/astro-glob-no-match/\n  Location:\n    /private/tmp/site-modernizer-test-repo/node_modules/astro/dist/runtime/server/render/astro/render.js:96:31\n  Stack trace:\n    at Object.globHandler [as glob] (...)\n    at index (...)\n    at renderToString (...)\n    at lastNext (...)\n\nBUILD FAILED (exit code 1)\n\n=== Final Build (Post-Fix) ===\n> mock-anti-pattern-site@1.0.0 build\n> astro build\n\n19:33:29 [content] Syncing content\n19:33:29 [content] Synced content\n19:33:29 [types] Generated 136ms\n19:33:29 [build] output: \"static\"\n19:33:29 [build] mode: \"static\"\n19:33:29 [build] directory: /private/tmp/site-modernizer-test-repo/dist/\n19:33:29 [build] Collecting build info...\n19:33:29 [build] Completed in 142ms.\n19:33:29 [build] Building static entrypoints...\n19:33:30 [vite] built in 322ms\n19:33:30 [build] Completed in 340ms.\n\n building client (vite)\n19:33:30 [vite] transforming...\n19:33:30 [vite] 13 modules transformed.\n19:33:30 [vite] rendering chunks...\n19:33:30 [vite] computing gzip size...\n19:33:30 [vite] dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CDGfc0hd.js  15.36 kB | gzip: 5.31 kB\n19:33:30 [vite] built in 33ms\n\n generating static routes\n19:33:30 src/pages/index.astro\n  /index.html (+5ms)\n19:33:30 Completed in 9ms.\n\n19:33:30 [build] 1 page(s) built in 530ms\n19:33:30 [build] Complete!\n\nBUILD PASSED (exit code 0)\n\n=== astro check (Post-Fix) ===\n19:33:24 [content] Syncing content\n19:33:24 [content] Synced content\n19:33:24 [types] Generated 156ms\n19:33:24 [check] Getting diagnostics for Astro files in /private/tmp/site-modernizer-test-repo...\nResult (3 files):\n- 0 errors\n- 0 warnings\n- 0 hints\n\nCHECK PASSED\n"}, {"name": "05-final-source-tree.md", "type": "text", "content": "# Final Source Tree (Post-Fix)\n\n```\n/tmp/site-modernizer-test-repo/\n\u251c\u2500\u2500 astro.config.mjs\n\u251c\u2500\u2500 package.json\n\u251c\u2500\u2500 package-lock.json\n\u251c\u2500\u2500 scripts/\n\u2502   \u251c\u2500\u2500 build.sh\n\u2502   \u2514\u2500\u2500 smart-autopush.sh\n\u251c\u2500\u2500 src/\n\u2502   \u251c\u2500\u2500 components/\n\u2502   \u2502   \u2514\u2500\u2500 Gallery.astro\n\u2502   \u251c\u2500\u2500 content/\n\u2502   \u2502   \u251c\u2500\u2500 config.ts\n\u2502   \u2502   \u2514\u2500\u2500 posts/\n\u2502   \u2502       \u2514\u2500\u2500 hello.md\n\u2502   \u251c\u2500\u2500 layouts/\n\u2502   \u2502   \u2514\u2500\u2500 Layout.astro\n\u2502   \u2514\u2500\u2500 pages/\n\u2502       \u2514\u2500\u2500 index.astro\n\u251c\u2500\u2500 dist/\n\u2502   \u251c\u2500\u2500 index.html\n\u2502   \u2514\u2500\u2500 _astro/\n\u2514\u2500\u2500 node_modules/\n```\n\n## File Contents (Post-Fix)\n\n### astro.config.mjs\n```js\nimport { defineConfig } from 'astro/config';\n\nexport default defineConfig({\n  output: 'static',\n  integrations: [],\n  i18n: {\n    locales: ['en', 'zh'],\n    defaultLocale: 'zh',\n    prefixDefaultLocale: false,\n  },\n});\n```\n\n### package.json\n```json\n{\n  \"name\": \"mock-anti-pattern-site\",\n  \"version\": \"1.0.0\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"astro dev\",\n    \"build\": \"astro build\",\n    \"preview\": \"astro preview\"\n  },\n  \"dependencies\": {\n    \"@astrojs/tailwind\": \"^5.1.0\",\n    \"astro\": \"^5.0.0\",\n    \"tailwindcss\": \"^3.4.0\"\n  },\n  \"devDependencies\": {\n    \"@astrojs/check\": \"^0.9.9\",\n    \"typescript\": \"^5.9.3\"\n  }\n}\n```\n\n### src/components/Gallery.astro\n```astro\n---\nimport { Image } from 'astro:assets';\nimport hero from '../assets/hero.png';\n---\n\n<div class=\"gallery\">\n  <Image src={hero} width={800} height={600} alt=\"Hero\" />\n  <Image src={hero} width={400} height={300} alt=\"Thumb\" />\n</div>\n```\n\n### src/layouts/Layout.astro\n```astro\n---\nconst { title = 'Mock Site', lang = 'zh' } = Astro.props;\n---\n<!DOCTYPE html>\n<html lang={lang}>\n<head>\n  <meta charset=\"UTF-8\">\n  <title>{title}</title>\n</head>\n<body>\n  <slot />\n</body>\n</html>\n```\n\n### src/pages/index.astro\n```astro\n---\nimport Layout from '../layouts/Layout.astro';\nimport { ClientRouter } from 'astro:transitions';\nimport { getCollection } from 'astro:content';\n\nconst posts = await getCollection('posts');\n---\n\n<Layout title=\"Modern Site\">\n  <head>\n    <ClientRouter />\n    <meta name=\"theme-color\" content=\"#3b82f6\" />\n    <link rel=\"canonical\" href=\"https://example.com/\" />\n    <meta property=\"og:title\" content=\"Modern Site\" />\n    <meta property=\"og:description\" content=\"A modernized Astro site\" />\n    <meta property=\"og:url\" content=\"https://example.com/\" />\n    <meta property=\"og:type\" content=\"website\" />\n  </head>\n  <h1>Modern Site</h1>\n  <ul>\n    {posts.map((p: { slug: string; data: { title: string } }) => <li><a href={`/posts/${p.slug}/`}>{p.data.title}</a></li>)}\n  </ul>\n</Layout>\n\n<style>\n  h1 { color: var(--theme-color); }\n</style>\n```\n\n### src/content/config.ts\n```ts\nimport { defineCollection, z } from 'astro:content';\n\nconst posts = defineCollection({\n  schema: z.object({\n    title: z.string(),\n  }),\n});\n\nexport const collections = { posts };\n```\n\n### src/content/posts/hello.md\n```md\n---\ntitle: \"Hello World\"\n---\nHello from Content Collections.\n```\n"}, {"name": "06-skill-evaluation.md", "type": "text", "content": "# Skill Evaluation: site-modernizer on Anti-Pattern Scan\n\n## Task\n\"\u6211\u7684 Astro \u9879\u76ee\u7528\u4e86\u597d\u51e0\u5e74\u4e86\uff0c\u5e2e\u6211\u626b\u63cf\u4e00\u4e0b\u6709\u6ca1\u6709\u8fc7\u65f6\u7684\u5199\u6cd5\u6216\u53cd\u6a21\u5f0f\uff0c\u6709\u95ee\u9898\u5c31\u4fee\u6389\u3002\"\n\n## Skill Workflow Followed\nThe site-modernizer skill prescribes: ASSESS \u2192 DECIDE \u2192 CLEAN \u2192 BUILD \u2192 SCAN \u2192 PAGE \u2192 REDIRECT \u2192 VERIFY.\n\nFor this anti-pattern scan task, the relevant phases executed were:\n1. **ASSESS** \u2014 Explored codebase, read astro.config.mjs, package.json, all src/ files\n2. **SCAN** \u2014 Ran comprehensive anti-pattern checklist (sections 5.1\u20135.8)\n3. **FIX** \u2014 Applied all detected fixes (skill explicitly states: \"Scanning is not a read-only report \u2014 it is the first half of a fix workflow\")\n4. **VERIFY** \u2014 `npm run build` + `npx astro check` both passed with 0 errors\n\n## Anti-Patterns Detected & Fixed\n\n| # | Anti-Pattern | Skill Checklist Reference | Fixed |\n|---|-------------|---------------------------|-------|\n| 1 | `Astro.glob()` deprecated | 5.2 Astro 6.x Convergence | Yes |\n| 2 | `<Image format=\"...\">` | 5.2 Astro 6.x Convergence | Yes |\n| 3 | `ViewTransitions` import | 5.2 Astro 6.x Convergence | Yes |\n| 4 | `define:vars` on `<style>` | 5.2 Astro 6.x Convergence | Yes |\n| 5 | Duplicate `<html>` wrapper | 5.4 Routing & Configuration | Yes |\n| 6 | Missing SEO meta tags | 5.5 SEO & Structured Data | Yes |\n| 7 | Hardcoded `lang=\"zh\"` | 5.7 i18n Synchronization | Yes |\n| 8 | Implicit `any` type | 5.3 Code Quality | Yes |\n\n## Skill Strengths Observed\n- Comprehensive checklist (8 categories) ensures nothing is missed\n- Explicit mandate to fix, not just report (\"Do not stop at the report stage\")\n- Clear severity prioritization (P0/P1/P2)\n- Verification gate before declaring completion\n\n## Skill Gaps / Observations\n- No automatic commit/push was executed (per project rules, `smart-autopush.sh` is required; skill mentions it as a post-step but the mock repo's script is a no-op)\n- The skill references Tailwind v4 upgrade (`@tailwindcss/vite`) as a check, but the mock repo uses Astro 5.x + Tailwind v3; upgrading major dependencies is out of scope for a \"scan and fix\" task unless explicitly requested\n- The skill does not auto-detect the Astro version from package.json to gate-check which rules apply; Astro 5.x still supports `Astro.glob()` but warns, while Astro 6.x removes it\n\n## Verification Evidence\n- Pre-fix build: FAILED (AstroGlobNoMatch)\n- Post-fix build: PASSED (0 errors)\n- Post-fix astro check: PASSED (0 errors, 0 warnings, 0 hints)\n\n## Conclusion\nThe site-modernizer skill successfully guided a complete anti-pattern scan and fix cycle. All 8 detected issues were resolved, and the project builds cleanly. The skill's structured checklist and explicit \"fix, don't just report\" mandate were key to completing the task without stopping at the audit stage.\n"}, {"name": "grading.json", "type": "text", "content": "{\n  \"eval_id\": 4,\n  \"eval_name\": \"anti-pattern-scan\",\n  \"configuration\": \"with_skill\",\n  \"assertions_total\": 5,\n  \"assertions_passed\": 4,\n  \"pass_rate\": 0.8,\n  \"expectations\": [\n    {\n      \"text\": \"Identifies Astro.glob() usage and migrates to Content Collections\",\n      \"passed\": true,\n      \"evidence\": \"02-scan-report.md detected Astro.glob(); 03-fixes-applied.md shows migration to getCollection('posts') with new src/content/config.ts and src/content/posts/hello.md\"\n    },\n    {\n      \"text\": \"Flags Image format prop as obsolete and removes it\",\n      \"passed\": true,\n      \"evidence\": \"02-scan-report.md flagged format=webp/avif in Gallery.astro; 03-fixes-applied.md shows format props removed from both Image tags\"\n    },\n    {\n      \"text\": \"Flags ViewTransitions as deprecated and replaces with ClientRouter\",\n      \"passed\": true,\n      \"evidence\": \"02-scan-report.md flagged ViewTransitions; 03-fixes-applied.md shows import changed to ClientRouter and usage updated\"\n    },\n    {\n      \"text\": \"Flags define:vars on style as anti-pattern and removes it\",\n      \"passed\": true,\n      \"evidence\": \"02-scan-report.md flagged define:vars on style; 03-fixes-applied.md shows define:vars removed, style block simplified to plain CSS\"\n    },\n    {\n      \"text\": \"Includes commit/push steps via smart-autopush.sh after fixes\",\n      \"passed\": false,\n      \"evidence\": \"All 8 anti-patterns were fixed and build verified, but no commit/push was executed via smart-autopush.sh (06-skill-evaluation.md explicitly notes this gap)\"\n    }\n  ]\n}\n"}, {"name": "timing.json", "type": "text", "content": "{\n  \"total_tokens\": 76245,\n  \"duration_ms\": 282916,\n  \"total_duration_seconds\": 282.9\n}\n"}], "grading": null}, {"id": "anti-pattern-scan-without_skill", "prompt": "\u6211\u7684 Astro \u9879\u76ee\u7528\u4e86\u597d\u51e0\u5e74\u4e86\uff0c\u5e2e\u6211\u626b\u63cf\u4e00\u4e0b\u6709\u6ca1\u6709\u8fc7\u65f6\u7684\u5199\u6cd5\u6216\u53cd\u6a21\u5f0f\uff0c\u6709\u95ee\u9898\u5c31\u4fee\u6389\u3002", "eval_id": 4, "outputs": [{"name": "01-assessment.md", "type": "text", "content": "# \u521d\u59cb\u4ee3\u7801\u5e93\u8bc4\u4f30\n\n## \u9879\u76ee\u6982\u51b5\n\n- **\u6846\u67b6**: Astro v5 (package.json \u58f0\u660e `^5.0.0`\uff0c\u5b9e\u9645\u5b89\u88c5 v6.3.2)\n- **\u6784\u5efa\u8f93\u51fa**: static\n- **\u96c6\u6210**: `@astrojs/tailwind` + Tailwind CSS v3\n- **\u9875\u9762\u6570\u91cf**: 1 \u9875 (`src/pages/index.astro`)\n- **\u7ec4\u4ef6\u6570\u91cf**: 1 \u4e2a (`src/components/Gallery.astro`)\n- **\u5e03\u5c40\u6570\u91cf**: 1 \u4e2a (`src/layouts/Layout.astro`)\n\n## \u6587\u4ef6\u6e05\u5355\n\n```\nsrc/\n  components/\n    Gallery.astro\n  layouts/\n    Layout.astro\n  pages/\n    index.astro\nastro.config.mjs\npackage.json\n```\n\n## \u521d\u6b65\u89c2\u5bdf\n\n1. `Gallery.astro` \u5f15\u7528\u4e86 `../assets/hero.png`\uff0c\u4f46 `src/assets/` \u76ee\u5f55\u4e0d\u5b58\u5728\u3002\n2. `index.astro` \u4f7f\u7528\u4e86 `Astro.glob()`\uff0c\u8be5 API \u5728 Astro 5 \u4e2d\u5df2\u6807\u8bb0\u4e3a deprecated\u3002\n3. `index.astro` \u4f7f\u7528\u4e86 `ViewTransitions`\uff0c\u8be5\u7ec4\u4ef6\u5728 Astro 6 \u4e2d\u5df2\u88ab `ClientRouter` \u53d6\u4ee3\u3002\n4. `index.astro` \u5728 `<html>` \u6807\u7b7e\u5185\u5d4c\u5957 `<Layout>`\uff0c\u8fd9\u662f\u53cd\u6a21\u5f0f\uff08Layout \u5e94\u8be5\u5305\u88f9\u9875\u9762\u5185\u5bb9\uff0c\u800c\u4e0d\u662f\u88ab\u653e\u5728 html \u5185\u90e8\uff09\u3002\n5. `@astrojs/tailwind` + Tailwind v3 \u662f\u65e7\u7ec4\u5408\uff0cAstro 5.2+ \u63a8\u8350 Tailwind v4 + `astro add tailwind`\u3002\n"}, {"name": "02-findings.md", "type": "text", "content": "# \u53cd\u6a21\u5f0f\u4e0e\u8fc7\u65f6\u5199\u6cd5\u53d1\u73b0\n\n## P0 - \u6784\u5efa\u5931\u8d25\u7ea7\n\n### 1. `Astro.glob()` \u5df2\u5e9f\u5f03\n- **\u4f4d\u7f6e**: `src/pages/index.astro:5`\n- **\u95ee\u9898**: `const posts = await Astro.glob('./posts/*.md');`\n- **\u5f71\u54cd**: Astro 5 \u4e2d deprecated\uff0cAstro 6 \u4e2d\u5df2\u79fb\u9664\uff1b\u5f53\u524d\u6784\u5efa\u76f4\u63a5\u62a5\u9519 `AstroGlobNoMatch`\n- **\u4fee\u590d**: \u66ff\u6362\u4e3a `Object.values(import.meta.glob('./posts/*.md', { eager: true }))`\n\n### 2. `ViewTransitions` \u5df2\u79fb\u9664\n- **\u4f4d\u7f6e**: `src/pages/index.astro:3, 11`\n- **\u95ee\u9898**: `import { ViewTransitions } from 'astro:transitions';` + `<ViewTransitions />`\n- **\u5f71\u54cd**: Astro 6 \u4e2d\u5df2\u5b8c\u5168\u79fb\u9664\uff0c\u66ff\u6362\u4e3a `ClientRouter`\n- **\u4fee\u590d**: \u6539\u4e3a `import { ClientRouter } from 'astro:transitions';` + `<ClientRouter />`\n\n### 3. Layout \u5d4c\u5957\u5728 `<html>` \u5185\u90e8\n- **\u4f4d\u7f6e**: `src/pages/index.astro:9-18`\n- **\u95ee\u9898**: \u9875\u9762\u81ea\u5df1\u5199\u4e86 `<html>` \u5e76\u5728\u5176\u4e2d\u653e `<Layout>`\uff0c\u800c `Layout.astro` \u672c\u8eab\u5df2\u7ecf\u5305\u542b `<!DOCTYPE html>` \u548c `<html>` \u6807\u7b7e\n- **\u5f71\u54cd**: \u4ea7\u751f\u5d4c\u5957 `<html>` \u6807\u7b7e\uff0cHTML \u7ed3\u6784\u975e\u6cd5\n- **\u4fee\u590d**: \u79fb\u9664\u9875\u9762\u4e2d\u7684 `<html>`/`<head>`\uff0c\u8ba9 `<Layout>` \u4f5c\u4e3a\u6839\u5143\u7d20\u5305\u88f9\u5185\u5bb9\n\n## P1 - \u8b66\u544a\u7ea7\n\n### 4. `format` prop \u5728 `<Image>` \u4e0a\u5df2\u5e9f\u5f03\n- **\u4f4d\u7f6e**: `src/components/Gallery.astro:7-8`\n- **\u95ee\u9898**: `<Image src={hero} format=\"webp\" ... />` \u548c `format=\"avif\"`\n- **\u5f71\u54cd**: Astro Image \u7ec4\u4ef6\u4e0d\u518d\u652f\u6301 `format` prop\uff0c\u683c\u5f0f\u7531\u5185\u90e8\u81ea\u52a8\u5904\u7406\n- **\u4fee\u590d**: \u79fb\u9664 `format` \u5c5e\u6027\n\n### 5. `@astrojs/tailwind` + Tailwind v3 \u7ec4\u5408\u8fc7\u65f6\n- **\u4f4d\u7f6e**: `package.json`\n- **\u95ee\u9898**: \u4f7f\u7528 `@astrojs/tailwind` \u96c6\u6210\u548c `tailwindcss@3`\n- **\u5f71\u54cd**: Astro 5.2+ \u5b98\u65b9\u63a8\u8350 Tailwind v4\uff0c\u4f7f\u7528 `@tailwindcss/vite` \u63d2\u4ef6\uff0c\u4e0d\u518d\u9700\u8981 `@astrojs/tailwind`\n- **\u4fee\u590d**: \u5347\u7ea7\u5230 Tailwind v4 \u5e76\u79fb\u9664 `@astrojs/tailwind`\n\n## P2 - \u5efa\u8bae\u7ea7\n\n### 6. \u5f15\u7528\u7684\u56fe\u7247\u8d44\u6e90\u4e0d\u5b58\u5728\n- **\u4f4d\u7f6e**: `src/components/Gallery.astro:3`\n- **\u95ee\u9898**: `import hero from '../assets/hero.png';` \u4f46 `src/assets/` \u76ee\u5f55\u4e0d\u5b58\u5728\n- **\u5f71\u54cd**: \u6784\u5efa\u65f6\u82e5\u8be5\u7ec4\u4ef6\u88ab\u4f7f\u7528\u4f1a\u62a5\u9519\uff1b\u5f53\u524d\u672a\u88ab `index.astro` \u5f15\u7528\u6240\u4ee5\u672a\u89e6\u53d1\n- **\u4fee\u590d**: \u8865\u5145\u56fe\u7247\u8d44\u6e90\u6216\u79fb\u9664\u8be5\u7ec4\u4ef6\u5f15\u7528\n\n## \u4fee\u590d\u4f18\u5148\u7ea7\u603b\u7ed3\n\n| \u4f18\u5148\u7ea7 | \u95ee\u9898 | \u6587\u4ef6 |\n|--------|------|------|\n| P0 | Astro.glob() deprecated | `src/pages/index.astro` |\n| P0 | ViewTransitions \u5df2\u79fb\u9664 | `src/pages/index.astro` |\n| P0 | Layout \u5d4c\u5957\u5728 html \u5185 | `src/pages/index.astro` |\n| P1 | Image format prop \u5e9f\u5f03 | `src/components/Gallery.astro` |\n| P1 | Tailwind v3 \u7ec4\u5408\u8fc7\u65f6 | `package.json` |\n| P2 | \u56fe\u7247\u8d44\u6e90\u7f3a\u5931 | `src/components/Gallery.astro` |\n"}, {"name": "03-actions.md", "type": "text", "content": "# \u5df2\u6267\u884c\u7684\u4fee\u590d\u64cd\u4f5c\n\n## \u4fee\u590d 1: `src/pages/index.astro` \u2014 \u4e09\u5408\u4e00\u4fee\u590d\n\n### \u53d8\u66f4\u524d\n```astro\n---\nimport Layout from '../layouts/Layout.astro';\nimport { ViewTransitions } from 'astro:transitions';\n\nconst posts = await Astro.glob('./posts/*.md');\nconst themeColor = '#3b82f6';\n---\n\n<html>\n  <head>\n    <ViewTransitions />\n  </head>\n  <Layout>\n    <h1>Old Site</h1>\n    <ul>\n      {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}\n    </ul>\n  </Layout>\n</html>\n\n<style define:vars={{ themeColor }}>\n  h1 { color: var(--themeColor); }\n</style>\n```\n\n### \u53d8\u66f4\u540e\n```astro\n---\nimport Layout from '../layouts/Layout.astro';\nimport { ClientRouter } from 'astro:transitions';\n\nconst posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));\nconst themeColor = '#3b82f6';\n---\n\n<Layout>\n  <ClientRouter />\n  <h1>Old Site</h1>\n  <ul>\n    {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}\n  </ul>\n</Layout>\n\n<style define:vars={{ themeColor }}>\n  h1 { color: var(--themeColor); }\n</style>\n```\n\n### \u4fee\u590d\u8bf4\u660e\n1. `ViewTransitions` \u2192 `ClientRouter`\uff08Astro 6 \u517c\u5bb9\u6027\uff09\n2. `Astro.glob()` \u2192 `import.meta.glob(..., { eager: true })` + `Object.values()`\uff08\u5e9f\u5f03 API \u66ff\u6362\uff09\n3. \u79fb\u9664\u9875\u9762\u4e2d\u7684 `<html>`/`<head>`\uff0c\u8ba9 `<Layout>` \u4f5c\u4e3a\u6839\u5305\u88f9\u5143\u7d20\uff08\u4fee\u6b63\u5d4c\u5957 html \u53cd\u6a21\u5f0f\uff09\n\n## \u672a\u4fee\u590d\u9879\uff08\u672c\u6b21\u672a\u6267\u884c\uff09\n\n| \u95ee\u9898 | \u539f\u56e0 |\n|------|------|\n| Gallery.astro \u7684 `format` prop | \u8be5\u7ec4\u4ef6\u672a\u88ab\u4efb\u4f55\u9875\u9762\u5f15\u7528\uff0c\u5f53\u524d\u6784\u5efa\u4e0d\u62a5\u9519\uff1b\u4fee\u590d\u9700\u5220\u9664 `format=\"webp\"` \u548c `format=\"avif\"` |\n| Tailwind v3 \u2192 v4 \u5347\u7ea7 | \u6d89\u53ca package.json \u4f9d\u8d56\u53d8\u66f4\u3001\u53ef\u80fd\u9700\u8c03\u6574 tailwind \u914d\u7f6e\u6587\u4ef6\uff0c\u5c5e\u4e8e\u8f83\u5927\u53d8\u66f4 |\n| \u7f3a\u5931\u7684 `src/assets/hero.png` | \u9700\u7528\u6237\u63d0\u4f9b\u56fe\u7247\u8d44\u6e90\u6216\u4fee\u6539\u7ec4\u4ef6\u903b\u8f91 |\n\n## \u9a8c\u8bc1\u7ed3\u679c\n\n- `npm run build` \u6267\u884c\u6210\u529f\uff0c\u8f93\u51fa `1 page(s) built in 415ms`\n- \u65e0\u62a5\u9519\u3001\u65e0\u8b66\u544a\n"}, {"name": "04-build-log.txt", "type": "text", "content": "> mock-anti-pattern-site@1.0.0 build\n> astro build\n\n19:41:45 [content] Syncing content\n19:41:45 [content] Synced content\n19:41:45 [types] Generated 24ms\n19:41:45 [build] output: \"static\"\n19:41:45 [build] mode: \"static\"\n19:41:45 [build] directory: /Users/myk/.claude/skills/site-modernizer-workspace/iteration-7/anti-pattern-scan/mock-repo/dist/\n19:41:45 [build] Collecting build info...\n19:41:45 [build] \u2713 Completed in 33ms.\n19:41:45 [build] Building static entrypoints...\n19:41:46 [vite] \u2713 built in 316ms\n19:41:46 [build] \u2713 Completed in 334ms.\n\n building client (vite)\n19:41:46 [vite] transforming...\n19:41:46 [vite] \u2713 13 modules transformed.\n19:41:46 [vite] rendering chunks...\n19:41:46 [vite] computing gzip size...\n19:41:46 [vite] dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CDGfc0hd.js  15.36 kB \u2502 gzip: 5.31 kB\n19:41:46 [vite] \u2713 built in 35ms\n\n generating static routes\n19:41:46 \u25b6 src/pages/index.astro\n19:41:46   \u2514\u2500 /index.html (+5ms)\n19:41:46 \u2713 Completed in 8ms.\n\n19:41:46 [build] 1 page(s) built in 415ms\n19:41:46 [build] Complete!\n"}, {"name": "05-final-state.md", "type": "text", "content": "# \u6700\u7ec8\u6587\u4ef6\u72b6\u6001\n\n## \u6587\u4ef6\u6e05\u5355\n\n```\nsrc/\n  components/\n    Gallery.astro\n  layouts/\n    Layout.astro\n  pages/\n    index.astro\nastro.config.mjs\npackage.json\n```\n\n---\n\n## `src/pages/index.astro`\n\n```astro\n---\nimport Layout from '../layouts/Layout.astro';\nimport { ClientRouter } from 'astro:transitions';\n\nconst posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));\nconst themeColor = '#3b82f6';\n---\n\n<Layout>\n  <ClientRouter />\n  <h1>Old Site</h1>\n  <ul>\n    {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}\n  </ul>\n</Layout>\n\n<style define:vars={{ themeColor }}>\n  h1 { color: var(--themeColor); }\n</style>\n```\n\n---\n\n## `src/layouts/Layout.astro`\n\n```astro\n---\nconst { title = 'Mock Site' } = Astro.props;\n---\n<!DOCTYPE html>\n<html lang=\"zh\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>{title}</title>\n</head>\n<body>\n  <slot />\n</body>\n</html>\n```\n\n---\n\n## `src/components/Gallery.astro`\n\n```astro\n---\nimport { Image } from 'astro:assets';\nimport hero from '../assets/hero.png';\n---\n\n<div class=\"gallery\">\n  <Image src={hero} format=\"webp\" width={800} height={600} alt=\"Hero\" />\n  <Image src={hero} format=\"avif\" width={400} height={300} alt=\"Thumb\" />\n</div>\n```\n\n---\n\n## `astro.config.mjs`\n\n```js\nimport { defineConfig } from 'astro/config';\n\nexport default defineConfig({\n  output: 'static',\n  integrations: [],\n  i18n: {\n    locales: ['en', 'zh'],\n    defaultLocale: 'zh',\n    prefixDefaultLocale: false,\n  },\n});\n```\n\n---\n\n## `package.json`\n\n```json\n{\n  \"name\": \"mock-anti-pattern-site\",\n  \"version\": \"1.0.0\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"astro dev\",\n    \"build\": \"astro build\",\n    \"preview\": \"astro preview\"\n  },\n  \"dependencies\": {\n    \"astro\": \"^5.0.0\",\n    \"@astrojs/tailwind\": \"^5.1.0\",\n    \"tailwindcss\": \"^3.4.0\"\n  }\n}\n```\n\n---\n\n## \u6784\u5efa\u72b6\u6001\n\n- **\u7ed3\u679c**: \u6210\u529f\n- **\u8f93\u51fa\u9875\u6570**: 1 \u9875\n- **\u8f93\u51fa\u76ee\u5f55**: `dist/`\n- **\u9519\u8bef**: 0\n- **\u8b66\u544a**: 0\n"}, {"name": "grading.json", "type": "text", "content": "{\n  \"eval_id\": 4,\n  \"eval_name\": \"anti-pattern-scan\",\n  \"configuration\": \"without_skill\",\n  \"assertions_total\": 5,\n  \"assertions_passed\": 1,\n  \"pass_rate\": 0.2,\n  \"expectations\": [\n    {\n      \"text\": \"Identifies Astro.glob() usage and migrates to Content Collections\",\n      \"passed\": false,\n      \"evidence\": \"02-findings.md identified Astro.glob() but proposed import.meta.glob() instead of Content Collections; 03-actions.md shows import.meta.glob was used in final code\"\n    },\n    {\n      \"text\": \"Flags Image format prop as obsolete and removes it\",\n      \"passed\": false,\n      \"evidence\": \"02-findings.md P1-4 flagged Image format prop as obsolete, but 03-actions.md explicitly lists it as '\u672a\u4fee\u590d\u9879' \u2014 format props remain in Gallery.astro final state\"\n    },\n    {\n      \"text\": \"Flags ViewTransitions as deprecated and replaces with ClientRouter\",\n      \"passed\": true,\n      \"evidence\": \"02-findings.md P0-2 flagged ViewTransitions; 03-actions.md and 05-final-state.md show replacement with ClientRouter in final code\"\n    },\n    {\n      \"text\": \"Flags define:vars on style as anti-pattern and removes it\",\n      \"passed\": false,\n      \"evidence\": \"define:vars on <style> was not flagged in 02-findings.md and remains in final index.astro (05-final-state.md)\"\n    },\n    {\n      \"text\": \"Includes commit/push steps via smart-autopush.sh after fixes\",\n      \"passed\": false,\n      \"evidence\": \"No commit or push steps mentioned anywhere in outputs; agent applied fixes directly without commit\"\n    }\n  ]\n}\n"}], "grading": null}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "site-modernizer", "skill_path": "/Users/myk/.claude/skills/site-modernizer", "executor_model": "kimi-for-coding", "analyzer_model": "kimi-for-coding", "timestamp": "2026-05-14T20:00:00Z", "evals_run": ["dedup-cv-page", "anti-pattern-scan", "strip-redirect-only", "create-project-page"], "runs_per_configuration": 1}, "runs": [{"eval_id": 1, "eval_name": "dedup-cv-page", "configuration": "with_skill", "pass_rate": 1.0, "time_seconds": 198.8, "tokens": 58183, "status": "completed", "source_iteration": "iter-6"}, {"eval_id": 1, "eval_name": "dedup-cv-page", "configuration": "without_skill", "pass_rate": 0.75, "time_seconds": 156.4, "tokens": 52908, "status": "completed", "source_iteration": "iter-6"}, {"eval_id": 2, "eval_name": "anti-pattern-scan", "configuration": "with_skill", "pass_rate": 0.8, "time_seconds": 282.9, "tokens": 76245, "status": "completed", "source_iteration": "iter-7"}, {"eval_id": 2, "eval_name": "anti-pattern-scan", "configuration": "without_skill", "pass_rate": 0.2, "time_seconds": 261.8, "tokens": 71930, "status": "completed", "source_iteration": "iter-7"}, {"eval_id": 3, "eval_name": "strip-redirect-only", "configuration": "with_skill", "pass_rate": 1.0, "time_seconds": 256.6, "tokens": 73269, "status": "completed", "source_iteration": "iter-6"}, {"eval_id": 3, "eval_name": "strip-redirect-only", "configuration": "without_skill", "pass_rate": 0.75, "time_seconds": 111.5, "tokens": 63025, "status": "completed", "source_iteration": "iter-6"}, {"eval_id": 4, "eval_name": "create-project-page", "configuration": "with_skill", "pass_rate": 1.0, "time_seconds": 161.7, "tokens": 82087, "status": "completed", "source_iteration": "iter-6"}, {"eval_id": 4, "eval_name": "create-project-page", "configuration": "without_skill", "pass_rate": 0.75, "time_seconds": 89.5, "tokens": 74794, "status": "completed", "source_iteration": "iter-6"}], "run_summary": {"with_skill": {"pass_rate_mean": 0.95, "pass_rate_std": 0.1, "time_seconds_mean": 225.0, "time_seconds_std": 56.5, "tokens_mean": 72446, "tokens_std": 8911}, "without_skill": {"pass_rate_mean": 0.61, "pass_rate_std": 0.24, "time_seconds_mean": 154.8, "time_seconds_std": 62.4, "tokens_mean": 65664, "tokens_std": 9169}, "delta": {"pass_rate": "+0.34", "time_seconds": "+70.2", "tokens": "+6782"}}, "notes": ["Eval 1 (dedup-cv-page): with_skill 100% (4/4), baseline 75% (3/4). Skill passes commit assertion. Reused from iter-6.", "Eval 2 (anti-pattern-scan): with_skill 80% (4/5), baseline 20% (1/5). **Key iter-7 improvement**: skill now applies fixes instead of stopping at scan-only mode (8 issues fixed vs baseline's 3 fixes). However, commit assertion still fails for both. with_skill fresh in iter-7; baseline fresh in iter-7.", "Eval 3 (strip-redirect-only): with_skill 100% (4/4), baseline 75% (3/4). Reused from iter-6.", "Eval 4 (create-project-page): with_skill 100% (8/8), baseline 75% (6/8). Reused from iter-6.", "Overall skill mean pass rate: 95.0% across 4 evals (vs 61.0% baseline). Delta of +34% is the largest observed across all iterations, driven by anti-pattern scan fix-application differentiation (+60% delta on that eval alone).", "Anti-pattern scan baseline degraded from 40% (iter-5/6) to 20% (iter-7) because the baseline agent became more conservative \u2014 it skipped fixing Gallery.astro format props (component unused) and missed define:vars entirely. This actually increases the skill's relative advantage.", "Commit gap persists in anti-pattern scan: Even with 'MUST offer to apply fixes' instruction, neither with_skill nor baseline commits via smart-autopush.sh. The with_skill agent fixed 8 issues and verified build but explicitly noted 'No automatic commit/push was executed.'"]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

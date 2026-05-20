@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Unused dependencies (lodash, moment, jquery) removed",
+      "passed": false,
+      "evidence": "deps: {'moment', 'lodash', 'astro', 'jquery'}"
+    },
+    {
+      "text": "Google Fonts CDN replaced with @fontsource/inter",
+      "passed": true,
+      "evidence": "grep: src/layouts/Layout.astro:9:  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\nsrc/layouts/Layout.astro:10:  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\nsrc/layouts/Layout.astro:11:  <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\">"
+    },
+    {
+      "text": "Below-the-fold images have loading=lazy and decoding=async",
+      "passed": false,
+      "evidence": "imgs=True lazy=False"
+    },
+    {
+      "text": "Corrupt hero.png replaced with valid image",
+      "passed": false,
+      "evidence": "format: unknown"
+    },
+    {
+      "text": "Build passes and changes committed",
+      "passed": false,
+      "evidence": "build=False commit=False msg=none"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.2,
+    "passed": 1,
+    "failed": 4,
+    "total": 5
+  }
+}

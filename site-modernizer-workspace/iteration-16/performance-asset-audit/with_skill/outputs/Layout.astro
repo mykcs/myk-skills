@@ -1,0 +1,16 @@
+---
+const { title = 'Mock Site' } = Astro.props;
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+---
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>{title}</title>
+</head>
+<body>
+  <slot />
+</body>
+</html>

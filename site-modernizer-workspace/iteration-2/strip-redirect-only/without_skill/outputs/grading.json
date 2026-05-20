@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "strip-redirect-only",
+  "configuration": "without_skill",
+  "status": "completed",
+  "expectations": [
+    {
+      "text": "Identifies files to keep vs delete",
+      "passed": true,
+      "evidence": "Lists tracked files from `git ls-tree` and identifies all for deletion except .gitattributes, LICENSE, README.md."
+    },
+    {
+      "text": "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+      "passed": true,
+      "evidence": "Step 3 creates root index.html with meta-refresh, canonical, and noindex. Includes styled body with redirect message."
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Steps 7-8 verify live deployment via curl checks for status code, redirect target, and canonical tag."
+    },
+    {
+      "text": "Includes commit/push steps",
+      "passed": true,
+      "evidence": "Step 5 uses `smart-autopush.sh` with semantic message `refactor(site): strip to root-level redirect-only page`."
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "Solid 219-line plan with pre-execution checks, GitHub Pages source switch instructions, and rollback plan. Good coverage of edge cases."
+}

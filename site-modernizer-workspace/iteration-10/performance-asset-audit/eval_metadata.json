@@ -1,0 +1,32 @@
+{
+  "eval_id": 6,
+  "eval_name": "performance-asset-audit",
+  "prompt": "我网站加载有点慢，帮我看看有没有性能问题，该优化的优化一下。",
+  "assertions": [
+    {
+      "text": "检测并移除 CDN 字体链接，替换为本地字体方案",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "检测并移除 package.json 中未使用的依赖",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "为 fold 以下图片添加 loading=\"lazy\"",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "构建通过",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "修复后通过 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": ""
+    }
+  ]
+}

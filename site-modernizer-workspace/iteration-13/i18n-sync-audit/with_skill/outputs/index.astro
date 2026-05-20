@@ -1,0 +1,16 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Hero from '../../components/Hero.astro';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'zh' } }];
+}
+
+const { lang } = Astro.params;
+---
+<Layout title={lang === 'zh' ? '演示站点' : 'Demo Site'}>
+  <Navbar />
+  <Hero lang={lang} />
+  <footer>保留所有权利 © 2024</footer>
+</Layout>

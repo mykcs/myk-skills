@@ -1,0 +1,59 @@
+=== SCAN: Anti-Pattern Checklist (Astro 6) ===
+
+1. Check Astro.glob() usage...
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:5:const posts = await Astro.glob('./posts/*.md');
+
+2. Check <Image format=...> usage...
+/tmp/anti-pattern-test-with-skill-10746/src/components/Gallery.astro:7:  <Image src={hero} format="webp" width={800} height={600} alt="Hero" />
+/tmp/anti-pattern-test-with-skill-10746/src/components/Gallery.astro:8:  <Image src={hero} format="avif" width={400} height={300} alt="Thumb" />
+
+3. Check ViewTransitions import...
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:3:import { ViewTransitions } from 'astro:transitions';
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:11:    <ViewTransitions />
+
+4. Check define:vars on <style>...
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:21:<style define:vars={{ themeColor }}>
+
+5. Check prefixDefaultLocale config...
+9:    prefixDefaultLocale: false,
+
+6. Check Tailwind integration...
+12:    "@astrojs/tailwind": "^5.1.0",
+13:    "tailwindcss": "^3.4.0"
+
+7. Check inline <script> with complex logic...
+  No script tags found
+
+8. Check duplicate pages...
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro
+
+9. Check deprecated dependencies...
+{
+  "name": "mock-anti-pattern-site",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "tailwindcss": "^3.4.0"
+  }
+}
+
+10. Check i18n config...
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static',
+  integrations: [],
+  i18n: {
+    locales: ['en', 'zh'],
+    defaultLocale: 'zh',
+    prefixDefaultLocale: false,
+  },
+});
+

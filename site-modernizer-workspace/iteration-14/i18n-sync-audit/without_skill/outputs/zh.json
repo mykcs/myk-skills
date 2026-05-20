@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于",
+    "contact": "联系我们"
+  },
+  "hero": {
+    "title": "欢迎",
+    "subtitle": "这是一个演示网站",
+    "cta": "立即开始"
+  },
+  "footer": {
+    "copyright": "保留所有权利",
+    "backToTop": "返回顶部"
+  }
+}

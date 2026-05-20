@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Replaced deprecated Astro.glob with import.meta.glob",
+      "passed": false,
+      "evidence": "grep: src/pages/index.astro:5:const posts = await Astro.glob('./posts/*.md');"
+    },
+    {
+      "text": "Replaced deprecated ViewTransitions with ClientRouter",
+      "passed": false,
+      "evidence": "grep: src/pages/index.astro:3:import { ViewTransitions } from 'astro:transitions';\nsrc/pages/index.astro:11:    <ViewTransitions />"
+    },
+    {
+      "text": "Removed deprecated format prop from Image component",
+      "passed": false,
+      "evidence": "grep: src/components/Gallery.astro:7:  <Image src={hero} format=\"webp\" width={800} height={600} alt=\"Hero\" />\nsrc/components/Gallery.astro:8:  <Image src={hero} format=\"avif\" width={400} height={300} alt=\"Thumb\" />"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": false,
+      "evidence": "build returned 1"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": false,
+      "evidence": "latest: e6c4a63 initial mock repo"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.0,
+    "passed": 0,
+    "failed": 5,
+    "total": 5
+  }
+}

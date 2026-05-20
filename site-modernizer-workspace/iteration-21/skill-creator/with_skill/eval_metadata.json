@@ -1,0 +1,10 @@
+{
+  "eval_id": 0,
+  "eval_name": "skill-creator-basic",
+  "prompt": "Create a skill called 'hello-world' that makes Claude greet the user with their name. The skill should: 1) ask for the user's name if not provided, 2) generate a greeting using the name, 3) save the greeting to /tmp/hello-greeting.txt, 4) read it back and display it. Write the skill to ~/.claude/skills/hello-world/SKILL.md with proper frontmatter (name, description).",
+  "assertions": [
+    {"name": "SKILL.md exists", "check": "file_exists", "path": "~/.claude/skills/hello-world/SKILL.md"},
+    {"name": "Has frontmatter", "check": "contains", "pattern": "name: hello-world"},
+    {"name": "Greeting file created", "check": "file_exists", "path": "/tmp/hello-greeting.txt"}
+  ]
+}

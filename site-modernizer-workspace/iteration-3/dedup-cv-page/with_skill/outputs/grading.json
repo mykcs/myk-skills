@@ -1,0 +1,30 @@
+{
+  "eval_id": 1,
+  "eval_name": "dedup-cv-page",
+  "configuration": "with_skill",
+  "assertions_total": 4,
+  "assertions_passed": 3,
+  "pass_rate": 0.75,
+  "expectations": [
+    {
+      "text": "Mentions deleting src/pages/cv.astro",
+      "passed": true,
+      "evidence": "Step 1 explicitly: rm src/pages/cv.astro"
+    },
+    {
+      "text": "Proposes redirect from /cv/ to /zh/cv/",
+      "passed": true,
+      "evidence": "Step 3 adds redirects config in astro.config.mjs: '/cv' -> '/zh/cv'"
+    },
+    {
+      "text": "Includes build verification steps",
+      "passed": true,
+      "evidence": "Steps 4-5 include npm run build and cat dist/cv/index.html verification"
+    },
+    {
+      "text": "Uses Conventional Commits for commit message",
+      "passed": false,
+      "evidence": "No commit step in the plan at all; missing git add/commit commands"
+    }
+  ]
+}

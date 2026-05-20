@@ -1,0 +1,6 @@
+{
+  "eval_id": 4,
+  "eval_name": "anti-pattern-scan",
+  "prompt": "我的 Astro 项目用了好几年了，帮我扫描一下有没有过时的写法或反模式，有问题就修掉。",
+  "assertions": []
+}

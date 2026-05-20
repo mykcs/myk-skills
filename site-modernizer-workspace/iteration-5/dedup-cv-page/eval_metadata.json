@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "dedup-cv-page",
+  "prompt": "我网站里有重复的 CV 页面：src/pages/cv.astro（纯中文）和 src/pages/[lang]/cv.astro（双语）。帮我清理掉重复的那个，让用户访问 /cv/ 时自动跳转到 /zh/cv/。",
+  "assertions": [
+    {"text": "Mentions deleting src/pages/cv.astro", "passed": null, "evidence": ""},
+    {"text": "Proposes redirect from /cv/ to /zh/cv/", "passed": null, "evidence": ""},
+    {"text": "Includes build verification steps", "passed": null, "evidence": ""},
+    {"text": "Uses Conventional Commits for commit message", "passed": null, "evidence": ""}
+  ]
+}

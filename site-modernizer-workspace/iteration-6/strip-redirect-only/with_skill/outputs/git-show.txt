@@ -1,0 +1,24 @@
+commit e8028d4c438aa1ac46330b6a9d5636d28304feff
+Author: myk <165669834+mykcs@users.noreply.github.com>
+Date:   Thu May 14 19:22:12 2026 +0800
+
+    refactor(site): strip mykcs.github.io to redirect-only pointing to wangrui2025.github.io
+    
+    Remove all content, layouts, assets, scripts, and docs.
+    Keep only a single index.astro with meta-refresh redirect.
+    Strip Tailwind and unused dependencies from package.json.
+    Add .gitignore for node_modules, .astro, dist, package-lock.json.
+
+ .gitignore                          |  4 ++++
+ astro.config.mjs                    |  4 ----
+ docs/adr/0001-old-decision.md       |  3 ---
+ package.json                        |  8 ++------
+ public/favicon/favicon.ico          |  1 -
+ public/images/papers/gdkvm-arch.png |  1 -
+ public/images/papers/osa-teaser.png |  1 -
+ scripts/build.sh                    |  2 --
+ scripts/smart-autopush.sh           | 12 ------------
+ src/layouts/Layout.astro            | 13 -------------
+ src/pages/index.astro               | 21 ++++++++++++---------
+ src/pages/old-project.astro         |  7 -------
+ 12 files changed, 18 insertions(+), 59 deletions(-)

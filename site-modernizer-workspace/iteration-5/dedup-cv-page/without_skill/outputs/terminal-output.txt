@@ -1,0 +1,39 @@
+=== PLAN ===
+1. Delete src/pages/cv.astro (duplicate pure-Chinese page)
+2. Create src/pages/cv/index.astro with meta-refresh redirect to /zh/cv/
+3. Build and verify
+
+=== FILE CHANGES ===
+DELETED: src/pages/cv.astro
+CREATED: src/pages/cv/index.astro
+
+=== BUILD OUTPUT ===
+19:09:25 [types] Generated 370ms
+19:09:25 [build] output: "static"
+19:09:25 [build] mode: "static"
+19:09:25 [build] directory: /private/tmp/dedup-test-baseline-7337/dist/
+19:09:25 [build] Collecting build info...
+19:09:25 [build] ✓ Completed in 508ms.
+19:09:25 [build] Building static entrypoints...
+19:09:28 [vite] ✓ built in 2.40s
+19:09:28 [vite] ✓ built in 12ms
+19:09:28 [build] Rearranging server assets...
+
+ generating static routes 
+19:09:28   ├─ /cv/index.html (+14ms) 
+19:09:28   ├─ /en/cv/index.html (+5ms) 
+19:09:28   ├─ /zh/cv/index.html (+3ms) 
+19:09:28 ✓ Completed in 52ms.
+
+19:09:28 [build] ✓ Completed in 2.68s
+19:09:28 [build] 3 page(s) built in 3.19s
+19:09:28 [build] Complete!
+
+=== GENERATED REDIRECT PAGE ===
+<!DOCTYPE html><html lang="zh"> <head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=/zh/cv/"><title>Redirecting...</title></head> <body> <p>Redirecting to <a href="/zh/cv/">/zh/cv/</a>...</p> </body></html>
+
+=== VERIFICATION ===
+- /cv/index.html exists and contains redirect to /zh/cv/
+- /en/cv/index.html exists (bilingual page)
+- /zh/cv/index.html exists (bilingual page)
+- No build errors

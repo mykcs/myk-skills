@@ -1,0 +1,32 @@
+{
+  "eval_id": 5,
+  "eval_name": "i18n-sync-audit",
+  "prompt": "我的双语网站好像有些翻译没同步，帮我检查一下 i18n 有没有问题，把没对齐的修掉。",
+  "assertions": [
+    {
+      "text": "检测组件中的硬编码文本并迁移到 i18n JSON",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "同步 en.json 和 zh.json 键集合，补齐缺失键",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "构建通过",
+      "passed": false,
+      "evidence": ""
+    },
+    {
+      "text": "修复后通过 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": ""
+    }
+  ]
+}

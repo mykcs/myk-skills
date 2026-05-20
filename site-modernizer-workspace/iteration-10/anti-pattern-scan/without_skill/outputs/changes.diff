@@ -1,0 +1,50 @@
+diff --git a/src/components/Gallery.astro b/src/components/Gallery.astro
+index 670b866..ff873aa 100644
+--- a/src/components/Gallery.astro
++++ b/src/components/Gallery.astro
+@@ -4,6 +4,6 @@ import hero from '../assets/hero.png';
+ ---
+ 
+ <div class="gallery">
+-  <Image src={hero} format="webp" width={800} height={600} alt="Hero" />
+-  <Image src={hero} format="avif" width={400} height={300} alt="Thumb" />
++  <Image src={hero} width={800} height={600} alt="Hero" />
++  <Image src={hero} width={400} height={300} alt="Thumb" />
+ </div>
+diff --git a/src/pages/index.astro b/src/pages/index.astro
+index 907e84b..1904aeb 100644
+--- a/src/pages/index.astro
++++ b/src/pages/index.astro
+@@ -1,23 +1,27 @@
+ ---
+ import Layout from '../layouts/Layout.astro';
+-import { ViewTransitions } from 'astro:transitions';
++import { ClientRouter } from 'astro:transitions';
++import { getCollection } from 'astro:content';
+ 
+-const posts = await Astro.glob('./posts/*.md');
++const posts = await getCollection('posts');
+ const themeColor = '#3b82f6';
+ ---
+ 
+ <html>
+   <head>
+-    <ViewTransitions />
++    <ClientRouter />
+   </head>
+   <Layout>
+     <h1>Old Site</h1>
+     <ul>
+-      {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
++      {posts.map(p => <li><a href={`/posts/${p.slug}/`}>{p.data.title}</a></li>)}
+     </ul>
+   </Layout>
+ </html>
+ 
+-<style define:vars={{ themeColor }}>
++<style>
++  :root {
++    --themeColor: #3b82f6;
++  }
+   h1 { color: var(--themeColor); }
+ </style>

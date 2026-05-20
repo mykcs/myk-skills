@@ -1,0 +1,11 @@
+---
+import { Image } from 'astro:assets';
+import hero from '../assets/hero.png';
+---
+
+<div class="gallery">
+  <Image src={hero} width={800} height={600} alt="Hero" loading="eager" decoding="async" fetchpriority="high" />
+  <Image src={hero} width={400} height={300} alt="Thumb 1" loading="lazy" decoding="async" />
+  <Image src={hero} width={400} height={300} alt="Thumb 2" loading="lazy" decoding="async" />
+  <Image src={hero} width={400} height={300} alt="Thumb 3" loading="lazy" decoding="async" />
+</div>

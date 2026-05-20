@@ -1,0 +1,9 @@
+---
+import { Picture } from 'astro:assets';
+import hero from '../assets/hero.png';
+---
+
+<div class="gallery">
+  <Picture src={hero} formats={['avif', 'webp']} width={800} height={600} alt="Hero" />
+  <Picture src={hero} formats={['avif', 'webp']} width={400} height={300} alt="Thumb" />
+</div>

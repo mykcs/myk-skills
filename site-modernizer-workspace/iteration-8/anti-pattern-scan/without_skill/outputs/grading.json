@@ -1,0 +1,36 @@
+{
+  "eval_id": 4,
+  "eval_name": "anti-pattern-scan",
+  "configuration": "without_skill",
+  "assertions_total": 5,
+  "assertions_passed": 3,
+  "pass_rate": 0.6,
+  "expectations": [
+    {
+      "text": "Identifies Astro.glob() usage and proposes Content Collections replacement",
+      "passed": false,
+      "evidence": "02-findings.md mentioned Content Collections as 'better practice' for import.meta.glob but did not implement or propose concrete migration"
+    },
+    {
+      "text": "Flags Image format prop as obsolete and removes it",
+      "passed": true,
+      "evidence": "02-findings.md flagged Image format props; 03-actions.md confirms removal"
+    },
+    {
+      "text": "Flags ViewTransitions as deprecated and replaces with ClientRouter",
+      "passed": true,
+      "evidence": "Working dir already had ClientRouter; baseline correctly handled ClientRouter placement in head slot"
+    },
+    {
+      "text": "Flags define:vars on style as anti-pattern and removes it",
+      "passed": true,
+      "evidence": "Final index.astro shows define:vars removed and replaced with :root CSS custom property"
+    },
+    {
+      "text": "Includes commit/push steps via smart-autopush.sh after fixes",
+      "passed": false,
+      "evidence": "No commit or push mentioned in any output; agent applied fixes directly without committing"
+    }
+  ],
+  "notes": "Test setup contamination: mock repo working directory included iter-7 baseline partial fixes. Baseline pass rate inflated vs iter-7 (60% vs 20%) because it was building on already-partially-fixed code."
+}

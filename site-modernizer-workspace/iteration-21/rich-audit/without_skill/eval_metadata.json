@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "rich-audit-scan",
+  "prompt": "Audit the mock-repo at /Users/myk/.claude/skills/site-modernizer-workspace/iteration-21/rich-audit/with_skill/mock-repo for performance issues, anti-patterns, and security vulnerabilities. Run a full audit and produce a written report. Apply fixes for any HIGH or MEDIUM severity issues found. Commit all changes.",
+  "assertions": []
+}

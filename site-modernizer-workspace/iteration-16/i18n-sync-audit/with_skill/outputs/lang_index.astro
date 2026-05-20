@@ -1,0 +1,17 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Hero from '../../components/Hero.astro';
+import { t } from '../../lib/i18n';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'zh' } }];
+}
+
+const { lang } = Astro.params;
+---
+<Layout title={t('meta.siteTitle', lang)} lang={lang}>
+  <Navbar />
+  <Hero lang={lang} />
+  <footer>{t('footer.copyright', lang)} © 2024</footer>
+</Layout>

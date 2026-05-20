@@ -1,0 +1,35 @@
+{
+  "eval_id": 2,
+  "eval_name": "anti-pattern-scan",
+  "configuration": "without_skill",
+  "assertions_total": 5,
+  "assertions_passed": 2,
+  "pass_rate": 0.4,
+  "expectations": [
+    {
+      "text": "Identifies Astro.glob() usage and proposes Content Collections replacement",
+      "passed": false,
+      "evidence": "scan-report.md identified Astro.glob() but proposed import.meta.glob() instead of Content Collections"
+    },
+    {
+      "text": "Flags Image format prop as obsolete",
+      "passed": true,
+      "evidence": "scan-report.md P1-2 flagged Image format prop; code-changes.diff removed format attributes"
+    },
+    {
+      "text": "Flags ViewTransitions as deprecated (should use ClientRouter)",
+      "passed": true,
+      "evidence": "scan-report.md P1-1 flagged ViewTransitions; code-changes.diff replaced with ClientRouter"
+    },
+    {
+      "text": "Flags define:vars on style as anti-pattern",
+      "passed": false,
+      "evidence": "scan-report.md mentioned define:vars as P2 (optional), and code-changes.diff retained define:vars without fixing"
+    },
+    {
+      "text": "Includes commit/push steps via smart-autopush.sh",
+      "passed": false,
+      "evidence": "No commit or push steps mentioned anywhere in outputs"
+    }
+  ]
+}

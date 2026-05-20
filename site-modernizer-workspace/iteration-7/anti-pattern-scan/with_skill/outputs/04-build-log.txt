@@ -1,0 +1,88 @@
+=== Initial Build (Pre-Fix) ===
+> mock-anti-pattern-site@1.0.0 build
+> astro build
+
+19:31:47 [content] Syncing content
+19:31:47 [content] Synced content
+19:31:47 [types] Generated 54ms
+19:31:47 [build] output: "static"
+19:31:47 [build] mode: "static"
+19:31:47 [build] directory: /private/tmp/site-modernizer-test-repo/dist/
+19:31:47 [build] Collecting build info...
+19:31:47 [build] Completed in 60ms.
+19:31:47 [build] Building static entrypoints...
+19:31:48 [vite] built in 255ms
+19:31:48 [build] Completed in 271ms.
+
+ building client (vite)
+19:31:48 [vite] transforming...
+19:31:48 [vite] 13 modules transformed.
+19:31:48 [vite] rendering chunks...
+19:31:48 [vite] computing gzip size...
+19:31:48 [vite] dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CDGfc0hd.js  15.36 kB | gzip: 5.31 kB
+19:31:48 [vite] built in 30ms
+
+ generating static routes
+19:31:48 src/pages/index.astro
+  /index.htmlAstro.glob is deprecated and will be removed in a future major version of Astro.
+Use import.meta.glob instead: https://vitejs.dev/guide/features.html#glob-import
+[AstroGlobNoMatch] Astro.glob({}) did not return any matching files.
+  Hint:
+    Check the pattern for typos.
+  Error reference:
+    https://docs.astro.build/en/reference/errors/astro-glob-no-match/
+  Location:
+    /private/tmp/site-modernizer-test-repo/node_modules/astro/dist/runtime/server/render/astro/render.js:96:31
+  Stack trace:
+    at Object.globHandler [as glob] (...)
+    at index (...)
+    at renderToString (...)
+    at lastNext (...)
+
+BUILD FAILED (exit code 1)
+
+=== Final Build (Post-Fix) ===
+> mock-anti-pattern-site@1.0.0 build
+> astro build
+
+19:33:29 [content] Syncing content
+19:33:29 [content] Synced content
+19:33:29 [types] Generated 136ms
+19:33:29 [build] output: "static"
+19:33:29 [build] mode: "static"
+19:33:29 [build] directory: /private/tmp/site-modernizer-test-repo/dist/
+19:33:29 [build] Collecting build info...
+19:33:29 [build] Completed in 142ms.
+19:33:29 [build] Building static entrypoints...
+19:33:30 [vite] built in 322ms
+19:33:30 [build] Completed in 340ms.
+
+ building client (vite)
+19:33:30 [vite] transforming...
+19:33:30 [vite] 13 modules transformed.
+19:33:30 [vite] rendering chunks...
+19:33:30 [vite] computing gzip size...
+19:33:30 [vite] dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CDGfc0hd.js  15.36 kB | gzip: 5.31 kB
+19:33:30 [vite] built in 33ms
+
+ generating static routes
+19:33:30 src/pages/index.astro
+  /index.html (+5ms)
+19:33:30 Completed in 9ms.
+
+19:33:30 [build] 1 page(s) built in 530ms
+19:33:30 [build] Complete!
+
+BUILD PASSED (exit code 0)
+
+=== astro check (Post-Fix) ===
+19:33:24 [content] Syncing content
+19:33:24 [content] Synced content
+19:33:24 [types] Generated 156ms
+19:33:24 [check] Getting diagnostics for Astro files in /private/tmp/site-modernizer-test-repo...
+Result (3 files):
+- 0 errors
+- 0 warnings
+- 0 hints
+
+CHECK PASSED

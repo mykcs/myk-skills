@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Replaced deprecated Astro.glob with import.meta.glob",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Replaced deprecated ViewTransitions with ClientRouter",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Removed deprecated format prop from Image component",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": true,
+      "evidence": "build returned 0; 9:29:55 ✓ Completed in 10ms.\n\n19:29:55 [build] 2 page(s) built in 605ms\n19:29:55 [build] Complete!\nThe collection \"posts\" does not exist or is empty. Please check your content config file for errors.\n"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": true,
+      "evidence": "latest: 3bf28c2 chore(git): add .gitignore to exclude node_modules and build artifacts\nbdb9b95 refactor(site): modernize Astro anti-patterns (Astro.glob→Content Collections, ViewTransitions→ClientRouter, remove Image format prop, fix Layout nesting)\n047bf68 initial mock repo (with anti-patterns)"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  }
+}

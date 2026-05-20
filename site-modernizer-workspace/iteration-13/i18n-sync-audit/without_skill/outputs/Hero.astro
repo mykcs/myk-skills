@@ -1,0 +1,10 @@
+---
+import { getTranslations } from '../utils/i18n';
+const { lang } = Astro.props;
+const t = getTranslations(lang);
+---
+<section class="hero">
+  <h1>{t.hero.title}</h1>
+  <p>{t.hero.subtitle}</p>
+  <button>{t.hero.cta}</button>
+</section>

@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ClientRouter } from 'astro:transitions';
+
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+const themeColor = '#3b82f6';
+---
+
+<html>
+  <head>
+    <ClientRouter />
+  </head>
+  <Layout>
+    <h1>Old Site</h1>
+    <ul>
+      {posts.map((p: any) => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
+    </ul>
+  </Layout>
+</html>
+
+<style define:vars={{ themeColor }}>
+  h1 { color: var(--themeColor); }
+</style>

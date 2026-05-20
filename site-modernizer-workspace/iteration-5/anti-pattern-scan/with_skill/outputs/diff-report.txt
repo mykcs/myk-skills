@@ -1,0 +1,92 @@
+=== DIFF REPORT ===
+
+--- src/pages/index.astro ---
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/src-original/pages/index.astro	2026-05-14 19:08:59
++++ /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/src-modified/pages/index.astro	2026-05-14 19:09:54
+@@ -1,23 +1,28 @@
+ ---
+ import Layout from '../layouts/Layout.astro';
+-import { ViewTransitions } from 'astro:transitions';
++import { ClientRouter } from 'astro:transitions';
++import { getCollection } from 'astro:content';
+ 
+-const posts = await Astro.glob('./posts/*.md');
+-const themeColor = '#3b82f6';
++const posts = await getCollection('posts');
+ ---
+ 
+ <html>
+   <head>
+-    <ViewTransitions />
++    <ClientRouter />
++    <style>
++      :root {
++        --theme-color: #3b82f6;
++      }
++    </style>
+   </head>
+   <Layout>
+     <h1>Old Site</h1>
+     <ul>
+-      {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
++      {posts.map(p => <li><a href={`/posts/${p.slug}/`}>{p.data.title}</a></li>)}
+     </ul>
+   </Layout>
+ </html>
+ 
+-<style define:vars={{ themeColor }}>
+-  h1 { color: var(--themeColor); }
++<style>
++  h1 { color: var(--theme-color); }
+ </style>
+
+--- src/components/Gallery.astro ---
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/src-original/components/Gallery.astro	2026-05-14 19:08:59
++++ /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/src-modified/components/Gallery.astro	2026-05-14 19:09:54
+@@ -4,6 +4,6 @@
+ ---
+ 
+ <div class="gallery">
+-  <Image src={hero} format="webp" width={800} height={600} alt="Hero" />
+-  <Image src={hero} format="avif" width={400} height={300} alt="Thumb" />
++  <Image src={hero} width={800} height={600} alt="Hero" />
++  <Image src={hero} width={400} height={300} alt="Thumb" />
+ </div>
+
+--- astro.config.mjs ---
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/astro.config.mjs.original	2026-05-14 19:08:59
++++ /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/astro.config.mjs.modified	2026-05-14 19:09:54
+@@ -6,6 +6,6 @@
+   i18n: {
+     locales: ['en', 'zh'],
+     defaultLocale: 'zh',
+-    prefixDefaultLocale: false,
++    prefixDefaultLocale: true,
+   },
+ });
+
+--- package.json ---
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/package.json.original	2026-05-14 19:08:59
++++ /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/with_skill/outputs/package.json.modified	2026-05-14 19:09:54
+@@ -9,7 +9,7 @@
+   },
+   "dependencies": {
+     "astro": "^5.0.0",
+-    "@astrojs/tailwind": "^5.1.0",
+-    "tailwindcss": "^3.4.0"
++    "@tailwindcss/vite": "^4.0.0",
++    "tailwindcss": "^4.0.0"
+   }
+ }
+
+--- NEW FILE: src/content/config.ts ---
+import { defineCollection, z } from 'astro:content';
+
+const posts = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+  }),
+});
+
+export const collections = { posts };

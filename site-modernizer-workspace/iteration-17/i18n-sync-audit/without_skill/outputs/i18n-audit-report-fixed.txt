@@ -1,0 +1,39 @@
+============================================================
+i18n Sync Audit Report - POST-FIX
+============================================================
+
+Status: ALL KEYS ALIGNED
+EN keys: 8
+ZH keys: 8
+
+  footer.backToTop
+    EN: "Back to Top"
+    ZH: "返回顶部"
+
+  footer.copyright
+    EN: "All rights reserved"
+    ZH: "保留所有权利"
+
+  hero.cta
+    EN: "Get Started"
+    ZH: "立即开始"
+
+  hero.subtitle
+    EN: "This is a demo site"
+    ZH: "这是一个演示网站"
+
+  hero.title
+    EN: "Welcome"
+    ZH: "欢迎"
+
+  nav.about
+    EN: "About"
+    ZH: "关于"
+
+  nav.contact
+    EN: "Contact Us"
+    ZH: "联系我们"
+
+  nav.home
+    EN: "Home"
+    ZH: "首页"

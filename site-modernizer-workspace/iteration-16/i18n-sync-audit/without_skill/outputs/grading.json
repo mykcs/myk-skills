@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "en.json and zh.json have identical key sets",
+      "passed": true,
+      "evidence": "en=3 zh=3 match=True"
+    },
+    {
+      "text": "All lang === conditionals eliminated",
+      "passed": false,
+      "evidence": "grep: src/components/Hero.astro:5:  <h1>{lang === 'zh' ? '欢迎' : 'Welcome'}</h1>\nsrc/pages/[lang]/index.astro:12:<Layout title={lang === 'zh' ? '演示站点' : 'Demo Site'}>"
+    },
+    {
+      "text": "All hardcoded UI text replaced with t() calls",
+      "passed": true,
+      "evidence": "Chinese chars: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": false,
+      "evidence": "build returned 127"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": false,
+      "evidence": "latest: 425a73d initial mock repo"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.4,
+    "passed": 2,
+    "failed": 3,
+    "total": 5
+  }
+}

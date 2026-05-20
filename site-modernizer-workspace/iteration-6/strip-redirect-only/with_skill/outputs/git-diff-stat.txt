@@ -1,0 +1,13 @@
+ .gitignore                          |  4 ++++
+ astro.config.mjs                    |  4 ----
+ docs/adr/0001-old-decision.md       |  3 ---
+ package.json                        |  8 ++------
+ public/favicon/favicon.ico          |  1 -
+ public/images/papers/gdkvm-arch.png |  1 -
+ public/images/papers/osa-teaser.png |  1 -
+ scripts/build.sh                    |  2 --
+ scripts/smart-autopush.sh           | 12 ------------
+ src/layouts/Layout.astro            | 13 -------------
+ src/pages/index.astro               | 21 ++++++++++++---------
+ src/pages/old-project.astro         |  7 -------
+ 12 files changed, 18 insertions(+), 59 deletions(-)

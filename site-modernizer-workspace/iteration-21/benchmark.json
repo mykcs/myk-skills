@@ -1,0 +1,558 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer-eval",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "kimi-k2.6",
+    "analyzer_model": "human",
+    "timestamp": "2026-05-17T07:30:00Z",
+    "evals_run": [
+      "claude-api-hello",
+      "docx-create",
+      "feishu-agent-read",
+      "frontend-design-simple",
+      "grill-me-demo",
+      "mcp-builder-simple",
+      "omc-reference-lookup",
+      "pdf-create",
+      "pptx-create",
+      "publishing-astro-websites",
+      "record-case-demo",
+      "rich-audit-scan",
+      "skill-creator-basic",
+      "xlsx-create"
+    ],
+    "runs_per_configuration": 1,
+    "note": "Qualitative eval: all evals have no grading assertions. pass_rate = binary output produced."
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "eval_name": "claude-api-hello",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 112.6,
+        "tokens": 39784,
+        "errors": 0,
+        "output_summary": "response.txt; timing.json; claude-hello.ts"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "claude-api-hello",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 69.4,
+        "tokens": 24332,
+        "errors": 0,
+        "output_summary": "timing.json; claude-hello.ts"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "docx-create",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 153.7,
+        "tokens": 33047,
+        "errors": 0,
+        "output_summary": "timing.json; demo.docx"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "docx-create",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 74.3,
+        "tokens": 24357,
+        "errors": 0,
+        "output_summary": "timing.json; demo.docx"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "feishu-agent-read",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 215.8,
+        "tokens": 43399,
+        "errors": 0,
+        "output_summary": "timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "feishu-agent-read",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 172.0,
+        "tokens": 29854,
+        "errors": 0,
+        "output_summary": "timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "frontend-design-simple",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 93.4,
+        "tokens": 28402,
+        "errors": 0,
+        "output_summary": "timing.json; demo-card.html"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "frontend-design-simple",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 68.1,
+        "tokens": 24988,
+        "errors": 0,
+        "output_summary": "timing.json; demo-card.html"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "grill-me-demo",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 14.6,
+        "tokens": 24304,
+        "errors": 0,
+        "output_summary": "timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "grill-me-demo",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 14.6,
+        "tokens": 24304,
+        "errors": 0,
+        "output_summary": "timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "mcp-builder-simple",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 185.1,
+        "tokens": 43612,
+        "errors": 0,
+        "output_summary": "timing.json; demo-mcp-server.js"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "mcp-builder-simple",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 58.1,
+        "tokens": 24258,
+        "errors": 0,
+        "output_summary": "timing.json; demo-mcp-server.js"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "omc-reference-lookup",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 86.8,
+        "tokens": 29121,
+        "errors": 0,
+        "output_summary": "reference-summary.md; timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "omc-reference-lookup",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 146.8,
+        "tokens": 32017,
+        "errors": 0,
+        "output_summary": "reference-summary.md; timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "pdf-create",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 155.7,
+        "tokens": 28517,
+        "errors": 0,
+        "output_summary": "timing.json; demo.pdf"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "pdf-create",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 172.2,
+        "tokens": 26915,
+        "errors": 0,
+        "output_summary": "timing.json; demo.pdf"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "pptx-create",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 104.0,
+        "tokens": 35059,
+        "errors": 0,
+        "output_summary": "demo.pptx; timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "pptx-create",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 130.4,
+        "tokens": 26862,
+        "errors": 0,
+        "output_summary": "demo.pptx; timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "publishing-astro-websites",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 282.0,
+        "tokens": 40668,
+        "errors": 0,
+        "output_summary": "timing.json; build-report.md"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 19,
+      "eval_name": "publishing-astro-websites",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 160.6,
+        "tokens": 27746,
+        "errors": 0,
+        "output_summary": "timing.json; build-report.md"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "record-case-demo",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 87.9,
+        "tokens": 29939,
+        "errors": 0,
+        "output_summary": "demo-case.md; timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 21,
+      "eval_name": "record-case-demo",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 128.6,
+        "tokens": 32341,
+        "errors": 0,
+        "output_summary": "demo-case.md; timing.json"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "rich-audit-scan",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 595.7,
+        "tokens": 52246,
+        "errors": 0,
+        "output_summary": "timing.json; audit-report.md"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "rich-audit-scan",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 245.6,
+        "tokens": 38265,
+        "errors": 0,
+        "output_summary": "timing.json; audit-report.md"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "skill-creator-basic",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 169.1,
+        "tokens": 35644,
+        "errors": 0,
+        "output_summary": "timing.json; iteration-1"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "skill-creator-basic",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 73.2,
+        "tokens": 26168,
+        "errors": 0,
+        "output_summary": "timing.json; hello-world-skill.md"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "xlsx-create",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 118.6,
+        "tokens": 29157,
+        "errors": 0,
+        "output_summary": "timing.json; demo.xlsx"
+      },
+      "expectations": [],
+      "notes": []
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "xlsx-create",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "total": 1,
+        "time_seconds": 121.9,
+        "tokens": 25577,
+        "errors": 0,
+        "output_summary": "timing.json; demo.xlsx"
+      },
+      "expectations": [],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 169.6,
+        "stddev": 138.8,
+        "min": 14.6,
+        "max": 595.7
+      },
+      "tokens": {
+        "mean": 35207.1,
+        "stddev": 7820.4,
+        "min": 24304,
+        "max": 52246
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 116.8,
+        "stddev": 60.8,
+        "min": 14.6,
+        "max": 245.6
+      },
+      "tokens": {
+        "mean": 27713.1,
+        "stddev": 4093.7,
+        "min": 24258,
+        "max": 38265
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "+52.8",
+      "tokens": "+7494"
+    }
+  },
+  "notes": [
+    "All evals are qualitative/subjective \u2014 no grading assertions. pass_rate = binary output produced (1=file created, 0=no output).",
+    "With-skill: 14 runs, 14/14 produced output.",
+    "Without-skill: 14 runs, 14/14 produced output.",
+    "Output review via HTML viewer recommended \u2014 human judgment required for qualitative assessment."
+  ]
+}

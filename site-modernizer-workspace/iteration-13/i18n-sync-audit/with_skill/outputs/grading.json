@@ -1,0 +1,17 @@
+{
+  "eval_id": 5,
+  "configuration": "with_skill",
+  "result": {
+    "pass_rate": 0.6,
+    "passed": 3,
+    "failed": 2,
+    "total": 5
+  },
+  "expectations": [
+    {"text": "检测组件中的硬编码文本并迁移到 i18n JSON", "passed": false, "evidence": "hardcoded text still present in Hero.astro (p, button) and [lang]/index.astro (footer, layout title)"},
+    {"text": "同步 en.json 和 zh.json 键集合，补齐缺失键", "passed": true, "evidence": "en.json updated with contact, cta, backToTop keys to match zh.json"},
+    {"text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）", "passed": false, "evidence": "lang === 'zh' conditionals still present in Hero.astro and [lang]/index.astro"},
+    {"text": "构建通过", "passed": true, "evidence": "Build completed successfully"},
+    {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": true, "evidence": "6322a50 fix(i18n): eliminate conditional bilingual rendering and hardcoded text"}
+  ]
+}

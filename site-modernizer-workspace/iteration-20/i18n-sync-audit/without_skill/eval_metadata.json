@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "i18n-sync-audit",
+  "prompt": "Audit this bilingual Astro site for i18n anti-patterns. Sync en.json and zh.json keys, eliminate conditional lang rendering, and replace hardcoded UI text with t() calls.",
+  "assertions": []
+}

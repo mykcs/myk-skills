@@ -1,0 +1,11 @@
+{
+  "skill_name": "hello-world",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hello, my name is Bob",
+      "expected_output": "A greeting message containing 'Bob', saved to /tmp/hello-greeting.txt",
+      "files": []
+    }
+  ]
+}

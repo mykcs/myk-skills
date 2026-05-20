@@ -1,0 +1,17 @@
+{
+  "eval_id": 0,
+  "eval_name": "greet-user-with-name",
+  "prompt": "Hello, my name is Bob",
+  "assertions": [
+    {
+      "text": "Greeting contains user's name",
+      "passed": true,
+      "evidence": "Output contains 'Bob'"
+    },
+    {
+      "text": "Greeting saved to /tmp/hello-greeting.txt",
+      "passed": true,
+      "evidence": "File exists with correct content"
+    }
+  ]
+}

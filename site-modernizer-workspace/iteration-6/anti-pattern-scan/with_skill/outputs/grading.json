@@ -1,0 +1,35 @@
+{
+  "eval_id": 2,
+  "eval_name": "anti-pattern-scan",
+  "configuration": "with_skill",
+  "assertions_total": 5,
+  "assertions_passed": 4,
+  "pass_rate": 0.8,
+  "expectations": [
+    {
+      "text": "Identifies Astro.glob() usage and proposes Content Collections replacement",
+      "passed": true,
+      "evidence": "02-scan-checklist.md detected Astro.glob(); 04-fix-plan.md proposes getCollection('posts') with content.config.ts"
+    },
+    {
+      "text": "Flags Image format prop as obsolete",
+      "passed": true,
+      "evidence": "02-scan-checklist.md flagged format=webp/avif in Gallery.astro; 04-fix-plan.md proposes removal"
+    },
+    {
+      "text": "Flags ViewTransitions as deprecated (should use ClientRouter)",
+      "passed": true,
+      "evidence": "02-scan-checklist.md flagged ViewTransitions; 04-fix-plan.md proposes ClientRouter replacement"
+    },
+    {
+      "text": "Flags define:vars on style as anti-pattern",
+      "passed": true,
+      "evidence": "02-scan-checklist.md flagged define:vars on style; 04-fix-plan.md proposes CSS custom properties"
+    },
+    {
+      "text": "Includes commit/push steps via smart-autopush.sh",
+      "passed": false,
+      "evidence": "Agent operated in scan-only mode; fix plan created but no actual fixes applied, therefore no commit step executed"
+    }
+  ]
+}

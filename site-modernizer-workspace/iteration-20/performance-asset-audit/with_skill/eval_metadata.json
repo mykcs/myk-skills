@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "performance-asset-audit",
+  "prompt": "Audit this Astro site for performance issues. Replace Google Fonts CDN with @fontsource, add lazy loading to below-the-fold images, remove unused dependencies, and fix any corrupt assets.",
+  "assertions": []
+}

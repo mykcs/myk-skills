@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "pdf-create",
+  "prompt": "Create a simple PDF document at /tmp/demo.pdf with a title 'Test PDF' and one paragraph of text. Use reportlab or puppeteer.",
+  "assertions": []
+}

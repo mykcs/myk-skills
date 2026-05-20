@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+interface PostModule {
+  url: string;
+  frontmatter: { title: string };
+}
+
+const posts = Object.values(import.meta.glob<PostModule>('./posts/*.md', { eager: true }));
+const themeColor = '#3b82f6';
+---
+
+<Layout>
+  <h1>Old Site</h1>
+  <ul>
+    {posts.map((p) => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
+  </ul>
+</Layout>
+
+<style define:vars={{ themeColor }}>
+  h1 { color: var(--themeColor); }
+</style>

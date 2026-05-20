@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "skill_name": "site-modernizer",
+    "skill_path": "/Users/myk/.claude/skills/site-modernizer",
+    "executor_model": "kimi-for-coding",
+    "analyzer_model": "kimi-for-coding",
+    "timestamp": "2026-05-14T17:30:00Z",
+    "evals_run": [
+      "dedup-cv-page",
+      "strip-redirect-only",
+      "create-project-page"
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "with_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 133.8,
+      "tokens": 54162,
+      "status": "completed"
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dedup-cv-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 111.4,
+      "tokens": 51233,
+      "status": "completed"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "strip-redirect-only",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 176.8,
+      "tokens": 75708,
+      "status": "completed"
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "strip-redirect-only",
+      "configuration": "without_skill",
+      "pass_rate": 1.0,
+      "time_seconds": 217.8,
+      "tokens": 59218,
+      "status": "completed"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "create-project-page",
+      "configuration": "with_skill",
+      "pass_rate": 0.75,
+      "time_seconds": 332.5,
+      "tokens": 90877,
+      "status": "completed"
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "create-project-page",
+      "configuration": "without_skill",
+      "pass_rate": 0.625,
+      "time_seconds": 227.8,
+      "tokens": 75635,
+      "status": "completed"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate_mean": 0.833,
+      "pass_rate_std": 0.118,
+      "time_seconds_mean": 214.4,
+      "time_seconds_std": 85.4,
+      "tokens_mean": 73582,
+      "tokens_std": 15067
+    },
+    "without_skill": {
+      "pass_rate_mean": 0.792,
+      "pass_rate_std": 0.156,
+      "time_seconds_mean": 185.7,
+      "time_seconds_std": 52.7,
+      "tokens_mean": 62029,
+      "tokens_std": 10050
+    },
+    "delta": {
+      "pass_rate": "+0.041",
+      "time_seconds": "+28.7",
+      "tokens": "+11553"
+    }
+  },
+  "notes": [
+    "Eval 1 (dedup-cv-page): Both with-skill and baseline scored 75% (3/4 assertions). The skill version used astro.config.mjs redirects; baseline used Astro.redirect() in a new page. Both missing commit step.",
+    "Eval 2 (strip-redirect-only): Both versions scored 100%. Skill version (227 lines) was more structured with ASSESS→CLEAN→REDIRECT→VERIFY workflow and [BATCH MODE] marker. Baseline (219 lines) included GitHub Pages source switch instructions.",
+    "Eval 3 (create-project-page): Skill version scored 75% (6/8), baseline 62.5% (5/8). Skill version used Content Collection pattern and detailed asset inventory. Both missed oklch colors and gdkvm mirroring assertions.",
+    "Key improvement from iteration-1: Eval1 with-skill now produces a valid plan (was 0% due to missing files). The hypothetical plan fallback in SKILL.md is working.",
+    "Skill version consistently uses more tokens (+11.5K mean) and takes longer (+28.7s mean), but achieves higher pass rate on complex evals (create-project-page: 75% vs 62.5%)."
+  ]
+}

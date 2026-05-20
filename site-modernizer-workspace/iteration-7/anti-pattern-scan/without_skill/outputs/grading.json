@@ -1,0 +1,35 @@
+{
+  "eval_id": 4,
+  "eval_name": "anti-pattern-scan",
+  "configuration": "without_skill",
+  "assertions_total": 5,
+  "assertions_passed": 1,
+  "pass_rate": 0.2,
+  "expectations": [
+    {
+      "text": "Identifies Astro.glob() usage and migrates to Content Collections",
+      "passed": false,
+      "evidence": "02-findings.md identified Astro.glob() but proposed import.meta.glob() instead of Content Collections; 03-actions.md shows import.meta.glob was used in final code"
+    },
+    {
+      "text": "Flags Image format prop as obsolete and removes it",
+      "passed": false,
+      "evidence": "02-findings.md P1-4 flagged Image format prop as obsolete, but 03-actions.md explicitly lists it as '未修复项' — format props remain in Gallery.astro final state"
+    },
+    {
+      "text": "Flags ViewTransitions as deprecated and replaces with ClientRouter",
+      "passed": true,
+      "evidence": "02-findings.md P0-2 flagged ViewTransitions; 03-actions.md and 05-final-state.md show replacement with ClientRouter in final code"
+    },
+    {
+      "text": "Flags define:vars on style as anti-pattern and removes it",
+      "passed": false,
+      "evidence": "define:vars on <style> was not flagged in 02-findings.md and remains in final index.astro (05-final-state.md)"
+    },
+    {
+      "text": "Includes commit/push steps via smart-autopush.sh after fixes",
+      "passed": false,
+      "evidence": "No commit or push steps mentioned anywhere in outputs; agent applied fixes directly without commit"
+    }
+  ]
+}

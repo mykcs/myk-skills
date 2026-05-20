@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "feishu-agent-read",
+  "prompt": "Use the feishu-agent skill to list all tables in the feishu app. Describe what tables are available.",
+  "assertions": []
+}

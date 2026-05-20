@@ -1,0 +1,32 @@
+=== POST-FIX SCAN: Anti-Pattern Checklist (Astro 6) ===
+
+1. Check Astro.glob() usage...
+  No Astro.glob found
+
+2. Check <Image format=...> usage...
+  No format attr found
+
+3. Check ViewTransitions import...
+  No ViewTransitions found
+
+4. Check define:vars on <style>...
+  No define:vars found
+
+5. Check prefixDefaultLocale config...
+9:    prefixDefaultLocale: true,
+
+6. Check Tailwind integration...
+12:    "@tailwindcss/vite": "^4.0.0",
+13:    "tailwindcss": "^4.0.0"
+
+7. Check inline <script> with complex logic...
+  No script tags found
+
+8. Check ClientRouter usage...
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:3:import { ClientRouter } from 'astro:transitions';
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:11:    <ClientRouter />
+
+9. Check getCollection usage...
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:4:import { getCollection } from 'astro:content';
+/tmp/anti-pattern-test-with-skill-10746/src/pages/index.astro:6:const posts = await getCollection('posts');
+

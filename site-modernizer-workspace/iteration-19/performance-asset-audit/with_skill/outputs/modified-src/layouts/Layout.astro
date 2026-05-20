@@ -1,0 +1,20 @@
+---
+const { title = 'Mock Site' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Performance optimization demo site built with Astro.">
+  <title>{title}</title>
+  <script>
+    import '@fontsource/inter/400.css';
+    import '@fontsource/inter/600.css';
+    import '@fontsource/inter/700.css';
+  </script>
+</head>
+<body>
+  <slot />
+</body>
+</html>

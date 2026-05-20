@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Unused dependencies (lodash, moment, jquery) removed",
+      "passed": true,
+      "evidence": "deps: {'astro'}"
+    },
+    {
+      "text": "Google Fonts CDN replaced with @fontsource/inter",
+      "passed": false,
+      "evidence": "grep: src/layouts/Layout.astro:11:  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\nsrc/layouts/Layout.astro:13:  <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\" media=\"print\" onload=\"this.media='all'\">\nsrc/layouts/Layout.astro:14:  <noscript><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\"></noscript>"
+    },
+    {
+      "text": "Below-the-fold images have loading=lazy and decoding=async",
+      "passed": false,
+      "evidence": "imgs=False lazy=False"
+    },
+    {
+      "text": "Corrupt hero.png replaced with valid image",
+      "passed": false,
+      "evidence": "format: /Users/myk/.claude/skills/site-modernizer-workspace/iteration-19/performance-asset-audit/without_skill/mock-repo/src/assets/hero.png: ASCII text"
+    },
+    {
+      "text": "Build passes and changes committed",
+      "passed": false,
+      "evidence": "build=False commit=True msg=9d44070 perf: remove unused deps (lodash, moment, jquery); a"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.2,
+    "passed": 1,
+    "failed": 4,
+    "total": 5
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "record-case-demonstration",
+  "prompt": "Record a case about a hypothetical bug you fixed: a Bash script that failed because npm was not in PATH. The fix was to add PATH=/Users/myk/.local/share/fnm/node-versions/v22.14.0/installation/bin:$PATH before calling npm. Save it to /tmp/demo-case.md using the Case template format.",
+  "assertions": []
+}

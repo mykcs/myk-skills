@@ -1,0 +1,50 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-project-page",
+  "configuration": "with_skill",
+  "assertions_total": 8,
+  "assertions_passed": 8,
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "Proposes bilingual structure (en/zh)",
+      "passed": true,
+      "evidence": "src/i18n/en.json + zh.json, [lang]/index.astro with getStaticPaths returning en/zh, i18n routing config"
+    },
+    {
+      "text": "Includes Hero/Abstract/Method/Results/BibTeX sections",
+      "passed": true,
+      "evidence": "Sections 3.1 Hero, 3.3 Abstract, 3.5 Method, 3.6 Results, 3.7 BibTeX all explicitly planned with content"
+    },
+    {
+      "text": "Mentions oklch colors",
+      "passed": true,
+      "evidence": "Section 5 'Color / Token Recommendations (oklch)' defines --color-primary: oklch(55% 0.15 255), --color-accent: oklch(65% 0.18 30), and multiple other oklch tokens in @theme"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "Section 6 includes Pre-Build Checklist (9 items), Build Commands (8 steps), Post-Build Regression Tests (4 checks), and Playwright E2E tests"
+    },
+    {
+      "text": "Uses Astro 6 + Tailwind v4",
+      "passed": true,
+      "evidence": "Explicitly stated 'Astro 6.x + Tailwind CSS v4'; uses @tailwindcss/vite plugin; mentions ClientRouter and Astro 6 auto-optimization"
+    },
+    {
+      "text": "Mirrors gdkvm quality/patterns",
+      "passed": true,
+      "evidence": "Explicitly states 'matches the quality and patterns of the existing /gdkvm/ project page'; reuses gdkvm Layout.astro pattern, t() function, highlight-title animation, service worker, and structuredData.ts approach"
+    },
+    {
+      "text": "Includes asset sourcing plan",
+      "passed": true,
+      "evidence": "Section 7 'Asset Sourcing Plan' table lists 5 assets with specific sources and destinations"
+    },
+    {
+      "text": "Includes risk statement and user action items",
+      "passed": true,
+      "evidence": "Section 9 lists 4 risks (arXiv metadata, code repo, asset availability, build warning) and 5 user action items (verify authors, provide figures, update BibTeX, update code link)"
+    }
+  ]
+}

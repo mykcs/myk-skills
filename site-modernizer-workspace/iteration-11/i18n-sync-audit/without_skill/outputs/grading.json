@@ -1,0 +1,29 @@
+{
+  "expectations": [
+    {
+      "text": "检测组件中的硬编码文本并迁移到 i18n JSON",
+      "passed": false,
+      "evidence": "hardcoded found"
+    },
+    {
+      "text": "同步 en.json 和 zh.json 键集合，补齐缺失键",
+      "passed": true,
+      "evidence": "en keys: ['footer.backToTop', 'footer.copyright', 'hero.cta', 'hero.subtitle', 'hero.title', 'nav.about', 'nav.contact', 'nav.home'], zh keys: ['footer.backToTop', 'footer.copyright', 'hero.cta', 'hero.subtitle', 'hero.title', 'nav.about', 'nav.contact', 'nav.home']"
+    },
+    {
+      "text": "消除条件渲染中的硬编码双语文本（如 lang === 'zh' ? '...' : '...'）",
+      "passed": false,
+      "evidence": "conditional rendering found"
+    },
+    {
+      "text": "构建通过",
+      "passed": true,
+      "evidence": "at fetchModule (file:///Users/myk/.npm/_npx/aa98e6899c6baff3/node_modules/vite/dist/node/chunks/config.js:34000:34)\n    at fetchModule (file:///Users/myk/.npm/_npx/aa98e6899c6baff3/node_modules/vite/d"
+    },
+    {
+      "text": "修复后通过 smart-autopush.sh 提交推送",
+      "passed": false,
+      "evidence": "2d144c3 init"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "anti-pattern-scan",
+  "prompt": "Scan this Astro site for deprecated patterns and modernize it. Fix Astro.glob, ViewTransitions, Image format prop, and any other anti-patterns you find.",
+  "assertions": []
+}

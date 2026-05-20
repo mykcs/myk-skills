@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Replaced deprecated Astro.glob with import.meta.glob",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Replaced deprecated ViewTransitions with ClientRouter",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Removed deprecated format prop from Image component",
+      "passed": true,
+      "evidence": "grep: none"
+    },
+    {
+      "text": "Build passes with 0 errors",
+      "passed": false,
+      "evidence": "build returned 1; :21) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///Users/myk/.claude/skills/site-modernizer-workspace/iteration-19/anti-pattern-scan/without_skill/mock-repo/node_modules/.bin/dist/cli/index.js'\n}\n"
+    },
+    {
+      "text": "Changes committed via smart-autopush.sh",
+      "passed": true,
+      "evidence": "latest: 27efaf7 refactor(site): replace ViewTransitions with ClientRouter, migrate Astro.glob to import.meta.glob, remove define:vars, remove Image format props\n228d43b initial mock repo (with anti-patterns)\na4d628a initial mock repo"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8,
+    "passed": 4,
+    "failed": 1,
+    "total": 5
+  }
+}

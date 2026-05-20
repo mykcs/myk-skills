@@ -1,0 +1,6 @@
+/tmp/strip-redirect-test/.astro/content.d.ts
+/tmp/strip-redirect-test/.astro/types.d.ts
+/tmp/strip-redirect-test/astro.config.mjs
+/tmp/strip-redirect-test/package-lock.json
+/tmp/strip-redirect-test/package.json
+/tmp/strip-redirect-test/src/pages/index.astro

@@ -1,0 +1,6 @@
+{
+  "eval_id": 6,
+  "eval_name": "performance-asset-audit",
+  "prompt": "我网站加载有点慢，帮我看看有没有性能问题，该优化的优化一下。",
+  "assertions": []
+}

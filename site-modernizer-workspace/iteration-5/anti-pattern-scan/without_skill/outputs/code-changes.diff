@@ -1,0 +1,71 @@
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/mock-repo/src/pages/index.astro	2026-05-14 19:06:43
++++ /tmp/anti-pattern-test-baseline-10121/src/pages/index.astro	2026-05-14 19:09:14
+@@ -1,22 +1,18 @@
+ ---
+ import Layout from '../layouts/Layout.astro';
+-import { ViewTransitions } from 'astro:transitions';
++import { ClientRouter } from 'astro:transitions';
+ 
+-const posts = await Astro.glob('./posts/*.md');
++const posts = Object.values(await import.meta.glob('./posts/*.md', { eager: true }));
+ const themeColor = '#3b82f6';
+ ---
+ 
+-<html>
+-  <head>
+-    <ViewTransitions />
+-  </head>
+-  <Layout>
+-    <h1>Old Site</h1>
+-    <ul>
+-      {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
+-    </ul>
+-  </Layout>
+-</html>
++<Layout>
++  <ClientRouter />
++  <h1>Old Site</h1>
++  <ul>
++    {posts.map(p => <li><a href={p.url}>{p.frontmatter.title}</a></li>)}
++  </ul>
++</Layout>
+ 
+ <style define:vars={{ themeColor }}>
+   h1 { color: var(--themeColor); }
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/mock-repo/src/components/Gallery.astro	2026-05-14 19:06:43
++++ /tmp/anti-pattern-test-baseline-10121/src/components/Gallery.astro	2026-05-14 19:09:14
+@@ -4,6 +4,6 @@
+ ---
+ 
+ <div class="gallery">
+-  <Image src={hero} format="webp" width={800} height={600} alt="Hero" />
+-  <Image src={hero} format="avif" width={400} height={300} alt="Thumb" />
++  <Image src={hero} width={800} height={600} alt="Hero" />
++  <Image src={hero} width={400} height={300} alt="Thumb" />
+ </div>
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/mock-repo/astro.config.mjs	2026-05-14 19:06:42
++++ /tmp/anti-pattern-test-baseline-10121/astro.config.mjs	2026-05-14 19:09:15
+@@ -2,7 +2,11 @@
+ 
+ export default defineConfig({
+   output: 'static',
+-  integrations: [],
++  site: 'https://example.com',
++  image: {
++    service: { entrypoint: 'astro/assets/services/sharp' },
++    formats: ['avif', 'webp'],
++  },
+   i18n: {
+     locales: ['en', 'zh'],
+     defaultLocale: 'zh',
+--- /Users/myk/.claude/skills/site-modernizer-workspace/iteration-5/anti-pattern-scan/mock-repo/package.json	2026-05-14 19:06:43
++++ /tmp/anti-pattern-test-baseline-10121/package.json	2026-05-14 19:09:17
+@@ -9,7 +9,6 @@
+   },
+   "dependencies": {
+     "astro": "^5.0.0",
+-    "@astrojs/tailwind": "^5.1.0",
+-    "tailwindcss": "^3.4.0"
++    "tailwindcss": "^4.0.0"
+   }
+ }

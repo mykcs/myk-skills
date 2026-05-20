@@ -1,0 +1,31 @@
+
+> mock-anti-pattern-site@1.0.0 build
+> astro build
+
+20:30:37 [content] Syncing content
+20:30:37 [content] Synced content
+20:30:37 [types] Generated 1.26s
+20:30:37 [build] output: "static"
+20:30:37 [build] mode: "static"
+20:30:37 [build] directory: /Users/myk/.claude/skills/site-modernizer-workspace/iteration-9/anti-pattern-scan/mock-repo/dist/
+20:30:37 [build] Collecting build info...
+20:30:37 [build] ✓ Completed in 1.39s.
+20:30:37 [build] Building static entrypoints...
+20:30:39 [vite] ✓ built in 2.12s
+20:30:39 [build] ✓ Completed in 2.19s.
+
+ building client (vite) 
+20:30:39 [vite] transforming...
+20:30:40 [vite] ✓ 13 modules transformed.
+20:30:40 [vite] rendering chunks...
+20:30:40 [vite] computing gzip size...
+20:30:40 [vite] dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CDGfc0hd.js  15.36 kB │ gzip: 5.31 kB
+20:30:40 [vite] ✓ built in 171ms
+
+ generating static routes 
+20:30:40 ▶ src/pages/index.astro
+20:30:40   └─ /index.html (+23ms) 
+20:30:40 ✓ Completed in 39ms.
+
+20:30:40 [build] 1 page(s) built in 3.82s
+20:30:40 [build] Complete!

@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "frontend-design-simple",
+  "prompt": "Create a simple responsive card component in /tmp/demo-card.html with CSS using oklch colors. The card should have a header, body text, and a button. It must look good on mobile (375px) and desktop (1280px). Use Tailwind-like utility classes or plain CSS.",
+  "assertions": []
+}

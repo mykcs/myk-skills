@@ -1,0 +1,30 @@
+{
+  "eval_id": 3,
+  "eval_name": "strip-redirect-only",
+  "configuration": "with_skill",
+  "assertions_total": 4,
+  "assertions_passed": 4,
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "Identifies files to keep vs delete",
+      "passed": true,
+      "evidence": "ASSESS phase identified all files; CLEAN phase git rm deleted 8 non-essential files"
+    },
+    {
+      "text": "Proposes redirect mechanism (meta-refresh or Astro redirect)",
+      "passed": true,
+      "evidence": "REDIRECT phase: replaced index.astro with meta-refresh + canonical to wangrui2025.github.io"
+    },
+    {
+      "text": "Includes build verification",
+      "passed": true,
+      "evidence": "VERIFY phase: npm run build passes (0 errors), dist/index.html contains correct redirect markup"
+    },
+    {
+      "text": "Includes commit/push steps",
+      "passed": true,
+      "evidence": "Commit e8028d4 refactor(site): strip mykcs.github.io to redirect-only pointing to wangrui2025.github.io"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "eval_id": 1,
+  "eval_name": "dedup-cv-page",
+  "configuration": "without_skill",
+  "assertions_total": 4,
+  "assertions_passed": 3,
+  "pass_rate": 0.75,
+  "expectations": [
+    {
+      "text": "Mentions deleting src/pages/cv.astro",
+      "passed": true,
+      "evidence": "Step 1 explicitly deletes cv.astro"
+    },
+    {
+      "text": "Proposes redirect from /cv/ to /zh/cv/",
+      "passed": true,
+      "evidence": "Step 2 creates new cv.astro with meta http-equiv=refresh to /zh/cv/"
+    },
+    {
+      "text": "Includes build verification steps",
+      "passed": true,
+      "evidence": "Step 3 includes npm run build and checks dist/cv.html"
+    },
+    {
+      "text": "Uses Conventional Commits for commit message",
+      "passed": false,
+      "evidence": "No commit step in the plan at all"
+    }
+  ]
+}

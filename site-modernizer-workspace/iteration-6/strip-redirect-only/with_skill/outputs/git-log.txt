@@ -1,0 +1,2 @@
+e8028d4 refactor(site): strip mykcs.github.io to redirect-only pointing to wangrui2025.github.io
+4f12d81 chore: initial old site mock repo

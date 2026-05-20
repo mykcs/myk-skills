@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ClientRouter } from 'astro:transitions';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts');
+---
+
+<html>
+  <head>
+    <ClientRouter />
+    <style>
+      :root {
+        --theme-color: #3b82f6;
+      }
+    </style>
+  </head>
+  <Layout>
+    <h1>Old Site</h1>
+    <ul>
+      {posts.map(p => <li><a href={`/posts/${p.slug}/`}>{p.data.title}</a></li>)}
+    </ul>
+  </Layout>
+</html>
+
+<style>
+  h1 { color: var(--theme-color); }
+</style>

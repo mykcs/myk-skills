@@ -1,0 +1,17 @@
+{
+  "eval_id": 4,
+  "configuration": "with_skill",
+  "result": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  },
+  "expectations": [
+    {"text": "识别 Astro.glob() 用法并迁移到 Content Collections/import.meta.glob", "passed": true, "evidence": "Astro.glob replaced with import.meta.glob in src/pages/index.astro"},
+    {"text": "标记 Image format prop 为过时并移除", "passed": true, "evidence": "format=webp and format=avif removed from src/components/Gallery.astro"},
+    {"text": "标记 ViewTransitions 为过时并替换为 ClientRouter", "passed": true, "evidence": "ViewTransitions import and usage removed from src/pages/index.astro"},
+    {"text": "标记 define:vars 在 style 上的反模式并移除", "passed": true, "evidence": "define:vars removed, replaced with static color in src/pages/index.astro"},
+    {"text": "修复后通过 smart-autopush.sh 提交推送", "passed": true, "evidence": "02d6aca refactor(site): remove anti-patterns — Image format props, define:vars, upgrade Tailwind to v4"}
+  ]
+}
