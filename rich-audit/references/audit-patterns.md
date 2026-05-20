@@ -189,9 +189,7 @@ days=$(git -C ~/.agents/skills log -1 --format=%ct 2>/dev/null | awk "{print int
 cd ~/.agents/skills
 git init
 git remote add origin https://github.com/mykcs/myk-skills || true
-git add -A
-git commit -m "chore(skills): sync all skills"
-git push -u origin main
+~/.claude/scripts/smart-autopush.sh ~/.agents/skills "chore(skills): sync all skills" done
 ```
 
 ### settings.json 权限错误检测
