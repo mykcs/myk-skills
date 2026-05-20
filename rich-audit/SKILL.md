@@ -96,8 +96,11 @@ User: "rich审计" / "进化"
 
 **汇总规则**：
 - 等待全部 Agent 返回后，合并三份 JSON
-- 综合健康分 = weighted_average(架构健康度 x 0.5, 前端健康度 x 0.25, ML 健康度 x 0.25)
-- 仅前端/ML 触发时才纳入对应权重；未触发时权重归 0
+- 综合健康分 = weighted_average(8 维度加权模型)
+  - architecture 25% | integrity 25% | security 15% | consistency 15%
+  - github_sync 5% | timeliness 5% | redundancy 5% | performance 5%
+  - 前端/ML 触发时，额外叠加前端健康度 × 0.25 / ML 健康度 × 0.25（从基础权重中各扣除 12.5%）
+- 脚本层使用 `_FileIndex` 统一预扫描 + `ThreadPoolExecutor(max_workers=4)` 并行执行维度，消除重复 rglob
 
 ### Layer 3 进化层 — 多源并行扫描
 
@@ -189,13 +192,39 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 
 ---
 
-## 输出格式（五段式进化报告）
+## 输出格式（五段式进化报告 + Action Plan）
 
 1. **审计层**: 按维度汇总发现，附证据
 2. **指令进化**: 建议新增/修改的规则
 3. **SOP 提取**: 可复用检查流程
 4. **进化层**: 外部知识扫描结果 + 已采纳/待确认进化项
 5. **最终状态**: 前后健康分 + 修复清单 + 待处理项
+
+### JSON 报告结构（v2.0）
+
+```json
+{
+  "meta": { "tool": "rich-audit.py", "version": "2.0.0", "fix_mode": false },
+  "project_modes": { "astro": false, "python": true, "python_ml": true },
+  "dimensions": { "integrity": { "findings_count": 0, "findings": [] }, ... },
+  "summary": {
+    "health_score": 98,
+    "severity_counts": { "HIGH": 0, "MED": 3, "LOW": 2 },
+    "score_breakdown": {
+      "architecture": { "raw_score": 100, "weight": 0.25, "contribution": 25.0, ... }
+    }
+  },
+  "action_plan": {
+    "P0": [],
+    "P1": [ { "severity": "MED", "message": "...", "auto_fix": "fix_symlink" } ],
+    "P2": []
+  }
+}
+```
+
+- **`action_plan`**: 按 P0/P1/P2 优先级分组，每条附 `auto_fix` 类型（如有）
+- **`score_breakdown`**: 8 维度加权明细，便于定位短板
+- **`project_modes`**: 自动检测当前工作区的 Astro / Python 项目类型
 
 ---
 
@@ -206,6 +235,8 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 - 清理过量的 settings.json 备份
 - 重新格式化损坏的 JSON
 - 将 777 权限重置为 644/755
+- **Skill symlink 修复**: 物理目录 → symlink、broken symlink → 重建、missing symlink → 创建
+- **Orphan 清理**: `.claude/skills/` 中存在但 `.agents/skills/` 中不存在的孤立项自动移除
 - **Python**: 空 README.md 自动替换为模板、补充缺失的 requires-python
 
 ### AI 层语义修复（允许编辑）
@@ -293,21 +324,18 @@ done 2>/dev/null | grep -v "/.claude/" | sort
 2. **规则语法检查**: 如修改了任何 `.md` 规则文件，执行 `head -5 <file>` 确认 frontmatter 未损坏
 3. **JSON 有效性**: 如修改了 `settings.json`，执行 `python3 -m json.tool ~/.claude/settings.json > /dev/null && echo "JSON_VALID"` — 确认无语法错误
 4. **差异摘要**: `git -C ~/.claude diff --stat 2>/dev/null || echo "NO_GIT_TRACKING"` — 确认变更范围符合预期
-5. **Skill 目录硬链接一致性**: 如修改了 skill 文件，执行以下命令确认 `.claude/skills/` 与 `.agents/skills/` 硬链接一致：
+5. **GitHub 同步状态**: 执行 `git -C ~/.claude log @{u}..HEAD --oneline 2>/dev/null | wc -l` 和 `git -C ~/.agents/skills log @{u}..HEAD --oneline 2>/dev/null | wc -l` — 确认无未推送提交
+6. **项目模式检测验证**: 如当前工作区含 Astro/Python 项目，确认 `project_modes` 输出正确标记了对应模式
+7. **Skill 目录 Symlink 一致性**: 如修改了 skill 文件，执行以下命令确认 `.claude/skills/` 与 `.agents/skills/` symlink 一致：
    ```bash
-   find ~/.claude/skills -type f | while read f; do
-     rel="${f#$HOME/.claude/skills/}"
-     agent_f="$HOME/.agents/skills/$rel"
-     if [ -e "$agent_f" ]; then
-       ino1=$(stat -f "%i" "$f" 2>/dev/null || stat -c "%i" "$f" 2>/dev/null)
-       ino2=$(stat -f "%i" "$agent_f" 2>/dev/null || stat -c "%i" "$agent_f" 2>/dev/null)
-       [ "$ino1" = "$ino2" ] && echo "[OK] $rel" || echo "[MISMATCH] $rel (inode: $ino1 vs $ino2)"
-     else
-       echo "[MISSING] $rel (not in .agents/skills/)"
-     fi
+   find ~/.claude/skills -maxdepth 1 -type l | while read f; do
+     rel=$(basename "$f")
+     target=$(readlink "$f")
+     expected="$HOME/.agents/skills/$rel"
+     [ "$target" = "$expected" ] && echo "[OK] $rel" || echo "[MISMATCH] $rel -> $target (expected $expected)"
    done
    ```
-6. **健康分计算**: 重新运行 Layer 1 计分脚本，确认前后分数已正确记录
+8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 8 维度分数已正确记录
 
 **若任何验证失败，审计未完成。** 修复后重新运行验证。
 
