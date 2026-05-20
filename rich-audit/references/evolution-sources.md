@@ -30,12 +30,6 @@
 - "Claude Code skill format latest"
 - "oh-my-claudecode OMC latest features"
 
-### 前端框架
-- "Astro v6 migration guide changelog"
-- "Astro i18n routing redirectToDefaultLocale 2025"
-- "Tailwind v4 Astro integration 2025"
-- "Astro ClientRouter ViewTransitions migration"
-
 ### 安全与治理
 - "Claude Code guardrails security configuration"
 - "Claude Code enterprise audit governance"
@@ -130,9 +124,3 @@
 ### 社区安全基准
 - **Claude Guardrails** (`dwarvesf/claude-guardrails`):  hardened security config with deny rules, shell hooks, prompt injection defense
 - **Claude Code Setup Audit**: 8-dimension audit framework (memory, rules, skills, agents, security, MCP, workflow, freshness)
-
-### Astro 2025 基准
-- `redirectToDefaultLocale` default changed to `false` in v6
-- `<ViewTransitions />` removed, use `<ClientRouter />`
-- `@astrojs/tailwind` deprecated, use `@tailwindcss/vite`
-- Vue i18n CVE-2025-27597 patched

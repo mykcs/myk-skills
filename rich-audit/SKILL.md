@@ -2,7 +2,7 @@
 name: rich-audit
 description: |
   三层进化系统：审计（发现问题）→ 修复（解决问题）→ 进化（主动获取外部先进知识并应用）。
-  三模审计：Claude Code 配置审计 + Astro 前端项目审计 + Python/ML 项目审计。
+  双模审计：Claude Code 配置审计 + Python/ML 项目审计。
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
@@ -25,8 +25,6 @@ metadata:
     - omc
     - knowledge
     - benchmark
-    - astro
-    - frontend
     - python
     - ml
     - pytorch
@@ -51,9 +49,8 @@ User: "rich审计" / "进化"
   v
 [1] Layer 1 — 审计层（Audit）【并行 Agent 启动】
     ├─ Agent-Audit-A → Claude Code 配置审计（默认）
-    ├─ Agent-Audit-B → Astro 前端项目审计（条件触发）
     ├─ Agent-Audit-C → Python/ML 项目审计（条件触发）
-    └─ 汇总 → 合并三份审计 JSON，计算综合健康分
+    └─ 汇总 → 合并两份审计 JSON，计算综合健康分
   |
   v
 [2] Layer 2 — 修复层（Fix）【顺序执行】
@@ -64,9 +61,8 @@ User: "rich审计" / "进化"
   v
 [3] Layer 3 — 进化层（Evolve）【并行 Agent 启动】
     ├─ Agent-Evolve-1 → WebSearch: Claude Code / OMC 最新实践
-    ├─ Agent-Evolve-2 → WebSearch: 前端/Astro/Tailwind 最新实践（如有 Mode B）
-    ├─ Agent-Evolve-3 → WebSearch: Python/ML/PyTorch 最新实践（如有 Mode C）
-    ├─ Agent-Evolve-4 → Context7 查询官方文档（Astro / Python / Claude SDK）
+    ├─ Agent-Evolve-2 → WebSearch: Python/ML/PyTorch 最新实践（如有 Mode B）
+    ├─ Agent-Evolve-3 → Context7 查询官方文档（Python / Claude SDK）
     └─ 汇总 → 对比当前配置，产出进化建议
   |
   v
@@ -82,24 +78,33 @@ User: "rich审计" / "进化"
 
 > **核心原则**：无依赖关系的任务必须并行启动 Agent，缩短总耗时；有依赖关系（如修复依赖审计结果、报告依赖修复结果）的任务必须顺序执行。
 
-### Layer 1 审计层 — 三模并行
+### Layer 1 审计层 — 双模并行
 
-三个审计模式相互独立，**同时启动**三个 Agent：
+两个审计模式相互独立，**同时启动**两个 Agent：
 
 | Agent | 名称 | 职责 | 输出格式 |
 |-------|------|------|----------|
 | `Agent-Audit-A` | 配置审计 | 扫描 `~/.claude/rules/`、`memory/`、`skills/`、`settings.json`，计算架构健康度 | JSON：`{ "architecture_health": N, "rules_issues": [...], "memory_issues": [...] }` |
-| `Agent-Audit-B` | 前端审计 | 检测 Astro 项目（如有），执行 build/check、i18n 对比、合规性检查 | JSON：`{ "frontend_health": N, "build_status": "pass/warn/fail", "i18n_issues": [...] }` |
 | `Agent-Audit-C` | ML 审计 | 检测 Python 项目（如有），检查依赖安全、版本一致性、CUDA 兼容、类型检查 | JSON：`{ "python_health": N, "dependency_issues": [...], "type_check_status": "..." }` |
 
-**启动方式**：单次 `Agent` 工具调用中批量发送（单次消息内多个 Agent 调用并行执行）。
+**启动方式**：单次消息内批量发送多个 `Agent` 调用。示例如下：
+
+```
+Agent({
+  description: "Audit Claude Code config",
+  prompt: "Run the mechanical audit script and return JSON:\n\npython3 ~/.claude/scripts/rich_audit.py --output /tmp/audit-a.json\n\nRead /tmp/audit-a.json and summarize: architecture_health score, top 3 rules_issues, top 3 memory_issues, any skill_symlink mismatches. Return structured JSON only."
+})
+Agent({
+  description: "Audit Python/ML project",
+  prompt: "Check if current workspace has pyproject.toml or requirements.txt. If yes, run python checks (dependency security, version consistency, CUDA compatibility, type checking) per references/python-checklist.md. Return JSON: {python_health: N, dependency_issues: [...], type_check_status: '...'}. If no Python project, return {python_health: null, skipped: true}."
+})
+```
 
 **汇总规则**：
-- 等待全部 Agent 返回后，合并三份 JSON
-- 综合健康分 = weighted_average(9 维度加权模型)
-  - architecture 20% | integrity 25% | security 15% | consistency 15%
-  - modern_design 5% | github_sync 5% | timeliness 5% | redundancy 5% | performance 5%
-  - 前端/ML 触发时，额外叠加前端健康度 × 0.25 / ML 健康度 × 0.25（从基础权重中各扣除 12.5%）
+- 等待全部 Agent 返回后，合并两份 JSON
+- 综合健康分 = weighted_average(8 维度加权模型)
+  - architecture 25% | integrity 30% | security 20% | consistency 20%
+  - github_sync 5% | timeliness 5% | redundancy 5% | performance 5%
 - 脚本层使用 `_FileIndex` 统一预扫描 + `ThreadPoolExecutor(max_workers=4)` 并行执行维度，消除重复 rglob
 
 ### Layer 3 进化层 — 多源并行扫描
@@ -109,11 +114,24 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 | Agent | 名称 | 职责 | 搜索关键词示例 |
 |-------|------|------|----------------|
 | `Agent-Evolve-1` | 配置进化 | WebSearch: Claude Code 最新最佳实践、OMC 生态更新 | `"Claude Code best practices 2026"`, `"OMC oh-my-claudecode latest"` |
-| `Agent-Evolve-2` | 前端进化 | WebSearch: Astro 6.x / Tailwind v4 / 前端构建最新实践（仅 Mode B 触发） | `"Astro 6 best practices 2026"`, `"Tailwind v4 new features"` |
-| `Agent-Evolve-3` | ML 进化 | WebSearch: Python / PyTorch / ML 项目最佳实践（仅 Mode C 触发） | `"PyTorch best practices 2026"`, `"Python project structure 2026"` |
-| `Agent-Evolve-4` | 文档进化 | Context7 查询：Astro docs / Python docs / Claude SDK docs | 使用 `mcp__context7__resolve-library-id` + `query-docs` |
+| `Agent-Evolve-2` | ML 进化 | WebSearch: Python / PyTorch / ML 项目最佳实践（仅 Mode C 触发） | `"PyTorch best practices 2026"`, `"Python project structure 2026"` |
+| `Agent-Evolve-3` | 文档进化 | Context7 查询：Python docs / Claude SDK docs | 使用 `mcp__context7__resolve-library-id` + `query-docs` |
+**启动方式**：单次消息内批量发送多个 `Agent` 调用。示例如下：
 
-**启动方式**：单次 `Agent` 工具调用中批量发送。
+```
+Agent({
+  description: "Evolve Claude Code config",
+  prompt: "WebSearch: 'Claude Code best practices 2026', 'OMC oh-my-claudecode latest updates'. Also check Context7 for Claude SDK latest patterns. Compare findings against current ~/.claude/rules/ and ~/.claude/settings.json. Return: {new_knowledge: [{source, finding, recommendation}], adoptable_items: [...]}."
+})
+Agent({
+  description: "Evolve Python/ML practices",
+  prompt: "WebSearch: 'PyTorch best practices 2026', 'Python project structure 2026', 'ML engineering patterns 2026'. Only run if current workspace has Python project. Return: {new_knowledge: [...], adoptable_items: [...]}."
+})
+Agent({
+  description: "Evolve from official docs",
+  prompt: "Use mcp__context7__resolve-library-id for 'Claude SDK' and 'Python', then query-docs for latest patterns. Return: {new_knowledge: [...], adoptable_items: [...]}."
+})
+```
 
 **汇总规则**：
 - 收集所有 Agent 返回的 "新知识条目"
@@ -123,13 +141,30 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
   - `REJECTED` — 不适用或已过时
   - `NO_CHANGE` — 无新进展（仍需列出搜索证据）
 
-### 禁止并行的环节（顺序执行）
+### 可并行的修复子任务（Layer 2 内部并行）
+
+Layer 2 的**优先级排序**必须基于 Layer 1 汇总结果（顺序），但**实际修复操作**可按文件类型并行拆分：
+
+| Agent | 职责 | 并行安全性 |
+|-------|------|------------|
+| `Agent-Fix-Rules` | 合并重复规则、重写冲突段落、补充 Binary Assertions | 高（仅编辑 `~/.claude/rules/`） |
+| `Agent-Fix-Memory` | 更新陈旧记忆引用、修复 MEMORY.md 索引 | 高（仅编辑 `~/.claude/memory/`） |
+| `Agent-Fix-Skills` | 修复 skill symlink、清理 orphan | 高（仅编辑 `~/.claude/skills/` 和 `~/.agents/skills/`） |
+| `Agent-Fix-Python` | 补充 README、修复 MarkupSafe 约束、添加 requires-python | 高（仅编辑工作区 Python 文件） |
+
+```
+Agent({ description: "Fix rules issues", prompt: "Read Layer 1 JSON rules_issues. Fix top 3 issues in ~/.claude/rules/ by editing files directly. Return: {fixed_files: [...], skipped: [...]}." })
+Agent({ description: "Fix memory issues", prompt: "Read Layer 1 JSON memory_issues. Fix stale references in ~/.claude/memory/. Return: {fixed_files: [...]}." })
+Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -maxdepth 1 -type l | while read f; do ... done. Repair broken/missing symlinks to ~/.agents/skills/. Return: {fixed: N, broken: N}." })
+```
+
+### 必须顺序执行的环节
 
 | 环节 | 原因 |
 |------|------|
-| Layer 2 修复层 | 必须基于 Layer 1 完整汇总结果才能判断修复优先级 |
+| Layer 2 优先级排序 | 必须基于 Layer 1 完整汇总结果 |
 | 生成进化报告 | 必须基于 Layer 2 修复结果 + Layer 3 进化结果 |
-| Verification Gates | 必须在所有修改完成后执行，否则验证结果不完整 |
+| Verification Gates | 必须在所有修改完成后执行 |
 
 ---
 
@@ -141,7 +176,7 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 
 ---
 
-## 三模扫描范围
+## 双模扫描范围
 
 ### 模式 A: Claude Code 配置审计（默认）
 
@@ -156,16 +191,7 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 | `~/.omc/skills/` | OMC 市场与用户 skills |
 | `~/.agents/skills/` | `.agents` 框架 skills（应与 `~/.claude/skills/` 保持硬链接一致） |
 
-### 模式 B: Astro 前端项目审计（条件触发）
-
-检测 `astro.config.mjs` / `package.json` 中有 `astro` 时叠加：
-- **Build Health**: `npm run build` + `astro check`
-- **i18n Parity**: `en.json` / `zh.json` key 对比
-- **Astro 2025 Compliance**: `ClientRouter`、 `@tailwindcss/vite`
-
-详见 [references/frontend-checklist.md](references/frontend-checklist.md)。
-
-### 模式 C: Python / ML 项目审计（条件触发）
+### 模式 B: Python / ML 项目审计（条件触发）
 
 检测 `pyproject.toml` / `requirements.txt` 时叠加：
 - **Dependency Security**: torch CVE 检查、wandb/GitHub token 检测
@@ -205,7 +231,7 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 ```json
 {
   "meta": { "tool": "rich-audit.py", "version": "2.0.0", "fix_mode": false },
-  "project_modes": { "astro": false, "python": true, "python_ml": true },
+  "project_modes": { "python": true, "python_ml": true },
   "dimensions": { "integrity": { "findings_count": 0, "findings": [] }, ... },
   "summary": {
     "health_score": 98,
@@ -223,8 +249,8 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 ```
 
 - **`action_plan`**: 按 P0/P1/P2 优先级分组，每条附 `auto_fix` 类型（如有）
-- **`score_breakdown`**: 9 维度加权明细，便于定位短板（含 modern_design 现代化设计检查）
-- **`project_modes`**: 自动检测当前工作区的 Astro / Python 项目类型
+- **`score_breakdown`**: 8 维度加权明细，便于定位短板
+- **`project_modes`**: 自动检测当前工作区的 Python 项目类型
 
 ---
 
@@ -259,13 +285,13 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 
 > 触发词："触类旁通"、或发现问题但未指定 scope 时自动联想
 >
-> 记录位置：`~/Repo/webs/webs-context.md`（网站矩阵专用上下文）
+> 记录位置：`~/.claude/knowledge/cascade-reports.md`（跨项目联动上下文）
 
 ### 三层行动规范
 
 | 层 | 触发时机 | 动作 |
 |----|---------|------|
-| **L1** | 发现/修复问题时 | 检查 `~/Repo/webs/OSA/` 和 `~/Repo/webs/GDKVM/` 是否同样受影响 |
+| **L1** | 发现/修复问题时 | 检查同 workspace 内其他项目是否同样受影响 |
 | **L2** | central 脚本变更时 | 扫描所有 git repo，确认 `~/.claude/scripts/` 下游无副本残留，全部 symlink 化 |
 | **L3** | 发现新 central 脚本时 | 检查是否需要同样建立 symlink 下游分发机制 |
 
@@ -291,7 +317,7 @@ done 2>/dev/null | grep -v "/.claude/" | sort
 **发现位置**：{哪个 repo/文件}
 **修复**：{怎么修的}
 **触类旁通三层**：
-1. L1（workspace 内检查）：{OSA/GDKVM 是否受影响}
+1. L1（workspace 内检查）：{同 workspace 其他项目是否受影响}
 2. L2（全机器 repo 扫描）：{发现 X 处副本，已处理}
 3. L3（同类现象）：{是否有其他 central 脚本存在同样问题}
 ```
@@ -301,15 +327,15 @@ done 2>/dev/null | grep -v "/.claude/" | sort
 触发"触类旁通"时，Agent 必须：
 1. 生成处理报告（填模板）
 2. 依次执行 L1 → L2 → L3
-3. 将结果同步到 `~/Repo/webs/webs-context.md`
+3. 将结果同步到 `~/.claude/knowledge/cascade-reports.md`
 
 ---
 
 ## 成功标准
 
 1. `rich审计` 触发后执行完整三层流水线（审计 + 修复 + 进化）
-2. 三模检测：Claude Code 配置 + Astro 项目（如适用）+ Python/ML 项目（如适用）
-3. Layer 1 JSON 输出有效，覆盖架构健康度 + 前端健康度 + Python 健康度
+2. 双模检测：Claude Code 配置 + Python/ML 项目（如适用）
+3. Layer 1 JSON 输出有效，覆盖架构健康度 + Python 健康度
 4. Layer 3 产出进化报告，包含外部知识对比与搜索证据
 5. 安全机械修复自动应用，无需用户干预
 6. 计算修复前后健康评分（0-100）和进化度评分（0-100）
@@ -325,7 +351,7 @@ done 2>/dev/null | grep -v "/.claude/" | sort
 3. **JSON 有效性**: 如修改了 `settings.json`，执行 `python3 -m json.tool ~/.claude/settings.json > /dev/null && echo "JSON_VALID"` — 确认无语法错误
 4. **差异摘要**: `git -C ~/.claude diff --stat 2>/dev/null || echo "NO_GIT_TRACKING"` — 确认变更范围符合预期
 5. **GitHub 同步状态**: 执行 `git -C ~/.claude log @{u}..HEAD --oneline 2>/dev/null | wc -l` 和 `git -C ~/.agents/skills log @{u}..HEAD --oneline 2>/dev/null | wc -l` — 确认无未推送提交
-6. **项目模式检测验证**: 如当前工作区含 Astro/Python 项目，确认 `project_modes` 输出正确标记了对应模式
+6. **项目模式检测验证**: 如当前工作区含 Python 项目，确认 `project_modes` 输出正确标记了对应模式
 7. **Skill 目录 Symlink 一致性**: 如修改了 skill 文件，执行以下命令确认 `.claude/skills/` 与 `.agents/skills/` symlink 一致：
    ```bash
    find ~/.claude/skills -maxdepth 1 -type l | while read f; do
@@ -335,7 +361,7 @@ done 2>/dev/null | grep -v "/.claude/" | sort
      [ "$target" = "$expected" ] && echo "[OK] $rel" || echo "[MISMATCH] $rel -> $target (expected $expected)"
    done
    ```
-8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 9 维度分数已正确记录（含 modern_design）
+8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 8 维度分数已正确记录
 
 **若任何验证失败，审计未完成。** 修复后重新运行验证。
 
