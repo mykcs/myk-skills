@@ -96,9 +96,9 @@ User: "rich审计" / "进化"
 
 **汇总规则**：
 - 等待全部 Agent 返回后，合并三份 JSON
-- 综合健康分 = weighted_average(8 维度加权模型)
-  - architecture 25% | integrity 25% | security 15% | consistency 15%
-  - github_sync 5% | timeliness 5% | redundancy 5% | performance 5%
+- 综合健康分 = weighted_average(9 维度加权模型)
+  - architecture 20% | integrity 25% | security 15% | consistency 15%
+  - modern_design 5% | github_sync 5% | timeliness 5% | redundancy 5% | performance 5%
   - 前端/ML 触发时，额外叠加前端健康度 × 0.25 / ML 健康度 × 0.25（从基础权重中各扣除 12.5%）
 - 脚本层使用 `_FileIndex` 统一预扫描 + `ThreadPoolExecutor(max_workers=4)` 并行执行维度，消除重复 rglob
 
@@ -223,7 +223,7 @@ Layer 2 完成后，**同时启动**多个进化 Agent：
 ```
 
 - **`action_plan`**: 按 P0/P1/P2 优先级分组，每条附 `auto_fix` 类型（如有）
-- **`score_breakdown`**: 8 维度加权明细，便于定位短板
+- **`score_breakdown`**: 9 维度加权明细，便于定位短板（含 modern_design 现代化设计检查）
 - **`project_modes`**: 自动检测当前工作区的 Astro / Python 项目类型
 
 ---
@@ -335,7 +335,7 @@ done 2>/dev/null | grep -v "/.claude/" | sort
      [ "$target" = "$expected" ] && echo "[OK] $rel" || echo "[MISMATCH] $rel -> $target (expected $expected)"
    done
    ```
-8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 8 维度分数已正确记录
+8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 9 维度分数已正确记录（含 modern_design）
 
 **若任何验证失败，审计未完成。** 修复后重新运行验证。
 
