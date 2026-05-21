@@ -92,7 +92,7 @@ User: "rich审计" / "进化"
 ```
 Agent({
   description: "Audit Claude Code config",
-  prompt: "Run the mechanical audit script and return JSON:\n\npython3 ~/.claude/scripts/rich_audit.py --output /tmp/audit-a.json\n\nRead /tmp/audit-a.json and summarize: architecture_health score, top 3 rules_issues, top 3 memory_issues, any skill_symlink mismatches. Return structured JSON only."
+  prompt: "Run the mechanical audit script and return JSON:\n\npython3 ~/.agents/skills/rich-audit/scripts/rich_audit.py --output /tmp/audit-a.json\n\nRead /tmp/audit-a.json and summarize: architecture_health score, top 3 rules_issues, top 3 memory_issues, any skill_symlink mismatches. Return structured JSON only."
 })
 Agent({
   description: "Audit Python/ML project",
@@ -361,7 +361,7 @@ done 2>/dev/null | grep -v "/.claude/" | sort
      [ "$target" = "$expected" ] && echo "[OK] $rel" || echo "[MISMATCH] $rel -> $target (expected $expected)"
    done
    ```
-8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 8 维度分数已正确记录
+8. **健康分计算**: 重新运行 `python3 ~/.agents/skills/rich-audit/scripts/rich_audit.py`，确认 8 维度分数已正确记录
 9. **MCP Server 冲突验证**: 执行 `/doctor`（或在非交互环境运行检测命令）确认无 `same command/URL as already-configured` 类 MCP 冲突错误
 10. **MEMORY.md 索引一致性**: 执行 `python3 -c "import re; from pathlib import Path; ..."`（见 audit-patterns.md 中 MEMORY.md Phantom Rules 检测命令）确认索引无 phantom entries
 
