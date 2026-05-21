@@ -331,6 +331,81 @@ find ~/Repo ~/Projects ~/PyPjcts -maxdepth 3 -name 'postcss.config*' -not -path 
 - 字体全站硬编码为 Times New Roman，禁止改回 Inter/Plus Jakarta Sans。
 - 首页 section 标题使用 `section-heading--academic`（10pt uppercase，细实线底边，无渐变装饰线）。
 
+### 学术资产库化（Academic Asset Library）
+
+**触发条件**：项目使用 `mykcs/academic` 管理学术图片，或需要建立统一的学术资源引用规范。当前已知消费者：OSA（`/osa/`）、主站（`wangrui2025.github.io`）、GDKVM 等。
+
+**目标**：将学术图片资源集中管理，所有消费者项目通过**版本化 CDN** 引用，消除本地资源副本和路径硬编码。
+
+**三阶段工作流**：
+
+```
+阶段 1 — academic 仓库自动化
+  ├─ 添加 `.github/workflows/bump-version.yml`
+  ├─ 每次 push 到 main 自动递增 patch tag（v1.0.0 → v1.0.1）
+  └─ 消费者统一引用：cdn.jsdelivr.net/gh/mykcs/academic@<tag>/images/...
+  |
+  v
+阶段 2 — 消费者项目迁移
+  ├─ 扫描所有消费者项目中的本地学术资产（src/assets/paper/、public/paper/ 等）
+  ├─ 将 /academic/images/... 或 @main 引用改为带 tag 的版本化 URL
+  └─ 删除消费者项目中的本地学术资产副本
+  |
+  v
+阶段 3 — 统一路径管理模块
+  ├─ 设计可复用的常量/函数，供所有项目复用
+  └─ 在消费者项目中建立 src/constants/assets.ts（或类似文件）
+```
+
+**阶段 1 — academic 仓库自动 tag Action**：
+```yaml
+# .github/workflows/bump-version.yml
+name: Bump Version
+on:
+  push:
+    branches: [main]
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump patch version
+        run: |
+          git fetch --tags
+          latest=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          version=${latest#v}
+          IFS='.' read -r major minor patch <<< "$version"
+          new_tag="v${major}.${minor}.$((patch + 1))"
+          git tag "$new_tag"
+          git push origin "$new_tag"
+```
+
+**阶段 2 — 消费者迁移检查清单**：
+- [ ] 搜索消费者项目中的学术图片引用：`grep -rn "academic/images" src/ public/`
+- [ ] 替换 `@main` 或裸 `/academic/images/` 为带 tag 的 jsDelivr URL
+- [ ] 检查并删除本地副本：`find src/assets public -name "*.png" -o -name "*.svg" | grep -iE "(paper|publication|logo)"`
+- [ ] 构建验证：`npm run build` + 检查 dist/ 中无残留 `/academic/images/` 绝对路径
+
+**阶段 3 — 统一路径管理模块模板**：
+```typescript
+// src/constants/assets.ts
+export const ACADEMIC_VERSION = 'v1.0.0';
+export const ACADEMIC_BASE = `https://cdn.jsdelivr.net/gh/mykcs/academic@${ACADEMIC_VERSION}/images`;
+
+export function academicImage(path: string): string {
+  return `${ACADEMIC_BASE}/${path}`;
+}
+
+// 使用示例
+// <img src={academicImage('logos/szu.svg')} alt="SZU Logo">
+```
+
+**Commit 规范**：
+- academic 仓库：`chore(ci): add auto-tag workflow`
+- 消费者项目：`refactor(assets): migrate to versioned academic CDN`
+
 ---
 
 ## 模式 B: Astro 建站指南
