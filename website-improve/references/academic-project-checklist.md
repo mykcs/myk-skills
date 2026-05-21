@@ -235,7 +235,58 @@ grep -n "@media print\|zoom\|scale\|transform" src/components/*.astro src/pages/
 
 ## 5. 学术资产引用
 
-### 5.1 图片路径可用性
+### 5.1 库化检查（Asset Library-ization Audit）
+
+> **原则**：活跃网站项目（OSA、GDKVM、主站等）不存储实际图片资产。所有 paper figures、logos、icons 必须引用 `https://mykcs.github.io/academic/` 远程 URL。
+
+**检测 — 本地资产残留：**
+```bash
+# 1. 扫描 src/assets/paper/、public/paper/ 等本地学术资产
+git ls-files | grep -E 'src/assets/paper|public/paper|public/assets/images/(cvpr|iccv|eccv|neurips)'
+
+# 2. 扫描本地图片 import
+grep -rn "from '../assets/paper" src/ --include="*.astro"
+grep -rn "from './assets/paper" src/ --include="*.astro"
+grep -rn "from '../assets/images" src/ --include="*.astro"
+
+# 3. 扫描 public/ 下的论文相关图片
+find public -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.svg" \) | grep -iE 'paper|fig|tab|challenge|osu|apfe|met|exp|abl|cap|overview'
+```
+
+**通过标准：**
+- `src/assets/paper/` 目录不存在（或为空）
+- `public/paper/` 目录不存在（或为空）
+- 无 `import ... from '../assets/paper/...'` 语句
+- 无 `import ... from '../assets/images/...'` 语句（应使用远程 URL）
+- 会议 logo（cvpr2026.png 等）不在 `public/assets/images/` 中
+
+**检测 — 远程引用一致性：**
+```bash
+# 1. 检查是否使用 mykcs.github.io/academic 远程 URL
+grep -rn 'mykcs.github.io/academic' src/ --include="*.astro"
+
+# 2. 检查 astro.config.mjs 是否配置了 remotePatterns
+grep -A3 "remotePatterns" astro.config.mjs
+
+# 3. 检查 image.remotePatterns 包含 mykcs.github.io
+grep -B1 -A2 "hostname.*mykcs.github.io" astro.config.mjs
+```
+
+**通过标准：**
+- `astro.config.mjs` 包含 `image.remotePatterns: [{ protocol: 'https', hostname: 'mykcs.github.io' }]`
+- 论文图片使用 `https://mykcs.github.io/academic/images/publications/{project}/...`
+- 会议 logo 使用 `https://mykcs.github.io/academic/images/logos/...`
+- 图标使用 `https://mykcs.github.io/academic/images/icons/...`
+
+**迁移流程（发现未库化资产时）：**
+1. 将本地图片复制到 `mykcs/academic/images/publications/{project}/`（保持子目录结构）
+2. 修改代码：import → 远程 URL 字符串；`<Image src={local}>` → `<Image src={remoteURL}>` 或 `<img src={remoteURL}>`
+3. 添加 `image.remotePatterns` 到 `astro.config.mjs`（若缺失）
+4. 删除本地副本（`src/assets/paper/`、`public/paper/`、`public/assets/images/cvpr*.png` 等）
+5. 提交 academic 仓库 → push → 提交项目仓库 → push
+6. 验证：`npx astro check` 0 errors + `npm run build` 通过
+
+### 5.2 图片路径可用性
 
 **检测：**
 ```bash
@@ -243,10 +294,10 @@ grep -rn '"/academic/images/' src/ --include="*.astro" --include="*.ts" --includ
 ```
 
 **通过标准：**
-- 所有 `/academic/images/...` 路径对应的图片在 `wangrui2025.github.io/academic/` 上可访问
+- 所有 `/academic/images/...` 路径对应的图片在 `mykcs.github.io/academic/` 上可访问
 - 无 404 引用
 
-### 5.2 跨域与 CORS
+### 5.3 跨域与 CORS
 
 **评估：**
 - 学术资产从主站跨域加载，确认无 CORS 问题

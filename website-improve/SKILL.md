@@ -73,7 +73,7 @@ metadata:
     - deployment
     - checklist
 user-invocable: true
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # website-improve Skill
@@ -193,11 +193,11 @@ Agent({
 ```
 Agent({
   description: "Assess code patterns",
-  prompt: "Explore src/ directory. Check for: Astro.glob usage, Image format prop, ViewTransitions (should be ClientRouter), i18n conditional rendering, duplicate pages, __themeBound/__copyBound event delegation, getEntry(...)! non-null assertion, is:inline usage (only allowed for FOUC/theme scripts/JSON-LD/SW/third-party CDN), set:html security (must not inject user input), non-above-fold images missing loading='lazy'. Return: {issues: [{file, line, severity, message, fix_type}]}."
+  prompt: "Explore src/ directory. Check for: Astro.glob usage, Image format prop, ViewTransitions (should be ClientRouter), i18n conditional rendering, duplicate pages, __themeBound/__copyBound event delegation, getEntry(...)! non-null assertion, is:inline usage (only allowed for FOUC/theme scripts/JSON-LD/SW/third-party CDN), set:html security (must not inject user input), non-above-fold images missing loading='lazy'. **学术资产库化检查**：若发现 src/assets/paper/、public/paper/、public/assets/images/*.png 等本地学术资产，或代码中存在 `import ... from '../assets/paper/...'` 等本地图片 import，标记为 P1 并给出迁移指引（迁移到 mykcs/academic 远程 URL）。Return: {issues: [{file, line, severity, message, fix_type}]}."
 })
 Agent({
   description: "Assess build and deps",
-  prompt: "Check package.json, astro.config.mjs, build scripts. Identify: unused deps, missing lock file, outdated build pipeline, Tailwind v4 using @tailwindcss/postcss (should be @tailwindcss/vite per official recommendation), legacy tailwind.config.mjs (v4 ignores it), legacy postcss.config.mjs with Tailwind v4 + Vite plugin (should be removed), @astrojs/tailwind (should use Tailwind v4 + @tailwindcss/vite). Return: {issues: [...], unused_deps: [...]}."
+  prompt: "Check package.json, astro.config.mjs, build scripts. Identify: unused deps, missing lock file, outdated build pipeline, Tailwind v4 using @tailwindcss/postcss (should be @tailwindcss/vite per official recommendation), legacy tailwind.config.mjs (v4 ignores it), legacy postcss.config.mjs with Tailwind v4 + Vite plugin (should be removed), @astrojs/tailwind (should use Tailwind v4 + @tailwindcss/vite). **未使用依赖专项检查**：1) `zod` — 检查 `content.config.ts` 是否有实际的 `schema: z.object(...)` 定义，空 `collections = {}` 则 zod 未使用；2) `@fontsource/*` — 检查源码中是否有 `import '@fontsource/...'` 或 CSS `@import`；3) `@astrojs/compiler-rs` — 检查 `astro.config.mjs` 中 `experimental.rustCompiler` 是否启用，未启用则该包未使用；4) `astro-expressive-code` — 检查是否有代码块高亮需求。Return: {issues: [...], unused_deps: [{package, reason, evidence}]}."
 })
 Agent({
   description: "Assess content and SEO",
@@ -322,6 +322,14 @@ find ~/Repo ~/Projects ~/PyPjcts -maxdepth 3 -name 'postcss.config*' -not -path 
 **执行规范**：生成处理报告 → 依次执行 L1 → L2 → L3 → 结果同步到 `webs-context.md`
 
 **评分**: Build Health 20% + Astro 6.x Compliance 15% + i18n Parity 15% + Responsive 10% + Performance 10% + Security 10% + **Project-Specific 20%**（学术项目：Poster 约束/WebKit/公式渲染；主站：SEO/OG/PWA）
+
+### 已知项目设计约束（审计时禁止误改）
+
+**mykcs.github.io（主站）**：
+- Timeline（`timeline_items`）按**重要程度降序排列**，非时间顺序。当前优先级：国家奖学金 > 校级特等奖 > 校级一等奖 > 学术启航奖学金 > 论文接收 > 入学/毕业 > 其他。**Agent 审计时禁止按时间重新排序。**
+- `skills_items` 与 `cv.ts` 的 `hobbies` 必须保持内容一致（纯文本，`·` 分隔）。
+- 字体全站硬编码为 Times New Roman，禁止改回 Inter/Plus Jakarta Sans。
+- 首页 section 标题使用 `section-heading--academic`（10pt uppercase，细实线底边，无渐变装饰线）。
 
 ---
 
