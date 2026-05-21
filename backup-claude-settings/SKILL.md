@@ -58,13 +58,13 @@ Agent 收到指令后会手动执行底层脚本，而非通过 Skill 工具自�
 
 ```bash
 # 常规备份（必须能找到上一次同 provider 备份，否则中止）
-bash ~/.claude/scripts/backup-settings.sh
+bash ~/.claude/skills/backup-claude-settings/backup-settings.sh
 
 # 首次备份（显式声明无历史状态）
-bash ~/.claude/scripts/backup-settings.sh --force-first
+bash ~/.claude/skills/backup-claude-settings/backup-settings.sh --force-first
 ```
 
-> **脚本不存在时**：Skill 被调用后，若 `~/.claude/scripts/backup-settings.sh` 不存在，Agent 应先检查 `~/.claude/scripts/` 下是否有同名脚本，若无则告知用户需要创建备份脚本或改用手动备份。
+> **脚本不存在时**：Skill 被调用后，若 `~/.claude/skills/backup-claude-settings/backup-settings.sh` 不存在，Agent 应先检查 `~/.claude/skills/backup-claude-settings/` 下是否有同名脚本，若无则告知用户需要创建备份脚本或改用手动备份。
 
 ## 执行流程（不可跳过任何步骤）
 
