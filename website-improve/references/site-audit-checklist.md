@@ -158,6 +158,7 @@ WebSearch: "academic personal homepage SEO best practices 2025"
 | P1 | `manifest.json` fixes (maskable icons, dynamic `theme_color`) | PWA compliance |
 | P1 | Open Graph missing (`og:image`, `og:locale:alternate`) | Social sharing |
 | P1 | CSS inline optimization (Critical CSS + font preloading) | FCP 性能 |
+| P2 | Google Fonts CDN usage (should migrate to `@fontsource/*`) | Privacy + offline support |
 
 ---
 
@@ -199,6 +200,9 @@ cat public/manifest.json 2>/dev/null | jq '.icons[] | select(.purpose | contains
 
 # Open Graph
 grep -rn 'og:image\|og:locale' src/layouts/ src/pages/ && echo "OG_TAGS found" || echo "OG_TAGS missing"
+
+# Google Fonts CDN (should migrate to @fontsource)
+grep -rn "fonts.googleapis.com\|fonts.gstatic.com" src/ public/ --include="*.astro" --include="*.css" && echo "GOOGLE_FONTS found" || echo "GOOGLE_FONTS ok"
 
 # === a11y 快速脚本 ===
 grep -rn "<img" src/ --include="*.astro" | grep -v "alt=" | grep -v "decorative" || echo "[a11y-alt] PASS"

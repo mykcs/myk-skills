@@ -168,13 +168,17 @@ done
 
 - [ ] Fonts loaded locally (`@fontsource/*`), not from CDN
   - **Fix**: Remove `<link href="https://fonts.googleapis.com/...">` from Layout.astro
+  - **Fix**: Remove `@import url('https://fonts.googleapis.com/...')` from CSS files
   - **Fix**: `npm install @fontsource/inter` (or appropriate family)
-  - **Fix**: Import font CSS in Layout.astro: `import '@fontsource/inter/400.css'`
+  - **Fix**: Import font CSS in Layout.astro frontmatter: `import '@fontsource/inter/400.css'`
+  - **Fix**: For CJK fonts, prefer subset imports (e.g. `@fontsource/noto-serif-sc/chinese-simplified-400.css`) to reduce bundle size
+  - **Fix**: Update CSP `style-src` and `font-src` directives — remove `https://fonts.googleapis.com` and `https://fonts.gstatic.com`
 - [ ] Font files exist where `@font-face` points (check `dist/` for `.woff2`)
 
 **Detection**:
 ```bash
 grep -rn "fonts.googleapis.com\|fonts.gstatic.com" src/ public/ && echo "FOUND: Google Fonts CDN" || echo "OK: no Google Fonts"
+grep -rn "@import url.*fonts.googleapis.com" src/ --include="*.css" && echo "FOUND: Google Fonts CSS import" || echo "OK: no CSS font imports"
 ```
 
 ### 6.2 图片优化
