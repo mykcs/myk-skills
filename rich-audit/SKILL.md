@@ -362,6 +362,8 @@ done 2>/dev/null | grep -v "/.claude/" | sort
    done
    ```
 8. **健康分计算**: 重新运行 `python3 ~/.claude/scripts/rich_audit.py`，确认 8 维度分数已正确记录
+9. **MCP Server 冲突验证**: 执行 `/doctor`（或在非交互环境运行检测命令）确认无 `same command/URL as already-configured` 类 MCP 冲突错误
+10. **MEMORY.md 索引一致性**: 执行 `python3 -c "import re; from pathlib import Path; ..."`（见 audit-patterns.md 中 MEMORY.md Phantom Rules 检测命令）确认索引无 phantom entries
 
 **若任何验证失败，审计未完成。** 修复后重新运行验证。
 

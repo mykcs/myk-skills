@@ -203,6 +203,197 @@ for f in ~/.claude/settings.json ~/.claude/.claude.json ~/.claude.json; do
 done
 ```
 
+### MCP Server 名称冲突检测
+
+**现象**: `/doctor` 报告 `MCP server "X" skipped — same command/URL as already-configured "X"`。多个插件注册了同名的 MCP server。
+
+**根因**: 插件市场独立插件的 `.mcp.json` 中注册的 server 名称与另一个插件（如 `everything-claude-code`）内置的 MCP server 同名。Claude Code 的 MCP server 注册是全局命名空间，不允许同名共存。
+
+**检测命令**:
+```bash
+python3 -c "
+import json, glob, os
+from pathlib import Path
+
+servers = {}  # name -> [(plugin, source)]
+plugins_dir = Path.home() / '.claude/plugins'
+
+# 1. 扫描所有插件的 .mcp.json
+for mcp_file in plugins_dir.rglob('.mcp.json'):
+    plugin_name = mcp_file.parent.name
+    try:
+        data = json.loads(mcp_file.read_text())
+        for name in data.get('mcpServers', {}).keys():
+            servers.setdefault(name, []).append((plugin_name, str(mcp_file)))
+    except Exception:
+        pass
+
+# 2. 扫描 installed_plugins.json 中的内置 server
+installed = plugins_dir / 'installed_plugins.json'
+if installed.exists():
+    try:
+        ip = json.loads(installed.read_text())
+        for plugin_name, entries in ip.get('plugins', {}).items():
+            for entry in entries:
+                install_path = entry.get('installPath', '')
+                mcp_file = Path(install_path) / '.mcp.json'
+                if mcp_file.exists():
+                    data = json.loads(mcp_file.read_text())
+                    for name in data.get('mcpServers', {}).keys():
+                        servers.setdefault(name, []).append((plugin_name, str(mcp_file)))
+    except Exception:
+        pass
+
+# 3. 报告冲突
+for name, sources in servers.items():
+    if len(sources) > 1:
+        print(f'MCP_CONFLICT: server \"{name}\" registered by {len(sources)} plugins:')
+        for plugin, path in sources:
+            print(f'  - {plugin}: {path}')
+"
+```
+
+**修复建议**:
+1. 优先保留综合 MCP 聚合器（如 `everything-claude-code`），清理独立重复插件
+2. 清理时必须同时检查并清除全部六个持久化来源：`settings.json` enabledPlugins、`settings.local.json`、`installed_plugins.json`、`plugin-catalog-cache.json`、`marketplace.json`、物理缓存目录
+3. 清理后执行 `/reload-plugins` 并再次 `/doctor` 确认零 errors
+
+### installed_plugins.json 多源一致性检测
+
+**现象**: `installed_plugins.json` 中的 `installPath` 指向已不存在的 `plugins/cache/` 目录，或版本与 `marketplace.json` / submodule tag 不一致。
+
+**根因**: 插件从 `cache/` 迁移到 `marketplaces/` 后，注册表未同步更新；或手动 submodule 升级后未更新注册表版本字段。
+
+**检测命令**:
+```bash
+python3 -c "
+import json
+from pathlib import Path
+
+plugins_dir = Path.home() / '.claude/plugins'
+installed = plugins_dir / 'installed_plugins.json'
+marketplace = plugins_dir / 'marketplaces/claude-plugins-official/.claude-plugin/marketplace.json'
+catalog = plugins_dir / 'plugin-catalog-cache.json'
+
+issues = []
+
+# 1. installed_plugins.json cache 路径有效性
+if installed.exists():
+    ip = json.loads(installed.read_text())
+    for plugin_name, entries in ip.get('plugins', {}).items():
+        for entry in entries:
+            path = entry.get('installPath', '')
+            if 'cache/' in path and not Path(path).exists():
+                issues.append(f'STALE_CACHE_PATH: {plugin_name} -> {path}')
+
+# 2. marketplace.json 一致性
+if marketplace.exists() and installed.exists():
+    mp = json.loads(marketplace.read_text())
+    mp_ids = {p.get('id') or p.get('name') for p in mp.get('plugins', [])}
+    ip_ids = set()
+    for entries in ip.get('plugins', {}).values():
+        for entry in entries:
+            ip_ids.add(entry.get('id') or entry.get('name'))
+    # 检测 installed 中有但 marketplace 中没有的条目
+    for pid in ip_ids - mp_ids:
+        issues.append(f'ORPHAN_IN_INSTALLED: {pid} not in marketplace.json')
+
+# 3. catalog-cache 一致性
+if catalog.exists():
+    cat = json.loads(catalog.read_text())
+    cat_ids = {p.get('id') or p.get('name') for p in cat.get('plugins', [])}
+    for pid in ip_ids - cat_ids:
+        issues.append(f'CATALOG_LAG: {pid} in installed but not in catalog-cache')
+
+for i in issues:
+    print(i)
+"
+```
+
+### 副作用 Skill 文档完备性检测
+
+**现象**: 设置了 `disable-model-invocation: true` 的 skill，其 SKILL.md 未说明正确的替代调用方式，导致用户困惑。
+
+**根因**: 安全设计（防止 Agent 自主执行副作用操作）与用户体验设计脱节。用户不知道不能通过 `/skill-name` 调用，也不知道应该直接说自然语言指令。
+
+**检测命令**:
+```bash
+python3 -c "
+import re
+from pathlib import Path
+
+skills_dir = Path.home() / '.claude/skills'
+for skill_dir in skills_dir.iterdir():
+    if not skill_dir.is_dir():
+        continue
+    skill_md = skill_dir / 'SKILL.md'
+    if not skill_md.exists():
+        continue
+    content = skill_md.read_text()
+    
+    # 检查是否设置了 disable-model-invocation
+    if 'disable-model-invocation: true' not in content:
+        continue
+    
+    # 检查是否有调用方式说明
+    has_invocation_guide = any(kw in content for kw in [
+        '调用方式', 'Invocation', 'how to use', 'correct usage',
+        '不能通过', 'cannot be used with Skill tool', '直接说', 'say directly'
+    ])
+    
+    if not has_invocation_guide:
+        print(f'MISSING_INVOCATION_GUIDE: {skill_dir.name} (has disable-model-invocation but no usage guide)')
+"
+```
+
+**修复建议**:
+1. 在 SKILL.md 标题后第一段添加"调用方式（重要）"章节
+2. 说明：为什么不能 `/` 调用（具体副作用：push/备份/部署）
+3. 说明：正确用法（直接说自然语言指令）
+4. 提供 2-3 个示例话术
+
+### MEMORY.md Phantom Rules 检测
+
+**现象**: MEMORY.md 的 Rules 表或 Reference 区引用了物理不存在的规则文件或案例文件。
+
+**根因**: 从 CLAUDE.md 或历史记录中复制规则名称到索引表，但未验证物理存在性；或文件被归档/删除后索引未同步更新。
+
+**检测命令**:
+```bash
+python3 -c "
+import re
+from pathlib import Path
+
+memory_md = Path.home() / '.claude/memory/MEMORY.md'
+if not memory_md.exists():
+    exit(0)
+
+content = memory_md.read_text()
+base_dir = memory_md.parent
+
+# 提取 markdown 链接，正确解析相对路径
+links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+for text, path in links:
+    # 跳过外部 URL
+    if path.startswith('http'):
+        continue
+    # 跳过锚点
+    if path.startswith('#'):
+        continue
+    # 处理相对路径
+    link_path = Path(path)
+    if not link_path.is_absolute():
+        link_path = base_dir / link_path
+    if not link_path.exists():
+        print(f'PHANTOM_ENTRY: {text} -> {path} (resolved to {link_path})')
+"
+```
+
+**修复建议**:
+1. 索引必须可信：宁可少列，不可列错
+2. 修复前必须先用 `ls` 或 `os.path.exists` 物理验证每个条目
+3. 归档文件不应出现在活跃索引中，用"见 archive/"说明替代
+
 ## Cases & Memory
 
 ### Ghost Case 引用检测

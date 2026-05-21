@@ -5,7 +5,6 @@ description: |
   Automatically detects the active API provider (Kimi, MiniMax, Anthropic, etc.) from
   ANTHROPIC_BASE_URL and uses it as the filename prefix. Commits and pushes immediately.
   Includes mandatory diff audit against the previous backup (cross-date) and generates an audit log.
-disable-model-invocation: true
 license: MIT
 metadata:
   version: 1.3.0
