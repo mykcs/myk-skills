@@ -388,6 +388,44 @@ jobs:
 - [ ] 检查并删除本地副本：`find src/assets public -name "*.png" -o -name "*.svg" | grep -iE "(paper|publication|logo)"`
 - [ ] 构建验证：`npm run build` + 检查 dist/ 中无残留 `/academic/images/` 绝对路径
 
+**已知问题与最佳实践**：
+
+1. **jsDelivr 新 tag 同步延迟**
+   - 刚 `git push origin v1.0.0` 后，jsDelivr 可能还未同步，访问 `@v1.0.0` 会返回 502。
+   - **验证**：`curl -sI https://cdn.jsdelivr.net/gh/mykcs/academic@v1.0.0/images/avatar/avatar.png`
+   - **Workaround**：改用短 commit hash（如 `@2d8a325`），同样不可变且立即可用：
+     ```typescript
+     export const ACADEMIC_VERSION = '2d8a325';  // 或 'v1.0.0' 待 CDN 同步后切回
+     ```
+   - commit hash 与 tag 在不可变性和缓存锁定上等价，只是可读性稍差。
+
+2. **Astro `<Image>` 组件需要 `remotePatterns`**
+   - 如果消费者项目使用 Astro `<Image>` 引用远程图片，必须在 `astro.config.mjs` 中声明：
+     ```js
+     image: {
+       remotePatterns: [
+         { protocol: 'https', hostname: 'cdn.jsdelivr.net' },
+       ],
+     }
+     ```
+   - 原生 `<img>` 标签不需要此配置。
+
+3. **目录结构约定**
+   ```
+   mykcs/academic/images/
+   ├── publications/{paper-name}/fig/     # 论文图表
+   ├── publications/{paper-name}/tab/     # 论文表格
+   ├── logos/                             # 会议/学校 logo
+   ├── icons/                             # 翻译、社交等图标
+   └── avatar/                            # 个人头像
+   ```
+   - URL 格式：`https://cdn.jsdelivr.net/gh/mykcs/academic@{version}/images/{category}/{path}`
+
+4. **构建时图片下载行为**
+   - Astro `<Image>` 在 `npm run build` 时会实际请求远程图片进行 Sharp 优化。
+   - 如果 URL 404 或 502，build 会直接报错中断，而不是静默失败。
+   - 这意味着 **build 通过 = 所有远程图片可访问**，比运行时检查更严格。
+
 **阶段 3 — 统一路径管理模块模板**：
 ```typescript
 // src/constants/assets.ts
