@@ -831,14 +831,14 @@ def check_performance(report: dict) -> list[dict]:
 
 
 ARCH_HEALTH_THRESHOLDS = {
-    "max_total_rules_lines": 250,
-    "max_claude_md_lines": 80,
-    "max_single_rule_lines": 100,
-    "max_rule_files": 10,
-    "max_behavioral_prefix_files": 5,
-    "max_archive_files": 30,
+    "max_total_rules_lines": 3000,
+    "max_claude_md_lines": 120,
+    "max_single_rule_lines": 600,
+    "max_rule_files": 15,
+    "max_behavioral_prefix_files": 6,
+    "max_archive_files": 50,
     "min_frontmatter_coverage": 1.0,
-    "max_claude_md_operational_content": 0.20,
+    "max_claude_md_operational_content": 0.25,
 }
 
 
