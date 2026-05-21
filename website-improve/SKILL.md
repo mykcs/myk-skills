@@ -7,7 +7,7 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites 等分散 skill。
 license: MIT
 metadata:
-  version: "2.2.1"
+  version: "2.2.2"
   author: mykcs
   category: web-development
   triggers:
@@ -193,11 +193,11 @@ Agent({
 ```
 Agent({
   description: "Assess code patterns",
-  prompt: "Explore src/ directory. Check for: Astro.glob usage, Image format prop, ViewTransitions (should be ClientRouter), i18n conditional rendering, duplicate pages. Return: {issues: [{file, line, severity, message, fix_type}]}."
+  prompt: "Explore src/ directory. Check for: Astro.glob usage, Image format prop, ViewTransitions (should be ClientRouter), i18n conditional rendering, duplicate pages, __themeBound/__copyBound event delegation, getEntry(...)! non-null assertion, is:inline usage (only allowed for FOUC/theme scripts/JSON-LD/SW/third-party CDN), set:html security (must not inject user input), non-above-fold images missing loading='lazy'. Return: {issues: [{file, line, severity, message, fix_type}]}."
 })
 Agent({
   description: "Assess build and deps",
-  prompt: "Check package.json, astro.config.mjs, build scripts. Identify unused deps, missing lock file, outdated build pipeline. Return: {issues: [...], unused_deps: [...]}."
+  prompt: "Check package.json, astro.config.mjs, build scripts. Identify: unused deps, missing lock file, outdated build pipeline, Tailwind v4 using @tailwindcss/postcss (should be @tailwindcss/vite per official recommendation), legacy tailwind.config.mjs (v4 ignores it), legacy postcss.config.mjs with Tailwind v4 + Vite plugin (should be removed), @astrojs/tailwind (should use Tailwind v4 + @tailwindcss/vite). Return: {issues: [...], unused_deps: [...]}."
 })
 Agent({
   description: "Assess content and SEO",
@@ -241,6 +241,19 @@ Agent({
 **兼容性记录（已解决）**：
 - wangrui2025.github.io `@tailwindcss/vite` 4.3.0 构建失败 → **修复方案**：显式锁定 `vite` 到 `^7.3.2`（避免 npm 解析到 Vite 8.x）。mykcs.github.io 因使用 pnpm-lock 天然锁定 Vite 7.x，未触发此问题。
 
+**Tailwind CSS v4 集成方式检查**：
+> Tailwind v4 官方推荐 `@tailwindcss/vite`（最快、最可靠）。`@tailwindcss/postcss` 是兼容性回退方案。
+
+**检查逻辑**：
+1. `package.json` 中若存在 `@tailwindcss/postcss` → **建议迁移**到 `@tailwindcss/vite`
+2. 迁移步骤：
+   - 卸载 `@tailwindcss/postcss`，安装 `@tailwindcss/vite`
+   - `astro.config.mjs` 中 `import tailwindcss from '@tailwindcss/vite'` 并加入 `integrations: [..., tailwindcss()]`
+   - 删除 `postcss.config.mjs`（Vite 插件不再需要）
+   - `global.css` 保持 `@import "tailwindcss"` 不变
+   - 验证 `npm run build` 通过
+3. **例外**：若项目明确需要 PostCSS 管道（如与其他 PostCSS 插件共存），可保留
+
 ### 跨站点依赖同步升级
 
 > 适用于 `repo/webs` 下的多站点矩阵（mykcs.github.io / wangrui2025.github.io / OSA / GDKVM 等）
@@ -273,6 +286,40 @@ Agent({
 - Google Fonts CDN → `@fontsource/*` 本地字体
 - 非首屏图片添加 `loading="lazy" decoding="async"`
 - 卸载未使用依赖
+- `@tailwindcss/postcss` → `@tailwindcss/vite`（见 Tailwind 集成方式检查）
+
+### 触类旁通三层扫描协议
+
+> 触发条件：发现构建配置/反模式/依赖问题时，或用户说"触类旁通"
+
+**L1 — workspace 内检查**
+```bash
+cd ~/Repo/webs
+for d in */; do
+  echo "=== $d ==="
+  cat "$d/package.json" 2>/dev/null | grep -E '@tailwindcss/(postcss|vite)|@astrojs/tailwind'
+  ls "$d/tailwind.config"* "$d/astro/tailwind.config"* 2>/dev/null
+  ls "$d/postcss.config"* "$d/astro/postcss.config"* 2>/dev/null
+done
+```
+- 所有活跃维护子站（OSA / GDKVM / 主站）必须同步修复
+- 归档/暂停站点记录问题但不强制修复
+
+**L2 — 全机器 repo 扫描**
+```bash
+find ~/Repo ~/Projects ~/PyPjcts -maxdepth 4 -name 'package.json' -not -path '*/node_modules/*' -exec grep -l '@tailwindcss/postcss\|@astrojs/tailwind' {} \;
+find ~/Repo ~/Projects ~/PyPjcts -maxdepth 3 -name 'tailwind.config*' -not -path '*/node_modules/*'
+find ~/Repo ~/Projects ~/PyPjcts -maxdepth 3 -name 'postcss.config*' -not -path '*/node_modules/*'
+```
+- 发现其他项目存在同样问题时，按同样标准修复
+
+**L3 — 同类现象扫描**
+- 检查是否有其他"应该用 A 但实际用 B"的构建工具配置
+- 例如：Astro.glob → import.meta.glob、ViewTransitions → ClientRouter、format="webp" → 移除
+- 检查 is:inline 是否超出允许范围（FOUC/theme/JSON-LD/SW/第三方 CDN）
+- 检查 set:html 是否注入不可信数据
+
+**执行规范**：生成处理报告 → 依次执行 L1 → L2 → L3 → 结果同步到 `webs-context.md`
 
 **评分**: Build Health 20% + Astro 6.x Compliance 15% + i18n Parity 15% + Responsive 10% + Performance 10% + Security 10% + **Project-Specific 20%**（学术项目：Poster 约束/WebKit/公式渲染；主站：SEO/OG/PWA）
 
@@ -323,6 +370,13 @@ Agent({
 7. **CSS 跨浏览器验证**：涉及 grid/flex/图片尺寸时，必须双端验证（Chromium + WebKit）
 8. **视觉布局协议**：修改前 FULL_AUDIT（Playwright 测溢出）→ 变更批处理 → 修改后重新 FULL_AUDIT → 零溢出才报告 done
 9. **CI 门禁**：push 后必须检查 GitHub Actions 状态。若 run fail，必须修复至全部 pass 才算完成。禁止停在"本地构建通过但 CI 失败"的状态。
-   - 检查命令：`gh run list --repo=<owner>/<repo> --limit=5`
-   - 修复优先级：构建错误 > 测试失败 > Lint 警告
-   - 典型场景：构建产物路径变更、vendor/academic submodule 未更新、lockfile 与 CI 环境不兼容
+   - **检查命令**：`gh run list --repo=<owner>/<repo> --limit=1 --json conclusion,status,headSha`
+   - **诊断命令**：`gh run view <run-id> --log-failed`
+   - **修复循环**：定位根因 → 本地复现 → 修复 → commit → push → 重新检查 CI，直到 `conclusion: success`
+   - **修复优先级**：构建错误 > 测试失败 > Lint 警告
+   - **典型场景**：
+     - 构建产物路径变更
+     - vendor/academic submodule 未更新
+     - lockfile 与 CI 环境不兼容
+     - Playwright WebKit 在 CI 缺失系统依赖 → 需 `npx playwright install-deps chromium webkit`
+     - `.github/workflows/` 修改需 `workflow` scope → 若 token 缺失，提示用户执行 `gh auth login --scopes repo,workflow`
