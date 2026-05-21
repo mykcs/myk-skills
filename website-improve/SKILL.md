@@ -233,16 +233,13 @@ Agent({
 5. 跨站点升级（如 mykcs.github.io + OSA + GDKVM）需在每个仓库分别验证构建
 
 **当前已知可升级项（2026-05-20）**：
-- `tailwindcss` 4.2.2 → 4.3.0（mykcs.github.io / OSA / GDKVM 已完成；wangrui2025.github.io **阻塞**，见下方兼容性警告）
-- `astro` 6.1.8 → 6.3.6（minor，待评估）
+- `tailwindcss` 4.2.2 → 4.3.0（**四站全部完成**）
+- `astro-expressive-code` 0.41.7 → 0.42.0（GDKVM 已完成，零影响确认）
+- `astro` 6.1.8 → 6.3.6（wangrui2025.github.io 已完成，其他站待评估）
 - `astro-pagefind` 1.8.6 → 2.0.0（**major**，需读 CHANGELOG 再决定）
 
-**兼容性警告（2026-05-20）**：
-- wangrui2025.github.io 升级 `@tailwindcss/vite` 4.2.2 → 4.3.0 时构建失败：
-  ```
-  [@tailwindcss/vite:generate:build] Missing field `tsconfigPaths` on BindingViteResolvePluginConfig.resolveOptions
-  ```
-  根因：该站 Vite 版本与 `@tailwindcss/vite` 4.3.0 不兼容。需先升级 Vite 或 Astro 到兼容版本后再试。
+**兼容性记录（已解决）**：
+- wangrui2025.github.io `@tailwindcss/vite` 4.3.0 构建失败 → **修复方案**：显式锁定 `vite` 到 `^7.3.2`（避免 npm 解析到 Vite 8.x）。mykcs.github.io 因使用 pnpm-lock 天然锁定 Vite 7.x，未触发此问题。
 
 ### 跨站点依赖同步升级
 
