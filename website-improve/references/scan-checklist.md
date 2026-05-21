@@ -90,6 +90,23 @@ grep -i "error" /tmp/astro-check.log | head -10
 - [ ] Tailwind v4 uses `@tailwindcss/vite` not `@astrojs/tailwind`
 - [ ] No `is:inline` script artifacts in `dist/`
 - [ ] `redirectToDefaultLocale` explicitly set (default changed to `false` in v6)
+- [ ] `is:inline` scripts relying on `astro:page-load` must have `DOMContentLoaded` fallback for pages without `<ClientRouter />`
+  - **Why**: `astro:page-load` only fires when `ClientRouter` is present. Direct page loads without `ClientRouter` will never trigger it.
+  - **Fix**: Add `DOMContentLoaded` fallback:
+    ```js
+    document.addEventListener('astro:page-load', init);
+    if (document.readyState !== 'loading') {
+      init();
+    } else {
+      document.addEventListener('DOMContentLoaded', init);
+    }
+    ```
+- [ ] Pages without `<ClientRouter />` that have interactive links must use `data-astro-reload` if other pages have `ClientRouter`
+  - **Why**: When a user navigates from a page with `ClientRouter` to a page without it, `ClientRouter` remains active and will intercept links on the destination page, causing partial hydration mismatches.
+  - **Fix**: Add `data-astro-reload` to critical links on non-ClientRouter pages:
+    ```astro
+    <a href="/some/page" data-astro-reload>Link</a>
+    ```
 
 **Detection**:
 ```bash
@@ -99,6 +116,20 @@ grep -rn "Astro.glob" src/ --include="*.astro" && echo "FOUND: Astro.glob (use C
 grep -q "@astrojs/tailwind" package.json && echo "DEPRECATED: @astrojs/tailwind" || echo "OK: no deprecated Tailwind integration"
 grep -q "@tailwindcss/vite" package.json && echo "OK: using @tailwindcss/vite" || echo "MISSING: @tailwindcss/vite"
 grep -q "redirectToDefaultLocale" astro.config.mjs astro.config.ts 2>/dev/null && echo "OK: redirectToDefaultLocale set" || echo "MISSING: set redirectToDefaultLocale explicitly"
+# Check is:inline scripts using astro:page-load without DOMContentLoaded fallback
+grep -rln 'astro:page-load' src/ --include="*.astro" | while read f; do
+  if ! grep -q 'DOMContentLoaded' "$f"; then
+    echo "WARN: $f uses astro:page-load without DOMContentLoaded fallback"
+  fi
+done
+# Check if some layouts have ClientRouter while others don't
+clientrouter_count=$(grep -rln 'ClientRouter' src/layouts/ --include="*.astro" | wc -l)
+total_layouts=$(ls src/layouts/*.astro 2>/dev/null | wc -l)
+if [ "$clientrouter_count" -gt 0 ] && [ "$clientrouter_count" -lt "$total_layouts" ]; then
+  echo "WARN: Mixed ClientRouter usage ($clientrouter_count/$total_layouts layouts). Check non-ClientRouter pages for missing data-astro-reload."
+fi
+# Check getRelativeLocaleUrl with prefixDefaultLocale: false (potential redirect issues)
+grep -q 'prefixDefaultLocale: false' astro.config.mjs astro.config.ts 2>/dev/null && echo "CHECK: prefixDefaultLocale is false — verify locale switch links don't rely on redirect pages"
 ```
 
 ## 3. Code Quality
@@ -256,6 +287,7 @@ grep -rn "set:html" src/ --include="*.astro"
 | 风险等级 | 场景 |
 |----------|------|
 | **CRITICAL** | `set:html={userInput}` — 直接渲染用户输入 |
+| **CRITICAL** | `set:html={fs.readFileSync(...)}` — 读取本地文件并原样注入 HTML |
 | **HIGH** | `set:html={fetchedContent}` — 渲染外部获取的 HTML（如 CMS） |
 | **MEDIUM** | `set:html={markdownHTML}` — 渲染 Markdown 转 HTML（依赖解析器安全性） |
 | **LOW** | `set:html={staticHTML}` — 完全静态、硬编码的 HTML 片段 |
@@ -271,6 +303,24 @@ grep -rn "set:html" src/ --include="*.astro"
 <!-- 如必须渲染富文本，使用可信库 sanitize -->
 <div set:html={DOMPurify.sanitize(userComment)} />  ⚠️ 需审查
 ```
+
+**特殊场景：注入完整外部 HTML 文档（如 slides/poster 生成器输出）**
+
+当需要 serve 一个经 build-time 处理的完整 HTML 文件（例如从 `public/slides.src` 读取并做路径替换/KaTeX 预渲染）时，**禁止**用 `set:html` 拆散注入 `<head>` / `<body>`。应直接返回原生 Response：
+
+```astro
+---
+import fs from 'fs';
+let html = fs.readFileSync('public/slides.src', 'utf-8');
+// ... build-time processing (path fixes, KaTeX pre-render, etc.) ...
+
+return new Response(html, {
+  headers: { 'Content-Type': 'text/html; charset=utf-8' },
+});
+---
+```
+
+**Why**: `return new Response()` 让 Astro 在 prerender 时将处理后的完整 HTML 写入 `dist/`，完全绕过模板渲染层，彻底消除 `set:html` XSS 表面。
 
 ### 8.2 Secrets & 凭证
 
