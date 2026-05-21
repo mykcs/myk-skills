@@ -7,7 +7,7 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites 等分散 skill。
 license: MIT
 metadata:
-  version: "2.2.0"
+  version: "2.2.1"
   author: mykcs
   category: web-development
   triggers:
@@ -322,3 +322,7 @@ Agent({
 6. **批量维护标记**：>10 文件变更时 commit message 加 `[BATCH MODE]`，完成后 `git log --oneline` + `git diff --stat`
 7. **CSS 跨浏览器验证**：涉及 grid/flex/图片尺寸时，必须双端验证（Chromium + WebKit）
 8. **视觉布局协议**：修改前 FULL_AUDIT（Playwright 测溢出）→ 变更批处理 → 修改后重新 FULL_AUDIT → 零溢出才报告 done
+9. **CI 门禁**：push 后必须检查 GitHub Actions 状态。若 run fail，必须修复至全部 pass 才算完成。禁止停在"本地构建通过但 CI 失败"的状态。
+   - 检查命令：`gh run list --repo=<owner>/<repo> --limit=5`
+   - 修复优先级：构建错误 > 测试失败 > Lint 警告
+   - 典型场景：构建产物路径变更、vendor/academic submodule 未更新、lockfile 与 CI 环境不兼容
