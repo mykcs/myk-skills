@@ -107,6 +107,53 @@ grep -i "error" /tmp/astro-check.log | head -10
     ```astro
     <a href="/some/page" data-astro-reload>Link</a>
     ```
+- [ ] Forced-light-mode pages must run cleanup on BOTH `astro:after-swap` AND `astro:page-load`
+  - **Why**: `astro:after-swap` fires during ClientRouter navigation, but `astro:page-load` also fires afterward. If the script only listens to one, a direct visit may miss cleanup, or a transition may leave stale state. Both listeners are needed for consistent behavior.
+  - **Fix**: Register both listeners and call cleanup immediately on script execution:
+    ```js
+    window.__forceLight = function () {
+      document.documentElement.classList.remove('dark');
+      // update theme-color meta if present
+    };
+    window.__forceLight();
+    document.addEventListener('astro:after-swap', window.__forceLight);
+    document.addEventListener('astro:page-load', window.__forceLight);
+    ```
+- [ ] ThemeToggle on forced-light pages must force-remove `.dark` in init AND click handler
+  - **Why**: The button icons reflect user preference (stored in localStorage), but the page itself must stay light. If the click handler doesn't remove `.dark`, the html element retains the class and Tailwind dark variants activate.
+  - **Fix**: In `cvMode`/`isCv` branch:
+    ```js
+    // init
+    html.classList.remove('dark');
+    updateThemeColor(false);
+    // click
+    btn.addEventListener('click', function () {
+      prefDark = !prefDark;
+      localStorage.setItem('theme', prefDark ? 'dark' : 'light');
+      setBtnIcons(btn, prefDark);
+      updateThemeColor(prefDark);
+      html.classList.remove('dark'); // always force light
+    });
+    ```
+- [ ] Buttons on forced-light pages need explicit non-transparent backgrounds (avoid `dark:` variant reliance)
+  - **Why**: When `.dark` leaks onto a forced-light page (e.g. via ClientRouter transition), Tailwind `dark:` variants flip colors. A button styled only with `hover:bg-gray-100 dark:hover:bg-gray-800` may become invisible if its base background is transparent.
+  - **Fix**: Add an always-visible background class that doesn't depend on dark mode:
+    ```astro
+    class:list={[
+      "theme-toggle-btn p-2 rounded-lg text-text-primary dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
+      cvMode && "bg-white/90 border border-gray-300 shadow-sm"
+    ]}
+    ```
+- [ ] Locale switch URLs must use `getRelativeLocaleUrl` when `prefixDefaultLocale: false`
+  - **Why**: With `prefixDefaultLocale: false`, the default locale has NO prefix (e.g. `/cv/` for `zh`, `/en/cv/` for `en`). Hardcoding `'/zh/cv/'` produces a 404 or unnecessary redirect.
+  - **Fix**: Always use `getRelativeLocaleUrl(targetLang, 'cv')` instead of string concatenation.
+    ```astro
+    // WRONG
+    const switchUrl = '/' + targetLang + '/cv/';
+    // CORRECT
+    import { getRelativeLocaleUrl } from 'astro:i18n';
+    const switchUrl = getRelativeLocaleUrl(targetLang, 'cv');
+    ```
 
 **Detection**:
 ```bash
@@ -130,6 +177,31 @@ if [ "$clientrouter_count" -gt 0 ] && [ "$clientrouter_count" -lt "$total_layout
 fi
 # Check getRelativeLocaleUrl with prefixDefaultLocale: false (potential redirect issues)
 grep -q 'prefixDefaultLocale: false' astro.config.mjs astro.config.ts 2>/dev/null && echo "CHECK: prefixDefaultLocale is false — verify locale switch links don't rely on redirect pages"
+# Check forced-light pages run cleanup on both astro:after-swap AND astro:page-load
+grep -rln 'classList.remove("dark")' src/ --include="*.astro" | while read f; do
+  if grep -q 'astro:after-swap' "$f" && grep -q 'astro:page-load' "$f"; then
+    : # ok
+  else
+    echo "WARN: $f removes .dark but may miss astro:after-swap or astro:page-load listener"
+  fi
+done
+# Check ThemeToggle cvMode removes .dark in both init and click handler
+grep -rln 'cvMode\|isCv' src/ --include="*.astro" | while read f; do
+  dark_removes=$(grep -c 'classList.remove("dark")' "$f" || true)
+  if [ "$dark_removes" -lt 2 ]; then
+    echo "WARN: $f has cvMode but removes .dark fewer than 2 times (init + click)"
+  fi
+done
+# Check hardcoded locale URL construction (should use getRelativeLocaleUrl)
+grep -rn "'/' + .*Lang\|'/' + targetLang\|'/zh/'\|'/en/'" src/ --include="*.astro" | grep -v 'getRelativeLocaleUrl' | while read line; do
+  echo "WARN: Possible hardcoded locale URL: $line"
+done
+# Check for transparent buttons on forced-light pages (no explicit bg-* on toggle btn)
+grep -rln 'theme-toggle-btn' src/ --include="*.astro" | while read f; do
+  if ! grep -q 'bg-white\|bg-gray-100\|bg-[#]' "$f"; then
+    echo "WARN: $f has theme-toggle-btn without explicit background class"
+  fi
+done
 ```
 
 ## 3. Code Quality
