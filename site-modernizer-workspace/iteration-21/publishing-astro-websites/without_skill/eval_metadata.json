@@ -1,6 +1,0 @@
-{
-  "eval_id": 0,
-  "eval_name": "publishing-astro-websites",
-  "prompt": "Build and verify the Astro site at /Users/myk/.claude/skills/site-modernizer-workspace/iteration-21/publishing-astro-websites/with_skill/mock-repo. Run npm install, npm run build, and verify the build passes. Check for any FOUC or layout issues.",
-  "assertions": []
-}
