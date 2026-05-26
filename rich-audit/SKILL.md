@@ -6,7 +6,7 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.3.0"
+  version: "2.4.0"
   author: mykcs
   category: self-evolution
   triggers:
@@ -184,6 +184,8 @@ Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -
 |------|------|
 | `~/.claude/rules/` | 行为护栏与约束 |
 | `~/.claude/memory/` | 持久化用户/项目/上下文记忆 |
+| `~/.claude/knowledge/cases/wiki/` | Case 文件系统（221+ case files） |
+| **mem0 ↔ filesystem 对齐** | 双轨记忆同步检测（见下方详解） |
 | `~/.claude/hooks/` | PreToolUse / PostToolUse / Stop hooks |
 | `~/.claude/scripts/` | 自动化脚本 |
 | `~/.claude/skills/` | OMC 和自定义 skills |
@@ -215,6 +217,65 @@ Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -
 | frontmatter 覆盖率 | 100% | 加载器不识别 |
 
 检测命令见 [references/audit-patterns.md](references/audit-patterns.md)。
+
+---
+
+## 记忆系统对齐检测（双轨同步）
+
+> **背景**：用户采用双轨记忆系统（mem0 MCP 云端 + 文件系统 markdown），两者需保持同步。
+
+### 三层对齐矩阵
+
+| 层次 | 源 | 目标 | 检测内容 |
+|------|-----|------|----------|
+| **L1** | `~/.claude/memory/MEMORY.md` | `~/.claude/knowledge/cases/wiki/*.md` | Phantom entries（索引有-link但文件不存在） |
+| **L2** | `~/.claude/knowledge/cases/wiki/*.md` | `~/.claude/memory/MEMORY.md` | Missing entries（文件存在但索引无-link） |
+| **L3** | mem0 (`case` type) | `~/.claude/knowledge/cases/wiki/*.md` | mem0 有 case 记忆但文件系统无对应文件 |
+
+### 自动修复规则
+
+| 层级 | 发现问题 | 自动修复 |
+|------|----------|----------|
+| L1 Phantom | MEMORY.md 索引指向不存在的 case 文件 | 从索引中移除该 entry |
+| L2 Missing | case 文件存在但 MEMORY.md 未索引 | 添加 entry 到 MEMORY.md |
+| L3 Gap | mem0 有 `source: CASE-XXX` 但文件系统无文件 | 创建 case 文件（模板），通知用户补充内容 |
+
+### 审计命令
+
+```bash
+# L1: Phantom entries in MEMORY.md
+phantom_count=0
+while IFS= read -r line; do
+  [[ "$line" =~ ^\-\ \[.*\]\((~/.claude/knowledge/cases/wiki/CASE-[^)]+)\) ]] || continue
+  file="${BASH_REMATCH[1]/#\~/$HOME}"
+  [[ -f "$file" ]] || { echo "[PHANTOM] $file"; ((phantom_count++)); }
+done < ~/.claude/memory/MEMORY.md
+echo "PHANTOM_COUNT=$phantom_count"
+
+# L2: Missing entries in MEMORY.md
+indexed=$(sed -n 's/.*(~\/.claude\/knowledge\/cases\/wiki\/(CASE-[^)]*))/\1/p' ~/.claude/memory/MEMORY.md | sort)
+filesystem=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | xargs -I{} basename {} | sort)
+missing=$(comm -23 <(echo "$filesystem") <(echo "$indexed"))
+echo "MISSING_COUNT=$(echo "$missing" | wc -l)"
+[[ -n "$missing" ]] && echo "$missing"
+
+# L3: mem0 gap detection (需要从 mem0 API 获取 case-type 记忆，手动核对)
+# mem0 query: metadata.type="case" → 检查 source 字段对应的 CASE 文件是否存在
+```
+
+### Layer 2 修复联动
+
+`Agent-Fix-Memory` 需在 `memory_issues` 中新增 `memory_alignment` 子类：
+
+```python
+memory_issues = {
+    "phantom_entries": [...],    # L1: 索引指向不存在的文件
+    "missing_entries": [...],     # L2: 文件存在但未进入索引
+    "mem0_gap": [...],            # L3: mem0 有记忆但无文件系统文件
+}
+```
+
+**修复策略**：L1/L2 可自动修复；L3 需通知用户补充内容后关闭。
 
 ---
 
@@ -363,7 +424,26 @@ done 2>/dev/null | grep -v "/.claude/" | sort
    ```
 8. **健康分计算**: 重新运行 `python3 ~/.agents/skills/rich-audit/scripts/rich_audit.py`，确认 8 维度分数已正确记录
 9. **MCP Server 冲突验证**: 执行 `/doctor`（或在非交互环境运行检测命令）确认无 `same command/URL as already-configured` 类 MCP 冲突错误
-10. **MEMORY.md 索引一致性**: 执行 `python3 -c "import re; from pathlib import Path; ..."`（见 audit-patterns.md 中 MEMORY.md Phantom Rules 检测命令）确认索引无 phantom entries
+10. **MEMORY.md 索引一致性 + 记忆系统对齐**: 执行以下三层验证：
+    ```bash
+    # L1: Phantom entries（MEMORY.md 索引指向不存在的文件）
+    phantom=0; while IFS= read -r line; do [[ "$line" =~ ^\-\ \[.*\]\((~/.claude/knowledge/cases/wiki/CASE-[^)]+)\) ]] || continue; file="${BASH_REMATCH[1]/#\~/$HOME}"; [[ -f "$file" ]] || { echo "[PHANTOM] $file"; ((phantom++)); }; done < ~/.claude/memory/MEMORY.md; echo "L1_PHANTOM=$phantom"
+
+    # L2: Missing entries（case 文件存在但 MEMORY.md 未索引）
+    indexed=$(sed -n 's/.*(~\/.claude\/knowledge\/cases\/wiki\/(CASE-[^)]*))/\1/p' ~/.claude/memory/MEMORY.md | sort -u)
+    filesystem=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | xargs -I{} basename {} | sort -u)
+    missing=$(comm -23 <(echo "$filesystem") <(echo "$indexed"))
+    echo "L2_MISSING_COUNT=$(echo "$missing" | grep -c . 2>/dev/null || echo 0)"
+    [[ -n "$missing" ]] && echo "$missing" | head -10
+
+    # L3: case 文件总数 vs MEMORY.md 索引 case 数（用于检测 mem0 drift）
+    case_count=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | wc -l)
+    indexed_case_count=$(sed -n 's/.*(~\/.claude\/knowledge\/cases\/wiki\/(CASE-[^)]*))/\1/p' ~/.claude/memory/MEMORY.md | grep -c . 2>/dev/null || echo 0)
+    echo "FILESYSTEM_CASES=$case_count INDEXED_CASES=$indexed_case_count"
+    ```
+    - `L1_PHANTOM=0` → 通过；>0 → L1 drift detected
+    - `INDEXED_CASES` 应 >= `FILESYSTEM_CASES * 0.9` → 通过；低于说明 L2 gap 严重
+    - L3 检测依赖 mem0 API，可通过 `/mem0:search` 手动核对 `type=case` 的 source 字段
 
 **若任何验证失败，审计未完成。** 修复后重新运行验证。
 

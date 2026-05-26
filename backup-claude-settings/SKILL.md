@@ -29,14 +29,11 @@ metadata:
 一键备份 `~/.claude/settings.json` 和 `.claude.json` 到 GitHub 仓库，自动根据当前 API 提供商命名。
 每次备份后**强制对比审计**，与上一次同 provider 备份进行 diff，生成审计日志。
 
-## 调用方式（重要）
+## 调用方式
 
-由于本 skill 涉及 **git commit + push** 副作用，根据安全规则设置了 `disable-model-invocation: true`，**不能通过 `/backup-claude-settings` 调用**。
-
-**正确用法**：直接对 Agent 说：
-> "备份我的 Claude 配置" / "backup claude settings" / "备份 settings"
-
-Agent 收到指令后会手动执行底层脚本，而非通过 Skill 工具自动触发。
+可通过以下方式触发：
+- 直接说："备份我的 Claude 配置" / "backup claude settings" / "备份 settings"
+- 或运行：`/backup-claude-settings`
 
 ## 备份目标
 

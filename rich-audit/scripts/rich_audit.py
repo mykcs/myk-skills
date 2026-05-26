@@ -57,6 +57,31 @@ def file_sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+# Known public API / marketplace domains that commonly appear in configs
+# but do NOT contain embedded credentials — excluded to avoid false positives.
+_PUBLIC_API_DOMAINS = {
+    "modelcontextprotocol.io",
+    "sentry.io",
+    "github.com",
+    "api.github.com",
+    "raw.githubusercontent.com",
+    "cdn.jsdelivr.net",
+    "registry.npmjs.org",
+    "pypi.org",
+    "crates.io",
+    "hub.docker.com",
+    "registry.hub.docker.com",
+}
+
+
+def _is_public_api_url(url: str) -> bool:
+    """Return True if the URL looks like a public API/marketplace endpoint, not a secret."""
+    for domain in _PUBLIC_API_DOMAINS:
+        if domain in url:
+            return True
+    return False
+
+
 def grep_secrets(text: str) -> list[dict]:
     """Scan text for common secret patterns. Conservative — avoids false positives."""
     findings = []
@@ -71,7 +96,22 @@ def grep_secrets(text: str) -> list[dict]:
     ]
     for pat, label in exact_patterns:
         for m in re.finditer(pat, text):
-            findings.append({"pattern": label, "position": m.span(), "snippet": m.group()[:20] + "..."})
+            matched = m.group()
+            if label == "URL with embedded credentials":
+                # Guard: skip public API URLs
+                if _is_public_api_url(matched):
+                    continue
+                # Guard: if the "credential" part (between : and @) contains JSON punctuation,
+                # this is a false positive from matching across JSON boundaries like
+                # https://host"},{"version":"1.0","source":"name -> host:1.0","source":"name@
+                # Extract credential portion for inspection
+                cred_match = re.search(r'https?://[^/\s:@]+:([^@]+)@', matched)
+                if cred_match:
+                    cred_part = cred_match.group(1)
+                    # JSON structure chars indicate a false positive (e.g. 1.5.5","source":"...)
+                    if '"' in cred_part or ',' in cred_part:
+                        continue
+            findings.append({"pattern": label, "position": m.span(), "snippet": matched[:20] + "..."})
 
     # Context-aware patterns: only flag if near a secret keyword
     secret_keywords = [
@@ -535,17 +575,37 @@ def check_consistency(report: dict) -> list[dict]:
         ("no apology", "sorry", "No-apology rule vs apology text"),
         ("always create new objects", "mutate", "Immutability rule vs mutation mention"),
     ]
+
+    # Split each rule into paragraphs (blank-line separated) for proximity-aware
+    # conflict detection. A conflict only fires when phrase_a and phrase_b appear
+    # on DIFFERENT LINES within the same paragraph — not when they co-appear in
+    # a single sentence (e.g. "always create new objects, never mutate" is the rule
+    # itself, not a conflict with itself).
+    def _paragraphs(text: str) -> list[str]:
+        return [p.strip() for p in text.split("\n\n") if p.strip()]
+
+    def _lines(para: str) -> list[str]:
+        return [l.strip() for l in para.split("\n") if l.strip()]
+
     files = list(rule_texts.keys())
     for f1 in files:
+        text_lower = rule_texts[f1]
         for phrase_a, phrase_b, desc in conflict_pairs:
-            if phrase_a in rule_texts[f1] and phrase_b in rule_texts[f1] and phrase_a != phrase_b:
-                findings.append({
-                    "severity": "MED",
-                    "file": f1,
-                    "line": None,
-                    "message": f"Possible internal conflict: {desc}",
-                    "auto_fix": None,
-                })
+            for para in _paragraphs(text_lower):
+                lines_with_a = [l for l in _lines(para) if phrase_a in l]
+                lines_with_b = [l for l in _lines(para) if phrase_b in l]
+                # Conflict only when they appear on DIFFERENT lines — co-presence on
+                # the same line (e.g. "always create new objects, never mutate") is
+                # the rule itself, not a self-conflict.
+                if lines_with_a and lines_with_b and lines_with_a != lines_with_b:
+                    findings.append({
+                        "severity": "MED",
+                        "file": f1,
+                        "line": None,
+                        "message": f"Possible internal conflict: {desc}",
+                        "auto_fix": None,
+                    })
+                    break  # one finding per file per conflict pair
 
     # Memory references match actual files
     memory_dir = CLAUDE_DIR / "memory"
@@ -852,7 +912,15 @@ def _count_lines(path: Path) -> int:
 def _has_frontmatter(path: Path) -> bool:
     try:
         text = path.read_text()
-        return text.startswith("---\n") and "\n---\n" in text[4:200]
+        if not text.startswith("---\n"):
+            return False
+        # Search for the closing --- anywhere before the first non-YAML content.
+        # Use a generous limit (4000 bytes) to handle frontmatter with many
+        # multi-byte characters (e.g. CJK description fields).
+        closing_pos = text.find("\n---", 4)
+        if closing_pos == -1 or closing_pos > 4000:
+            return False
+        return text[closing_pos:closing_pos + 4] == "\n---"
     except Exception:
         return False
 

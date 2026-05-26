@@ -218,14 +218,31 @@ for pkg in lodash moment jquery; do
 done
 ```
 
-## 4. Routing & Configuration
+## 4. Routing & Redirects
+
+- [ ] **禁止在 `public/` 下存放手写 HTML 重定向文件**（如 `public/OSA/index.html`）
+  - **正确做法**：所有重定向统一使用 `_redirects` 文件
+  - **错误做法**：用 `<meta http-equiv="refresh">` 或 JS 跳转的 HTML 页面
+- [ ] `_redirects` 文件中的规则使用标准格式：`/source/*  /target/:splat  301`
+
+**Detection**:
+```bash
+# 查找 public/ 下所有 HTML 文件（正常情况：仅 index.astro 生成的产物，不应有手写重定向）
+find public -name "*.html" -not -path "public/_astro/*" | while read f; do
+  if grep -q "http-equiv.*refresh\|window.location" "$f"; then
+    echo "REDIRECT_FILE: $f (use _redirects instead)"
+  fi
+done
+```
+
+## 5. Routing & Configuration
 
 - [ ] `astro.config.mjs` i18n routing is correct (`defaultLocale`, `prefixDefaultLocale`)
 - [ ] Root `index.astro` redirect doesn't conflict with i18n auto-redirect
 - [ ] `getStaticPaths()` covers all declared locales
 - [ ] 404 page supports i18n fallback
 
-## 5. SEO & Structured Data
+## 6. SEO & Structured Data
 
 - [ ] Open Graph tags present: `og:title`, `og:description`, `og:image`, `og:url`, `og:type`
 - [ ] Twitter Card tags present (if applicable)
@@ -234,7 +251,7 @@ done
 - [ ] `theme-color` meta tag supports light/dark
 - [ ] Sitemap generated (`@astrojs/sitemap`)
 
-## 6. Performance & Assets
+## 7. Performance & Assets
 
 ### 6.1 字体优化
 
@@ -329,7 +346,7 @@ npm run preview
 npx lighthouse http://localhost:4321 --output=html --output-path=./lighthouse-report.html
 ```
 
-## 7. i18n Synchronization
+## 8. i18n Synchronization
 
 **Goal**: `en.json` and `zh.json` have identical key sets. No hardcoded UI text in components.
 
@@ -348,7 +365,7 @@ grep -rn "[A-Z][a-z].{20,50}" src/ --include="*.astro" | grep -v "t(" | grep -v 
 - [ ] No hardcoded captions/labels in components — all via `t()` or JSON
 - [ ] Locale-specific content (dates, numbers) uses `Intl` helpers
 
-## 8. Security
+## 9. Security
 
 ### 8.1 `set:html` 审计
 
@@ -489,7 +506,7 @@ echo "--- External links without noopener ---"
 grep -rn 'href="http' src/ --include="*.astro" | grep -v 'rel="noopener"\|rel="noreferrer"' || echo "PASS"
 ```
 
-## 9. CI/CD & GitHub Actions
+## 10. CI/CD & GitHub Actions
 
 **Goal**: GitHub Actions workflow 使用最新稳定版本，无已知漏洞或弃用风险。
 
@@ -518,7 +535,7 @@ done
 
 **Fix**: 将过时版本升级到推荐版本（如 `actions/cache@v4` → `actions/cache@v5`）。
 
-## 10. Responsive Viewport Check
+## 11. Responsive Viewport Check
 
 **Goal**: Zero layout regressions across 4 viewports.
 
@@ -554,7 +571,7 @@ grep -rn "font-size: *[0-9]*px" src/ --include="*.astro" --include="*.css" | awk
 
 **Acceptance**: All text elements have responsive sizing (clamp/rem/em), no fixed px font-size < 12px, no horizontal text overflow at 375px.
 
-## 11. Scoring
+## 12. Scoring
 
 ### Generic Site
 

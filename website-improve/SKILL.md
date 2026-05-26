@@ -1,13 +1,13 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill。覆盖深度审计+现代化、Astro 建站、项目页创建三大场景。
-  所有"改进/审计/优化/检查/upgrade/modernize/重构/cleanup"类请求默认进入深度审计+现代化模式；
+  一站式网站改进 skill。覆盖检查+提升、Astro 建站、项目页创建三大场景。
+  所有"改进/审计/优化/检查/upgrade/modernize/重构/cleanup"类请求默认进入检查+提升模式；
   说"create astro""deploy astro""build static blog"时触发 Astro 建站指南；说"project page""项目页"时触发项目页创建。
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites 等分散 skill。
 license: MIT
 metadata:
-  version: "2.2.2"
+  version: "2.4.0"
   author: mykcs
   category: web-development
   triggers:
@@ -88,8 +88,6 @@ disable-model-invocation: false
 - `project page` / `项目页`
 - `create astro site` / `deploy astro`
 
-**由于 `disable-model-invocation: true`，Claude 不会在其他对话中自动触发本 skill。** 只有当你明确说出触发词时才会执行。
-
 ---
 
 ## 触发方式
@@ -111,7 +109,7 @@ disable-model-invocation: false
 
 | 模式 | 场景 | 预计耗时 | 加载的 Reference |
 |------|------|---------|-----------------|
-| **A. 深度审计+现代化** | 默认模式。所有"改进/审计/优化/检查"类请求进入此模式 | 30min+ | `scan-checklist.md` + `astro-modernization-checklist.md` + `site-audit-checklist.md` + `academic-project-checklist.md`(条件加载) |
+| **A. 检查+提升** | 默认模式。所有"改进/审计/优化/检查"类请求进入此模式 | 30min+ | `scan-checklist.md` + `astro-modernization-checklist.md` + `site-audit-checklist.md` + `academic-project-checklist.md`(条件加载) |
 | **B. Astro 建站** | "create astro/deploy astro"等 | 视 scope | `astro-build-guide.md` + `astro-modernization-checklist.md` + `deployment-platforms.md` + `markdown-deep-dive.md` |
 | **C. 项目页创建** | "project page/项目页" | 20-40min | `project-page-template.astro` + `academic-project-checklist.md` |
 
@@ -129,7 +127,7 @@ disable-model-invocation: false
   ├─ 是 → 模式 C: 项目页创建
   └─ 否 → 包含 "create astro" / "deploy astro" / "build static blog" / "astro markdown" / "starlight" ?
        ├─ 是 → 模式 B: Astro 建站指南
-       └─ 否 → 模式 A: 深度审计+现代化（默认）
+       └─ 否 → 模式 A: 检查+提升（默认）
 ```
 
 **模式 A 的子路由（运行时检测，非用户输入触发）：**
@@ -147,65 +145,189 @@ disable-model-invocation: false
 
 ---
 
-## 模式 A: 深度审计+现代化（默认）
+## 模式 A: 检查+提升（默认）
 
 **加载**: `references/scan-checklist.md` + `references/astro-modernization-checklist.md` + `references/site-audit-checklist.md` + 条件加载 `references/academic-project-checklist.md`
 
-完整工作流（并行 Agent 架构）：
+核心理念：**先检查（发现错误），后提升（现代化改进）**。禁止混为一谈。
 
 ```
-阶段 1 — 并行探测（Probe）【同时启动】
-  ├─ Agent-Detect-Type → 检测项目类型 + DESIGN.md 检查 + UPGRADE-CHECK
-  └─ Agent-Docs-Lookup → Context7 + WebSearch 验证当前最佳实践
+阶段 1 — 并行检查（Check）【发现所有错误】
+  ├─ Agent-Check-Build    → 构建错误、类型错误、CI 失败、弃用警告
+  ├─ Agent-Check-Code     → 反模式、安全漏洞、重复页面、死代码
+  ├─ Agent-Check-Content  → SEO 缺失、a11y 问题、i18n 不对等
+  └─ Agent-Check-Deps     → 未使用依赖、lockfile 问题、版本冲突
   |
   v
-阶段 2 — 并行评估（Assess）【同时启动】
-  ├─ Agent-Assess-Code   → 代码库结构、组件、反模式、重复页面
-  ├─ Agent-Assess-Build  → 构建配置、依赖分析、脚本检查
-  └─ Agent-Assess-Content → SEO/OG/PWA、i18n 内容对等、a11y
+阶段 2 — 顺序修复错误（Fix Errors）【必须清零】
+  BUILD_PASS → TYPECHECK_PASS → CI_PASS → ZERO_WARNINGS
   |
   v
-阶段 3 — 顺序修复（Fix）【依赖阶段 2 结果】
-  CLEAN → BUILD → SCAN → PROJECT-SPEC → REDIRECT
+阶段 3 — 并行提升（Improve）【现代化改进】
+  ├─ Agent-Upgrade-Deps      → 依赖升级、迁移到推荐方案
+  ├─ Agent-Modernize-Code    → Astro 6.x 模式、Tailwind v4 最佳实践
+  └─ Agent-Optimize-Assets   → 图片优化、字体本地化、学术资产库化
   |
   v
-阶段 4 — 并行验证（Verify）【同时启动】
+阶段 4 — 并行验证（Verify）【检查+提升双重确认】
   ├─ Agent-Verify-Build   → npm run build + npx astro check
   ├─ Agent-Verify-Visual  → Playwright 响应式 + WebKit 验证
   └─ Agent-Verify-i18n    → zh/en 内容对等检查
 ```
 
-### 并行 Agent 调用模板
+---
 
-**阶段 1 — 并行探测**：
-```
-Agent({
-  description: "Detect project type",
-  prompt: "Check current workspace: 1) Is there DESIGN.md or Poster/Slides components? 2) Run 'npm outdated --depth=0' and 'npx astro --version' for UPGRADE-CHECK. 3) If academic project without DESIGN.md, create template. Return: {type: 'generic'|'academic'|'homepage', has_design_md: bool, upgrade_opportunities: [...]}."
-})
-Agent({
-  description: "Lookup docs best practices",
-  prompt: "Query Context7 for Astro 6 latest patterns, Tailwind v4 best practices. WebSearch for 'Astro 6 best practices 2026', 'Tailwind CSS v4 oklch 2026'. Return: {findings: [{source, topic, finding}]}."
-})
-```
+### 检查层（Check）— 发现错误
 
-**阶段 2 — 并行评估**：
+**目标**：找出所有导致构建失败、运行时错误、CI 警告、安全漏洞、可访问性缺陷的问题。**检查不修改代码，只生成问题清单。**
+
+#### Agent-Check-Build — 构建与 CI 检查
+
 ```
 Agent({
-  description: "Assess code patterns",
-  prompt: "Explore src/ directory. Check for: Astro.glob usage, Image format prop, ViewTransitions (should be ClientRouter), i18n conditional rendering, duplicate pages, __themeBound/__copyBound event delegation, getEntry(...)! non-null assertion, is:inline usage (only allowed for FOUC/theme scripts/JSON-LD/SW/third-party CDN), set:html security (must not inject user input), non-above-fold images missing loading='lazy'. **学术资产库化检查**：若发现 src/assets/paper/、public/paper/、public/assets/images/*.png 等本地学术资产，或代码中存在 `import ... from '../assets/paper/...'` 等本地图片 import，标记为 P1 并给出迁移指引（迁移到 mykcs/academic 远程 URL）。Return: {issues: [{file, line, severity, message, fix_type}]}."
-})
-Agent({
-  description: "Assess build and deps",
-  prompt: "Check package.json, astro.config.mjs, build scripts. Identify: unused deps, missing lock file, outdated build pipeline, Tailwind v4 using @tailwindcss/postcss (should be @tailwindcss/vite per official recommendation), legacy tailwind.config.mjs (v4 ignores it), legacy postcss.config.mjs with Tailwind v4 + Vite plugin (should be removed), @astrojs/tailwind (should use Tailwind v4 + @tailwindcss/vite). **未使用依赖专项检查**：1) `zod` — 检查 `content.config.ts` 是否有实际的 `schema: z.object(...)` 定义，空 `collections = {}` 则 zod 未使用；2) `@fontsource/*` — 检查源码中是否有 `import '@fontsource/...'` 或 CSS `@import`；3) `@astrojs/compiler-rs` — 检查 `astro.config.mjs` 中 `experimental.rustCompiler` 是否启用，未启用则该包未使用；4) `astro-expressive-code` — 检查是否有代码块高亮需求。Return: {issues: [...], unused_deps: [{package, reason, evidence}]}."
-})
-Agent({
-  description: "Assess content and SEO",
-  prompt: "Check SEO meta tags, Open Graph, JSON-LD, PWA manifest. Verify en.json/zh.json parity. Check alt text on images. Return: {issues: [...], i18n_gaps: [...]}."
+  description: "Check build and CI errors",
+  prompt: "Run 'npm run build' and 'npx astro check'. Check '.github/workflows/*.yml' for: Node.js 20 deprecation warnings (configure-pages@v5, deploy-pages@v4), outdated action versions, missing FORCE_JAVASCRIPT_ACTIONS_TO_NODE24. Check CI history with 'gh run list --limit=3'. Return: {build_passed: bool, typecheck_passed: bool, ci_passed: bool, deprecations: [{action, current_version, recommended_version}], errors: [...]}"
 })
 ```
 
-**阶段 4 — 并行验证**：
+**检查清单**：
+- [ ] `npm run build` 是否通过
+- [ ] `npx astro check` 0 errors / 0 warnings / 0 hints
+- [ ] GitHub Actions 最近 3 次运行是否全部 success
+- [ ] 是否存在 Node.js 20 弃用警告（`actions/configure-pages@v5`, `actions/deploy-pages@v4`）
+- [ ] `.github/workflows/*.yml` 是否使用推荐版本（checkout@v6, setup-node@v5, upload-pages-artifact@v5）
+- [ ] 是否设置 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true`
+
+#### Agent-Check-Code — 代码与安全问题检查
+
+```
+Agent({
+  description: "Check code patterns and security",
+  prompt: "Explore src/ directory. Check for CRITICAL errors: set:html injecting user input, missing alt text on images, is:inline used outside allowed scope (FOUC/theme/JSON-LD/SW/third-party CDN), getEntry(...)! non-null assertion, __themeBound/__copyBound event delegation (should use e.target.closest), duplicate pages (e.g. /cv.astro + /[lang]/cv.astro both exist), Astro.glob usage (should be import.meta.glob), ViewTransitions component (should be ClientRouter), Image format='webp' prop (Astro 6 deprecated). Check i18n HTML in translations: if en.json/zh.json values contain HTML tags, verify components use set:html. Return: {issues: [{file, line, severity: 'CRITICAL'|'HIGH'|'MEDIUM', message, fix_type}]}"
+})
+```
+
+**检查清单**：
+- [ ] `set:html` 是否注入不可信数据（用户输入、URL 参数）→ CRITICAL
+- [ ] 图片是否有 `alt` 属性
+- [ ] `is:inline` 是否超出允许范围
+- [ ] 是否存在重复页面（`/page.astro` + `/[lang]/page.astro`）
+- [ ] `Astro.glob` → 应改为 `import.meta.glob(..., { eager: true })`
+- [ ] `<ViewTransitions />` → 应改为 `<ClientRouter />`
+- [ ] `<Image format="webp" />` → 应移除 format 属性
+- [ ] `getEntry(...)!` → 应改为 `if (!entry) throw new Error(...)`
+- [ ] `__themeBound` / `__copyBound` → 应使用事件委托 `e.target.closest('[data-action]')`
+- [ ] i18n 条件渲染 `lang === 'zh' ? '中文' : 'English'` → 应统一为 `t('key')`
+- [ ] 非首屏图片是否缺失 `loading="lazy" decoding="async"`
+
+#### Agent-Check-Content — 内容与 SEO 检查
+
+```
+Agent({
+  description: "Check content and SEO issues",
+  prompt: "Check SEO meta tags, Open Graph, JSON-LD, PWA manifest. Verify en.json/zh.json parity (key count, missing keys). Check for broken links, missing favicon, missing 404 page. Return: {issues: [...], i18n_gaps: [{key, missing_in}], seo_score: number}"
+})
+```
+
+**检查清单**：
+- [ ] `og:title`, `og:description`, `og:image` 是否完整
+- [ ] JSON-LD 结构化数据是否存在
+- [ ] PWA manifest 是否存在
+- [ ] en.json / zh.json 键值是否对等
+- [ ] 是否存在断链
+
+#### Agent-Check-Deps — 依赖检查
+
+```
+Agent({
+  description: "Check dependency issues",
+  prompt: "Check package.json, astro.config.mjs. Identify: unused deps (zod with empty collections, @fontsource/* without imports, @astrojs/compiler-rs without experimental.rustCompiler, astro-expressive-code without code blocks), missing lock file, @tailwindcss/postcss (should be @tailwindcss/vite), legacy tailwind.config.mjs (v4 ignores it), legacy postcss.config.mjs, @astrojs/tailwind (should use Tailwind v4 + @tailwindcss/vite). Return: {unused_deps: [{package, reason}], legacy_configs: [...], outdated_deps: [...]}"
+})
+```
+
+**检查清单**：
+- [ ] 未使用依赖：`zod`（空 collections）、`@fontsource/*`（无 import）、`@astrojs/compiler-rs`（未启用 rustCompiler）
+- [ ] `@tailwindcss/postcss` → 应迁移到 `@tailwindcss/vite`
+- [ ] `tailwind.config.mjs` + Tailwind v4 → v4 已忽略此文件，主题应写在 `global.css` 的 `@theme {}` 中
+- [ ] `postcss.config.mjs` + Tailwind v4 + Vite → 应删除
+- [ ] `@astrojs/tailwind` → 应使用 Tailwind v4 + `@tailwindcss/vite`
+
+---
+
+### 修复层（Fix Errors）— 错误清零
+
+**原则**：检查阶段发现的所有 CRITICAL 和 HIGH 问题必须修复，且 `npm run build` + `npx astro check` + CI 全部通过，才能进入提升阶段。
+
+**修复优先级**：
+1. 构建错误（build fail）→ 立即修复
+2. 类型错误（type check fail）→ 立即修复
+3. CI 失败 → 立即修复
+4. 安全漏洞（CRITICAL）→ 立即修复
+5. 弃用警告 → 立即修复
+6. HIGH 级别代码问题 → 尽快修复
+7. MEDIUM/LOW → 可进入提升阶段后处理
+
+**门禁**：修复完成后必须满足：
+```bash
+npm run build        # 通过
+npx astro check      # 0 errors / 0 warnings / 0 hints
+git push origin main # CI 状态 success
+```
+
+---
+
+### 提升层（Improve）— 现代化改进
+
+**目标**：在零错误的基础上，将代码库提升到当前最佳实践。**提升不修复错误，只改进质量。**
+
+#### Agent-Upgrade-Deps — 依赖升级
+
+**升级流程**：
+1. 读取 `~/.claude/memory/reference/do-not-upgrade-packages.md` 黑名单
+2. `pnpm outdated` / `npm outdated` 列出可升级包
+3. **Patch/Minor**（如 4.2.2 → 4.3.0）：可直接升级，构建验证通过即可 push
+4. **Major**（如 1.8.6 → 2.0.0）：需先读 CHANGELOG，确认无破坏性变更后再升级
+5. 升级后必须执行：`npx astro check` + `npm run build`
+
+**当前已知可升级项（2026-05-20）**：
+- `tailwindcss` 4.2.2 → 4.3.0（**四站全部完成**）
+- `astro-expressive-code` 0.41.7 → 0.42.0（GDKVM 已完成，零影响确认）
+- `astro` 6.1.8 → 6.3.6（wangrui2025.github.io 已完成，其他站待评估）
+- `astro-pagefind` 1.8.6 → 2.0.0（**major**，需读 CHANGELOG 再决定）
+
+**兼容性记录（已解决）**：
+- wangrui2025.github.io `@tailwindcss/vite` 4.3.0 构建失败 → **修复方案**：显式锁定 `vite` 到 `^7.3.2`（避免 npm 解析到 Vite 8.x）。mykcs.github.io 因使用 pnpm-lock 天然锁定 Vite 7.x，未触发此问题。
+
+#### Agent-Modernize-Code — 代码现代化
+
+**Astro 6.x 迁移清单**：
+- `Astro.glob(...)` → `import.meta.glob(..., { eager: true })`
+- `<ViewTransitions />` → `<ClientRouter />`
+- `<Image format="webp" />` → 移除 format 属性（Sharp 自动优化）
+- `getEntry(...)!` → `if (!entry) throw new Error(...)`
+- `__themeBound` / `__copyBound` → 事件委托 `e.target.closest('[data-action]')`
+- 字符串拼接 locale URL → `getRelativeLocaleUrl(locale, path)`
+- `is:inline` 页面级脚本 → `src/scripts/` + `astro:page-load`
+- i18n 条件渲染 → `t('key')` 统一翻译函数
+
+**Tailwind CSS v4 迁移清单**：
+- `tailwind.config.mjs` 主题配置 → 迁移到 `src/styles/global.css` 的 `@theme {}` 块
+- `@tailwindcss/postcss` → `@tailwindcss/vite`
+- 删除 `postcss.config.mjs`（Vite 插件不再需要）
+- `darkMode` class 配置 → `@custom-variant dark (&:where(.dark, .dark *))`
+- `--text-*` 长度变量 → 禁止用 `text-[--var]`（会生成 `color:` 而非 `font-size:`）
+
+#### Agent-Optimize-Assets — 资源优化
+
+- Google Fonts CDN → `@fontsource/*` 本地字体
+- 非首屏图片 → 添加 `loading="lazy" decoding="async"`
+- 学术资产库化 → 迁移到 `mykcs/academic` CDN（见下方"学术资产库化"章节）
+- 图片格式 → 使用 Astro `<Image />` 让 Sharp 自动优化，禁止硬编码 `format="webp"`
+
+---
+
+### 验证层（Verify）— 双重确认
+
 ```
 Agent({
   description: "Verify build passes",
@@ -221,38 +343,7 @@ Agent({
 })
 ```
 
-### 依赖升级检查（UPGRADE-CHECK）
-
-执行任何升级前，先读取 `~/.claude/memory/reference/do-not-upgrade-packages.md` 黑名单。
-
-**升级流程**：
-1. `pnpm outdated` / `npm outdated` 列出可升级包
-2. **Patch/Minor**（如 4.2.2 → 4.3.0）：可直接升级，构建验证通过即可 push
-3. **Major**（如 1.8.6 → 2.0.0）：需先读 CHANGELOG，确认无破坏性变更后再升级
-4. 升级后必须执行：`npx astro check` + `npm run build`，全部通过才算完成
-5. 跨站点升级（如 mykcs.github.io + OSA + GDKVM）需在每个仓库分别验证构建
-
-**当前已知可升级项（2026-05-20）**：
-- `tailwindcss` 4.2.2 → 4.3.0（**四站全部完成**）
-- `astro-expressive-code` 0.41.7 → 0.42.0（GDKVM 已完成，零影响确认）
-- `astro` 6.1.8 → 6.3.6（wangrui2025.github.io 已完成，其他站待评估）
-- `astro-pagefind` 1.8.6 → 2.0.0（**major**，需读 CHANGELOG 再决定）
-
-**兼容性记录（已解决）**：
-- wangrui2025.github.io `@tailwindcss/vite` 4.3.0 构建失败 → **修复方案**：显式锁定 `vite` 到 `^7.3.2`（避免 npm 解析到 Vite 8.x）。mykcs.github.io 因使用 pnpm-lock 天然锁定 Vite 7.x，未触发此问题。
-
-**Tailwind CSS v4 集成方式检查**：
-> Tailwind v4 官方推荐 `@tailwindcss/vite`（最快、最可靠）。`@tailwindcss/postcss` 是兼容性回退方案。
-
-**检查逻辑**：
-1. `package.json` 中若存在 `@tailwindcss/postcss` → **建议迁移**到 `@tailwindcss/vite`
-2. 迁移步骤：
-   - 卸载 `@tailwindcss/postcss`，安装 `@tailwindcss/vite`
-   - `astro.config.mjs` 中 `import tailwindcss from '@tailwindcss/vite'` 并加入 `integrations: [..., tailwindcss()]`
-   - 删除 `postcss.config.mjs`（Vite 插件不再需要）
-   - `global.css` 保持 `@import "tailwindcss"` 不变
-   - 验证 `npm run build` 通过
-3. **例外**：若项目明确需要 PostCSS 管道（如与其他 PostCSS 插件共存），可保留
+---
 
 ### 跨站点依赖同步升级
 
@@ -281,12 +372,7 @@ Agent({
 4. **Commit 规范**：`chore(deps): upgrade tailwindcss to 4.3.0`
 5. **版本差异记录**：升级完成后更新 `webs-context.md` 中的依赖版本表
 
-**扫描后强制修复**（见 `scan-checklist.md` 详细命令）：
-- i18n 条件渲染 `lang === 'zh' ? '中文' : 'English'` → 统一替换为 `t('key')`
-- Google Fonts CDN → `@fontsource/*` 本地字体
-- 非首屏图片添加 `loading="lazy" decoding="async"`
-- 卸载未使用依赖
-- `@tailwindcss/postcss` → `@tailwindcss/vite`（见 Tailwind 集成方式检查）
+---
 
 ### 触类旁通三层扫描协议
 
@@ -323,6 +409,8 @@ find ~/Repo ~/Projects ~/PyPjcts -maxdepth 3 -name 'postcss.config*' -not -path 
 
 **评分**: Build Health 20% + Astro 6.x Compliance 15% + i18n Parity 15% + Responsive 10% + Performance 10% + Security 10% + **Project-Specific 20%**（学术项目：Poster 约束/WebKit/公式渲染；主站：SEO/OG/PWA）
 
+---
+
 ### 已知项目设计约束（审计时禁止误改）
 
 **mykcs.github.io（主站）**：
@@ -330,6 +418,8 @@ find ~/Repo ~/Projects ~/PyPjcts -maxdepth 3 -name 'postcss.config*' -not -path 
 - `skills_items` 与 `cv.ts` 的 `hobbies` 必须保持内容一致（纯文本，`·` 分隔）。
 - 字体全站硬编码为 Times New Roman，禁止改回 Inter/Plus Jakarta Sans。
 - 首页 section 标题使用 `section-heading--academic`（10pt uppercase，细实线底边，无渐变装饰线）。
+
+---
 
 ### 学术资产库化（Academic Asset Library）
 
@@ -501,3 +591,19 @@ export function academicImage(path: string): string {
      - lockfile 与 CI 环境不兼容
      - Playwright WebKit 在 CI 缺失系统依赖 → 需 `npx playwright install-deps chromium webkit`
      - `.github/workflows/` 修改需 `workflow` scope → 若 token 缺失，提示用户执行 `gh auth login --scopes repo,workflow`
+10. **GitHub Actions Node.js 弃用修复**：遇到 `Node.js 20 actions are deprecated` 警告时，按以下矩阵升级：
+    - `actions/configure-pages@v5` → `v6`（Node 24）
+    - `actions/deploy-pages@v4` → `v5`（Node 24）
+    - `actions/checkout@v5` → `v6`
+    - `actions/upload-pages-artifact@v3` → `v5`
+    - `actions/upload-artifact@v4` → `v7`（v5/v6 仍使用 Node 20）
+    - 同时添加环境变量：`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true`
+    - `actions/configure-pages@v6` 输入名变更：`static_generator_mode` → `static_site_generator`
+    - `working-directory` 陷阱：若 step 设置了 `working-directory: website`，后续 `upload-artifact` 的 `path` 仍需写完整相对路径（如 `website/playwright-report/`），因为 upload-artifact 不继承 working-directory
+    - **跨站点同步**：主站（mykcs.github.io）、OSA、GDKVM 等使用 GitHub Pages 部署的站点需逐一检查 `.github/workflows/*.yml`，确保全部升级，禁止只修一个站。
+    - **验证**：升级后 push，通过 `gh run view` 确认警告消失。
+
+11. **决策固化到 DESIGN.md**：每次 skill 执行后，若对项目做了架构/设计层面的改动（如路由变更、依赖迁移、设计模式调整），必须将改动原因写入 `DESIGN.md` 或 `CONTEXT.md`，注明"**原因**：xxx"，防止未来反复修改同一问题。
+    - 示例：`astro-pagefind` 从 1.x 升级到 2.0 时，记录到 `CONTEXT.md`，避免下次 skill 重复提议升级。
+    - 只记录"**为什么这样改**"，不记录改动细节（细节在 git commit message）。
+    - 若项目无 `DESIGN.md`，跳过此规则。
