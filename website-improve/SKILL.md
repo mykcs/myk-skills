@@ -82,6 +82,25 @@ disable-model-invocation: false
 
 > **副作用声明**：本 skill 会修改代码、执行构建、并自动 `smart-autopush.sh` 提交。请勿在不确定时自动触发。
 
+### 启动声明（强制）
+
+**每次运行 skill 前，必须大声说出以下三要素：**
+
+```
+🎯 修改目标：<具体要改什么>
+📁 本地位置：<~/Repo/... 或实际路径>
+🔗 GitHub 仓库：<owner/repo 名>
+```
+
+**示例**：
+```
+🎯 修改目标：首页研究背景区块样式
+📁 本地位置：~/Repo/webs/mykcs.github.io/astro/
+🔗 GitHub 仓库：mykcs/mykcs.github.io
+```
+
+---
+
 **用户主动调用**：说出触发词即可，例如：
 - `website-improve`
 - `改进网站` / `优化网站` / `audit website`
