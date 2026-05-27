@@ -91,8 +91,14 @@ User: "rich审计" / "进化"
 
 ```
 Agent({
-  description: "Audit Claude Code config",
-  prompt: "Run the mechanical audit script and return JSON:\n\npython3 ~/.agents/skills/rich-audit/scripts/rich_audit.py --output /tmp/audit-a.json\n\nRead /tmp/audit-a.json and summarize: architecture_health score, top 3 rules_issues, top 3 memory_issues, any skill_symlink mismatches. Return structured JSON only."
+  description: "Audit Claude Code config + memory alignment",
+  prompt: "Run the mechanical audit script and the memory alignment check:\n\n# 1. Mechanical audit\npython3 ~/.agents/skills/rich-audit/scripts/rich_audit.py --output /tmp/audit-a.json\n\n# 2. Memory alignment check (L1 Phantom + L2 Missing + L3 mem0 gap)\n# L1: phantom in MEMORY.md\nphantom=0; while IFS= read -r line; do [[ \"$line\" =~ ^\\-\ \\\\[.*\\\\]\\\\((~/.claude/knowledge/cases/wiki/CASE-[^)]+)\\\\) ]] || continue; file=\"${BASH_REMATCH[1]/#\\~/$HOME}\"; [[ -f \"$file\" ]] || { echo \"[PHANTOM] $file\"; ((phantom++)); }; done < ~/.claude/memory/MEMORY.md; echo \"L1_PHANTOM=$phantom\"\n\n# L2: missing in MEMORY.md\nindexed=$(sed -n 's/.*(\\/\\/\\/.claude\\/knowledge\\/cases\\/wiki\\/(CASE-[^)]*))/\\/1/p' ~/.claude/memory/MEMORY.md | sort -u)\nfilesystem=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | xargs -I{} basename {} | sort -u)\nmissing=$(comm -23 <(echo \"$filesystem\") <(echo \"$indexed\"))\necho \"L2_MISSING=$(echo \\\"$missing\\\" | grep -c . 2>/dev/null || echo 0)\"\n\n# L3: mem0 case drift
+# Use mcp__plugin_mem0_mem0__search_memories with query="CASE" top_k=500
+# Parse result (JSON string in .result field), extract all metadata.source starting with "CASE-"
+# Check each against ~/.claude/knowledge/cases/wiki/ filesystem
+# Report: MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES, [MEM0_GAP] files
+
+# Read audit JSON and summarize\nRead /tmp/audit-a.json and summarize: architecture_health score, top 3 rules_issues, top 3 memory_issues, skill_symlink mismatches, L1_PHANTOM, L2_MISSING, MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES. Return structured JSON: {architecture_health, rules_issues, memory_issues, skill_symlink, l1_phantom, l2_missing, l3_mem0_gap}."
 })
 Agent({
   description: "Audit Python/ML project",
@@ -154,7 +160,7 @@ Layer 2 的**优先级排序**必须基于 Layer 1 汇总结果（顺序），�
 
 ```
 Agent({ description: "Fix rules issues", prompt: "Read Layer 1 JSON rules_issues. Fix top 3 issues in ~/.claude/rules/ by editing files directly. Return: {fixed_files: [...], skipped: [...]}." })
-Agent({ description: "Fix memory issues", prompt: "Read Layer 1 JSON memory_issues. Fix stale references in ~/.claude/memory/. Return: {fixed_files: [...]}." })
+Agent({ description: "Fix memory alignment issues (L1/L2/L3)", prompt: "Read Layer 1 JSON memory_issues. Fix all three alignment layers:\n\n1. L1 Phantom: 从 ~/.claude/memory/MEMORY.md 删除指向不存在文件的 entry\n2. L2 Missing: 为存在于 ~/.claude/knowledge/cases/wiki/ 但未进入 MEMORY.md 的 case 文件添加 entry（从 case 文件 frontmatter 提取 title + 首行描述）\n3. L3 mem0 Gap: 对 mem0 有 source=CASE-XXX 但文件系统无对应文件的记忆，生成 case 文件模板到 ~/.claude/knowledge/cases/wiki/CASE-XXX.md，模板包含 frontmatter + '## 症状' + '## 根因（待补充）' + '## 修复（待补充）'，通知用户补充内容\n\nReturn: {l1_fixed: N, l1_remaining: N, l2_added: N, l3_created: N, errors: [...]}." })
 Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -maxdepth 1 -type l | while read f; do ... done. Repair broken/missing symlinks to ~/.agents/skills/. Return: {fixed: N, broken: N}." })
 ```
 
@@ -259,8 +265,11 @@ missing=$(comm -23 <(echo "$filesystem") <(echo "$indexed"))
 echo "MISSING_COUNT=$(echo "$missing" | wc -l)"
 [[ -n "$missing" ]] && echo "$missing"
 
-# L3: mem0 gap detection (需要从 mem0 API 获取 case-type 记忆，手动核对)
-# mem0 query: metadata.type="case" → 检查 source 字段对应的 CASE 文件是否存在
+# L3: mem0 云端 vs case 文件系统对齐
+# 使用 mcp__plugin_mem0_mem0__search_memories with query="CASE" top_k=500
+# Parse result (JSON string in .result field), extract all metadata.source starting with "CASE-"
+# Check each against ~/.claude/knowledge/cases/wiki/ filesystem
+# Report: MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES, [MEM0_GAP] files
 ```
 
 ### Layer 2 修复联动
@@ -269,13 +278,19 @@ echo "MISSING_COUNT=$(echo "$missing" | wc -l)"
 
 ```python
 memory_issues = {
-    "phantom_entries": [...],    # L1: 索引指向不存在的文件
-    "missing_entries": [...],     # L2: 文件存在但未进入索引
-    "mem0_gap": [...],            # L3: mem0 有记忆但无文件系统文件
+    "phantom_entries": [...],    # L1: MEMORY.md 索引指向不存在的文件
+    "missing_entries": [...],     # L2: case 文件存在但未进入 MEMORY.md 索引
+    "mem0_gap": {
+        "missing_files": [...],  # L3a: mem0 有 source=CASE-XXX 但文件系统无对应文件
+        "orphaned_cases": [...], # L3b: case 文件存在但 mem0 无对应 source 记忆
+        "total_mem0_cases": N,   # mem0 中 case-type 记忆总数
+    }
 }
 ```
 
-**修复策略**：L1/L2 可自动修复；L3 需通知用户补充内容后关闭。
+**修复策略**：L1/L2 可自动修复；L3 分为两类：
+- `mem0 有 source 但文件系统无文件` → 自动从模板生成 case 文件，通知用户补充内容
+- `mem0 有 source 但对应 archive 目录已归档` → 更新 mem0 记忆的 source 字段指向 archive 路径
 
 ---
 
@@ -436,14 +451,14 @@ done 2>/dev/null | grep -v "/.claude/" | sort
     echo "L2_MISSING_COUNT=$(echo "$missing" | grep -c . 2>/dev/null || echo 0)"
     [[ -n "$missing" ]] && echo "$missing" | head -10
 
-    # L3: case 文件总数 vs MEMORY.md 索引 case 数（用于检测 mem0 drift）
-    case_count=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | wc -l)
-    indexed_case_count=$(sed -n 's/.*(~\/.claude\/knowledge\/cases\/wiki\/(CASE-[^)]*))/\1/p' ~/.claude/memory/MEMORY.md | grep -c . 2>/dev/null || echo 0)
-    echo "FILESYSTEM_CASES=$case_count INDEXED_CASES=$indexed_case_count"
-    ```
+    # L3: mem0 云端 vs case 文件系统对齐
+    # Use mcp__plugin_mem0_mem0__search_memories with query="CASE" top_k=500
+    # Parse result (JSON string in .result field), extract all metadata.source starting with "CASE-"
+    # Check each against ~/.claude/knowledge/cases/wiki/ filesystem
+    # Report: MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES, [MEM0_GAP] files
     - `L1_PHANTOM=0` → 通过；>0 → L1 drift detected
     - `INDEXED_CASES` 应 >= `FILESYSTEM_CASES * 0.9` → 通过；低于说明 L2 gap 严重
-    - L3 检测依赖 mem0 API，可通过 `/mem0:search` 手动核对 `type=case` 的 source 字段
+    - `MEM0_CASE_MISSING_FILES=0` → 通过；>0 → L3 mem0 drift detected
 
 **若任何验证失败，审计未完成。** 修复后重新运行验证。
 
