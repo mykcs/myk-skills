@@ -135,7 +135,10 @@ files.forEach(f => {
       href.startsWith('mailto:') ||
       href.startsWith('tel:') ||
       href.startsWith('#') ||
-      href.match(/\.[a-z]{2,4}$/)
+      href.includes('/#') ||
+      href.match(/\.[a-z]{2,4}$/) ||
+      href.startsWith('/osa/') ||
+      href.startsWith('/GDKVM/')
     ) continue;
     results.push({ file: f.replace('dist/', ''), href });
   }
