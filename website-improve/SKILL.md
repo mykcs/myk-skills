@@ -84,7 +84,7 @@ disable-model-invocation: false
 
 ### 启动声明（强制）
 
-**每次运行 skill 前，必须大声说出以下三要素：**
+**skill 运行开始时，大声声明以下三要素，作为复查确认：**
 
 ```
 🎯 修改目标：<具体要改什么>
@@ -98,6 +98,8 @@ disable-model-invocation: false
 📁 本地位置：~/Repo/webs/mykcs.github.io/astro/
 🔗 GitHub 仓库：mykcs/mykcs.github.io
 ```
+
+> 作用：让用户确认这是正确的目标路径，防止改错仓库/文件。
 
 ---
 
