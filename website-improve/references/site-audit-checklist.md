@@ -147,12 +147,36 @@ WebSearch: "academic personal homepage SEO best practices 2025"
 - 点击无响应 → 检查事件委托绑定、`data-action` 属性、`<a>` 标签 `href`
 - 外部 404 → 更新链接或移除
 
+### 6. CV 页面强制视觉验证（主站必须执行）
+
+> **CV 页面问题无法通过静态检查发现，必须 Playwright 截图验证。**
+
+| 子项 | 检测命令 / 方法 | 通过标准 |
+|------|----------------|----------|
+| CV 页面可访问 | `curl -s -o /dev/null -w "%{http_code}" https://<site>/zh/cv/` | HTTP 200 |
+| 自己作者黑色 | Playwright 截图 + `page.evaluate()` 检查 `rgb()` 值 | rgb(0,0,0) 或 #000 |
+| 其他作者浅灰 | Playwright 同上检查 | rgb(136,136,136) 或 #888 |
+| 打印预览 | Playwright `page.pdf()` CV 页 | 无截断、作者颜色正确 |
+
+**CSS Specificity 检查流程**：
+1. 读取 `src/styles/cv.css` 中 `.cv-paper-author-other` 规则
+2. 确认其选择器前缀为 `.cv-page`（否则会被 `.cv-page .text-text-secondary` 覆盖）
+3. 确认 `@media print` 中保留了 `cv-paper-author-other` / `cv-paper-author-self` 颜色规则
+
+**修复指引**：
+- specificity 问题 → 添加 `.cv-page` 前缀提升优先级
+- 颜色不对 → 检查 CSS 文件中 `cv-paper-author-*` 类的 `color` 值
+- print 颜色丢失 → 在 `@media print` 块中显式声明 `color: #000 !important`
+
 ---
 
 ## 主站特定检查项（仅当检测到 homepage/CV/publications 时）
 
 | Priority | Issue | Impact |
 |----------|-------|--------|
+| P0 | **CV 页面 CSS 渲染验证**（必须 Playwright 截图） | 视觉错误 |
+| P0 | **CV 论文作者颜色**（自己=#000 黑色，其他=#888 浅灰） | 设计违规 |
+| P0 | **CV 页面 CSS specificity 冲突检测** | 样式覆盖 |
 | P1 | `papers` → `publications`, `honors` → `awards` (including cross-repo `mykcs/academic` submodule) | Terminology inconsistency |
 | P1 | Missing `/en/cv/` English CV page | i18n 完整性 |
 | P1 | `manifest.json` fixes (maskable icons, dynamic `theme_color`) | PWA compliance |
@@ -212,4 +236,50 @@ find src/pages -name "*.astro" -exec sh -c 'count=$(grep -c "<h1" "$1"); [ "$cou
 
 # === 学术项目特定 ===
 # 仅在 TYPE=academic-project 时执行，详见 academic-project-checklist.md
+
+# === CV 页面强制验证（主站必须执行）===
+# CV 页面存在时，必须执行以下所有检查
+
+# CV 页存在性检测
+if [ -d "src/pages" ] && (ls src/pages/[lang]/cv.astro src/pages/zh/cv.astro src/pages/en/cv.astro src/pages/cv.astro 2>/dev/null | grep -q .); then
+  echo "[CV_PAGE] found — running CV-specific checks"
+
+  # 1. CSS specificity 冲突检测：cv-paper-author-* 被 .cv-page .text-text-secondary 覆盖
+  if grep -q "cv-paper-author-self\|cv-paper-author-other" src/styles/cv.css 2>/dev/null; then
+    # 检查 .cv-paper-author-other 是否缺少 .cv-page 前缀（会导致被 .cv-page .text-text-secondary 覆盖）
+    author_other_line=$(grep -n "\.cv-paper-author-other" src/styles/cv.css | head -1 | cut -d: -f1)
+    if [ -n "$author_other_line" ]; then
+      # 向上看3行，确认是否有 .cv-page 前缀
+      prev_lines=$(sed -n "$((author_other_line-3)),${author_other_line}p" src/styles/cv.css)
+      if echo "$prev_lines" | grep -q "\.cv-page.*cv-paper-author-other"; then
+        echo "[CV_CSS] PASS: cv-paper-author-other has .cv-page prefix (correct specificity)"
+      else
+        echo "[CV_CSS] FAIL: cv-paper-author-other missing .cv-page prefix (will be overridden by .cv-page .text-text-secondary)"
+      fi
+    fi
+  fi
+
+  # 2. CV 页面 @media print 规则检查
+  if grep -q "@media print" src/styles/cv.css 2>/dev/null; then
+    print_block=$(sed -n '/@media print/,/}/p' src/styles/cv.css)
+    # print 块应该保留作者颜色，不是强制覆盖
+    if echo "$print_block" | grep -q "cv-paper-author"; then
+      echo "[CV_PRINT] PASS: print CSS preserves author color classes"
+    else
+      echo "[CV_PRINT] WARN: print CSS may override cv-paper-author classes"
+    fi
+  fi
+
+  # 3. DESIGN.md 中 CV PaperCard 作者格式规范（必须与代码一致）
+  if [ -f "astro/DESIGN.md" ] || [ -f "DESIGN.md" ]; then
+    design_file=$(ls DESIGN.md astro/DESIGN.md 2>/dev/null | head -1)
+    if grep -q "cv-paper-author-self\|cv-paper-author-other" "$design_file" 2>/dev/null; then
+      echo "[CV_DESIGN] PASS: DESIGN.md records cv-paper-author-* classes"
+    else
+      echo "[CV_DESIGN] WARN: DESIGN.md does not record cv-paper-author class specification"
+    fi
+  fi
+else
+  echo "[CV_PAGE] not found — skipping CV-specific checks"
+fi
 ```
