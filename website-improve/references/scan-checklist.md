@@ -657,9 +657,27 @@ export function academicImage(path: string): string {
 
 ### 已知问题
 
-1. **jsDelivr 新 tag 同步延迟**：刚 push 后访问 `@v1.0.0` 可能 502，改用短 commit hash（如 `@2d8a325`）立即可用
-2. **Astro `<Image>` 需要 `remotePatterns`**：在 `astro.config.mjs` 中声明 `cdn.jsdelivr.net`
-3. **构建时图片下载**：`npm run build` 时 Astro `<Image>` 会实际请求远程图片，URL 404/502 会直接报错中断 → build 通过 = 所有图片可访问
+1. **jsDelivr semver tag redirect — Node.js undici 不跟随 301 重定向**：
+   - `@v1` 和 `@v1.1.0` 均 301 重定向到 `raw.githubusercontent.com`
+   - Node.js undici fetch 在 Astro build 图片优化阶段**不会跟随**该重定向
+   - **症状**：`npm run build` 报错 `fetch failed` 或图片 404，但 curl 访问正常
+   - **Fix**：
+     1. 在 `astro.config.mjs` 的 `image.remotePatterns` 中添加 `{ protocol:'https', hostname:'raw.githubusercontent.com' }`
+     2. 消费者端使用**精确 patch 版本**（`@v1.1.0`），不用 semver 范围（`@v1`）
+     3. academic 仓库配置 `bump-version.yml` 自动递增 patch tag
+   ```js
+   // astro.config.mjs
+   remotePatterns: [
+     { protocol: 'https', hostname: 'cdn.jsdelivr.net' },
+     { protocol: 'https', hostname: 'raw.githubusercontent.com' }, // 必须
+   ],
+   ```
+
+2. **jsDelivr 新 tag 同步延迟**：刚 push 后访问 `@v1.0.0` 可能 502，改用短 commit hash（如 `@2d8a325`）立即可用
+
+3. **Astro `<Image>` 需要 `remotePatterns`**：在 `astro.config.mjs` 中声明 `cdn.jsdelivr.net`
+
+4. **构建时图片下载**：`npm run build` 时 Astro `<Image>` 会实际请求远程图片，URL 404/502 会直接报错中断 → build 通过 = 所有图片可访问
 
 ### 迁移检查清单
 
