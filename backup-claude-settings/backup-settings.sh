@@ -75,7 +75,7 @@ if [ -z "$LAST_BACKUP" ]; then
 else
     echo ""
     echo "--- diff vs 上一次备份 ($(basename "$LAST_BACKUP")) ---"
-    DIFF_OUTPUT=$(diff -u "$LAST_BACKUP" "$CURRENT_FILE" 2>&1)
+    DIFF_OUTPUT=$(diff -u "$LAST_BACKUP" "$CURRENT_FILE" 2>&1 || true)
     DIFF_EXIT=$?
 
     if [ "$DIFF_EXIT" -eq 0 ]; then

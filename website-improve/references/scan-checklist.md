@@ -404,11 +404,72 @@ diff /tmp/en_keys.txt /tmp/zh_keys.txt && echo "KEYS_MATCH" || echo "KEY_MISMATC
 - [ ] `tailwind.config.mjs` + Tailwind v4 → v4 忽略此文件，主题写在 `global.css` 的 `@theme {}` 中
 - [ ] `postcss.config.mjs` + Tailwind v4 + Vite → 已删除
 - [ ] `@astrojs/tailwind` → 已迁移到 Tailwind v4 + `@tailwindcss/vite`
+- [ ] **Tailwind v4 集成无冲突**：v4 只通过 `@tailwindcss/vite` + `vite.plugins`，**禁止**在 `integrations` 数组中同时使用 `tailwindcss()`（这会加载 v3 模式并导致 CSS 完全丢失）
+- [ ] **@tailwindcss/vite 版本**：使用 v4.1.18（v4.3.0 有 tsconfigPaths bug）
 
 ```bash
+# 1. 检查 @tailwindcss/vite 是否安装
 grep -q "@tailwindcss/vite" package.json && echo "OK" || echo "MISSING"
+
+# 2. 检查 tailwind.config.mjs 是否为 legacy（v4 忽略此文件）
 grep -q "tailwind.config.mjs" && echo "LEGACY (ignored by v4)"
+
+# 3. ⚠️ 检查 Tailwind v3/v4 集成冲突（CRITICAL）
+# 如果 astro.config.mjs 的 integrations 数组中有 tailwindcss()，同时 vite.plugins 中也有 tailwindcss()，则会冲突
+INTEGRATIONS_TAILWIND=$(grep -c "tailwindcss()" astro.config.mjs 2>/dev/null || echo "0")
+VITE_TAILWIND=$(grep -c "tailwindcss()" astro.config.mjs 2>/dev/null || echo "0")
+# 正确：只有 vite.plugins 中有 tailwindcss()
+# 错误：integrations 和 vite.plugins 中都有
+grep -n "integrations.*\[" astro.config.mjs | head -1
+grep -n "tailwindcss()" astro.config.mjs
+
+# 4. @tailwindcss/vite 版本检查
+TAILWIND_VITE_VERSION=$(node -p "require('./node_modules/@tailwindcss/vite/package.json').version" 2>/dev/null || echo "unknown")
+echo "@tailwindcss/vite version: $TAILWIND_VITE_VERSION"
+# v4.3.0 有 tsconfigPaths bug，应降级到 4.1.18
 ```
+
+**常见失败**：
+- `integrations: [tailwindcss(), ...]` + `vite: { plugins: [tailwindcss()] }` → CSS 完全丢失
+- `@tailwindcss/vite@4.3.0` → `tsconfigPaths` 错误，build 失败
+
+---
+
+## §6.1 Tailwind CSS 内联运行时验证（构建后必须执行）
+
+> **CSS 完全丢失是最隐蔽的 bug**：build 成功、astro check 通过，但页面无样式。必须在 build 后验证 HTML 中是否真的包含了 Tailwind utilities CSS。
+
+```bash
+# 构建后验证（build 必须先完成）
+python3 -c "
+import re, sys, os
+
+# 查找所有 HTML 文件
+html_files = []
+for root, dirs, files in os.walk('dist'):
+    for f in files:
+        if f.endswith('.html'):
+            html_files.append(os.path.join(root, f))
+
+missing_css = []
+for html_path in html_files:
+    with open(html_path) as f:
+        html = f.read()
+    # 检查是否有 Tailwind utilities CSS
+    styles = re.findall(r'<style[^>]*>(.*?)</style>', html, re.DOTALL)
+    has_tailwind = any('.bg-' in s or '.text-' in s or '.flex' in s for s in styles)
+    if not has_tailwind and len(styles) > 1:  # 忽略只有 1 个 style 的简单页
+        missing_css.append(html_path.replace('dist/', ''))
+
+if missing_css:
+    print('CSS_MISSING_IN:', ', '.join(missing_css[:5]))
+    sys.exit(1)
+else:
+    print('CSS_INLINED_OK')
+"
+```
+
+**Acceptance**：所有页面 HTML 中包含 Tailwind utilities CSS（`.bg-*`、`.text-*`、`.flex` 等）。
 
 ---
 

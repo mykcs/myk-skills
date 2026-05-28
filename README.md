@@ -2,6 +2,15 @@
 
 Claude Code skills for personal knowledge management, web development, and productivity automation.
 
+## Architecture
+
+```
+~/.agents/skills/          ← git clone (source of truth, mykcs/myk-skills)
+~/.claude/skills/          ← symlinks to ~/.agents/skills/<name>
+```
+
+**Rule**: All skills in `~/.claude/skills/` must be symlinks pointing to `~/.agents/skills/`. No real directories allowed.
+
 ## Skills
 
 | Skill | Description |
@@ -27,7 +36,19 @@ Claude Code skills for personal knowledge management, web development, and produ
 
 ## Usage
 
-Copy any skill directory to `~/.claude/skills/` to use.
+```bash
+# Install a new skill — create symlink
+ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>
+
+# Check symlink status
+ls -la ~/.claude/skills/
+```
+
+## Adding a New Skill
+
+1. Add skill directory to `~/.agents/skills/<name>/`
+2. Commit and push to `mykcs/myk-skills`
+3. Create symlink: `ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>`
 
 ## License
 
