@@ -679,6 +679,51 @@ export function academicImage(path: string): string {
 
 4. **构建时图片下载**：`npm run build` 时 Astro `<Image>` 会实际请求远程图片，URL 404/502 会直接报错中断 → build 通过 = 所有图片可访问
 
+### CDN 版本策略 — 构建失败时的修复流程
+
+**场景**：本地 `npm run build` 报错 `fetch failed`，但 `curl` 访问 URL 正常。
+
+**根因**：jsDelivr semver tag 301 重定向到 `raw.githubusercontent.com`，undici 不跟随；或本地网络无法访问 `raw.githubusercontent.com`。
+
+**三步修复流程**：
+
+```
+Step 1 — 添加 remotePatterns（必做）
+   在 astro.config.mjs 中确保包含：
+   { protocol:'https', hostname:'raw.githubusercontent.com' }
+
+Step 2 — 尝试绕过 jsDelivr 重定向
+   将所有 cdn.jsdelivr.net/gh/<org>/<repo>@<tag>/images
+   替换为 raw.githubusercontent.com/<org>/<repo>/<commit-sha>/images
+
+Step 3 — 本地网络不通时的回退策略
+   如果 Step 2 仍然 fetch failed（本地 raw.githubusercontent.com 不通）：
+   → 回退到 cdn.jsdelivr.net@v<tag>
+   → commit + push，让 CI 验证（CI 网络通常可达）
+   → build 产物由 CI 产出，本地只负责开发和 commit
+```
+
+**示例**（OSA 案例）：
+```
+# Step 2 替换
+cdn.jsdelivr.net/gh/mykcs/academic@v1.1.0/images
+  → raw.githubusercontent.com/mykcs/academic/84e996d75a811c8eb2758b3a74cd9615d3f5252f/images
+
+# 如果本地 build 仍失败（网络不通），执行 Step 3
+# 回退到 cdn.jsdelivr.net@v1.1.0，push 到 CI 验证
+```
+
+**commit SHA 获取方法**：
+```bash
+git ls-remote --tags https://github.com/<org>/<repo>.git 2>/dev/null | grep "<tag>"
+# 输出如: 84e996d75a811c8eb2758b3a74cd9615d3f5252f  refs/tags/v1.1.0
+```
+
+**原则**：
+- `remotePatterns` 配置正确 = 构建可在任何网络环境工作
+- 优先 commit SHA（绕过重定向），其次 semver tag（依赖 CI 验证）
+- 本地 build 失败不阻塞开发，push 后 CI 通过即可
+
 ### 迁移检查清单
 
 - [ ] `grep -rn "academic/images" src/ public/` 确认所有引用已迁移
