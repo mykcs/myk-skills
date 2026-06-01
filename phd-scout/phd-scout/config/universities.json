@@ -1,0 +1,28 @@
+{
+  "tsinghua": {
+    "cs": "https://www.cs.tsinghua.edu.cn/szdw/jy.htm",
+    "iiis": "https://iiis.tsinghua.edu.cn/faculty/",
+    "automation": "https://www.au.tsinghua.edu.cn/szdw/jsml.htm",
+    "software": "https://www.thss.tsinghua.edu.cn/szdw/jsdw.htm"
+  },
+  "pku": {
+    "cs": "https://eecs.pku.edu.cn/People/Faculty.htm",
+    "ee": "https://ee.pku.edu.cn/people.htm",
+    "mis": "https://www.mis.pku.edu.cn/people/faculty.html"
+  },
+  "fudan": {
+    "cs": "https://cs.fudan.edu.cn/szdw.htm",
+    "ee": "https://ee.fudan.edu.cn/people faculty",
+    "ai": "https://fudan.edu.cn/3x/home"
+  },
+  "sjtu": {
+    "cs": "https://cs.sjtu.edu.cn/News/AllFaculty",
+    "ai": "https://ai.sjtu.edu.cn/faculty",
+    "ee": "https://ee.sjtu.edu.cn/en/people/faculty"
+  },
+  "zju": {
+    "cs": "https://www.cs.zju.edu.cn/english/faculty/",
+    "ee": "https://www.ee.zju.edu.cn/people.htm",
+    "ai": "https://www.zju.edu.cn/ai/en/people"
+  }
+}

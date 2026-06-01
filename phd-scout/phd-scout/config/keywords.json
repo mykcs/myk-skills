@@ -1,0 +1,27 @@
+{
+  "primary": [
+    "LLM",
+    "large language model",
+    "agent",
+    "multi-agent",
+    "tool learning",
+    "tool use",
+    "reasoning",
+    "chain-of-thought",
+    "in-context learning",
+    "prompt engineering",
+    "dialogue system",
+    "conversational AI",
+    "foundation model",
+    "instruction tuning",
+    "alignment"
+  ],
+  "secondary": [
+    "reinforcement learning",
+    "reward model",
+    "pre-training",
+    "fine-tuning",
+    "model compression",
+    "knowledge distillation"
+  ]
+}

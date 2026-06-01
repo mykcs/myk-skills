@@ -1,0 +1,184 @@
+---
+name: phd-scout
+description: |
+  PhD Advisor Intelligence Gatherer — 申博情报搜集系统。自动抓取清北复交浙 AI/LLM/Agent 方向导师信息，判定危险信号，写入飞书。
+  Use this skill whenever the user asks to find, scout, research, or gather information about PhD advisors or mentors in Chinese universities (清华/北大/复旦/上交/浙大), especially for AI/ML/LLM/Agent research directions. This includes requests like "帮我找清北复交浙的 Agent 方向老师", "调研某个老师的论文和学生", "更新飞书里的导师信息", "批量抓取导师数据". Explicitly trigger when user mentions 导师/老师/PI/博导 followed by university names or AI research topics.
+兼容性: Python 3.10+, aiohttp, requests, playwright, openai
+---
+
+# PhD Scout — 申博情报搜集系统
+
+## 核心职责
+
+对单一老师执行五级穷尽搜索，输出结构化 JSON，并调用 feishu-agent 写入飞书。
+
+## 铁律
+
+1. **每次只处理一位老师**。不要试图批量优化。
+2. **五级 fallback 必须走完才能放弃**，每步失败必须记录具体原因。
+3. **方向判定**：先关键词初筛，边界案例调用 Kimi API 二审（仅当标题/摘要完全不包含任何初筛关键词时）。
+4. **危险信号严格按规则判定**，不得擅自降级。
+5. **飞书写入时，若老师已存在，触发审计模式**，不要覆盖追加型字段。
+
+## 五级搜索 SOP（严格执行）
+
+对每位老师，按以下顺序尝试，每步失败后记录原因再进入下一步：
+
+| 级别 | 数据源 | 失败处理 |
+|------|--------|----------|
+| L1 | 学校/学院官网 (Playwright 动态加载) | 记录原因 → L2 |
+| L2 | Google Scholar (scholarly 库) | **可接受失败**，记录原因 → L3 |
+| L3 | Semantic Scholar API | 记录原因 → L4 |
+| L4 | DBLP | 记录原因 → L5 |
+| L5 | 小红书/知乎 | **手动模式**，输出 `[需手动补充]` |
+
+**L2 失败不重试**：L2 (Google Scholar) 在中国大陆网络环境下不稳定，属预期失败，直接进入 L3。
+
+## 方向判定
+
+### 关键词库（初筛）
+
+**一级词**（命中即相关）：LLM, large language model, agent, multi-agent, tool learning, tool use, reasoning, chain-of-thought, in-context learning, prompt engineering, dialogue system, conversational AI, foundation model, instruction tuning, alignment
+
+**二级词**（相关但非核心）：reinforcement learning, reward model, pre-training, fine-tuning, model compression, knowledge distillation
+
+### Kimi API 二审规则
+
+**仅当论文标题和摘要完全不包含任何一级词时**才调用 Kimi API 二审。降低 API 调用成本。
+
+## 行政等级标准化（三轨体系）
+
+| 学术轨 | 行政轨 | 人才轨 |
+|--------|--------|--------|
+| AP（助理教授） | 系主任 | 四青（青千/优青/青拔/青长） |
+| Associate（副教授） | 副院长 | 杰青/长江 |
+| Full（教授） | 院长 | 更高（千人/院士） |
+| Chair（讲席） | 校级 | |
+| Academician（院士） | | |
+
+## 危险信号判定
+
+| 信号 | 条件 |
+|------|------|
+| 🔴 红灯 | L1~L4 全部失败（信息黑洞） |
+| 🟡 黄灯 | L1 成功，但近3年可验证论文数为 0，或方向匹配论文数为 0 |
+| 🟢 绿灯 | 其他情况 |
+
+**注意**：信号只能变好（黄→绿），不能自动变差（绿→黄/红）。变差时标记"有更新待审"。
+
+## 输出格式
+
+```json
+{
+  "name": "姓名",
+  "university": "学校",
+  "school": "学院",
+  "raw_title": "原始头衔",
+  "standardized_ranks": ["Associate", "副院长"],
+  "research_tags": ["LLM", "Agent"],
+  "recent_papers": [
+    {"title": "...", "year": 2024, "venue": "ICCV", "citations": 50}
+  ],
+  "h_index": 38,
+  "h_index_log": ["2026-05-20: 38"],
+  "students": [
+    {"name": "...", "period": "2021-2025", "status": "in_progress"}
+  ],
+  "collaborators": [
+    {"name": "...", "affiliation": "清华", "co_paper_count": 3}
+  ],
+  "signal": "green",
+  "abandon_reason": null,
+  "confidence": 4,
+  "fullness_score": 5,
+  "tags": ["#高活跃", "#方向精准"]
+}
+```
+
+## 审计规则（老师已存在时）
+
+- **论文列表**：与新论文取并集，去重追加
+- **h-index**：若数值变化，更新字段并追加 `h_index_log`
+- **学生列表**：合并去重，更新状态
+- **危险信号**：绿→黄/红 时，改为标记"有更新待审"，不自动改灯
+- **行政职务变化**：自动更新，追加变更日志
+
+## 飞书写入（lark-cli）
+
+**lark-cli 版本差异大**：`+record-list` 的 `--filter` flag 在 1.0.44+ 才支持，1.0.19 不支持。直接用 Python 遍历过滤（见 `src/writers/lark_writer.py:_find_by_name`）。
+
+**响应格式**：`data.data[i]` 是值的数组（按 `data.fields` 顺序），与 `data.record_id_list[i]` 下标对齐。
+
+## kimi-webbridge 抓取 ZJU 老师
+
+**ZJU 个人主页 URL 模式**：
+- `person.zju.edu.cn/{pinyin}` — 大多数老师（杨易、赵洲、宋明黎等）
+- `mypage.zju.edu.cn/{pinyin}` — 部分老师（汤斯亮）
+- `kunkuang.github.io` — 个人独立网站
+
+**WebBridge session 管理**：用 `session: "zju-agent"` 隔离，结束后 `close_session`。
+
+**抓取策略**：先 snapshot 拿基本信息，再 click "个人简介" 展开详情。无详情页时取页面静态文本。
+
+## 错误处理
+
+| 错误类型 | 处理方式 |
+|----------|----------|
+| 飞书 API 429/500/鉴权失败 | **立即停止**，打印 `🚨 FATAL`，不继续 |
+| 行级字段超限 | 截断至上限，标记 `[截断]`，继续下一条 |
+| L1-L4 单级失败 | 记录原因，进入下一级，不重试超过2次 |
+| lark-cli 命令失败 | 查 `lark-cli --version` + `--help` 确认版本支持情况 |
+
+## 执行命令
+
+```bash
+cd ~/phd-scout
+
+# 单个老师
+python main.py --mode single --name "张三" --university "清华" --school "计算机系"
+
+# 批量处理
+python main.py --mode batch --input queue/teachers.jsonl --report
+
+# 审计已有记录
+python main.py --mode audit --filter-tags "#方向精准"
+```
+
+## 学生去向推断算法
+
+从近5年合著者中筛选"学生"：
+1. 同单位（非目标老师课题组的排除）
+2. 非通讯作者
+3. 高频出现（2+ 篇合作论文）
+4. 毕业时间：从论文时间线推断
+
+去向分类：在研 / 毕业-学术界 / 毕业-工业界 / 去向不明
+
+## 项目结构
+
+```
+phd-scout/
+├── main.py                      # CLI 入口
+├── requirements.txt             # 依赖
+├── config/
+│   ├── universities.json       # 清北复交浙学院 URL
+│   ├── keywords.json          # 方向关键词库
+│   └── rank_mapping.json      # 行政等级映射
+├── src/
+│   ├── orchestrator.py        # 主循环
+│   ├── auditor.py            # 审计合并逻辑
+│   ├── fetchers/             # 五级数据源
+│   │   ├── university.py     # L1
+│   │   ├── scholar.py        # L2
+│   │   ├── semantic_scholar.py # L3
+│   │   ├── dblp.py          # L4
+│   │   └── social.py         # L5
+│   ├── analyzer/             # 分析器
+│   │   ├── direction.py      # 关键词 + Kimi 二审
+│   │   ├── rank_standardize.py
+│   │   └── student_tracker.py
+│   └── writers/
+│       └── lark_writer.py    # 飞书写入
+├── queue/                     # 待处理队列（JSONL）
+└── output/{errors,reports}   # 错误和报告
+```

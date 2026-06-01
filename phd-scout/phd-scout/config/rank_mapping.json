@@ -1,0 +1,36 @@
+{
+  "academic": {
+    "助理教授": "AP",
+    "Assistant Professor": "AP",
+    "副教授": "Associate",
+    "Associate Professor": "Associate",
+    "教授": "Full",
+    "Professor": "Full",
+    "讲席": "Chair",
+    "Chair": "Chair",
+    "Distinguished": "Chair",
+    "院士": "Academician",
+    "Academician": "Academician"
+  },
+  "admin": {
+    "系主任": "系主任",
+    "Head": "系主任",
+    "副院长": "副院长",
+    "Vice Dean": "副院长",
+    "院长": "院长",
+    "Dean": "院长",
+    "副校长": "校级",
+    "Vice President": "校级"
+  },
+  "talent": {
+    "青千": "四青",
+    "优青": "四青",
+    "青拔": "四青",
+    "青长": "四青",
+    "杰青": "杰青长江",
+    "长江学者": "杰青长江",
+    "万人": "杰青长江",
+    "千人": "更高",
+    "院士": "更高"
+  }
+}
