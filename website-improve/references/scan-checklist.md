@@ -345,6 +345,76 @@ npm audit --audit-level=moderate
 # 通过标准：0 critical / high severity
 ```
 
+#### §4.6.1 已知限制 — yaml-language-server 中危（dev-only）
+
+> 适用场景：`@astrojs/check` 传递依赖 `volar-service-yaml → yaml-language-server` 引入 5 个 medium Severity 漏洞。
+
+**根因**：Astro 语言服务器（dev tooling）的传递依赖，非生产代码。
+
+**通过标准**：
+- 0 critical / high severity
+- **medium severity 允许存在**（仅 devDependencies，不影响生产）
+- CI 使用 `npm audit --audit-level=high` 或 `npm audit --omit=dev`
+
+**修复路径**（优先级排序）：
+1. **升级 `@astrojs/check`** — 问题已在 `@astrojs/language-server@2.16.5`（Volar services 0.0.70）中修复，升级到最新版即可消除警告
+2. **CI 配置 `npm audit --omit=dev`** — 最简单正确做法，dev-only 漏洞不应出现在生产审计中（参考 Astro 官方 Issue #15303 + PR #15895）
+3. **使用 `audit-ci --skip-dev`** — 需要细粒度控制时用此 wrapper
+
+```bash
+# CI 推荐：跳过 devDependencies 审计
+npm audit --omit=dev
+
+# 或：仅在高危时失败，medium 报告但不阻塞
+npm audit --audit-level=high
+```
+
+**禁止**：为消除 dev-only medium 警告而移除 `@astrojs/check`（损失 TypeScript 类型检查）。
+
+---
+
+#### §4.6.2 已知限制 — set:html 渲染翻译文本中的 HTML（可接受）
+
+> 适用场景：i18n 翻译 JSON 文件包含 `<strong>`、`<em>` 等 HTML 标签，使用 `set:html={t('key')}` 渲染。
+
+**根因**：翻译 JSON 是**静态的、开发者可控的**，不属于用户输入。使用 `set:html` 渲染信任来源的 HTML 是安全的。
+
+**安全判断标准**：
+- 翻译文件在仓库中（`src/i18n/` 或 `public/locales/`）
+- 无外部 CMS 或数据库注入的翻译内容
+- 满足以上条件 → `set:html` 为**误报**，不是真正的安全风险
+
+**通过标准**：
+- **误报接受**，不修复
+- 标记为 `/* TRUSTED: static JSON translation files */`
+- 添加例外注释阻止误报告警（如 CI 配置 allowlist）
+
+**推荐模式 — `<Fragment set:html={t('key')} />`**：
+```astro
+---
+// Trusted: static JSON translation files, no user input
+---
+<Fragment set:html={t('hero.description')} />
+<!-- 等价于 <span set:html={t('hero.description')} />，无额外 wrapper -->
+```
+
+**可选改进 — 类型安全的 markup 分离**：
+```typescript
+// src/i18n/utils.ts
+export function thtml(key: string): string {
+  return translations[currentLang][key]; // 明确标记为含 HTML 的翻译
+}
+```
+```astro
+<Fragment set:html={thtml('hero.description')} />
+```
+
+**参考**：
+- Astro 官方 `set:html` 文档明确说明：信任来源的 HTML 可安全使用
+- `astro-intl` 包的 `t.markup()` API 从类型层面分离 HTML 翻译
+
+**禁止**：为消除此误报将 HTML 标签替换为纯文本（损害内容可读性）。
+
 ---
 
 ## §5. Agent-Check-Content — SEO 与内容
@@ -790,6 +860,107 @@ git ls-remote --tags https://github.com/<org>/<repo>.git 2>/dev/null | grep "<ta
 - [ ] `grep -rn "academic/images" src/ public/` 确认所有引用已迁移
 - [ ] `vendor/academic` submodule 指向带 tag 的 commit
 - [ ] `npm run build` 通过且 dist/ 无残留绝对路径
+
+---
+
+## §12.2 CDN 图片加载模式 — OSA 模式（推荐）vs GDKVM 模式（不推荐）
+
+> **触发条件**：审计涉及外部学术图片（`cdn.jsdelivr.net` / `raw.githubusercontent.com` / `<Image>` 组件）的项目。
+
+### 两种模式对比
+
+| 维度 | OSA 模式 ✅（推荐） | GDKVM 模式 ❌（不推荐） |
+|------|-------------------|----------------------|
+| **图片组件** | `<img>`（原生 HTML） | `<Image>`（Astro 组件） |
+| **remotePatterns** | **不包含** `cdn.jsdelivr.net` | 包含 `cdn.jsdelivr.net` |
+| **CDN URL** | `cdn.jsdelivr.net/gh/<org>/<repo>@v1.1.0/...` | `raw.githubusercontent.com/<org>/<repo>/<sha>/...` |
+| **版本方式** | 语义化版本 tag（`@v1.1.0`） | Commit SHA（不可读、不可预期） |
+| **CDN 边缘加速** | ✅ 有（全球边缘节点） | ❌ 无（直连 GitHub 源站） |
+| **构建时图片验证** | ✅ 不触发（Astro 图片管线外） | ⚠️ 触发（需处理 301 重定向） |
+
+### 为什么 OSA 模式更现代
+
+**1. 语义化版本 vs Commit SHA 陷阱**
+- OSA：`@v1.1.0` 可读、可预期、可管理，打新 tag 即可更新
+- GDKVM：`<sha>` 不可读、不可预期，仓库更新后需手动逐个替换
+
+**2. CDN 边缘加速 vs 直连源站**
+- jsDelivr：全球边缘节点缓存，用户访问就近命中，延迟低
+- raw.githubusercontent.com：无 CDN 层，在中国大陆等地区访问稳定性差
+
+**3. 架构层面规避 vs 技术债妥协**
+- OSA：用 `<img>` 代替 `<Image>` → 不进入 Astro 图片管线 → 从根本上规避 301 重定向问题
+- GDKVM：加入 `remotePatterns` + `raw.githubusercontent.com` fallback → 以技术债换编译通过
+
+### 检测命令
+
+```bash
+# 1. 检测当前项目使用的是哪种模式
+echo "=== remotePatterns 配置 ==="
+grep -A10 "remotePatterns" astro.config.mjs
+
+echo ""
+echo "=== 检测 <Image> 组件使用情况 ==="
+grep -rn "<Image" src/ --include="*.astro" | head -10
+
+echo ""
+echo "=== 检测 <img> + jsDelivr 使用情况 ==="
+grep -rn 'src="https://cdn.jsdelivr.net' src/ --include="*.astro" | head -10
+
+echo ""
+echo "=== 检测 raw.githubusercontent.com 使用情况 ==="
+grep -rn "raw.githubusercontent.com" src/ --include="*.astro" | head -10
+```
+
+### 判断逻辑
+
+```
+IF 发现 <Image> 组件引用 cdn.jsdelivr.net
+   THEN 标记为 GDKVM 模式（不推荐）
+   AND 建议：替换为 <img> + jsDelivr 语义化版本
+
+IF 发现 remotePatterns 包含 cdn.jsdelivr.net
+   AND 项目使用 <Image> 组件
+   THEN 这是中间态保守策略，不干净
+   AND 建议：移除 cdn.jsdelivr.net from remotePatterns，改用 <img>
+
+IF 发现 remotePatterns 不包含 cdn.jsdelivr.net
+   AND 使用 <img> + jsDelivr 语义化版本
+   THEN OSA 模式 ✅，通过
+```
+
+### OSA 模式修复流程（GDKVM → OSA）
+
+```
+Step 1 — 替换 <Image> 为 <img>
+   搜索：grep -rn "<Image" src/ --include="*.astro"
+   替换：将 <Image src={...} alt={...} /> 改为 <img src={...} alt={...} />
+
+Step 2 — 更新 URL 为语义化版本
+   将 raw.githubusercontent.com/<org>/<repo>/<sha>/
+   替换为 cdn.jsdelivr.net/gh/<org>/<repo>@v<tag>/
+
+Step 3 — 从 remotePatterns 移除 cdn.jsdelivr.net
+   只保留：
+   { protocol: 'https', hostname: 'mykcs.github.io' },
+   { protocol: 'https', hostname: 'raw.githubusercontent.com' },
+
+Step 4 — 验证构建
+   npm run build && echo "OSA 模式迁移完成"
+```
+
+### 何时保留 GDKVM 模式（例外）
+
+- 项目**必须**使用 `<Image>` 组件的响应式图片功能（自动 WebP、srcset）
+- 此时使用 `raw.githubusercontent.com` 作为 fallback 可接受，但应在注释中说明原因
+- 长期建议：迁移到真正的图片服务（Cloudinary、Imgix 等）
+
+### Acceptance
+
+- [ ] remotePatterns 中**不包含** `cdn.jsdelivr.net`（用 `<img>` 规避验证问题）
+- [ ] 外部学术图片使用 `<img>` + `cdn.jsdelivr.net/@v<semver>/` 格式
+- [ ] 版本 tag 为语义化版本（`v1.0.0`），非 commit SHA
+- [ ] `npm run build` 通过，零 fetch failed 错误
 
 ---
 

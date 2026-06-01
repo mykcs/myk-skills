@@ -1,0 +1,307 @@
+#!/usr/bin/env bash
+# sync-skill — maintain directory symlinks from skill consumers to source of truth
+# See SKILL.md for the contract.
+
+set -euo pipefail
+
+# ---- Defaults ----
+SOURCE="$HOME/.agents/skills"
+DEFAULT_TARGETS=("$HOME/.claude/skills" "$HOME/.mavis/skills")
+TARGETS=()
+MODE="verify"
+DRY_RUN=false
+PUSH=false
+COMMIT_MSG=""
+CUSTOM_SOURCE=""
+
+# ---- Helpers ----
+log() { printf '[sync-skill] %s\n' "$*"; }
+err() { printf '[sync-skill] ERROR: %s\n' "$*" >&2; }
+warn() { printf '[sync-skill] WARN: %s\n' "$*" >&2; }
+
+usage() {
+  cat <<'EOF'
+Usage: sync-skill [OPTIONS]
+
+Maintain directory symlinks for skill consumers.
+
+Modes:
+  (default)        Verify that ~/.claude/skills and ~/.mavis/skills are
+                   directory symlinks to ~/.agents/skills.
+                   Exit 0 if OK, non-zero if migration is needed.
+  --migrate        Convert from per-skill symlinks to directory symlink.
+                   Backs up, moves local-only skills, commits.
+  --restore        Roll back from the most recent .bak of each target.
+
+Options:
+  --source=PATH    Override source path (default: ~/.agents/skills)
+  --push           With --migrate, also git push source to remote
+  --message=MSG    With --migrate, custom commit message
+  --dry-run        With --migrate: show what would happen, no changes
+  --target=PATH    Override target list (comma-separated; default: claude + mavis)
+  -h, --help       Show this help
+
+Examples:
+  sync-skill
+  sync-skill --migrate --dry-run
+  sync-skill --migrate
+  sync-skill --migrate --push
+  sync-skill --restore
+
+Exit codes:
+  0  OK
+  1  Verification failed / migration error
+  2  Bad arguments
+
+EOF
+}
+
+# ---- Argument parsing ----
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --migrate)         MODE="migrate"; shift ;;
+    --restore)         MODE="restore"; shift ;;
+    --dry-run)         DRY_RUN=true; shift ;;
+    --push)            PUSH=true; shift ;;
+    --message=*)       COMMIT_MSG="${1#*=}"; shift ;;
+    --source=*)        CUSTOM_SOURCE="${1#*=}"; shift ;;
+    --target=*)
+      IFS=',' read -ra TARGETS <<< "${1#*=}"
+      shift
+      ;;
+    -h|--help)         usage; exit 0 ;;
+    *)                 err "Unknown arg: $1"; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ -n "$CUSTOM_SOURCE" ]]; then
+  SOURCE="$CUSTOM_SOURCE"
+fi
+
+if [[ ${#TARGETS[@]} -eq 0 ]]; then
+  TARGETS=("${DEFAULT_TARGETS[@]}")
+fi
+
+# ---- Source checks ----
+if [[ ! -d "$SOURCE" ]]; then
+  err "Source does not exist: $SOURCE"
+  exit 1
+fi
+
+# ---- Verify one target ----
+verify_one() {
+  local target="$1"
+  if [[ -L "$target" ]]; then
+    local current
+    current=$(readlink "$target")
+    if [[ "$current" == "$SOURCE" ]]; then
+      log "OK: $target → $SOURCE"
+      return 0
+    else
+      err "MISMATCH: $target → $current (expected $SOURCE)"
+      return 1
+    fi
+  elif [[ -d "$target" ]]; then
+    err "MIGRATION_NEEDED: $target is a real directory, not a symlink"
+    return 1
+  else
+    err "MISSING: $target does not exist"
+    return 1
+  fi
+}
+
+# ---- Verify all targets ----
+verify_all() {
+  local rc=0
+  local t
+  for t in "${TARGETS[@]}"; do
+    if ! verify_one "$t"; then
+      rc=1
+    fi
+  done
+  if [[ $rc -eq 0 ]]; then
+    log "All ${#TARGETS[@]} target(s) are correctly symlinked."
+  else
+    log "Some target(s) need attention. Run with --migrate to fix."
+  fi
+  return $rc
+}
+
+# ---- Migrate: convert from per-skill to directory symlink ----
+do_migrate() {
+  local target entry name msg
+  local -a local_only broken
+
+  log "Migrating to directory-symlink pattern."
+  log "  source:  $SOURCE"
+  log "  targets: ${TARGETS[*]}"
+
+  # Pre-condition: source is a git repo
+  if [[ ! -d "$SOURCE/.git" ]] && [[ ! -f "$SOURCE/.git" ]]; then
+    err "Source is not a git repo: $SOURCE. Migration requires git-tracked source."
+    return 1
+  fi
+
+  # Pre-condition: clean working tree
+  if (cd "$SOURCE" && ! git diff --quiet HEAD 2>/dev/null) || \
+     (cd "$SOURCE" && ! git diff --cached --quiet HEAD 2>/dev/null); then
+    err "Source has uncommitted changes. Commit or stash before migrating."
+    err "  cd $SOURCE && git status"
+    return 1
+  fi
+
+  for target in "${TARGETS[@]}"; do
+    log "--- target: $target ---"
+
+    if [[ -L "$target" ]]; then
+      local current
+      current=$(readlink "$target")
+      if [[ "$current" == "$SOURCE" ]]; then
+        log "SKIP: already correctly symlinked"
+        continue
+      else
+        err "MISMATCH: $target → $current (expected $SOURCE). Manual fix required."
+        return 1
+      fi
+    fi
+
+    if [[ ! -e "$target" ]]; then
+      log "CREATE: $target does not exist, creating symlink"
+      if [[ "$DRY_RUN" == "false" ]]; then
+        mkdir -p "$(dirname "$target")"
+        ln -s "$SOURCE" "$target"
+      fi
+      continue
+    fi
+
+    # Real directory — find local-only (non-symlink, non-dotfile) entries
+    local_only=()
+    broken=()
+    shopt -s nullglob dotglob
+    for entry in "$target"/*; do
+      name=$(basename "$entry")
+      # Skip dotfiles and any leftover .bak directories
+      [[ "$name" == .* ]] && continue
+      if [[ -L "$entry" ]]; then
+        if [[ ! -e "$entry" ]]; then
+          broken+=("$name")
+        fi
+      elif [[ -d "$entry" ]] || [[ -f "$entry" ]]; then
+        local_only+=("$name")
+      fi
+    done
+    shopt -u nullglob dotglob
+
+    if [[ ${#local_only[@]} -gt 0 ]]; then
+      log "Local-only entries to migrate: ${local_only[*]}"
+      for name in "${local_only[@]}"; do
+        log "  moving: $target/$name → $SOURCE/$name"
+        if [[ "$DRY_RUN" == "false" ]]; then
+          mv "$target/$name" "$SOURCE/$name"
+          if [[ -z "$COMMIT_MSG" ]]; then
+            msg="chore(skills): migrate $name from local-only"
+          else
+            msg="$COMMIT_MSG ($name)"
+          fi
+          (cd "$SOURCE" && git add "$name" && git commit -m "$msg")
+        fi
+      done
+    else
+      log "No local-only entries found."
+    fi
+
+    if [[ ${#broken[@]} -gt 0 ]]; then
+      warn "Broken symlinks will be dropped (in .bak): ${broken[*]}"
+    fi
+
+    # Backup and replace
+    local ts bak
+    ts=$(date +%s)
+    bak="${target}.bak.${ts}"
+    log "  backup:  $target → $bak"
+    log "  replace: $target → $SOURCE"
+    if [[ "$DRY_RUN" == "false" ]]; then
+      mv "$target" "$bak"
+      ln -s "$SOURCE" "$target"
+    fi
+  done
+
+  # Optional push
+  if [[ "$PUSH" == "true" ]]; then
+    log "Pushing source to remote..."
+    if [[ "$DRY_RUN" == "false" ]]; then
+      (cd "$SOURCE" && git push)
+    fi
+  fi
+
+  # Verify after migration
+  log "--- post-migration verification ---"
+  if [[ "$DRY_RUN" == "false" ]]; then
+    verify_all || true
+  else
+    log "[dry-run] skipped post-migration verification"
+  fi
+
+  # Next-step suggestions
+  if [[ "$DRY_RUN" == "false" ]]; then
+    log ""
+    log "Migration complete. Suggested next steps:"
+    log "  1. Push:   cd $SOURCE && git push     (if --push not used)"
+    log "  2. Verify: ls $HOME/.claude/skills/  (should now show all skills)"
+    log "  3. Test:   invoke a skill to confirm Claude still finds it"
+    log "  4. Cleanup: rm -rf $HOME/.claude/skills.bak.* $HOME/.mavis/skills.bak.*"
+    log ""
+    log "Backups:"
+    local target latest_bak
+    for target in "${TARGETS[@]}"; do
+      latest_bak=$(find "${target}".bak.* -maxdepth 0 -type d 2>/dev/null | sort -r | head -1 || true)
+      if [[ -n "$latest_bak" ]]; then
+        log "  $latest_bak"
+      fi
+    done
+  fi
+}
+
+# ---- Restore: roll back from .bak ----
+do_restore() {
+  local target latest_bak
+  log "Restoring from .bak..."
+  for target in "${TARGETS[@]}"; do
+    latest_bak=$(find "${target}".bak.* -maxdepth 0 -type d 2>/dev/null | sort -r | head -1 || true)
+    if [[ -z "$latest_bak" ]]; then
+      warn "No .bak found for $target, skipping"
+      continue
+    fi
+
+    if [[ -L "$target" ]]; then
+      log "Removing current symlink: $target"
+      if [[ "$DRY_RUN" == "false" ]]; then
+        rm "$target"
+      fi
+    fi
+
+    log "Restoring: $latest_bak → $target"
+    if [[ "$DRY_RUN" == "false" ]]; then
+      mv "$latest_bak" "$target"
+    fi
+  done
+  if [[ "$DRY_RUN" == "false" ]]; then
+    verify_all || true
+  fi
+}
+
+# ---- Mode dispatch ----
+case "$MODE" in
+  verify)
+    verify_all
+    exit $?
+    ;;
+  migrate)
+    do_migrate
+    exit $?
+    ;;
+  restore)
+    do_restore
+    exit $?
+    ;;
+esac

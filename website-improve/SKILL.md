@@ -160,7 +160,7 @@ disable-model-invocation: false
 阶段 3 — 并行提升（Improve）【现代化改进】
   ├─ Agent-Upgrade-Deps       → 依赖升级、迁移到推荐方案
   ├─ Agent-Modernize-Code     → Astro 6.x 模式、Tailwind v4 最佳实践
-  └─ Agent-Optimize-Assets    → 图片优化、字体本地化、学术资产库化
+  └─ Agent-Optimize-Assets    → 图片优化、字体本地化、学术资产库化、**CDN 加载模式 OSA vs GDKVM 判定（§12.2）**
 
 阶段 4 — 并行验证（Verify）【检查+提升双重确认】
   ├─ Agent-Verify-Build    → npm run build + npx astro check
@@ -176,9 +176,9 @@ disable-model-invocation: false
 | Agent-Check-Build | npm run build、npx astro check、CI 历史、GitHub Actions 版本 | scan-checklist.md §1 |
 | Agent-Check-Buttons | [data-action] 监听器、下载链接文件存在性、onclick 函数、外部链接 | scan-checklist.md §2 |
 | Agent-Check-CodeQuality | 组件行数、事件委托模式、dark mode 实现、print CSS、GitHub 高星对照 | scan-checklist.md §3 |
-| Agent-Check-Code | set:html XSS、Astro.glob、ViewTransitions→ClientRouter、重复页面 | scan-checklist.md §4 |
+| Agent-Check-Code | set:html XSS（**已知限制见 §4.6.1/§4.6.2 不修复**）、Astro.glob、ViewTransitions→ClientRouter、重复页面 | scan-checklist.md §4 |
 | Agent-Check-Content | OG 标签、JSON-LD、PWA、i18n 对等性 | scan-checklist.md §5 |
-| Agent-Check-Deps | 未使用依赖、tailwind.config.mjs 废弃、postcss.config.mjs | scan-checklist.md §6 |
+| Agent-Check-Deps | 未使用依赖、tailwind.config.mjs 废弃、postcss.config.mjs、**npm audit 中危 dev-only（§4.6.1 不修复）** | scan-checklist.md §6 |
 | Agent-Check-CV | .cv-paper-author-* CSS specificity、Playwright 截图验证 | scan-checklist.md §7 |
 | Agent-Check-Routing | i18n switch URL 实际文件存在性、redirect 不截断 switch URL | scan-checklist.md §9 |
 | Agent-Verify-CV | Playwright + getComputedStyle 验证作者颜色 | — |
@@ -190,7 +190,7 @@ disable-model-invocation: false
 > 适用于所有模式。
 
 1. **不破坏构建**：任何修改后必须 `npm run build` 通过
-2. **安全优先**：`set:html` / secrets 问题标记为 P0，不自动修复
+2. **安全优先**：`set:html` / secrets 问题标记为 P0，不自动修复；但 **§4.6.2 set:html 翻译文本（含 HTML）** 和 **§4.6.1 npm audit dev-only 中危** 属于已知限制，明确不修复
 3. **中英同步**：a11y/UI 修复涉及文本时，同步更新 en.json / zh.json
 4. **Commit 必须**：修改文件后必须 `smart-autopush.sh` 提交（永远不要裸 `git push`）
 5. **验证门禁**：声明完成前，粘贴 `npm run build` 最后 5 行 + `git log --oneline -1`
