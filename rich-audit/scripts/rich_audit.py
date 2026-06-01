@@ -22,7 +22,7 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List
 
 HOME = Path.home()
 CLAUDE_DIR = HOME / ".claude"
@@ -629,9 +629,11 @@ def check_consistency(report: dict) -> list[dict]:
     # Ghost case references detection
     # Lesson from session: CASE files reference other cases in `related:` frontmatter
     # that may have been renamed, archived, or deleted, creating broken links.
+    # v2.0: Recurse into archive-*/ subdirs to detect references to archived cases
+    # (previously these were false positives in L3 mem0 gap detection).
     cases_dir = CLAUDE_DIR / "knowledge" / "cases" / "wiki"
     if cases_dir.exists():
-        for case_file in cases_dir.glob("CASE-*.md"):
+        for case_file in cases_dir.rglob("CASE-*.md"):
             content = case_file.read_text()
             # Extract related field from frontmatter
             related_match = re.search(r'^related:\s*\[(.*?)\]', content, re.MULTILINE | re.DOTALL)
@@ -668,7 +670,7 @@ def check_consistency(report: dict) -> list[dict]:
     # Lesson from session: CASE filename date can diverge from YAML frontmatter date,
     # causing confusion about when the issue actually occurred.
     if cases_dir.exists():
-        for case_file in cases_dir.glob("CASE-*.md"):
+        for case_file in cases_dir.rglob("CASE-*.md"):
             content = case_file.read_text()
             # Extract date from filename: CASE-XXXX-YYYYMMDD
             filename_date_match = re.search(r'CASE-[^-]+-(\d{8})', case_file.name)
@@ -730,10 +732,33 @@ def check_timeliness(report: dict) -> list[dict]:
             })
 
     # Skills without SKILL.md
+    # Filter: skip structural subdirs (not real skills).
+    # Per code.claude.com/docs/en/skills: SKILL.md is the only required file,
+    # but the dir itself must be a real skill — not a tool, asset, or metadata dir.
+    # v1.0.0 reported 25 false positives (e.g. .git, .omc, scripts, templates,
+    # assets, themes, examples, reference, references, docs, plugins, shared,
+    # core, .claude-plugin). v2.0: skip these explicitly.
     skills_dir = CLAUDE_DIR / "skills"
+    SKILL_STRUCTURAL_EXCLUDE = {
+        # dotfile metadata dirs
+        ".git", ".omc", ".cache", ".claude-plugin",
+        # tool/asset/template dirs that are NOT skills
+        "scripts", "templates", "assets", "themes", "examples",
+        "reference", "references", "docs", "plugins", "shared", "core",
+        # language-specific framework subdirs (may or may not be skills — verify)
+        "python", "typescript", "go", "java", "csharp", "csharp", "ruby", "php",
+    }
     if skills_dir.exists():
         for skill_dir in skills_dir.iterdir():
-            if skill_dir.is_dir() and not (skill_dir / "SKILL.md").exists():
+            if not skill_dir.is_dir():
+                continue
+            # Skip structural subdirs
+            if skill_dir.name in SKILL_STRUCTURAL_EXCLUDE:
+                continue
+            # Skip hidden dirs (other than known skills with dot-prefix)
+            if skill_dir.name.startswith(".") and skill_dir.name not in SKILL_STRUCTURAL_EXCLUDE:
+                continue
+            if not (skill_dir / "SKILL.md").exists():
                 findings.append({
                     "severity": "MED",
                     "file": str(skill_dir),
@@ -1250,6 +1275,127 @@ def calculate_score(findings: list[dict]) -> int:
     return max(0, min(100, base))
 
 
+# 8-dimension weighted scoring model (per rich-audit v2.0 spec)
+# Weights sum to 1.0. Each dimension's raw_score = 100 - (sum of penalties).
+DIMENSION_WEIGHTS = {
+    "architecture": 0.25,
+    "integrity": 0.30,
+    "security": 0.20,
+    "consistency": 0.10,
+    "github_sync": 0.05,
+    "timeliness": 0.05,
+    "redundancy": 0.03,
+    "performance": 0.02,
+}
+# Map of dimension function name → score_breakdown key (alias for backwards compat)
+DIMENSION_ALIAS = {
+    "integrity": "integrity",
+    "consistency": "consistency",
+    "architecture": "architecture",
+    "timeliness": "timeliness",
+    "redundancy": "redundancy",
+    "performance": "performance",
+    "security": "security",
+}
+
+
+def _score_breakdown(dimensions: dict[str, dict]) -> dict[str, dict]:
+    """Compute 8-dimension weighted score breakdown.
+
+    Each dimension: {raw_score, weight, contribution, findings_count, findings}.
+    Weighted sum yields the overall health_score. Missing dimensions are
+    treated as raw_score=100 (no findings = perfect).
+    """
+    penalties = {"HIGH": 10, "MED": 5, "LOW": 2}
+    breakdown: dict[str, dict] = {}
+    total_contribution = 0.0
+    for dim_name, weight in DIMENSION_WEIGHTS.items():
+        dim_data = dimensions.get(dim_name, {"findings": [], "findings_count": 0})
+        findings = dim_data.get("findings", [])
+        raw = 100 - sum(penalties.get(f.get("severity", "LOW"), 2) for f in findings)
+        raw = max(0, min(100, raw))
+        contribution = round(raw * weight, 2)
+        total_contribution += contribution
+        breakdown[dim_name] = {
+            "raw": raw,
+            "weight": weight,
+            "contribution": contribution,
+            "findings_count": len(findings),
+        }
+    # Sanity: contribution sum should approximate overall health_score
+    breakdown["_total_weighted"] = round(total_contribution, 2)
+    return breakdown
+
+
+def _action_plan(findings: list[dict]) -> dict[str, list[dict]]:
+    """Group findings into P0/P1/P2 priority buckets.
+
+    P0: HIGH severity or auto_fix=rm (delete dangling references)
+    P1: MED severity with auto_fix
+    P2: LOW severity or no auto_fix
+    """
+    plan: dict[str, list[dict]] = {"P0": [], "P1": [], "P2": []}
+    for f in findings:
+        sev = f.get("severity", "LOW")
+        auto = f.get("auto_fix")
+        if sev == "HIGH" or auto == "rm":
+            bucket = "P0"
+        elif sev == "MED" and auto:
+            bucket = "P1"
+        else:
+            bucket = "P2"
+        plan[bucket].append({
+            "severity": sev,
+            "file": f.get("file"),
+            "message": f.get("message"),
+            "auto_fix": auto,
+        })
+    return plan
+
+
+def _detect_project_modes() -> dict[str, Any]:
+    """Auto-detect current workspace project type.
+
+    Returns: {python: bool, python_ml: bool, node: bool, ...}
+    Used to scope audit findings to the right project context.
+    """
+    cwd = Path.cwd()
+    modes: dict[str, Any] = {
+        "python": False,
+        "python_ml": False,
+        "node": False,
+        "rust": False,
+        "go": False,
+        "current_workspace": str(cwd),
+    }
+    # Python detection
+    has_pyproject = (cwd / "pyproject.toml").exists()
+    has_requirements = (cwd / "requirements.txt").exists()
+    if has_pyproject or has_requirements:
+        modes["python"] = True
+        # Check for ML stack
+        try:
+            content = ""
+            if has_pyproject:
+                content = (cwd / "pyproject.toml").read_text()
+            elif has_requirements:
+                content = (cwd / "requirements.txt").read_text()
+            ml_keywords = ("torch", "tensorflow", "jax", "transformers", "wandb", "pytorch")
+            modes["python_ml"] = any(kw in content.lower() for kw in ml_keywords)
+        except Exception:
+            pass
+    # Node detection
+    if (cwd / "package.json").exists():
+        modes["node"] = True
+    # Rust detection
+    if (cwd / "Cargo.toml").exists():
+        modes["rust"] = True
+    # Go detection
+    if (cwd / "go.mod").exists():
+        modes["go"] = True
+    return modes
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1263,10 +1409,11 @@ def main():
     report = {
         "meta": {
             "tool": "rich-audit.py",
-            "version": "1.0.0",
+            "version": "2.0.0",
             "timestamp": now_iso(),
             "fix_mode": args.fix,
         },
+        "project_modes": _detect_project_modes(),
         "dimensions": {},
     }
 
@@ -1297,6 +1444,8 @@ def main():
             "LOW": sum(1 for f in all_findings if f["severity"] == "LOW"),
         },
         "health_score": calculate_score(all_findings),
+        "score_breakdown": _score_breakdown(report["dimensions"]),
+        "action_plan": _action_plan(all_findings),
     }
 
     # Auto-fix pass
@@ -1314,8 +1463,13 @@ def main():
             all_findings_after: list[dict] = []
             for dim_name, dim_fn in dimension_funcs:
                 findings = dim_fn(report)
+                report["dimensions"][dim_name] = {
+                    "findings_count": len(findings),
+                    "findings": findings,
+                }
                 all_findings_after.extend(findings)
             report["summary"]["health_score_after"] = calculate_score(all_findings_after)
+            report["summary"]["score_breakdown_after"] = _score_breakdown(report["dimensions"])
 
     json_output = json.dumps(report, indent=2, ensure_ascii=False)
     if args.output:
