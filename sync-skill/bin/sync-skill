@@ -176,6 +176,7 @@ do_migrate() {
 
     # Real directory — find local-only (non-symlink, non-dotfile) entries
     local_only=()
+    non_skill=()
     broken=()
     shopt -s nullglob dotglob
     for entry in "$target"/*; do
@@ -186,14 +187,27 @@ do_migrate() {
         if [[ ! -e "$entry" ]]; then
           broken+=("$name")
         fi
-      elif [[ -d "$entry" ]] || [[ -f "$entry" ]]; then
-        local_only+=("$name")
+      elif [[ -d "$entry" ]]; then
+        # v2.1: Only treat directories containing SKILL.md as local-only skills.
+        # Skip other entries (STUB, README, LICENSE, loose files) — they're not skills.
+        # See CASE-SKILLS-SYMLINK-REGRESSION-20260602.
+        if [[ -f "$entry/SKILL.md" ]]; then
+          local_only+=("$name")
+        else
+          non_skill+=("$name")
+        fi
+      elif [[ -f "$entry" ]]; then
+        non_skill+=("$name")
       fi
     done
     shopt -u nullglob dotglob
 
+    if [[ ${#non_skill[@]} -gt 0 ]]; then
+      warn "Non-skill entries in $target (left in place, NOT migrated): ${non_skill[*]}"
+    fi
+
     if [[ ${#local_only[@]} -gt 0 ]]; then
-      log "Local-only entries to migrate: ${local_only[*]}"
+      log "Local-only skills to migrate: ${local_only[*]}"
       for name in "${local_only[@]}"; do
         log "  moving: $target/$name → $SOURCE/$name"
         if [[ "$DRY_RUN" == "false" ]]; then
@@ -207,7 +221,7 @@ do_migrate() {
         fi
       done
     else
-      log "No local-only entries found."
+      log "No local-only skills found."
     fi
 
     if [[ ${#broken[@]} -gt 0 ]]; then
