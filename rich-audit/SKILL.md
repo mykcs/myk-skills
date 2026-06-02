@@ -6,7 +6,7 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.4.0"
+  version: "2.5.0"
   author: mykcs
   category: self-evolution
   triggers:
@@ -38,6 +38,67 @@ user-invocable: true
 - **中文**: `rich审计`
 - **英文**: `/rich-audit`
 - **别名**: `rich audit`, `claude 审计`, `audit claude files`
+
+---
+
+## 预声明（Pre-flight Declaration）[强制]
+
+> **触发时机**：用户说出触发词（`rich审计` / `/rich-audit` / `进化` 等）后，**立即**输出本段，**再**进入 Layer 1 审计。
+>
+> **Why**: 防止审计跑偏到错误范围（例如误以为是"全机器扫描"），并向用户明示"我接下来要做什么"。同时与 OMC 协议中"先告诉用户再动手"的原则对齐。
+
+**固定输出格式**（中文，大声、明确、不可省略）：
+
+```
+═══════════════════════════════════════════════════════════
+🚀 rich-audit 启动 — 预声明（Pre-flight Declaration）
+═══════════════════════════════════════════════════════════
+
+📌 审计目标（What I will audit）：
+  ├─ [Layer 1 — 审计层]
+  │   ├─ 模式 A（默认）：Claude Code 配置审计
+  │   │   ├─ 规则系统：~/.claude/rules/
+  │   │   ├─ 记忆系统：~/.claude/memory/
+  │   │   ├─ 案例库：  ~/.claude/knowledge/cases/wiki/
+  │   │   ├─ Hooks:   ~/.claude/hooks/
+  │   │   ├─ 脚本:    ~/.claude/scripts/
+  │   │   ├─ Skills:  ~/.claude/skills/ + ~/.agents/skills/
+  │   │   └─ 配置:    ~/.claude/settings.json
+  │   └─ 模式 B（条件触发）：Python/ML 项目审计
+  │       └─ 仅当工作区含 pyproject.toml / requirements.txt
+  ├─ [Layer 2 — 修复层] 基于 Layer 1 汇总结果执行安全可论证的修复
+  └─ [Layer 3 — 进化层] 外部知识扫描（WebSearch + Context7）—— 永不可跳过
+
+📂 目标文件夹（Target folders）：
+  ├─ 主审计范围：~/.claude/  （独立配置仓库，default scope）
+  ├─ 关联范围 1：~/.agents/skills/  （skill 源，需与 ~/.claude/skills 保持 symlink 一致）
+  ├─ 关联范围 2：mem0 云端记忆  （双轨同步检测的 L3 来源）
+  └─ 条件范围  ：当前工作区 Python 项目  （仅 Layer 1 模式 B 触发时审计）
+
+⏱️ 预期耗时：60-180 秒（取决于 Agent 并行度 + WebSearch 响应速度）
+🎯 完成标准：五段式进化报告 + 前后健康分 + 10 项 Verification Gates 全部通过
+
+═══════════════════════════════════════════════════════════
+              预声明结束 — 正式审计即将开始
+═══════════════════════════════════════════════════════════
+```
+
+**特殊情况处理**：
+
+| 场景 | 预声明补充内容 |
+|------|----------------|
+| 用户未指定工作区，但当前 cwd 在 `~/Repo/xxx` 下且有 Python 项目 | 在 "条件范围" 一行追加：当前 cwd = `$(pwd)` |
+| 用户明确指定了"只审计 X" | 将"目标文件夹"章节替换为用户指定的 X，其他保持默认 |
+| 用户说"全面审计" / "深度审计" | 在 "Layer 3 进化层" 标注 `深度模式：3 次 WebSearch + 2 次 Context7` |
+| mem0 MCP 不可用 | 在 "关联范围 2" 后追加警告：`⚠️ mem0 MCP 不可用，L3 记忆对齐将降级为 L1/L2 双轨` |
+
+**反例（禁止）**：
+
+```text
+❌ 直接开始扫描 ~/.claude/rules/ 而无任何说明
+❌ "我将审计你的 Claude Code 配置..."  ← 太口语、缺格式
+❌ 只说"开始审计"  ← 完全没告知范围
+```
 
 ---
 
