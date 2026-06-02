@@ -739,15 +739,6 @@ def check_timeliness(report: dict) -> list[dict]:
     # assets, themes, examples, reference, references, docs, plugins, shared,
     # core, .claude-plugin). v2.0: skip these explicitly.
     skills_dir = CLAUDE_DIR / "skills"
-    SKILL_STRUCTURAL_EXCLUDE = {
-        # dotfile metadata dirs
-        ".git", ".omc", ".cache", ".claude-plugin",
-        # tool/asset/template dirs that are NOT skills
-        "scripts", "templates", "assets", "themes", "examples",
-        "reference", "references", "docs", "plugins", "shared", "core",
-        # language-specific framework subdirs (may or may not be skills — verify)
-        "python", "typescript", "go", "java", "csharp", "csharp", "ruby", "php",
-    }
     if skills_dir.exists():
         for skill_dir in skills_dir.iterdir():
             if not skill_dir.is_dir():
@@ -783,6 +774,112 @@ def check_timeliness(report: dict) -> list[dict]:
                         "message": f"Potentially obsolete directory: {p.name}",
                         "auto_fix": None,
                     })
+
+    return findings
+
+
+def check_redundancy(report: dict) -> list[dict]:
+    findings = []
+
+
+# ---------------------------------------------------------------------------
+# v2.1 — Skill health dimension
+# ---------------------------------------------------------------------------
+SKILL_MAX_LINES = 500  # Anthropic official limit (code.claude.com/docs/en/skills)
+SKILL_MAX_DESC_CHARS = 1536  # description+when_to_use truncation threshold
+
+# v2.1: Skills subdirs that are NOT real skills (structural, framework, etc).
+# Module-level so check_timeliness and check_skill_health can both use it.
+# v1.0.0 reported 25 false positives from these dirs.
+SKILL_STRUCTURAL_EXCLUDE = {
+    # dotfile metadata dirs
+    ".git", ".omc", ".cache", ".claude-plugin",
+    # tool/asset/template dirs that are NOT skills
+    "scripts", "templates", "assets", "themes", "examples",
+    "reference", "references", "docs", "plugins", "shared", "core",
+    # language-specific framework subdirs (may or may not be skills — verify)
+    "python", "typescript", "go", "java", "csharp", "ruby", "php",
+}
+
+
+def check_skill_health(report: dict) -> list[dict]:
+    """v2.1: Check skill portfolio against Anthropic official size limits.
+
+    Two checks per code.claude.com/docs/en/skills:
+      1. SKILL.md > 500 lines → MED (WARN)
+      2. frontmatter description+when_to_use > 1536 chars → MED (WARN)
+      3. SKILL.md missing in non-structural dir → MED (was 25 FPs in v1.0.0)
+
+    Skills in SKILL_STRUCTURAL_EXCLUDE are skipped (not real skills).
+
+    Source of truth: ~/.agents/skills/ (per CLAUDE.md "Skills 管理" 2026-06-01
+    refactor). ~/.claude/skills/ is a consumer symlink; may or may not be
+    present depending on local setup. Scanning the source of truth directly
+    ensures consistent results across machines.
+    """
+    findings = []
+    skills_dir = HOME / ".agents" / "skills"
+    if not skills_dir.exists():
+        return findings
+
+    for skill_dir in skills_dir.iterdir():
+        if not skill_dir.is_dir():
+            continue
+        if skill_dir.name in SKILL_STRUCTURAL_EXCLUDE:
+            continue
+        if skill_dir.name.startswith(".") and skill_dir.name not in SKILL_STRUCTURAL_EXCLUDE:
+            continue
+
+        skill_file = skill_dir / "SKILL.md"
+        if not skill_file.exists():
+            findings.append({
+                "severity": "MED",
+                "file": str(skill_dir),
+                "line": None,
+                "message": f"Skill directory missing SKILL.md: {skill_dir.name}",
+                "auto_fix": None,
+            })
+            continue
+
+        # Check 1: line count
+        try:
+            line_count = sum(1 for _ in skill_file.open())
+        except OSError:
+            continue
+        if line_count > SKILL_MAX_LINES:
+            findings.append({
+                "severity": "MED",
+                "file": str(skill_file),
+                "line": None,
+                "message": f"SKILL.md exceeds {SKILL_MAX_LINES} lines ({line_count}). Anthropic limit; split into reference files per code.claude.com/docs/en/skills.",
+                "auto_fix": None,
+            })
+
+        # Check 2: description+when_to_use char count
+        try:
+            content = skill_file.read_text()
+        except OSError:
+            continue
+        import re as _re
+        fm_match = _re.match(r'^---\n(.*?)\n---\n', content, _re.DOTALL)
+        if not fm_match:
+            continue
+        fm = fm_match.group(1)
+        desc_match = _re.search(r'^description:\s*(.*?)(?=^[a-z_]+:|\Z)', fm, _re.MULTILINE | _re.DOTALL)
+        wtu_match = _re.search(r'^when_to_use:\s*(.*?)(?=^[a-z_]+:|\Z)', fm, _re.MULTILINE | _re.DOTALL)
+        desc_chars = 0
+        if desc_match:
+            desc_chars += len(desc_match.group(1).strip().strip('"\''))
+        if wtu_match:
+            desc_chars += len(wtu_match.group(1).strip().strip('"\''))
+        if desc_chars > SKILL_MAX_DESC_CHARS:
+            findings.append({
+                "severity": "MED",
+                "file": str(skill_file),
+                "line": None,
+                "message": f"frontmatter description+when_to_use exceeds {SKILL_MAX_DESC_CHARS} chars ({desc_chars}). Truncated in skill listing; consolidate fields.",
+                "auto_fix": None,
+            })
 
     return findings
 
@@ -1333,14 +1430,15 @@ DIMENSION_MIN_RAW = 30
 
 # v2.1: dimension default weights (overridable via ~/.claude/audit-config.json)
 DEFAULT_DIMENSION_WEIGHTS = {
-    "architecture": 0.20,
+    "architecture": 0.18,
     "integrity": 0.25,
     "security": 0.20,
     "consistency": 0.15,
     "github_sync": 0.08,
-    "timeliness": 0.05,
-    "redundancy": 0.04,
-    "performance": 0.03,
+    "timeliness": 0.04,
+    "redundancy": 0.03,
+    "performance": 0.02,
+    "skill_health": 0.05,
 }
 
 # v2.1: archive path detection
@@ -1554,6 +1652,7 @@ def main():
         ("redundancy", check_redundancy),
         ("performance", check_performance),
         ("security", check_security),
+        ("skill_health", check_skill_health),
     ]
 
     all_findings: list[dict] = []
