@@ -534,6 +534,11 @@ def check_integrity(report: dict) -> list[dict]:
                 if "/" in ref and not ref_path.exists() and not ref.endswith((".md", ".json", ".sh", ".py")):
                     continue  # Might be a URL fragment or generic path
                 if ref.startswith("~/") and not ref_path.exists() and ref.endswith((".md", ".json", ".sh", ".py")):
+                    # Skip glob patterns (e.g., ~/.claude/rules/behavioral-*.md) and
+                    # placeholders (e.g., ~/.agents/skills/<name>/SKILL.md) — these are
+                    # documentation patterns, not literal file refs.
+                    if "*" in ref or "<" in ref or "{" in ref:
+                        continue
                     findings.append({
                         "severity": "MED",
                         "file": str(rule_file),
@@ -646,9 +651,10 @@ def check_consistency(report: dict) -> list[dict]:
                     if related.startswith("http"):
                         continue
                     # Try to resolve in cases, rules, or memory directories
+                    # Lesson: cases_dir/*pattern* only matches top-level — must use **/ for archive-* subdirs
                     import glob as _glob
                     search_patterns = [
-                        str(cases_dir / f"*{related}*"),
+                        str(cases_dir / f"**/*{related}*"),  # recursive (archive-* subdirs)
                         str(CLAUDE_DIR / "rules" / f"{related}.md"),
                         str(CLAUDE_DIR / "rules" / "archive" / f"{related}.md"),
                         str(CLAUDE_DIR / "memory" / f"{related}.md"),
@@ -656,7 +662,7 @@ def check_consistency(report: dict) -> list[dict]:
                         str(CLAUDE_DIR / "memory" / "feedback" / f"{related}.md"),
                         str(CLAUDE_DIR / "memory" / "project" / f"{related}.md"),
                     ]
-                    found = any(_glob.glob(p) for p in search_patterns)
+                    found = any(_glob.glob(p, recursive=True) for p in search_patterns)
                     if not found:
                         findings.append({
                             "severity": "LOW",

@@ -289,69 +289,11 @@ Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -
 
 ## 记忆系统对齐检测（双轨同步）
 
-> **背景**：用户采用双轨记忆系统（mem0 MCP 云端 + 文件系统 markdown），两者需保持同步。
-
-### 三层对齐矩阵
-
-| 层次 | 源 | 目标 | 检测内容 |
-|------|-----|------|----------|
-| **L1** | `~/.claude/memory/MEMORY.md` | `~/.claude/knowledge/cases/wiki/*.md` | Phantom entries（索引有-link但文件不存在） |
-| **L2** | `~/.claude/knowledge/cases/wiki/*.md` | `~/.claude/memory/MEMORY.md` | Missing entries（文件存在但索引无-link） |
-| **L3** | mem0 (`case` type) | `~/.claude/knowledge/cases/wiki/*.md` | mem0 有 case 记忆但文件系统无对应文件 |
-
-### 自动修复规则
-
-| 层级 | 发现问题 | 自动修复 |
-|------|----------|----------|
-| L1 Phantom | MEMORY.md 索引指向不存在的 case 文件 | 从索引中移除该 entry |
-| L2 Missing | case 文件存在但 MEMORY.md 未索引 | 添加 entry 到 MEMORY.md |
-| L3 Gap | mem0 有 `source: CASE-XXX` 但文件系统无文件 | 创建 case 文件（模板），通知用户补充内容 |
-
-### 审计命令
-
-```bash
-# L1: Phantom entries in MEMORY.md
-phantom_count=0
-while IFS= read -r line; do
-  [[ "$line" =~ ^\-\ \[.*\]\((~/.claude/knowledge/cases/wiki/CASE-[^)]+)\) ]] || continue
-  file="${BASH_REMATCH[1]/#\~/$HOME}"
-  [[ -f "$file" ]] || { echo "[PHANTOM] $file"; ((phantom_count++)); }
-done < ~/.claude/memory/MEMORY.md
-echo "PHANTOM_COUNT=$phantom_count"
-
-# L2: Missing entries in MEMORY.md
-indexed=$(sed -n 's/.*(~\/.claude\/knowledge\/cases\/wiki\/(CASE-[^)]*))/\1/p' ~/.claude/memory/MEMORY.md | sort)
-filesystem=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | xargs -I{} basename {} | sort)
-missing=$(comm -23 <(echo "$filesystem") <(echo "$indexed"))
-echo "MISSING_COUNT=$(echo "$missing" | wc -l)"
-[[ -n "$missing" ]] && echo "$missing"
-
-# L3: mem0 云端 vs case 文件系统对齐
-# 使用 mcp__plugin_mem0_mem0__search_memories with query="CASE" top_k=500
-# Parse result (JSON string in .result field), extract all metadata.source starting with "CASE-"
-# Check each against ~/.claude/knowledge/cases/wiki/ filesystem
-# Report: MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES, [MEM0_GAP] files
-```
-
-### Layer 2 修复联动
-
-`Agent-Fix-Memory` 需在 `memory_issues` 中新增 `memory_alignment` 子类：
-
-```python
-memory_issues = {
-    "phantom_entries": [...],    # L1: MEMORY.md 索引指向不存在的文件
-    "missing_entries": [...],     # L2: case 文件存在但未进入 MEMORY.md 索引
-    "mem0_gap": {
-        "missing_files": [...],  # L3a: mem0 有 source=CASE-XXX 但文件系统无对应文件
-        "orphaned_cases": [...], # L3b: case 文件存在但 mem0 无对应 source 记忆
-        "total_mem0_cases": N,   # mem0 中 case-type 记忆总数
-    }
-}
-```
-
-**修复策略**：L1/L2 可自动修复；L3 分为两类：
-- `mem0 有 source 但文件系统无文件` → 自动从模板生成 case 文件，通知用户补充内容
-- `mem0 有 source 但对应 archive 目录已归档` → 更新 mem0 记忆的 source 字段指向 archive 路径
+> 详细内容见 [`references/memory-alignment.md`](references/memory-alignment.md)。摘要：
+> - **L1** MEMORY.md → case 文件：Phantom entries
+> - **L2** case 文件 → MEMORY.md：Missing entries
+> - **L3** mem0 → case 文件：mem0 cloud drift
+> - 已知陷阱（2026-06-02）：glob 模式不递归 `archive-*/` 子目录导致 197 false positives（已修）
 
 ---
 
@@ -420,51 +362,10 @@ memory_issues = {
 
 ## 触类旁通处理协议
 
-> 触发词："触类旁通"、或发现问题但未指定 scope 时自动联想
->
-> 记录位置：`~/.claude/knowledge/cascade-reports.md`（跨项目联动上下文）
-
-### 三层行动规范
-
-| 层 | 触发时机 | 动作 |
-|----|---------|------|
-| **L1** | 发现/修复问题时 | 检查同 workspace 内其他项目是否同样受影响 |
-| **L2** | central 脚本变更时 | 扫描所有 git repo，确认 `~/.claude/scripts/` 下游无副本残留，全部 symlink 化 |
-| **L3** | 发现新 central 脚本时 | 检查是否需要同样建立 symlink 下游分发机制 |
-
-### Central Scripts 扫描命令
-
-```bash
-SCRIPT_NAMES=$(find ~/.claude/scripts -maxdepth 1 -type f | xargs -I{} basename {} | sort)
-find ~ -maxdepth 5 -name ".git" -type d 2>/dev/null | sed 's/\/.git$//' | while read repo; do
-  case "$repo" in "$HOME/.claude"|"$HOME/.claude/"*) continue ;; esac
-  for name in $SCRIPT_NAMES; do
-    find "$repo" -maxdepth 6 -name "$name" ! -type l 2>/dev/null | while read f; do
-      echo "[COPY] $f"
-    done
-  done
-done 2>/dev/null | grep -v "/.claude/" | sort
-```
-
-### 处理报告模板
-
-```
-### REPORT-{issue-id}-{date}
-**问题**：{一句话描述}
-**发现位置**：{哪个 repo/文件}
-**修复**：{怎么修的}
-**触类旁通三层**：
-1. L1（workspace 内检查）：{同 workspace 其他项目是否受影响}
-2. L2（全机器 repo 扫描）：{发现 X 处副本，已处理}
-3. L3（同类现象）：{是否有其他 central 脚本存在同样问题}
-```
-
-### 自动联想规则
-
-触发"触类旁通"时，Agent 必须：
-1. 生成处理报告（填模板）
-2. 依次执行 L1 → L2 → L3
-3. 将结果同步到 `~/.claude/knowledge/cascade-reports.md`
+> 详细内容见 [`references/cascade-reports.md`](references/cascade-reports.md)。摘要：
+> - 触发词："触类旁通" / 未指定 scope
+> - 三层行动：L1 workspace / L2 全机器 repo / L3 同类现象
+> - 报告位置：`~/.claude/knowledge/cascade-reports.md`
 
 ---
 
