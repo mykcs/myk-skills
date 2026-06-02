@@ -7,7 +7,7 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites 等分散 skill。
 license: MIT
 metadata:
-  version: "2.9.0"
+  version: "3.0.0"
   author: mykcs
   category: web-development
   triggers:
@@ -181,6 +181,7 @@ disable-model-invocation: false
 | Agent-Check-Deps | 未使用依赖、tailwind.config.mjs 废弃、postcss.config.mjs、**npm audit 中危 dev-only（§4.6.1 不修复）** | scan-checklist.md §6 |
 | Agent-Check-CV | .cv-paper-author-* CSS specificity、Playwright 截图验证 | scan-checklist.md §7 |
 | Agent-Check-Routing | i18n switch URL 实际文件存在性、redirect 不截断 switch URL | scan-checklist.md §9 |
+| Agent-Check-Hreflang | **§2.7 hreflang 路径去重**（subpath 站点硬编码 base 重复检测）| scan-checklist.md §2.7 |
 | Agent-Verify-CV | Playwright + getComputedStyle 验证作者颜色 | — |
 
 ---
@@ -256,3 +257,126 @@ disable-model-invocation: false
 **Stack**: Astro 6.x + Tailwind CSS v4 + `@fontsource/*` + `oklch()` 色彩
 **URL 结构**: `/<project>/` → redirect → `/<project>/en/` + `/<project>/zh/`
 **标准区块**: Hero → Abstract → Motivation → Method → Results → BibTeX → Links
+
+---
+
+## Skill Evolution — Lessons from 2026-06-02 三仓审计
+
+> **本节来源**：2026-06-02 对 `mykcs/mykcs.github.io`、`wangrui2025/GDKVM`、`wangrui2025/osa` 三仓库并行执行模式 A 全流程后沉淀的硬规则和反模式。每个新规则对应一个已归档的 case 文件，遵循 Deja-Vu Fix Protocol。
+
+### 新增硬规则（紧接 §11 之后生效）
+
+**§0 — 启动前必须验证 git remote**（**强制**，在 §1 之前执行）
+
+> 之前我把 GDKVM 误判为 `mykcs/GDKVM`，实际是 `wangrui2025/GDKVM`（owner）— mykcs 只有 manager 权限。
+
+```
+1. cd <repo_path>
+2. git remote -v                # 三次确认：origin / fetch / push 是否一致
+3. git log --oneline -1         # 确认最近 commit 属于此 repo
+4. 启动声明必须写 **owner/repo** 完整名，不要省略 owner
+```
+
+如果 push URL 与 fetch URL 不一致（如同时配置 mykcs/OSA 和 wangrui2025/osa），**先问用户主推哪个 remote**，再开始任何修改。
+
+**§12 — 已知 bug 版本不升级（白名单/黑名单机制）**
+
+升级前必须查询 case 库（`~/.claude/knowledge/cases/wiki/`）的 anti_pattern 条目：
+
+| 包 | 黑名单版本 | 白名单（推荐）| 原因 |
+|----|----------|--------------|------|
+| `tailwindcss` | `4.3.0` | `4.1.18` | tsconfigPaths compatibility bug（v4.3.x 仅 1 个 release，未修） |
+| `@tailwindcss/vite` | `4.3.0` | `4.1.18` | 同上 |
+
+**升级 agent 硬规则**：发现目标版本在黑名单 → 立即停止升级并报告，不继续。
+
+**§13 — 文档与代码同步检查（CONTEXT.md/CLAUDE.md vs package.json）**
+
+GDKVM 审计时发现 `CONTEXT.md` 写 `Tailwind CSS ^4.3.0` 但 `package.json` 是 `^4.1.18`（**case 触发**）— 文档漂移是审计的副产品。
+
+**强制流程**：
+1. 每次修改 `package.json` / `astro.config.mjs` / `tailwind.config.mjs` 关键版本字段
+2. 必须搜索 `CLAUDE.md` / `CONTEXT.md` / `README.md` / `DESIGN.md` 中的版本号引用
+3. 不一致 → 立即在同一次 commit 修复 + 注明原因
+
+**§14 — 跨仓 owner/manager 关系（项目级备忘）**
+
+| 仓库 | owner | manager | 推送主目标 |
+|------|-------|---------|----------|
+| `mykcs/mykcs.github.io` | mykcs | — | `origin` = `mykcs/mykcs.github.io` |
+| `wangrui2025/GDKVM` | wangrui2025 | mykcs | `origin` = `wangrui2025/GDKVM` |
+| `wangrui2025/osa` | wangrui2025 | mykcs | `origin` = `wangrui2025/osa` |
+| `wangrui2025/wangrui2025.github.io` | wangrui2025 | — | 已重定向到 mykcs/mykcs.github.io |
+
+**启动声明必须用 owner/repo 完整名**，不要写 `mykcs/GDKVM`。
+
+**§15 — P0 修复必须产硬化机制（Deja-Vu 防护）**
+
+> IF 同一类问题在 ≤30 天内出现第二次（**跨 repo 同模式也算**），立即停止继续修复并按 `behavioral-deja-vu-gate.md` 执行：
+> 1. 对比上次根因 vs 本次根因
+> 2. 必须产出一项硬化规则或工具改进
+> 3. 否则禁止继续
+
+**已知 Deja-Vu 案例**（已加硬化）：
+- **CASE-HREFLANG-BASE-DUPLICATION-20260602**：GDKVM + OSA 同次审计同时出现 → 已加 `scan-checklist.md` §2.7 检测脚本 + 3 仓 CI 集成
+- **CASE-GDKVM-TAILWIND-V4-BROKEN-20260528**：双 `tailwindcss()` 注册 → 已加 `scan-checklist.md` §6 + §6.1 + 黑名单规则 §12
+
+**§16 — §2.7 / §6 类检测脚本必须自动集成进 CI**
+
+> 之前我把 §2.7 脚本加进 `scan-checklist.md` 但 SKILL.md 没有强制要求同步集成到 `.github/workflows/`。这次补做时才发现：脚本不集成进 CI = 装饰品。
+
+**强制流程**（修复任何 P0 涉及 build 产物检测时）：
+1. 在 `scan-checklist.md` 加检测章节
+2. **同一次 PR/commit** 集成进 3 仓 `.github/workflows/*.yml`（deploy.yml / astro.yml / main.yml 视项目命名）
+3. 脚本优先用 Node 内置 `fs/path`，不引入新 npm dep
+4. **负样本测试**：注入反例 URL 验证 CI 真的会 fail（OSA agent 2026-06-02 实施）
+
+### 新增 Agent（Agent 职责清单补全）
+
+| Agent | 检查什么 | 参考章节 |
+|-------|---------|---------|
+| Agent-Check-Hreflang | **§2.7 hreflang 路径去重**（subpath 站点硬编码 base 重复）| scan-checklist.md §2.7 |
+| Agent-Check-DocSync | **§13 文档同步**（CONTEXT.md/CLAUDE.md/README.md/DESIGN.md vs package.json）| 新增 §13（本 SKILL） |
+
+### 跨仓 audit 拆分策略（默认变更）
+
+> 之前 SKILL.md 推荐"7-8 agents per repo"细粒度模式。本次 3 仓 × 7-8 = 21+ 并行 agent，**token 消耗过大但效果并不更好**（每个 agent 都要重新读 scan-checklist.md）。
+
+**新默认（2026-06-02 起）**：
+
+| 场景 | 推荐模式 | agent 数 |
+|------|---------|---------|
+| 单仓审计 | 1 主 agent 跑全 §1-§9 + 1 verify agent = **2 agents** | 2 |
+| 2-3 仓并行 | **每仓 1 个 agent 跑全 phases**（含 subagent 内部使用 Explore） | N |
+| 4+ 仓并行 | 拆 2-3 阶段（check / fix / verify），每阶段 N agents | 3N |
+| 极复杂（5+ 仓）| `Workflow` 工具 pipeline 编排 | 视规模 |
+
+**否决条件**：
+- 不要为了"细粒度"硬拆 agent — token 成本与隔离价值不对等
+- 不要 21+ 个独立 agent 同时跑 — 浪费 context，主会话和子 agent 都会做相同工作
+
+### 跨仓 audit 启动检查清单（新增，2026-06-02 起强制）
+
+1. **3 个 agent 并行上限**（避免 21+ agent 烧 token）：单次 audit ≤ 3 个仓
+2. **per-repo 路径验证**（每个仓独立 `git remote -v` + `git log --oneline -1`）
+3. **owner/manager 关系查表**（§14）
+4. **package manager 检测**（pnpm vs npm — 影响 `npm install` vs `pnpm install`）
+5. **base path 收集**（subpath 站点：`GDKVM` / `osa` / `''` — 用于 §2.7 配置）
+
+### 已知跨仓约束
+
+| 约束 | 原因 | 适用 |
+|------|------|------|
+| `tailwindcss` 三仓必须同步 | v4.3.0 bug 跨仓传染风险 | GDKVM / OSA / mykcs |
+| `astro` major 升级需单独 session | Breaking change 风险 + CI 验证耗时 | 三仓 |
+| `wangrui2025/*` 不能 push 到 mykcs | 双账号污染历史教训 | GDKVM / osa |
+
+### 已集成的 CI 检测（2026-06-02）
+
+| 仓库 | Workflow | 检测 | SHA |
+|------|----------|------|-----|
+| mykcs.github.io | deploy.yml | §2.7 跨仓 base contamination | `14dae80` |
+| GDKVM | deploy.yml | §2.7 自身 base duplication | `6b73cda` |
+| OSA | astro.yml | §2.7 自身 base duplication | `0dced6b` |
+
+下次 audit 新加 subpath 站点时，必须把对应的 §2.7 BASE 常量加进该仓的 CI 脚本。
