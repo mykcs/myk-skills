@@ -1268,11 +1268,16 @@ def apply_fix(finding: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def calculate_score(findings: list[dict]) -> int:
-    base = 100
-    penalties = {"HIGH": 10, "MED": 5, "LOW": 2}
-    for f in findings:
-        base -= penalties.get(f.get("severity", "LOW"), 2)
-    return max(0, min(100, base))
+    """v2.1: Calculate active (non-archive) health score.
+
+    Uses SEVERITY_PENALTY_V21 (LOW=0.5 instead of 2) and excludes
+    archive-path findings to prevent noise from dragging the score.
+    """
+    active = [f for f in findings if not _is_archive_finding(f)]
+    base = 100.0
+    for f in active:
+        base -= SEVERITY_PENALTY_V21.get(f.get("severity", "LOW"), 0.5)
+    return int(max(0, min(100, base)))
 
 
 # 8-dimension weighted scoring model (per rich-audit v2.0 spec)
@@ -1299,30 +1304,130 @@ DIMENSION_ALIAS = {
 }
 
 
-def _score_breakdown(dimensions: dict[str, dict]) -> dict[str, dict]:
-    """Compute 8-dimension weighted score breakdown.
+# ---------------------------------------------------------------------------
+# v2.1 benchmark scoring constants
+# ---------------------------------------------------------------------------
+# Health tier thresholds (overall health_score → tier)
+HEALTH_TIERS = [
+    (90, "Excellent", "优秀 — 几乎所有维度健康"),
+    (75, "Good", "良好 — 少量可优化项"),
+    (60, "OK", "一般 — 建议关注"),
+    (40, "Warning", "警告 — 需主动修复"),
+    (0, "Critical", "严重 — 需立即处理"),
+]
 
-    Each dimension: {raw_score, weight, contribution, findings_count, findings}.
-    Weighted sum yields the overall health_score. Missing dimensions are
-    treated as raw_score=100 (no findings = perfect).
+# v2.1 severity penalty table (replaces v2.0 flat penalties)
+# v2.0: HIGH=10, MED=5, LOW=2 — caused 200 LOW to drag health_score to 0
+# v2.1: HIGH=15, MED=5, LOW=0.5 — INFO findings (no penalty) for archive noise
+SEVERITY_PENALTY_V21 = {
+    "HIGH": 15.0,
+    "MED": 5.0,
+    "LOW": 0.5,
+    "INFO": 0.0,
+}
+
+# v2.1: per-dimension minimum raw score to prevent single dim from tanking overall
+# v2.0 issue: consistency had 196 ghost-ref findings, raw=0, dragged total down
+# v2.1: cap at 30 — dim can be unhealthy but not catastrophic
+DIMENSION_MIN_RAW = 30
+
+# v2.1: dimension default weights (overridable via ~/.claude/audit-config.json)
+DEFAULT_DIMENSION_WEIGHTS = {
+    "architecture": 0.20,
+    "integrity": 0.25,
+    "security": 0.20,
+    "consistency": 0.15,
+    "github_sync": 0.08,
+    "timeliness": 0.05,
+    "redundancy": 0.04,
+    "performance": 0.03,
+}
+
+# v2.1: archive path detection
+ARCHIVE_PATH_MARKERS = ("/archive-", "/archive/", "archive-2026", "archive-2025")
+
+
+def _is_archive_finding(finding: dict) -> bool:
+    """v2.1: Classify whether a finding is in an archived location.
+
+    Archived findings don't count toward active health_score.
     """
-    penalties = {"HIGH": 10, "MED": 5, "LOW": 2}
+    file_path = finding.get("file", "")
+    return any(marker in file_path for marker in ARCHIVE_PATH_MARKERS)
+
+
+def _load_audit_config() -> dict:
+    """v2.1: Load dimension weights from ~/.claude/audit-config.json if present.
+
+    Returns: dict with optional 'dimension_weights' override.
+    Fallback: empty dict (use defaults).
+    """
+    config_path = Path.home() / ".claude" / "audit-config.json"
+    if not config_path.exists():
+        return {}
+    try:
+        return json.loads(config_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _compute_health_tier(score: float) -> dict:
+    """v2.1: Map health_score to tier classification.
+
+    Returns: {tier, label, description, color_hint}
+    """
+    for threshold, tier, desc in HEALTH_TIERS:
+        if score >= threshold:
+            return {
+                "tier": tier,
+                "label_zh": desc,
+                "score": score,
+                "color_hint": {
+                    "Excellent": "green", "Good": "green", "OK": "yellow",
+                    "Warning": "orange", "Critical": "red",
+                }[tier],
+            }
+    return {"tier": "Critical", "label_zh": "严重", "score": score, "color_hint": "red"}
+
+
+def _score_breakdown(dimensions: dict[str, dict]) -> dict[str, dict]:
+    """Compute 8-dimension weighted score breakdown (v2.1).
+
+    Each dimension: {raw, weight, contribution, findings_count,
+                     active_count, archive_count}.
+
+    v2.1 changes:
+      - Use SEVERITY_PENALTY_V21 (LOW=0.5 instead of 2)
+      - Cap dim raw at DIMENSION_MIN_RAW (30) — no dim can be catastrophic
+      - Use configurable DEFAULT_DIMENSION_WEIGHTS (overridable via audit-config.json)
+      - Separate active_findings from archive_findings
+    """
+    config = _load_audit_config()
+    weights = config.get("dimension_weights", DEFAULT_DIMENSION_WEIGHTS)
+
     breakdown: dict[str, dict] = {}
     total_contribution = 0.0
-    for dim_name, weight in DIMENSION_WEIGHTS.items():
+    for dim_name, weight in weights.items():
         dim_data = dimensions.get(dim_name, {"findings": [], "findings_count": 0})
-        findings = dim_data.get("findings", [])
-        raw = 100 - sum(penalties.get(f.get("severity", "LOW"), 2) for f in findings)
-        raw = max(0, min(100, raw))
+        all_findings = dim_data.get("findings", [])
+        # Separate active from archive
+        active = [f for f in all_findings if not _is_archive_finding(f)]
+        archive = [f for f in all_findings if _is_archive_finding(f)]
+        # Calculate raw score from ACTIVE findings only
+        raw = 100.0 - sum(
+            SEVERITY_PENALTY_V21.get(f.get("severity", "LOW"), 0.5) for f in active
+        )
+        raw = max(DIMENSION_MIN_RAW, min(100, raw))
         contribution = round(raw * weight, 2)
         total_contribution += contribution
         breakdown[dim_name] = {
             "raw": raw,
             "weight": weight,
             "contribution": contribution,
-            "findings_count": len(findings),
+            "findings_count": len(all_findings),
+            "active_count": len(active),
+            "archive_count": len(archive),
         }
-    # Sanity: contribution sum should approximate overall health_score
     breakdown["_total_weighted"] = round(total_contribution, 2)
     return breakdown
 
@@ -1349,8 +1454,32 @@ def _action_plan(findings: list[dict]) -> dict[str, list[dict]]:
             "file": f.get("file"),
             "message": f.get("message"),
             "auto_fix": auto,
+            "is_archive": _is_archive_finding(f),
         })
     return plan
+
+
+def _archive_health(all_findings: list[dict]) -> dict:
+    """v2.1: Report on archived findings separately from active health.
+
+    Returns: {archive_count, by_severity, sample_messages, score}
+    Archive score uses the same v2.1 penalty table but with no dim cap.
+    """
+    archive = [f for f in all_findings if _is_archive_finding(f)]
+    by_sev: dict[str, int] = {}
+    for f in archive:
+        sev = f.get("severity", "LOW")
+        by_sev[sev] = by_sev.get(sev, 0) + 1
+    raw = 100.0 - sum(
+        SEVERITY_PENALTY_V21.get(f.get("severity", "LOW"), 0.5) for f in archive
+    )
+    raw = max(0, min(100, raw))
+    return {
+        "total": len(archive),
+        "by_severity": by_sev,
+        "raw_score": round(raw, 2),
+        "tier": _compute_health_tier(raw),
+    }
 
 
 def _detect_project_modes() -> dict[str, Any]:
@@ -1409,7 +1538,7 @@ def main():
     report = {
         "meta": {
             "tool": "rich-audit.py",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "timestamp": now_iso(),
             "fix_mode": args.fix,
         },
@@ -1438,13 +1567,17 @@ def main():
 
     report["summary"] = {
         "total_findings": len(all_findings),
+        "active_findings": sum(1 for f in all_findings if not _is_archive_finding(f)),
+        "archive_findings": sum(1 for f in all_findings if _is_archive_finding(f)),
         "severity_counts": {
             "HIGH": sum(1 for f in all_findings if f["severity"] == "HIGH"),
             "MED": sum(1 for f in all_findings if f["severity"] == "MED"),
             "LOW": sum(1 for f in all_findings if f["severity"] == "LOW"),
         },
         "health_score": calculate_score(all_findings),
+        "health_tier": _compute_health_tier(calculate_score(all_findings)),
         "score_breakdown": _score_breakdown(report["dimensions"]),
+        "archive_health": _archive_health(all_findings),
         "action_plan": _action_plan(all_findings),
     }
 
@@ -1469,7 +1602,11 @@ def main():
                 }
                 all_findings_after.extend(findings)
             report["summary"]["health_score_after"] = calculate_score(all_findings_after)
+            report["summary"]["health_tier_after"] = _compute_health_tier(
+                calculate_score(all_findings_after)
+            )
             report["summary"]["score_breakdown_after"] = _score_breakdown(report["dimensions"])
+            report["summary"]["archive_health_after"] = _archive_health(all_findings_after)
 
     json_output = json.dumps(report, indent=2, ensure_ascii=False)
     if args.output:
