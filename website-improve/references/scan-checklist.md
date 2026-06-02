@@ -198,6 +198,71 @@ if (broken.length) {
 
 **Acceptance**：所有 data-action 有监听器、所有下载文件存在、所有 onclick 函数已定义、所有外部链接返回 200/301/302、所有锚点目标存在、所有导航按钮 URL 在 dist 中存在。
 
+### §2.7 hreflang 路径去重检查（Deja-Vu 防护）
+
+> **触发历史**：2026-06-02 GDKVM (`Layout.astro:91-93`) 与 OSA (`Layout.astro:89-91`) **同一次三仓库审计中同时出现**同一类 bug — `new URL(\`/GDKVM/en${altPath}\`)` 把硬编码 base 与 `Astro.url.pathname` 已包含的 base 叠加，生成 `.../GDKVM/en/GDKVM/en/` 形式的 404 SEO 链接。
+
+**检测脚本**（跑在 dist 上）：
+
+```bash
+# 抓所有 hreflang 链接，检查是否存在 base path 重复
+node -e "
+const fs = require('fs');
+const path = require('path');
+const glob = require('glob');
+
+const BASE_PATTERNS = {
+  mykcs: 'mykcs.github.io',
+  gdkvm: 'GDKVM',
+  osa: 'osa',
+};
+
+const files = glob.sync('dist/**/*.html');
+const broken = [];
+
+files.forEach(f => {
+  const content = fs.readFileSync(f, 'utf-8');
+  const re = /<link rel=\"alternate\" hreflang=\"[^\"]*\" href=\"([^\"]+)\"/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    const url = m[1];
+    Object.entries(BASE_PATTERNS).forEach(([repo, basePath]) => {
+      // 检查 url 中是否出现 basePath 出现 ≥2 次（正常 1 次 = 在前缀位置）
+      const matches = url.match(new RegExp(basePath.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\\$&'), 'g')) || [];
+      if (matches.length > 1) {
+        broken.push(\`\${f}: hreflang \${url} contains \${basePath} \${matches.length} times\`);
+      }
+    });
+  }
+});
+
+if (broken.length) {
+  console.log('=== HREFLANG BASE DUPLICATION ===');
+  broken.forEach(b => console.log(b));
+  process.exit(1);
+} else {
+  console.log('OK: no hreflang base duplication');
+}
+"
+```
+
+**推荐修复模式**（避免硬编码 base）：
+
+```astro
+{(() => {
+  const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');  // 'GDKVM' 或 'osa' 或 ''
+  const altPath = Astro.url.pathname.replace(new RegExp(\`^\${baseUrl}/(en|zh)\`), '') || '/';
+  return (
+    <>
+      <link rel=\"alternate\" hreflang=\"en\" href={new URL(\`\${baseUrl}/en\${altPath}\`, Astro.site).href} />
+      <link rel=\"alternate\" hreflang=\"zh\" href={new URL(\`\${baseUrl}/zh\${altPath}\`, Astro.site).href} />
+    </>
+  );
+})()}
+```
+
+**根因**：`Astro.url.pathname` 已包含 base 路径（如 `/GDKVM/en/poster/`），旧代码 `pathname.replace(/^\/(en|zh)/, '')` 只剥离 locale，**没有剥离 base**，再拼回 `/GDKVM/en${altPath}` 时就重复了。修复用 `import.meta.env.BASE_URL` 统一来源。
+
 ---
 
 ## §3. Agent-Check-CodeQuality — GitHub 高星模板对照
