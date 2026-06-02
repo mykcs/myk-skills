@@ -342,18 +342,25 @@ GDKVM 审计时发现 `CONTEXT.md` 写 `Tailwind CSS ^4.3.0` 但 `package.json` 
 
 > 之前 SKILL.md 推荐"7-8 agents per repo"细粒度模式。本次 3 仓 × 7-8 = 21+ 并行 agent，**token 消耗过大但效果并不更好**（每个 agent 都要重新读 scan-checklist.md）。
 
-**新默认（2026-06-02 起）**：
+**新默认（2026-06-02 同日 update，5-site audit 后）**：
 
-| 场景 | 推荐模式 | agent 数 |
-|------|---------|---------|
-| 单仓审计 | 1 主 agent 跑全 §1-§9 + 1 verify agent = **2 agents** | 2 |
-| 2-3 仓并行 | **每仓 1 个 agent 跑全 phases**（含 subagent 内部使用 Explore） | N |
-| 4+ 仓并行 | 拆 2-3 阶段（check / fix / verify），每阶段 N agents | 3N |
-| 极复杂（5+ 仓）| `Workflow` 工具 pipeline 编排 | 视规模 |
+| 场景 | 推荐模式 | agent 数 | 备注 |
+|------|---------|---------|------|
+| 单仓审计 | 1 主 agent 跑全 §1-§9 + 1 verify agent | 2 | — |
+| 2-3 仓并行（默认）| **每仓 1 个 agent 跑全 phases**（含 subagent 内部使用 Explore） | N | token vs 隔离价值平衡点 |
+| 4-5 仓（user override）| `Workflow` 工具 pipeline 编排 | 3-5N | 详见 `scan-checklist.md` §15 必备条件 |
+| 6+ 仓 | 拒绝，建议拆 2 个 session | — | context overflow 风险 |
+
+**4-5 仓 override 必备条件**（详见 `scan-checklist.md` §15）：
+- 全部 sub-agent 传 `schema:`（避免 §15.1 push phase 静默 skip）
+- push 限速 ≤ 2 + 必先 `git pull --rebase`（§15.2/§15.3）
+- orchestrator 加 text fallback 解析（即使 schema 失败也能救回）
+- aggregator agent 显式声明"cross-site shared issues"+"matrix conflicts"+"submodule consistency"
 
 **否决条件**：
 - 不要为了"细粒度"硬拆 agent — token 成本与隔离价值不对等
 - 不要 21+ 个独立 agent 同时跑 — 浪费 context，主会话和子 agent 都会做相同工作
+- N > 5 不要硬上 — 主动 ask 用户拆 session
 
 ### 跨仓 audit 启动检查清单（新增，2026-06-02 起强制）
 
@@ -380,3 +387,73 @@ GDKVM 审计时发现 `CONTEXT.md` 写 `Tailwind CSS ^4.3.0` 但 `package.json` 
 | OSA | astro.yml | §2.7 自身 base duplication | `0dced6b` |
 
 下次 audit 新加 subpath 站点时，必须把对应的 §2.7 BASE 常量加进该仓的 CI 脚本。
+
+---
+
+### 5 仓审计补强（2026-06-02 同日追加，5-site fan-out）
+
+> 上文 §0/§12-§16 来自同日 3 仓审计。**同日 5 仓扩展**（mykcs + GDKVM + OSA + wangrui + academic）— 用户显式要求 5 仓并行「在 slowest-site time 内完成」。本次暴露新问题，追加 §17-§22。
+
+**§17 — Workflow schema 提取健壮性**
+
+sub-agent 不传 `schema:` 时，return value 是 final text message。Orchestrator 的结构化字段过滤会全部 `null` → phase 静默 skip。
+
+**真实命中（2026-06-02）**：5-site audit fix phase 5 agents 全部返回 text（无 schema），orchestrator 的 `pushable = fixResults.filter(r => r && r.buildFinalStatus === 'pass')` 过滤为 0 → push phase 跳过 → 14 commits 卡在本地未被 push。修复后由 orchestrator（main context）单独 push 14 commits 全部 PASS。
+
+详见 `scan-checklist.md` §15.1。修复优先级：
+1. 始终给 sub-agent 传 `schema:`（即使 minimal）
+2. 或 sub-agent 同时写盘 + 返回 schema 对象
+3. 或 orchestrator 加 text fallback 解析
+
+**§18 — Push 必先 `git pull --rebase`**
+
+Multi-site 编排下 origin 可能在 push 之间有新 commit。`git push` 被 reject 不会自动恢复。
+
+**真实命中（2026-06-02）**：wangrui push 在第一轮被 reject（origin 有 1 个新 commit）。需 `git pull --rebase origin main && git push origin main` 才成功。
+
+详见 `scan-checklist.md` §15.2。修复：orchestrator 的 PUSH_PROMPT 必须显式写 `git pull --rebase origin main`。
+
+**为什么不能用 smart-autopush.sh**：smart-autopush.sh 会在 pre-condition 不满足时 auto-commit（`git add -A`），对带 P0 uncommitted deletions 的 repo 会污染 finding。
+
+**§19 — CI 失败可能为预期 signal**
+
+新加的 pre-flight guard 触发的 CI 失败 = design-intended signal（如学术资源库的 validate-manifest failure flag P0-001）。看到 CI 失败先读 `gh run view <id> --log-failed` 区分 real regression / expected signal / transient。
+
+**真实命中（2026-06-02）**：academic `validate-manifest.yml`（新加）失败 — 设计内行为，flag 了 P0-001（31 uncommitted GDKVM deletions + 2 dead image-map entries + 14 stale manifest entries）。
+
+详见 `scan-checklist.md` §15.4。
+
+**§20 — Pre-bump guard 限制**
+
+`.github/workflows/bump-version.yml` 加的 working tree guard 在 CI 上看不见（fresh-clone）。Local uncommitted destructive deletions 不会被 tag 防御。
+
+**真实命中（2026-06-02）**：academic bump-version.yml 加的 pre-bump guard `git status --porcelain | grep '^ D'` 在 CI 上看到的是 fresh-clone（无 destructive deletions）→ 永远不触发。实际 31 个 deletions 在 `~/Repo/webs/academic` 的 local working tree。
+
+详见 `scan-checklist.md` §15.5。修复：local pre-push hook（`~/.claude/scripts/pre-push-academic.sh`）拦截在最早阶段。
+
+**§21 — CDN ref mutable 检测**
+
+`@main` / `@master` / `@HEAD` / `@latest` 是可变 ref，上游变 → 资源破坏。检测 + 改 semver/SHA。
+
+**真实命中（2026-06-02）**：wangrui `Favicon.astro` 用 `sprites-gallery@main` → 改为 `@15b1dcb`（同 SHA 已用于 `CVLayout.astro:111`）。
+
+详见 `scan-checklist.md` §14.2。
+
+**§22 — Dead i18n key detection**
+
+JSON 中的 key 无 `t('key')` 调用 → 删除。3 站（GDKVM/wangrui/OSA）发现 dead key pattern。
+
+**真实命中（2026-06-02）**：GDKVM `src/i18n/{en,zh}.json`（218 行）整文件未 import → 整文件删除；footer.langSwitch、tool JSON 8 keys 全部 dead。
+
+详见 `scan-checklist.md` §14.3。
+
+### 已知跨仓约束（2026-06-02 5-site audit 补强）
+
+| 约束 | 原因 | 适用 |
+|------|------|------|
+| `tailwindcss` 三仓必须同步 | v4.3.0 bug 跨仓传染风险 | GDKVM / OSA / mykcs |
+| `astro` major 升级需单独 session | Breaking change 风险 + CI 验证耗时 | 三仓 |
+| `wangrui2025/*` 不能 push 到 mykcs | 双账号污染历史教训 | GDKVM / osa |
+| **CDN ref 必须 pinned**（@main/@master/@HEAD/@latest 禁用）| mutable ref 上游变 → 资源破坏 | 所有使用 cdn.jsdelivr.net 的仓 |
+| **academic bump-version 必须在 pre-push 验证 destructive deletions** | CI fresh-clone 看不到 local working tree（§20）| academic |
+| **i18n defaultLocale 跨镜像必须一致** | SEO 重复 + 用户预期不一致 | mykcs + wangrui 镜像对 |

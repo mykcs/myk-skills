@@ -1076,6 +1076,236 @@ Step 4 — 验证构建
 
 ---
 
+## §14. Cross-Repo / Multi-Site Consistency Checks (2026-06-02)
+
+> **触发条件**：审计 ≥2 个相关 repo，或在 `~/Repo/webs/` 矩阵下工作时
+>
+> **历史来源**：2026-06-02 5 仓扩展审计（mykcs + GDKVM + OSA + wangrui + academic）— 当日 3 仓审计（§0/§12-§16 in SKILL.md）的增量补强
+
+### §14.1 Dead workflow lint
+
+**模式**：`.github/workflows/*.yml` 中 `actions/checkout@*` 配置 `submodules: recursive`，但同一 repo 没有 `.gitmodules` 文件。
+
+**触发场景**：消费者从 git submodule 迁移到 CDN（jsDelivr `@v1.x.y`）后，遗留的死 workflow。
+
+**检测命令**：
+```bash
+for yml in .github/workflows/*.yml; do
+  if grep -q "submodules: recursive" "$yml" 2>/dev/null; then
+    if [ ! -f .gitmodules ]; then
+      echo "DEAD: $yml references submodules but no .gitmodules exists"
+    fi
+  fi
+done
+```
+
+**真实命中（2026-06-02）**：
+- mykcs.github.io: `.github/workflows/main.yml`（Sync Academic Submodule）→ 已删
+- OSA: `.github/workflows/main.yml`（Sync Academic Submodule）→ 已删
+- academic: `.github/workflows/update-sites.yml`（Sync Academic Submodule）→ 已删
+- wangrui: 仍存在（按 P2 留待下次；当前 active main.yml 中无 submodules 引用）
+
+**修复**：`git rm .github/workflows/<name>.yml && git commit -m "fix(ci): remove dead <Name> workflow"`
+
+### §14.2 CDN ref mutable / pinned check
+
+**模式**：`cdn.jsdelivr.net/gh/<owner>/<repo>@<mutable_ref>` 中的 ref 是可变的（`@main` / `@master` / `@HEAD` / `@latest`）。
+
+**风险**：上游 ref 变 → 资源消失/破坏/行为改变。**不可逆**（CDN 有缓存，但 invalidate 不一定及时）。
+
+**检测命令**：
+```bash
+grep -rE "cdn\.jsdelivr\.net/gh/[^@]+@(main|master|HEAD|latest)\b" \
+  --include="*.astro" --include="*.ts" --include="*.tsx" --include="*.js" \
+  --include="*.json" --include="*.md" .
+```
+
+**真实命中（2026-06-02）**：wangrui `astro/src/components/Favicon.astro` 用 `sprites-gallery@main` → 改为 `@15b1dcb`（同 SHA 已用于 `CVLayout.astro:111`，验证可工作）
+
+**修复**：用 semver tag（`@v1.1.0`）或 commit SHA 替换 mutable ref。
+
+### §14.3 Dead i18n key detection
+
+**模式**：JSON 中的 key 没有被任何 `t('key')` / `i18n.t('key')` 调用使用。
+
+**风险**：JSON 膨胀；维护负担（增减 keys 时双向同步成本高）；可能掩盖 dead code（key 看似用，实际只是被 import 链上一处 reference 引用）。
+
+**检测命令**（per feature folder）：
+```bash
+for key in $(jq -r 'keys[]' src/content/<feature>/en.json 2>/dev/null); do
+  grep -rE "t\(['\"]${key}['\"]\)|i18n\.t\(['\"]${key}['\"]\)" src/ 2>/dev/null | grep -q . || \
+    echo "DEAD: key '${key}' not used in src/"
+done
+```
+
+**真实命中（2026-06-02）**：
+- GDKVM `src/i18n/{en,zh}.json`（218 行）整个文件未被 import → 整文件删除
+- GDKVM `footer.langSwitch` key → 单 key 删除
+- GDKVM `tool` JSON 8 keys（tab1, tab2, modelType, moe, dense, na, show, placeholder）只在被删的 orphan 文件中存在 → 随 orphan 文件一并删除
+- wangrui `Masthead.astro:21` 局部 `const switchLabel`（不是 JSON key，但同 dead-code 模式）→ 删除
+- OSA `langSwitchEn` / `og.locale` / `og.localeAlternate` keys → 标记删除（P3）
+
+**注意**：JSON key 删除应在 bilingual-alignment 之后（先删 zh，再删 en 或反之），避免 i18n 暂时只剩单边。
+
+### §14.4 CDN ref consistency (code vs docs)
+
+**模式**：`.astro`/`.ts` 中的 CDN ref（如 `@v1.1.0`）与文档（`CONTEXT.md` / `CLAUDE.md`）中提到的 ref 不一致。
+
+**风险**：开发者按文档操作 → 实际加载不同版本 → 调试困难。
+
+**检测命令**：
+```bash
+# Find CDN refs in source
+src_refs=$(grep -rEho "cdn\.jsdelivr\.net/gh/[^/]+/[^/@]+@[^/\")]+" \
+  --include="*.astro" --include="*.ts" src/ 2>/dev/null | sed 's/.*@//' | sort -u)
+
+# Find CDN refs in docs
+doc_refs=$(grep -rEho "cdn\.jsdelivr\.net/gh/[^/]+/[^/@]+@[^/\) ]+" \
+  --include="*.md" --include="*.mdx" . 2>/dev/null | sed 's/.*@//' | sort -u)
+
+# Compare
+diff <(echo "$src_refs") <(echo "$doc_refs")
+```
+
+**真实命中（2026-06-02）**：GDKVM `CONTEXT.md` 写 `@84e996d`（commit SHA），代码用 `@v1.1.0`（semver tag）→ 改 docs。
+
+**修复**：以 source 为准（runtime 实际加载的）；更新 docs 同步。配合 §14.2 检测引用是否 mutable。
+
+### §14.5 i18n defaultLocale 跨镜像一致性
+
+**模式**：同 owner 的镜像站点（mykcs + wangrui）使用不同的 `defaultLocale`。
+
+**风险**：访问两个站点的用户对「默认语言」的预期不一致。SEO 重复内容风险。
+
+**检测**：
+```bash
+for site in ~/Repo/webs/active/*/ ~/Repo/webs/arch/*/; do
+  config=$(find "$site" -maxdepth 3 -name "astro.config.*" 2>/dev/null | head -1)
+  if [ -n "$config" ]; then
+    echo "$(basename $site): $(grep -E "defaultLocale" "$config" 2>/dev/null | head -1)"
+  fi
+done
+```
+
+**真实命中（2026-06-02）**：wangrui arch uses `defaultLocale: 'zh'`（inverted），mykcs uses `'en'`。用户从 mykcs 切到 wangrui 期望默认 en，实际看到 zh。
+
+**修复决策**：通常以 active 主站为准，arch 站同步。但这是**结构性变更**（影响所有 URL），需用户 sign-off。已 defer 为 P1。
+
+### §14.6 Pre-audit working tree gate
+
+**模式**：开始 audit 前，工作树已有 uncommitted 改动（特别是 ` D` 删除标记）。
+
+**风险**：audit 结果可能基于错误的工作树状态。CI fresh-clone 与本地工作树不一致 → CI 通过但本地实际坏掉。
+
+**真实命中（2026-06-02）**：academic repo 31 个 ` D` GDKVM 图像删除未提交。audit 阶段没意识到这是 P0 finding，fix 阶段才被 aggregator 标记（ACAD-P0-001）。
+
+**修复流程**：
+1. audit 启动前：`git status --porcelain` 必须为空
+2. 除非用户显式声明这是 in-progress work
+3. 如有 uncommitted work：明确分类为 (a) 已 staged 待 commit、(b) 误操作需丢弃、(c) 故意保留需 commit
+4. (c) 类应在 audit 前 commit，避免污染 audit 上下文
+
+---
+
+## §15. Multi-Site Workflow Patterns (2026-06-02)
+
+> 适用于使用 Workflow / multi-execute / team 等工具编排 N 个站点并行 audit 的场景
+>
+> **历史来源**：2026-06-02 5 仓并行 audit（mykcs + GDKVM + OSA + wangrui + academic）— 实际执行：11 agents / 648 tool uses / 844,747 subagent tokens / 30 min wall-clock
+
+### §15.1 Schema extraction robustness (P0 trap)
+
+**陷阱**：sub-agent 不传 `schema:` 时，return value 是 final text message。如果 orchestrator 用结构化字段过滤（如 `r.buildFinalStatus === 'pass'`），全部 fallback 为 `null` → 整个 phase 静默 skip。
+
+**真实命中（2026-06-02）**：5-site audit 的 fix phase 5 agents 全部返回 text（无 schema），orchestrator 的 `pushable = fixResults.filter(r => r && r.buildFinalStatus === 'pass')` 过滤为 0 → push phase 跳过 → 14 commits 卡在本地未被 push。修复后由 orchestrator（main context）单独 push 14 commits 全部 PASS。
+
+**修复（按优先级）**：
+1. **始终给 sub-agent 传 `schema:`**（即使 minimal：仅 site / status / summary 三个字段）
+2. 或：sub-agent 既写 `scan-{id}.json` 到磁盘，又返回 schema-validated 对象 → orchestrator 可读盘 fallback
+3. 或：orchestrator 加 text fallback 解析（`r.summary.match(/build: (pass|fail)/)`）
+
+**检测方法**（在 workflow result 上）：
+```js
+const empties = results.filter(r => r && Object.keys(r).length === 0).length
+if (empties > 0) log(`⚠️ ${empties} sub-agents returned empty results — schema extraction failed`)
+```
+
+### §15.2 Push phase: `git pull --rebase` mandatory
+
+**陷阱**：multi-site 编排下，多个 sessions / agents / 手动 push 可能先后发生。origin 可能在 pull 之后又有新 commit → `git push` 被 reject（non-fast-forward）。
+
+**真实命中（2026-06-02）**：wangrui push 在第一轮被 reject，提示「一个仓库已向该引用进行了推送」。需 `git pull --rebase origin main && git push origin main` 才成功。
+
+**修复**：push phase 的 agent prompt 强制要求 `git pull --rebase origin main`。在 orchestrator 的 PUSH_PROMPT 中显式写出。
+
+**为什么不能用 smart-autopush.sh**：smart-autopush.sh 会在 pre-condition 不满足时 auto-commit（`git add -A`），对 academic 这种带 31 个 P0 deletions 的 repo 来说会污染 P0 finding。
+
+### §15.3 限速 push 避免 GH Actions rate limit
+
+**规则**：multi-site push 时，限制并发数 ≤ 2。
+
+**理由**：GitHub Actions 免费账户 20 concurrent jobs，但同一 owner 的多 repo 同时 push + deploy 容易触发 GH 的 quota 警告（personal account 更敏感）。
+
+**实现**：orchestrator 用 batch-of-2 + barrier + CI watch 模式：
+```js
+for (let i = 0; i < pushable.length; i += 2) {
+  const batch = pushable.slice(i, i + 2)
+  const results = await parallel(batch.map(s => () => pushAndWatch(s)))
+  const failed = results.find(r => r?.ciStatus === 'failure')
+  if (failed) {
+    log('🚨 CI failed — STOPPING all remaining pushes per user directive')
+    break
+  }
+}
+```
+
+### §15.4 CI failure interpretation
+
+**陷阱**：CI 失败 ≠ 真实回归。某些 CI 失败是 EXPECTED signal（新加的 pre-flight guard 触发）。
+
+**真实命中（2026-06-02）**：
+- academic `validate-manifest.yml`（新加）失败 — 设计内行为，flag 了 P0-001（31 uncommitted GDKVM deletions + 2 dead image-map entries + 14 stale manifest entries）
+- academic `Bump Version Tag` 同步成功（pre-bump guard 不触发，CI fresh-clone 看不到 local 31 deletions — 见 §15.5）
+
+**修复流程**：
+1. 看到 CI failure → 第一时间 `gh run view <id> --log-failed`
+2. 区分："real regression" vs "expected signal" vs "transient infra issue"
+3. real regression → halt 并报告
+4. expected signal → 报告用户，标记为 design-intended（不阻塞后续 push）
+5. transient → retry 一次，仍失败按 real regression 处理
+
+### §15.5 Pre-bump guard 限制（CI fresh-clone 盲点）
+
+**陷阱**：在 `.github/workflows/bump-version.yml` 加的 pre-bump guard 只看 `git status --porcelain`，但 CI runner 是 fresh-clone — 看不到 local working tree 状态。
+
+**真实命中（2026-06-02）**：academic bump-version.yml 加的 pre-bump guard `git status --porcelain | grep '^ D'` 在 CI 上看到的是 fresh-clone（无 destructive deletions）→ 永远不触发。实际 31 个 deletions 在 `~/Repo/webs/academic` 的 local working tree，CI 看不到。
+
+**修复（按推荐度）**：
+- **方案 A**：在 `git push` 之前的 local pre-push hook 中跑 guard（推荐：拦截在最早阶段）
+- **方案 B**：把 guard 改成 `git diff --name-only HEAD~1..HEAD | xargs -I {} bash -c 'test -f {} || echo MISSING: {}'`
+- **方案 C**：要求所有 destructive ops 都先 commit（最严格，但 workflow 改动大）
+
+**当前最佳实践**：方案 A — `~/.claude/scripts/pre-push-academic.sh` 加 guard，每次 `git push` 前跑。`smart-autopush.sh` 改造支持 hook 触发。
+
+### §15.6 N-site 上限是 advisory（user 可 override）
+
+**之前规则**：「3 个 agent 并行上限」（来自 2026-06-02 3 仓审计，§跨仓 audit 拆分策略）
+
+**2026-06-02 5 仓审计推翻**：用户明确要求 5 仓并行「在 slowest-site time 内完成」。Audit 完成（11 agents / 648 tool uses / 844,747 tokens），但暴露 §15.1 (schema bug) — push phase 静默 skip。
+
+**新规则（生效 2026-06-02 5-site audit 后）**：
+
+| N | 推荐 | 必备条件 |
+|---|------|----------|
+| 1 | 直接用 Mode A | — |
+| 2-3（默认）| 每仓 1 agent 跑全 phases | token 成本 vs 隔离价值平衡点 |
+| 4-5（user override）| Workflow pipeline | orchestrator 显式声明 N + 全部 sub-agent 传 `schema:` + push rate-limited (≤2) + text fallback |
+| 6+ | 拒绝，建议拆 2 个 session | context overflow 风险 |
+
+**用户 override 触发条件**：用户显式说"5 仓并行"/"multi-site"/"N-site in slowest-time"。Orchestrator 必须 ask 一次确认 scope 后启动。
+
+---
+
 ## Workflow Reminder
 
 **SCAN 工作流**：scan → fix → build-verify → commit
@@ -1084,3 +1314,10 @@ Step 4 — 验证构建
 2. 应用修复
 3. 重新 `npm run build` 和 `npx astro check` 确认零错误
 4. `git add -A` → `smart-autopush.sh` 提交（描述审计/修复内容）
+
+**Multi-Site SCAN 工作流**（2026-06-02 起，详见 §15）：
+1. Phase 1: 1 agent per site, scan-only (no push) — 全部传 `schema:`
+2. Phase 2: 1 aggregator agent (barrier) — 写 UNIFIED-REPORT.md
+3. Phase 3: 1 agent per site, P1+P2 fixes only — 全部传 `schema:`
+4. Phase 4: push in batches of 2 — 每仓先 `git pull --rebase`
+5. Phase 5: verify (final state check)
