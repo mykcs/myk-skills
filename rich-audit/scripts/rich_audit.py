@@ -732,31 +732,11 @@ def check_timeliness(report: dict) -> list[dict]:
             })
 
     # Skills without SKILL.md
-    # Filter: skip structural subdirs (not real skills).
-    # Per code.claude.com/docs/en/skills: SKILL.md is the only required file,
-    # but the dir itself must be a real skill — not a tool, asset, or metadata dir.
-    # v1.0.0 reported 25 false positives (e.g. .git, .omc, scripts, templates,
-    # assets, themes, examples, reference, references, docs, plugins, shared,
-    # core, .claude-plugin). v2.0: skip these explicitly.
-    skills_dir = CLAUDE_DIR / "skills"
-    if skills_dir.exists():
-        for skill_dir in skills_dir.iterdir():
-            if not skill_dir.is_dir():
-                continue
-            # Skip structural subdirs
-            if skill_dir.name in SKILL_STRUCTURAL_EXCLUDE:
-                continue
-            # Skip hidden dirs (other than known skills with dot-prefix)
-            if skill_dir.name.startswith(".") and skill_dir.name not in SKILL_STRUCTURAL_EXCLUDE:
-                continue
-            if not (skill_dir / "SKILL.md").exists():
-                findings.append({
-                    "severity": "MED",
-                    "file": str(skill_dir),
-                    "line": None,
-                    "message": f"Skill directory missing SKILL.md: {skill_dir.name}",
-                    "auto_fix": None,
-                })
+    # v2.1: removed — this duplicate emission is now in check_skill_health().
+    # Previously emitted the same finding in two dimensions (timeliness AND
+    # skill_health), causing double-counting and dragging health_score.
+    # The skill_health check is the canonical home for skill structural issues
+    # (line count, description size, missing SKILL.md).
 
     # Obsolete directories check
     obsolete_names = {"_archive", ".old", "backup", "tmp"}
@@ -1071,7 +1051,9 @@ def check_performance(report: dict) -> list[dict]:
 
 ARCH_HEALTH_THRESHOLDS = {
     "max_total_rules_lines": 3000,
-    "max_claude_md_lines": 120,
+    "max_claude_md_lines": 200,  # v2.1: aligned with Anthropic official target
+                                  # (https://code.claude.com/docs/en/memory) + R1
+                                  # rule change in rules/behavioral-workflow.md
     "max_single_rule_lines": 600,
     "max_rule_files": 15,
     "max_behavioral_prefix_files": 6,
@@ -1708,7 +1690,7 @@ def main():
     report = {
         "meta": {
             "tool": "rich-audit.py",
-            "version": "2.1.0",
+            "version": "2.2.0",
             "timestamp": now_iso(),
             "fix_mode": args.fix,
         },
