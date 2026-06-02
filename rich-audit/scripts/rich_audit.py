@@ -910,30 +910,77 @@ def check_redundancy(report: dict) -> list[dict]:
                     "auto_fix_data": paths,
                 })
 
-    # Unused scripts not referenced by hooks
+    # Unused scripts not referenced by anything
+    # v2.1: comprehensive reference scan (hooks + rules + skills + settings +
+    # cross-scripts). Previous version only checked hooks, which gave false
+    # positives for scripts referenced from rules/behavioral-*.md or skills.
     scripts_dir = CLAUDE_DIR / "scripts"
     if scripts_dir.exists():
         all_scripts = {f.name for f in scripts_dir.iterdir() if f.is_file()}
-        referenced = set()
-        hooks_json = CLAUDE_DIR / "hooks" / "hooks.json"
-        if hooks_json.exists():
+        referenced: set[str] = set()
+
+        # 1) Hook references (settings.json + hooks/hooks.json + settings.local.json)
+        for settings_path in (CLAUDE_DIR / "settings.json",
+                              CLAUDE_DIR / "settings.local.json",
+                              CLAUDE_DIR / "hooks" / "hooks.json"):
+            if not settings_path.exists():
+                continue
             try:
-                hooks_cfg = json.loads(hooks_json.read_text())
-                hooks_section = hooks_cfg.get("hooks", {})
-                for event_type, hook_list in hooks_section.items() if isinstance(hooks_section, dict) else []:
-                    if not isinstance(hook_list, list):
-                        continue
-                    for hook_def in hook_list:
-                        if not isinstance(hook_def, dict):
-                            continue
-                        for inner_hook in hook_def.get("hooks", []):
-                            if isinstance(inner_hook, dict):
-                                cmd = inner_hook.get("command", "")
-                                for part in cmd.split():
-                                    referenced.add(os.path.basename(part))
-            except Exception:
-                pass
-        # Independent CLI tools not meant to be called by hooks
+                content = settings_path.read_text()
+            except OSError:
+                continue
+            for s in all_scripts:
+                if s in content:
+                    referenced.add(s)
+
+        # 2) Rules references
+        rules_dir = CLAUDE_DIR / "rules"
+        if rules_dir.exists():
+            for rule_file in rules_dir.rglob("*.md"):
+                try:
+                    content = rule_file.read_text()
+                except OSError:
+                    continue
+                for s in all_scripts:
+                    if s in content:
+                        referenced.add(s)
+
+        # 3) Skills references (in ~/.agents/skills/)
+        agents_skills = HOME / ".agents" / "skills"
+        if agents_skills.exists():
+            for skill_file in agents_skills.rglob("SKILL.md"):
+                try:
+                    content = skill_file.read_text()
+                except OSError:
+                    continue
+                for s in all_scripts:
+                    if s in content:
+                        referenced.add(s)
+
+        # 4) Cross-script references (one script calls another)
+        for s in all_scripts:
+            script_path = scripts_dir / s
+            try:
+                content = script_path.read_text()
+            except OSError:
+                continue
+            for other in all_scripts:
+                if other != s and other in content:
+                    referenced.add(other)
+
+        # 5) CLAUDE.md / settings.local.json explicit allowlists
+        for extra_path in (CLAUDE_DIR / "CLAUDE.md", CLAUDE_DIR / "settings.local.json"):
+            if not extra_path.exists():
+                continue
+            try:
+                content = extra_path.read_text()
+            except OSError:
+                continue
+            for s in all_scripts:
+                if s in content:
+                    referenced.add(s)
+
+        # Independent CLI tools not meant to be called by anything (CLI tools)
         independent_scripts = {
             "smart-autopush.sh", "ap-intent.sh", "evolve.sh",
             "evolution-trigger.sh", "evolution-distill.sh",
@@ -942,16 +989,26 @@ def check_redundancy(report: dict) -> list[dict]:
             "bitable-sync-guard.py", "gh-api-push.sh",
             "omc-quality-benchmark.sh", "memory-audit.sh",
             "test_rich_audit.py",
+            # v2.1: audit/CLI tools (invoked manually or by future hooks)
+            "check-skills.sh", "l2-check.sh", "omc-version-sync.sh",
+            "context-verify.sh", "smart-push.sh", "evolve.sh",
         }
         for script in all_scripts - referenced:
             if script in ("rich-audit.py", "rich_audit.py") or script in independent_scripts:
                 continue
+            # Skip already-archived scripts
+            if (scripts_dir / "archive-2026-06" / script).exists():
+                continue
+            # v2.1: orphan script (truly no references anywhere).
+            # Auto-archive to scripts/archive-YYYY-MM/ (preserves evidence chain).
+            target = scripts_dir / script
             findings.append({
                 "severity": "LOW",
-                "file": str(scripts_dir / script),
+                "file": str(target),
                 "line": None,
-                "message": f"Script not referenced by any hook: {script}",
-                "auto_fix": None,
+                "message": f"Orphan script (no references in hooks/rules/skills/settings): {script}",
+                "auto_fix": "archive_orphan_script",
+                "auto_fix_target": str(target),
             })
 
     return findings
@@ -1351,6 +1408,19 @@ def apply_fix(finding: dict) -> dict:
             # Mark for AI-layer handling; script layer just flags it
             finding["fix_result"] = "flagged_for_ai_merge"
 
+        elif fix_type == "archive_orphan_script":
+            # v2.1: move orphan script to scripts/archive-YYYY-MM/<name>.
+            # Preserves evidence chain; can be restored manually.
+            ts = datetime.datetime.now().strftime("%Y-%m")
+            archive_dir = target_path.parent / f"archive-{ts}"
+            archive_dir.mkdir(exist_ok=True)
+            dest = archive_dir / target_path.name
+            if dest.exists():
+                # Avoid clobber; suffix with timestamp
+                dest = archive_dir / f"{target_path.stem}.{ts}{target_path.suffix or ''}"
+            target_path.rename(dest)
+            finding["fix_result"] = f"archived_to_{archive_dir.name}_{target_path.name}"
+
         else:
             finding["fix_result"] = "unsupported"
 
@@ -1630,6 +1700,8 @@ def _detect_project_modes() -> dict[str, Any]:
 def main():
     parser = argparse.ArgumentParser(description="rich-audit Layer 1 mechanical scan")
     parser.add_argument("--fix", action="store_true", help="Apply safe auto-fixes")
+    parser.add_argument("--filter-archive", action="store_true",
+                        help="Exclude archive-*/ findings from output (cleaner noise-free report)")
     parser.add_argument("--output", type=str, default=None, help="Output JSON path")
     args = parser.parse_args()
 
@@ -1658,6 +1730,11 @@ def main():
     all_findings: list[dict] = []
     for dim_name, dim_fn in dimension_funcs:
         findings = dim_fn(report)
+        # v2.1: --filter-archive option suppresses archive-path findings.
+        # Archive is tracked separately in archive_health; this is purely
+        # for cleaner display when user wants to focus on active drift.
+        if args.filter_archive:
+            findings = [f for f in findings if not _is_archive_finding(f)]
         report["dimensions"][dim_name] = {
             "findings_count": len(findings),
             "findings": findings,
