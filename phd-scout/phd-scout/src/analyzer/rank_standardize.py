@@ -1,6 +1,7 @@
 """Rank standardization for Chinese academic titles."""
 import json
 import re
+from pathlib import Path
 from typing import Optional
 
 
@@ -14,7 +15,11 @@ class RankStandardizer:
     - Talent: 无 → 四青 → 杰青/长江 → 更高
     """
 
-    def __init__(self, mapping_path: str = "/Users/myk/phd-scout/config/rank_mapping.json"):
+    def __init__(self, mapping_path: str = None):
+        if mapping_path is None:
+            skill_dir = Path(__file__).resolve().parent.parent.parent
+            mapping_path = skill_dir / "config" / "rank_mapping.json"
+            mapping_path = str(mapping_path)
         with open(mapping_path, "r", encoding="utf-8") as f:
             self.mapping = json.load(f)
 

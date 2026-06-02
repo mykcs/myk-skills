@@ -2,6 +2,8 @@
 import json
 import logging
 import re
+import os
+from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -16,7 +18,12 @@ class DirectionAnalyzer:
 
     KEYWORD_THRESHOLD = 0.7
 
-    def __init__(self, keywords_path: str = "/Users/myk/phd-scout/config/keywords.json"):
+    def __init__(self, keywords_path: str = None):
+        if keywords_path is None:
+            # Resolve relative to this file's directory
+            skill_dir = Path(__file__).resolve().parent.parent.parent
+            keywords_path = skill_dir / "config" / "keywords.json"
+            keywords_path = str(keywords_path)
         with open(keywords_path, "r", encoding="utf-8") as f:
             config = json.load(f)
 

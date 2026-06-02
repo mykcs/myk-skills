@@ -1,0 +1,5 @@
+aiohttp>=3.9.0
+requests>=2.31.0
+scholarly>=1.7.0
+playwright>=1.40.0
+openai>=1.12.0

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from src.orchestrator import Orchestrator
+from src.writers.lark_writer import _run_lark_cli
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,13 +19,15 @@ logger = logging.getLogger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="PhD Scout - Advisor intelligence gathering")
-    parser.add_argument("--mode", choices=["single", "batch", "audit"], required=True)
+    parser.add_argument("--mode", choices=["single", "batch", "audit", "refresh"], required=True)
     parser.add_argument("--name", help="Teacher name for single mode")
     parser.add_argument("--university", help="University for single mode")
     parser.add_argument("--school", help="School for single mode")
     parser.add_argument("--input", help="Input JSONL file for batch mode")
     parser.add_argument("--filter-tags", help="Filter tags for audit mode")
-    parser.add_argument("--lark-table", help="Feishu table ID")
+    parser.add_argument("--base-id", dest="base_id", help="Base app token")
+    parser.add_argument("--table-id", dest="table_id", help="Table ID within the base")
+    parser.add_argument("--lark-table", help="Base app token (backward compat alias for --base-id)")
     parser.add_argument("--report", action="store_true", help="Generate execution report")
     parser.add_argument("--output-dir", default="output", help="Output directory")
     return parser.parse_args()
@@ -99,52 +102,99 @@ async def run_batch(args, orchestrator: Orchestrator):
 
 
 async def run_audit(args, orchestrator: Orchestrator):
-    """Run audit mode for existing teachers."""
-    logger.info("Audit mode - fetching existing records from Feishu")
-    logger.info("Note: Audit requires feishu-agent skill or direct API access")
-    print(json.dumps({
-        "status": "not_implemented",
-        "message": "Audit mode requires feishu-agent skill integration"
-    }, ensure_ascii=False, indent=2))
+    """Run audit mode: detect schema from target table and emit audit report."""
+    report = orchestrator.audit_existing_records()
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return report
 
 
-def save_report(result: dict, output_dir: str):
-    """Save execution report."""
-    output_path = Path(output_dir) / "reports"
-    output_path.mkdir(parents=True, exist_ok=True)
-    name = result.get("name", "unknown")
-    report_file = output_path / f"{name}_report.json"
-    with open(report_file, "w", encoding="utf-8") as f:
-        json.dump(result.get("report", result), f, ensure_ascii=False, indent=2)
+async def run_refresh(orchestrator: Orchestrator):
+    """
+    Refresh mode: read all existing teachers from Feishu table,
+    run 5-level fetch for each, update records with new data.
+    """
+    # Get all teachers from table
+    field_map = orchestrator.lark_writer._build_field_map()
+    name_field = field_map.get("name", "姓名")
 
+    ok, stdout, stderr = _run_lark_cli([
+        "base", "+record-list",
+        "--base-token", orchestrator.lark_writer.app_token,
+        "--table-id", orchestrator.lark_writer.table_id,
+        "--limit", "500"
+    ])
+    if not ok:
+        logger.error(f"Failed to read records: {stderr}")
+        print(json.dumps({"status": "error", "message": stderr}))
+        return
 
-def save_batch_report(teachers: list, results: list, output_dir: str):
-    """Save batch execution summary."""
-    output_path = Path(output_dir) / "reports"
-    output_path.mkdir(parents=True, exist_ok=True)
-    summary_file = output_path / "batch_summary.json"
+    resp = json.loads(stdout)
+    raw_data = resp.get("data", {})
+    fields = raw_data.get("fields", [])
+    records = raw_data.get("data", [])
+    record_ids = raw_data.get("record_id_list", [])
+
+    # Find name field index
+    name_idx = None
+    school_idx = None
+    for i, f in enumerate(fields):
+        if f == name_field:
+            name_idx = i
+        if f == field_map.get("school", "学院"):
+            school_idx = i
+
+    if name_idx is None:
+        logger.error(f"Name field '{name_field}' not found in table")
+        return
+
+    teachers = []
+    for i, row in enumerate(records):
+        if not row or len(row) <= name_idx:
+            continue
+        name = row[name_idx]
+        school = row[school_idx] if school_idx is not None and school_idx < len(row) else "软件学院"
+        record_id = record_ids[i] if i < len(record_ids) else None
+        # Get existing 近3年文章 text for signal fallback
+        papers_idx = None
+        for fi, f in enumerate(fields):
+            if f == field_map.get("papers", "近3年文章"):
+                papers_idx = fi
+                break
+        existing_papers = row[papers_idx] if papers_idx is not None and papers_idx < len(row) else None
+        if name:
+            teachers.append({
+                "name": name,
+                "university": "浙大",
+                "school": school,
+                "_record_id": record_id,
+                "_existing_papers": existing_papers,
+            })
+
+    logger.info(f"Found {len(teachers)} teachers to refresh")
+
+    results = []
+    for i, teacher in enumerate(teachers, 1):
+        name = teacher.get("name")
+        logger.info(f"[{i}/{len(teachers)}] Refreshing: {name}")
+        try:
+            result = await orchestrator.process_teacher(teacher)
+            results.append(result)
+            logger.info(f"  → signal={result.get('signal')}, h_index={result.get('h_index')}")
+        except Exception as e:
+            logger.error(f"  → Failed: {e}")
+            results.append({"name": name, "status": "error", "error": str(e)})
+
     summary = {
         "total": len(teachers),
-        "succeeded": len(results),
-        "failed": len(teachers) - len(results),
-        "results": [
-            {
-                "name": r.get("name"),
-                "signal": r.get("signal"),
-                "confidence": r.get("confidence"),
-            }
-            for r in results
-        ]
+        "succeeded": sum(1 for r in results if r.get("status") != "error"),
+        "failed": sum(1 for r in results if r.get("status") == "error"),
     }
-    with open(summary_file, "w", encoding="utf-8") as f:
-        json.dump(summary, f, ensure_ascii=False, indent=2)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return results
 
 
 def main():
     args = parse_args()
-
-    # Extract Lark credentials from args or environment
-    lark_table = args.lark_table
 
     orchestrator = Orchestrator()
 
@@ -159,7 +209,21 @@ def main():
             sys.exit(1)
         asyncio.run(run_batch(args, orchestrator))
     elif args.mode == "audit":
+        if args.base_id:
+            orchestrator.lark_writer.app_token = args.base_id
+            orchestrator.lark_writer._schema_cache = None
+        if args.table_id:
+            orchestrator.lark_writer.table_id = args.table_id
+            orchestrator.lark_writer._schema_cache = None
         asyncio.run(run_audit(args, orchestrator))
+    elif args.mode == "refresh":
+        if not args.base_id or not args.table_id:
+            logger.error("--base-id and --table-id required for refresh mode")
+            sys.exit(1)
+        orchestrator.lark_writer.app_token = args.base_id
+        orchestrator.lark_writer.table_id = args.table_id
+        orchestrator.lark_writer._schema_cache = None
+        asyncio.run(run_refresh(orchestrator))
 
 
 if __name__ == "__main__":

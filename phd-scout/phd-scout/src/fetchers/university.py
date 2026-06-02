@@ -82,8 +82,10 @@ class UniversityFetcher:
             return {"success": False, "error": "Playwright not available", "source": "L1_university"}
 
         import json
-
-        with open("/Users/myk/phd-scout/config/universities.json", "r", encoding="utf-8") as f:
+        from pathlib import Path
+        skill_dir = Path(__file__).resolve().parent.parent.parent
+        univ_path = skill_dir / "config" / "universities.json"
+        with open(univ_path, "r", encoding="utf-8") as f:
             universities_config = json.load(f)
 
         if affiliation not in universities_config:

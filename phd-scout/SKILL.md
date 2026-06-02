@@ -105,9 +105,37 @@ description: |
 
 ## 飞书写入（lark-cli）
 
+### Schema 自适应（核心规则）
+
+**当目标表与标准 schema 不匹配时**，按以下流程处理，不要硬编码字段名：
+
+1. **探测阶段**：用 `lark-cli base +field-list` 读取目标表的真实字段名和类型
+2. **映射阶段**：按字段语义建立配对（姓名→name，学院→school，职称→title，等）
+3. **补齐阶段**：如果目标表缺少 phd-scout 标准输出中的字段，不写入；只写能匹配上的字段
+4. **记录阶段**：在执行报告中标注哪些字段无法映射（`unmapped_fields`）
+
 **lark-cli 版本差异大**：`+record-list` 的 `--filter` flag 在 1.0.44+ 才支持，1.0.19 不支持。直接用 Python 遍历过滤（见 `src/writers/lark_writer.py:_find_by_name`）。
 
 **响应格式**：`data.data[i]` 是值的数组（按 `data.fields` 顺序），与 `data.record_id_list[i]` 下标对齐。
+
+### 字段语义映射优先级
+
+按以下顺序尝试匹配（语义优先，非名称优先）：
+
+| 语义角色 | 可能的字段名模式 | 映射到标准字段 |
+|---------|----------------|--------------|
+| 导师姓名 | 姓名、name、导师、老师 | `name` |
+| 学校 | 大学、university、学校 | `university` |
+| 学院 | 学院、school、系 | `school` |
+| 职称 | 职称、title、职务、职级 | `raw_title` |
+| 研究方向 | 研究方向、方向、tags、research | `research_tags` |
+| 联系状态 | 联系状态、状态、contact | `contact_status` |
+| 推荐优先级 | 推荐优先级、优先级、priority | `priority` |
+| 方向匹配度 | 方向匹配度、匹配度 | `direction_score` |
+| 近3年文章 | 近3年文章、论文、papers | `recent_papers` |
+| 邮箱 | 邮箱、email、mail | `email` |
+| 主页 | 主页、url、link、website | `homepage` |
+| 备注 | 备注、notes、note | `notes` |
 
 ## kimi-webbridge 抓取 ZJU 老师
 
@@ -131,17 +159,22 @@ description: |
 
 ## 执行命令
 
+> **注意**：`main.py` 在 skill 目录的 `phd-scout/` 子目录中，不是 skill 根目录。
+
 ```bash
-cd ~/phd-scout
+cd ~/.mavis/skills/phd-scout/phd-scout
 
 # 单个老师
-python main.py --mode single --name "张三" --university "清华" --school "计算机系"
+python3 main.py --mode single --name "张三" --university "清华" --school "计算机系"
 
 # 批量处理
-python main.py --mode batch --input queue/teachers.jsonl --report
+python3 main.py --mode batch --input ../queue/teachers.jsonl --report
 
 # 审计已有记录
-python main.py --mode audit --filter-tags "#方向精准"
+python3 main.py --mode audit --base-id <base_token> --table-id <table_id>
+
+# 刷新表格（读取表中老师 → 五级抓取 → 回写）
+python3 main.py --mode refresh --base-id <base_token> --table-id <table_id>
 ```
 
 ## 学生去向推断算法

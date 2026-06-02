@@ -14,7 +14,7 @@ from src.fetchers.social import SocialFetcher
 from src.analyzer.direction import DirectionAnalyzer
 from src.analyzer.rank_standardize import RankStandardizer
 from src.analyzer.student_tracker import StudentTracker
-from src.writers.lark_writer import LarkWriter
+from src.writers.lark_writer import LarkWriter, _run_lark_cli, SEMANTIC_MAPPING
 from src.auditor import Auditor
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,7 @@ class Orchestrator:
         self.direction_analyzer = DirectionAnalyzer()
         self.rank_standardizer = RankStandardizer()
         self.student_tracker = StudentTracker()
+        # app_token = base (app) token, table_id = table id
         self.lark_writer = LarkWriter(lark_app_token, lark_table_id)
         self.auditor = Auditor()
 
@@ -84,6 +85,10 @@ class Orchestrator:
             "students": [],
             "collaborators": [],
         }
+
+        # Carry over existing papers from table (refresh mode)
+        if teacher.get("_existing_papers"):
+            data["_existing_papers"] = teacher["_existing_papers"]
 
         # L1: University website
         try:
@@ -198,31 +203,34 @@ class Orchestrator:
         return data
 
     def _determine_signal(self, report: dict, data: dict) -> str:
-        """Determine danger signal based on fetch results and paper activity."""
+        """
+        Determine danger signal based on fetch results and paper activity.
+        Falls back to existing table data (近3年文章 text field) when fetchers fail.
+        """
         levels_failed = report.get("levels_failed", {})
-
-        # 🔴 Red: all L1-L4 failed
-        l1_failed = "L1" in levels_failed
-        l2_failed = "L2" in levels_failed
         l3_failed = "L3" in levels_failed
         l4_failed = "L4" in levels_failed
 
-        if l1_failed and l2_failed and l3_failed and l4_failed:
+        # Has papers from successful fetch?
+        papers = data.get("papers", [])
+        recent_papers = [p for p in papers if p.get("year", 0) >= datetime.now().year - 3]
+
+        # Has existing table papers (近3年文章 text field)?
+        existing_papers_text = data.get("_existing_papers")
+
+        # 🟢 Green if: fetchers got papers OR we have existing table data
+        if recent_papers or (existing_papers_text and not (l3_failed and l4_failed)):
+            return "green"
+
+        # 🟡 Yellow: fetchers succeeded but no recent papers
+        if not l3_failed and not recent_papers:
+            return "yellow"
+
+        # 🔴 Red: L3 & L4 both failed AND no existing papers to fall back on
+        if l3_failed and l4_failed and not existing_papers_text:
             return "red"
 
-        # 🟡 Yellow: L1 success but no recent papers
-        if not l1_failed:
-            papers = data.get("papers", [])
-            recent_papers = [p for p in papers if p.get("year", 0) >= datetime.now().year - 3]
-            if len(recent_papers) == 0:
-                return "yellow"
-
-            direction_score = data.get("direction_score", 0)
-            if direction_score == 0:
-                return "yellow"
-
-        # 🟢 Green: everything else
-        return "green"
+        return "green"  # Safe default: avoid red when there's any data
 
     def _compute_confidence(self, report: dict) -> int:
         """Compute 1-5 confidence score."""
@@ -275,6 +283,80 @@ class Orchestrator:
             tags.append("#高活跃")
 
         return tags
+
+    def audit_existing_records(self) -> dict:
+        """
+        Audit mode: read all existing records from the target Feishu table,
+        detect schema, and emit an audit report (no re-fetch, no writes).
+        Used when target table schema doesn't match standard phd-scout schema.
+        """
+        schema = self.lark_writer._detect_schema()
+        field_map = self.lark_writer._build_field_map()
+
+        # Read all records
+        ok, stdout, stderr = _run_lark_cli([
+            "base", "+record-list",
+            "--base-token", self.lark_writer.app_token,
+            "--table-id", self.lark_writer.table_id,
+            "--limit", "500"
+        ])
+        if not ok:
+            return {"status": "error", "message": stderr}
+
+        resp = json.loads(stdout)
+        raw_data = resp.get("data", {})
+        fields = raw_data.get("fields", [])
+        records = raw_data.get("data", [])
+        record_ids = raw_data.get("record_id_list", [])
+
+        report = {
+            "status": "audit_complete",
+            "schema_detected": schema,
+            "field_map": field_map,
+            "unmapped_fields": [],
+            "records_audited": 0,
+            "record_reports": []
+        }
+
+        # Build reverse map: lark_field_name → standard_field
+        reverse_map = {v: k for k, v in field_map.items()}
+
+        # Check which standard fields have no target column
+        for std_field in SEMANTIC_MAPPING:
+            if std_field not in field_map:
+                report["unmapped_fields"].append(std_field)
+
+        for i, row in enumerate(records):
+            if not row:
+                continue
+            record_id = record_ids[i] if i < len(record_ids) else None
+            field_dict = dict(zip(fields, row))
+
+            name = field_dict.get(field_map.get("name", ""), "")
+            school = field_dict.get(field_map.get("school", ""), "")
+            university = field_dict.get(field_map.get("university", ""), "浙大")
+
+            rec_report = {
+                "name": name,
+                "record_id": record_id,
+                "university": university,
+                "school": school,
+            }
+
+            # Map standard fields from this record
+            mapped = {}
+            for std_f, lark_f in field_map.items():
+                val = field_dict.get(lark_f)
+                if val is not None:
+                    mapped[std_f] = val
+
+            rec_report["mapped_fields"] = list(mapped.keys())
+            rec_report["signal"] = "unknown"  # No external fetch, can't determine
+
+            report["record_reports"].append(rec_report)
+            report["records_audited"] += 1
+
+        return report
 
     def _build_abandon_reason(self, report: dict) -> str:
         """Build abandonment log from failed levels."""
