@@ -54,5 +54,36 @@ done
   - `~/.claude/omc/scripts/run-provider-advisor.js`：删除 `OMX_ASK_ORIGINAL_TASK` alias 常量 + 读取分支
   - `~/.claude/hooks/pre-tool-use.mjs` + template：删除 `OMX_TEAM_WORKER` fallback
   - 剩余 3 处 OMX 字符串为解释性注释
-- ⏳ **Team MCP runtime 废弃**：`mcp__team__omc_run_team_*` 改用 CLI `omc team N:agent-type "task"`。详见本地 OMC 插件 `~/.claude/plugins/cache/omc/oh-my-claudecode/4.14.4/docs/MIGRATION.md`。
-- **Native Team Worktree Mode**：worker 在独立 git worktree 中运行（opt-in）。
+- ⏳ **Team MCP runtime 废弃**：`mcp__team__omc_run_team_*` 改用 CLI `omc team N:agent-type "task"`。CLI 已可用（`/opt/homebrew/bin/omc`），无需等 OMC 5.0。
+- **Native Team Worktree Mode**：worker 在独立 git worktree 中运行（opt-in，env `OMC_TEAM_WORKTREE_MODE=detached|branch`）。
+
+## `omc team` CLI 即用参考
+
+**基本语法**：`omc team [N:agent-type[:role]] [options] "<task>"`
+
+| 模式 | 命令 | 说明 |
+|------|------|------|
+| 同构 N-worker | `omc team 3:claude "fix failing tests"` | 3 个 Claude worker 并行 |
+| 角色化 | `omc team 2:codex:architect "design auth"` | 2 个 codex worker，role=architect |
+| 异构 provider | `omc team 1:codex,1:gemini "compare"` | 1 codex + 1 gemini |
+| 新窗口 | `omc team 2:codex "review" --new-window` | 每个 worker 独立 tmux 窗口 |
+| 禁分解 | `omc team 2:claude "..." --no-decompose` | 整段作为单一 worker scope |
+
+**管理子命令**：
+- `omc team status <name>` — 查看 team 状态
+- `omc team shutdown <name> [--force]` — 关闭 team
+- `omc team api <op> --input '<json>'` — 编程式交互（send-message 等）
+
+**Worktree 隔离**：env `OMC_TEAM_WORKTREE_MODE=detached` 让每个 worker 在 `.omc/team/<name>/worktrees/<worker>/` 独立工作。
+
+**典型工作流**（rich-audit Layer 2 修复时使用）：
+```bash
+# 启动 3 个 worker 并行修不同 PENDING 项
+omc team 3:claude "fix 5 PENDING items from rich-audit report"
+
+# 异步查询状态
+sleep 60 && omc team status fix-rich-audit
+
+# 完成后关闭
+omc team shutdown fix-rich-audit
+```
