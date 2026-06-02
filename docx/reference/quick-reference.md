@@ -1,16 +1,3 @@
----
-name: docx
-description: Use when the user wants to create, edit, or manipulate Word documents (.docx).
-license: Proprietary. LICENSE.txt has complete terms
----
-
-# DOCX creation, editing, and analysis
-
-## Overview
-
-A .docx file is a ZIP archive containing XML files.
-
-## Quick Reference
 
 | Task | Approach |
 |------|----------|
@@ -54,8 +41,3 @@ python scripts/accept_changes.py input.docx output.docx
 ---
 
 ## Creating New Documents
-
-## Reference Files
-
-- [Quick Reference](reference/quick-reference.md) — converting, reading, tracked changes, images
-- [Creating New Documents](reference/creating-documents.md) — setup, validation, styles, lists, tables, images, hyperlinks, footnotes
