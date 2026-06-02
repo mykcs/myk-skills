@@ -50,6 +50,9 @@ done
 
 ## OMC 4.14.4 迁移窗口
 
-- **OMX_ASK_\* → OMC_ASK_\***：硬 sunset **2026-06-30**（28 天）。`run-provider-advisor.js` 已带 deprecation warning。
-- **Team MCP runtime 废弃**：`mcp__team__omc_run_team_*` 改用 CLI `omc team N:agent-type "task"`。详见本地 OMC 插件 `~/.claude/plugins/cache/omc/oh-my-claudecode/4.14.4/docs/MIGRATION.md`。
+- ✅ **OMX_ASK_\* / OMX_TEAM_WORKER 全面替换（2026-06-02 提前 28 天完成）**：
+  - `~/.claude/omc/scripts/run-provider-advisor.js`：删除 `OMX_ASK_ORIGINAL_TASK` alias 常量 + 读取分支
+  - `~/.claude/hooks/pre-tool-use.mjs` + template：删除 `OMX_TEAM_WORKER` fallback
+  - 剩余 3 处 OMX 字符串为解释性注释
+- ⏳ **Team MCP runtime 废弃**：`mcp__team__omc_run_team_*` 改用 CLI `omc team N:agent-type "task"`。详见本地 OMC 插件 `~/.claude/plugins/cache/omc/oh-my-claudecode/4.14.4/docs/MIGRATION.md`。
 - **Native Team Worktree Mode**：worker 在独立 git worktree 中运行（opt-in）。
