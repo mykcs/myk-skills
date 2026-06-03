@@ -1306,6 +1306,409 @@ for (let i = 0; i < pushable.length; i += 2) {
 
 ---
 
+## §23. i18n switch URL — getRelativeLocaleUrl + prefixDefaultLocale:false 验证
+
+> **触发条件**：`astro.config.mjs` 中 `i18n.prefixDefaultLocale: false`
+>
+> **历史来源**：2026-06-03 mykcs.github.io `Masthead.astro`（zh → en 切换跳到 `/en/` 但 en news_items 实际为 `/en/cv/` → 404）
+
+### 检测
+
+```bash
+# 1. 读 astro.config.mjs 的 i18n 配置
+grep -E "prefixDefaultLocale|defaultLocale" astro.config.mjs
+
+# 2. 找所有 getRelativeLocaleUrl 调用
+grep -rn "getRelativeLocaleUrl" src/ --include="*.astro" --include="*.ts"
+
+# 3. 验证返回值在 dist 中存在
+node -e "
+const fs = require('fs');
+const path = require('path');
+const re = /href=\"([^\"]+)\"/g;
+const files = require('glob').sync('dist/**/*.html');
+const broken = [];
+
+files.forEach(f => {
+  const html = fs.readFileSync(f, 'utf-8');
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    const href = m[1];
+    if (href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:')) continue;
+    if (href.match(/\.[a-z]{2,4}$/)) continue;  // 静态资源
+    const clean = href.replace(/\/$/, '');
+    const candidates = [
+      'dist' + clean,
+      'dist' + clean + '/index.html',
+    ];
+    if (!candidates.some(c => fs.existsSync(c))) {
+      broken.push(\`\${f} → \${href} NOT FOUND\`);
+    }
+  }
+});
+
+if (broken.length) {
+  console.log('=== BROKEN I18N SWITCH URLS ===');
+  broken.forEach(b => console.log(b));
+  process.exit(1);
+} else {
+  console.log('OK: all i18n switch URLs resolve');
+}
+"
+```
+
+### 修复模式
+
+```typescript
+// 错
+const switchUrl = getRelativeLocaleUrl(targetLocale, currentPath);
+// prefixDefaultLocale:false 时返回 '/cv/'（无前缀）→ 404
+
+// 对
+const basePath = Astro.url.pathname.replace(/^\/(en|zh)\//, '/').replace(/^\/(en|zh)$/, '/') || '/';
+const switchUrl = targetLocale === 'en'
+  ? \`/en\${basePath === '/' ? '/' : basePath}\`
+  : \`/zh\${basePath === '/' ? '/' : basePath}\`;
+```
+
+---
+
+## §24. JSON-LD `set:html` 验证
+
+> **触发条件**：项目使用 Schema.org `application/ld+json`
+>
+> **历史来源**：2026-06-03 GDKVM + OSA 同次审计中同时中招 — `<script define:vars={JSON}>{JSON.parse(structuredDataJson)}</script>` 不写 DOM
+
+### 检测
+
+```bash
+# 1. 找所有 application/ld+json script
+grep -rn 'application/ld+json' src/ --include="*.astro"
+
+# 2. 验证不是 define:vars 模式（写死 = broken）
+grep -rn 'application/ld+json' src/ --include="*.astro" | grep -E 'define:vars|JSON\.parse' && \
+  echo "BROKEN: define:vars 模式不写 DOM" || echo "OK"
+
+# 3. 验证 dist 中实际有 JSON 内容（不是空 script）
+python3 -c "
+import re, glob
+broken = []
+for f in glob.glob('dist/**/*.html', recursive=True):
+    html = open(f).read()
+    for m in re.finditer(r'<script type=\"application/ld\+json\"[^>]*>(.*?)</script>', html, re.DOTALL):
+        body = m.group(1).strip()
+        if not body or body == 'null' or len(body) < 5:
+            broken.append(f'{f}: empty JSON-LD body')
+        elif not body.startswith('{') and not body.startswith('['):
+            broken.append(f'{f}: JSON-LD body not JSON: {body[:50]}')
+
+if broken:
+    print('=== BROKEN JSON-LD ===')
+    for b in broken: print(b)
+    exit(1)
+else:
+    print('OK: JSON-LD content present in all pages')
+"
+```
+
+### 修复模式
+
+```astro
+<!-- 错 -->
+<script type="application/ld+json" is:inline define:vars={{ structuredData }}>
+  {JSON.parse(structuredDataJson)}
+</script>
+
+<!-- 对 -->
+<script type="application/ld+json" set:html={structuredDataJson} />
+```
+
+---
+
+## §25. Critters Cannot-Inline 检测
+
+> **触发条件**：项目使用 `astro-critters` 集成
+>
+> **历史来源**：2026-06-03 mykcs.github.io build log 报 3 个 `Cannot inline file dist/{index,design/index,hello/index}.html!` 噪声（meta-refresh 跳转桩无 CSS）
+
+### 检测
+
+```bash
+# build log 中 grep
+npm run build 2>&1 | grep -i "cannot inline" | head -5
+# 期望输出: 空（0 行）
+
+# 如果有 1+ 行 → 需要 filter meta-refresh 桩
+```
+
+### 修复模式
+
+```javascript
+// astro.config.mjs
+critters({
+  Critters: {
+    // Skip Astro's auto-generated meta-refresh redirect stubs
+    prerender: (path) => !{
+      'index.html': true,
+      'design/index.html': true,
+      'hello/index.html': true,
+    }[path] === true,
+  },
+}),
+```
+
+**注意**：列出所有 meta-refresh 桩（grep `dist -name "*.html" -exec grep -l "http-equiv.*refresh" {} \;`）。
+
+---
+
+## §26. Asset 优化检测
+
+> **触发条件**：`@fontsource/*` 字体 + `astro-pagefind` 集成 + 外部 CDN 静态资源
+
+### §26.1 woff cleanup（节省 ~4MB）
+
+```bash
+# 检测 dist 中 woff 文件
+find dist -name "*.woff" -exec ls -lh {} \;
+# 期望: 空
+
+# 检测 CSS @font-face 中引用 woff
+grep -rn 'format("woff")' dist/ --include="*.css" --include="*.html" | head -5
+# 期望: 空（删除 woff 时同时 strip CSS）
+```
+
+**修复模式**（build-pipeline.mjs `astro:build:done` hook）：
+
+```javascript
+function removeLegacyWoff(distDir) {
+  const _astro = path.join(distDir, '_astro');
+  if (!fs.existsSync(_astro)) return;
+  for (const f of fs.readdirSync(_astro)) {
+    if (f.endsWith('.woff')) {
+      const p = path.join(_astro, f);
+      console.log(`[woff-cleanup] Removed ${f} (${(fs.statSync(p).size / 1024 / 1024).toFixed(2)}MB)`);
+      fs.unlinkSync(p);
+    }
+  }
+  // 同时 strip CSS @font-face 声明
+  const stripWoff = (filePath) => {
+    if (!fs.existsSync(filePath)) return;
+    const original = fs.readFileSync(filePath, 'utf-8');
+    const stripped = original.replace(
+      /,url\([^)]+\.woff[^)]*\) format\("woff"\)/g, ''
+    );
+    if (stripped !== original) fs.writeFileSync(filePath, stripped, 'utf-8');
+  };
+  // 遍历 dist 中所有 .css 和 .html
+  // ...
+}
+```
+
+### §26.2 pagefind cleanup（节省 ~732K）
+
+```bash
+# 检测 pagefind 资产
+ls -d dist/pagefind/ 2>/dev/null
+# 期望: 不存在
+
+# 检测项目是否 import pagefind
+grep -rn "pagefind" src/ --include="*.astro" --include="*.ts"
+# 如果 dist/pagefind/ 存在但 src/ 无 import → 删除 dist/pagefind
+```
+
+### §26.3 translate.svg / icons 本地化
+
+```bash
+# 检测 cdn.jsdelivr.net 静态资源
+grep -rn 'src="https://cdn.jsdelivr.net' src/ --include="*.astro"
+# 期望: 0 个（除非学术资源库图片）
+
+# 替代方案：local public/icons/translate.svg
+ls public/icons/*.svg 2>/dev/null | head -5
+```
+
+---
+
+## §27. Sitemap filter post-process workaround
+
+> **触发条件**：`@astrojs/sitemap@3.7.x` 报 zod 验证错误
+>
+> **历史来源**：2026-06-03 GDKVM 实验 3 次（箭头函数 / function / async）filter option 全部 zod 失败
+
+### 检测
+
+```bash
+# build log 中 grep zod 错误
+npm run build 2>&1 | grep -i "zod\|invalid" | head -5
+
+# 验证 sitemap-0.xml 包含 redirect 桩
+test -f dist/sitemap-0.xml && \
+  grep -oE '<loc>[^<]*</loc>' dist/sitemap-0.xml | \
+  grep -E '/reprod/?$|GDKVM/$|osa/$' | head -5
+# 期望: 空（无 redirect 桩）
+```
+
+### 修复模式（post-process）
+
+```javascript
+// build-pipeline.mjs astro:build:done hook
+const sitemapFiles = ['sitemap-0.xml', 'sitemap-index.xml']
+  .map(f => path.join(distDir, f))
+  .filter(p => fs.existsSync(p));
+for (const sf of sitemapFiles) {
+  let xml = fs.readFileSync(sf, 'utf-8');
+  xml = xml.replace(
+    /<url>\s*<loc>https:\/\/wangrui2025\.github\.io\/GDKVM\/(?:(?:en|zh)\/)?reprod\/<\/loc>\s*<\/url>/g,
+    ''
+  );
+  xml = xml.replace(
+    /<url>\s*<loc>https:\/\/wangrui2025\.github\.io\/GDKVM\/<\/loc>\s*<\/url>/g,
+    ''
+  );
+  fs.writeFileSync(sf, xml, 'utf-8');
+}
+```
+
+---
+
+## §28. 双语 [lang]/404.astro 验证
+
+> **触发条件**：双语 i18n 项目（`/[lang]/*` 路由）
+
+### 检测
+
+```bash
+# 1. 验证 [lang]/404.astro 存在
+test -f "src/pages/[lang]/404.astro" && echo "OK" || echo "MISSING: [lang]/404.astro"
+
+# 2. 验证 dist 中 locale-prefixed 404 存在
+for locale in en zh; do
+  test -f "dist/${locale}/404/index.html" && echo "OK: dist/${locale}/404/" || \
+    echo "MISSING: dist/${locale}/404/"
+done
+
+# 3. 验证 lang switch 在 404 页可用
+grep -l "switchUrl\|getRelativeLocaleUrl" src/pages/[lang]/404.astro && \
+  grep "switchUrl\|getRelativeLocaleUrl" src/pages/[lang]/404.astro | head -3
+```
+
+### 修复模式
+
+```astro
+---
+// src/pages/[lang]/404.astro
+import Layout from '../../layouts/Layout.astro';
+import { t } from '../../i18n';
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'en' } },
+    { params: { lang: 'zh' } },
+  ];
+}
+
+const { lang } = Astro.params;
+---
+<Layout lang={lang} title="404">
+  <h1>404</h1>
+  <p>{t(lang, '404.message')}</p>
+  <a href={getRelativeLocaleUrl(lang === 'en' ? 'zh' : 'en', '/')}>
+    {t(lang, '404.switchLang')}
+  </a>
+</Layout>
+```
+
+---
+
+## §29. CI workflow 存在性 + 包管理匹配
+
+> **触发条件**：所有 active 站
+
+### 检测
+
+```bash
+# 1. 验证 .github/workflows 存在
+ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null
+# 期望: ≥ 1 个 workflow
+
+# 2. 验证 workflow 包管理与 packageManager 字段一致
+if grep -q '"packageManager".*"pnpm' package.json; then
+  grep -L "pnpm/action-setup\|pnpm install" .github/workflows/*.yml
+  # 期望: 空（无 workflow 用错的包管理）
+fi
+
+# 3. 验证 workflow 包含必需步骤
+for f in .github/workflows/*.yml; do
+  grep -q "actions/checkout" "$f" || echo "MISSING checkout: $f"
+  grep -q "actions/setup-node" "$f" || echo "MISSING setup-node: $f"
+  grep -q "upload-pages-artifact" "$f" || echo "MISSING upload-pages-artifact: $f"
+done
+```
+
+### 修复模式
+
+**无 CI 的站**（GDKVM 历史状态）：
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy Astro site to Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+**OSA 的 bug 修复**（npm → pnpm）：
+
+```yaml
+# ❌ 错：项目用 pnpm 但 workflow 用 npm
+- run: npm ci
+- run: npm run build
+
+# ✅ 对：统一 pnpm
+- uses: pnpm/action-setup@v6
+- run: pnpm install --frozen-lockfile
+- run: pnpm run build
+```
+
+---
+
 ## Workflow Reminder
 
 **SCAN 工作流**：scan → fix → build-verify → commit
