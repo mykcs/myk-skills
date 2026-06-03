@@ -1088,16 +1088,25 @@ Step 4 — 验证构建
 
 **触发场景**：消费者从 git submodule 迁移到 CDN（jsDelivr `@v1.x.y`）后，遗留的死 workflow。
 
-**检测命令**：
+**检测命令**（v3.3.0 self-resilient pattern，强制标准）：
 ```bash
+# v3.3.0 hardening: line-anchored EOL-anchored pattern
+# - 不会匹配 detection script 自身的 grep 字符串
+# - 无需 basename skip 来自我排除
 for yml in .github/workflows/*.yml; do
-  if grep -q "submodules: recursive" "$yml" 2>/dev/null; then
-    if [ ! -f .gitmodules ]; then
-      echo "DEAD: $yml references submodules but no .gitmodules exists"
+  [ -f "$yml" ] || continue
+  if grep -qE '^[[:space:]]+submodules:[[:space:]]+recursive[[:space:]]*$' "$yml" 2>/dev/null; then
+    if [ ! -f .gitmodules ] || ! grep -q '^\[submodule' .gitmodules 2>/dev/null; then
+      echo "DEAD: $yml references submodules but no valid .gitmodules (file missing or has no [submodule] sections)"
     fi
   fi
 done
 ```
+
+**self-resilient pattern 强制规则**（per SKILL.md §32）：
+- ✅ `^[[:space:]]+KEY:[[:space:]]+VALUE[[:space:]]*$` —— line-anchored + EOL-anchored
+- ❌ 裸 `grep -q "PATTERN"` —— 匹配自身 / 注释 / 字符串字面量
+- ❌ basename skip 唯一防御 —— 路径不匹配即失效
 
 **真实命中（2026-06-02）**：
 - mykcs.github.io: `.github/workflows/main.yml`（Sync Academic Submodule）→ 已删
@@ -1204,6 +1213,62 @@ done
 2. 除非用户显式声明这是 in-progress work
 3. 如有 uncommitted work：明确分类为 (a) 已 staged 待 commit、(b) 误操作需丢弃、(c) 故意保留需 commit
 4. (c) 类应在 audit 前 commit，避免污染 audit 上下文
+
+### §14.7 Cross-repo owner double-verify (gh api)
+
+> 触发：SKILL.md §31 升级（doc-sync 反向漂移防护）
+> 来源：CASE-CROSS-REPO-OWNER-DRIFT-20260603
+
+**模式**：doc / skill / 启动声明 引用 `<owner>/<repo>`，但该 owner/repo 在 GitHub 上 404（stale local config 误导）。
+
+**风险**：stale git remote 不会因 GitHub 404 而 fail。本地 `git remote -v` 可无限期指向 404 URL。doc-sync agent 仅查 git config 不足以发现，audit agent 跑 `gh api` 才能拦截。
+
+**真实命中（2026-06-03）**：
+- mykcs/OSA: gh api 404（task 描述错把它当 canonical，实际 wangrui2025/osa 才是）
+- 4 处 SKILL.md 替换 + 1 处 CLAUDE.md + 1 处 CASE-097 已污染
+- 已 rollback（commit 0b550d5）
+
+**检测命令**（gh api 双侧验证）：
+```bash
+# 对所有 active site 跑双侧验证
+for repo in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/OSA; do
+  status=$(gh api "repos/$repo" -q '.full_name' 2>/dev/null)
+  if [ -z "$status" ]; then
+    echo "MISSING: $repo (gh api 404 — stale remote or wrong owner)"
+  else
+    echo "OK: $status"
+  fi
+done
+```
+
+**Acceptance**：
+- 0 MISSING（无 stale remote）
+- 任何 MISSING → CI fail，触发 §30 自进化协议
+
+**集成到三仓 CI**（在 multi-site-checks.yml 加 step）：
+```yaml
+      - name: §14.7 Cross-repo owner double-verify
+        run: |
+          set -euo pipefail
+          echo "::group::§14.7 Cross-repo owner double-verify"
+          failed=0
+          for repo in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/OSA; do
+            status=$(gh api "repos/$repo" -q '.full_name' 2>/dev/null || echo "")
+            if [ -z "$status" ]; then
+              echo "::error::MISSING: $repo (gh api 404 — stale remote or wrong owner)"
+              failed=1
+            else
+              echo "✓ OK: $status"
+            fi
+          done
+          echo "::endgroup::"
+          exit $failed
+```
+
+**anti-pattern**（per SKILL.md §31）：
+- ❌ `git remote -v 列出 = remote 存在` —— git config 可指向任意 URL 包括 404
+- ❌ `task 描述 = 事实` —— 用户给的 owner 假设可能基于过时文档
+- ❌ doc-sync 与 audit 验证深度不对等 —— 两类 agent 必须共享 §0 硬规则
 
 ---
 
