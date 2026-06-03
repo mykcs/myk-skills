@@ -262,7 +262,7 @@ disable-model-invocation: false
 
 ## Skill Evolution — Lessons from 2026-06-02 三仓审计
 
-> **本节来源**：2026-06-02 对 `mykcs/mykcs.github.io`、`wangrui2025/GDKVM`、`mykcs/OSA` 三仓库并行执行模式 A 全流程后沉淀的硬规则和反模式。每个新规则对应一个已归档的 case 文件，遵循 Deja-Vu Fix Protocol。
+> **本节来源**：2026-06-02 对 `mykcs/mykcs.github.io`、`wangrui2025/GDKVM`、`wangrui2025/osa` 三仓库并行执行模式 A 全流程后沉淀的硬规则和反模式。每个新规则对应一个已归档的 case 文件，遵循 Deja-Vu Fix Protocol。
 
 ### 新增硬规则（紧接 §11 之后生效）
 
@@ -277,7 +277,7 @@ disable-model-invocation: false
 4. 启动声明必须写 **owner/repo** 完整名，不要省略 owner
 ```
 
-如果 push URL 与 fetch URL 不一致（如 OSA 历史上同时配置 `mykcs/OSA` 主 remote 和其他 owner 的 fork remote），**先问用户主推哪个 remote**，再开始任何修改。当前 OSA 主 remote 为 `mykcs/OSA`（2026-06-03 起）。
+如果 push URL 与 fetch URL 不一致（如同时配置 `mykcs/GDKVM` 和 `wangrui2025/GDKVM`），**先问用户主推哪个 remote**，再开始任何修改。
 
 **§12 — 已知 bug 版本不升级（白名单/黑名单机制）**
 
@@ -305,7 +305,7 @@ GDKVM 审计时发现 `CONTEXT.md` 写 `Tailwind CSS ^4.3.0` 但 `package.json` 
 |------|-------|---------|----------|
 | `mykcs/mykcs.github.io` | mykcs | — | `origin` = `mykcs/mykcs.github.io` |
 | `wangrui2025/GDKVM` | wangrui2025 | mykcs | `origin` = `wangrui2025/GDKVM` |
-| `mykcs/OSA` | mykcs | — | `origin` = `mykcs/OSA` |
+| `wangrui2025/osa` | wangrui2025 | mykcs | `origin` = `wangrui2025/osa` |
 | `wangrui2025/wangrui2025.github.io` | wangrui2025 | — | 已重定向到 mykcs/mykcs.github.io |
 
 **启动声明必须用 owner/repo 完整名**，不要写 `mykcs/GDKVM`。
@@ -462,7 +462,7 @@ JSON 中的 key 无 `t('key')` 调用 → 删除。3 站（GDKVM/wangrui/OSA）�
 
 ## Skill Evolution v3.2.0 — 2026-06-03 3 站 Mode A 跨站 bug 模式
 
-> **本节来源**：2026-06-03 对 mykcs/mykcs.github.io、wangrui2025/GDKVM、mykcs/OSA 同步执行 Mode A 后，**修复过程中**暴露的 5+ 跨站同模式 bug。每个规则对应 §23-§29。
+> **本节来源**：2026-06-03 对 mykcs/mykcs.github.io、wangrui2025/GDKVM、wangrui2025/osa 同步执行 Mode A 后，**修复过程中**暴露的 5+ 跨站同模式 bug。每个规则对应 §23-§29。
 
 ### §23 — `getRelativeLocaleUrl` + `prefixDefaultLocale: false` 陷阱
 
