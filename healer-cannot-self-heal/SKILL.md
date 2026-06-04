@@ -7,6 +7,7 @@ description: |
   核心原则：医者不可信 → 输出保持怀疑语气，处方显式标 LOW-CONFIDENCE。
   触发：用户判断 session 不行时主动召唤（不是自动 hook）。
   与 session-chapter 互斥：session-chapter 是"搬家"，本 skill 是"急诊"。
+  反 trigger（绝不接管）：Claude Code 内置 `/doctor`（plugin/MCP 诊断器）不是本 skill 别名，触发词不与之重叠。`doctor` 与"医者"语义隔离 — 详见 CONTEXT.md Decision 1 Avoid 词。
 
   触发词:
     主: 医者不可自医, healer-cannot-self-heal
