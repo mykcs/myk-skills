@@ -9,12 +9,17 @@ description: |
   与 session-chapter 互斥：session-chapter 是"搬家"，本 skill 是"急诊"。
   反 trigger（绝不接管）：Claude Code 内置 `/doctor`（plugin/MCP 诊断器）不是本 skill 别名，触发词不与之重叠。`doctor` 与"医者"语义隔离 — 详见 CONTEXT.md Decision 1 Avoid 词。
 
+  粒度（v0.2.0）: 两种独立 mode，触发词显式分叉
+    - session-level: 整个对话失控
+    - sub-problem-level: 最近一个子问题卡住（更常见 — 用户反馈 2026-06-05）
+
   触发词:
-    主: 医者不可自医, healer-cannot-self-heal
+    主（session-level）: 医者不可自医, healer-cannot-self-heal
+    主（sub-problem-level）: claudecode 子问题急诊, 子问题急诊, sub-problem triage, subproblem-triage
     副: session 急诊, claudecode 自检, 急诊, session-autopsy, claudecode-checkup
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   author: mykcs
   category: self-reflection
   triggers:
@@ -25,6 +30,10 @@ metadata:
     - 急诊
     - session-autopsy
     - claudecode-checkup
+    - claudecode 子问题急诊
+    - 子问题急诊
+    - sub-problem triage
+    - subproblem-triage
   tags:
     - session
     - diagnosis
@@ -43,13 +52,35 @@ user-invocable: true
 
 ## 何时触发
 
+### session-level（整个对话失控）
+
 | 信号 | 含义 | 触发动作 |
 |------|------|---------|
 | "上下文满了 / 快到 limit" | token 接近耗尽 | 考虑 `/session-chapter`（搬家） |
-| **"claudecode 反复卡同一处"** | 行为漂移 | **本 skill** |
-| **"claudecode 疯了 / 解释为什么"** | 失控 | **本 skill** |
-| **"session 急诊"** | 主动召唤 | **本 skill** |
+| **"claudecode 反复卡同一处"** | 行为漂移 | **本 skill（session mode）** |
+| **"claudecode 疯了 / 解释为什么"** | 失控 | **本 skill（session mode）** |
+| **"session 急诊"** | 主动召唤 | **本 skill（session mode）** |
 | "新窗口继续" | session 还能抢救 | `/session-chapter`（不调本 skill） |
+
+### sub-problem-level（最近一个子问题卡住）
+
+> 用户反馈 2026-06-05：现实里更常见的不是整个 session 失控，而是"这个对话里最近一个子问题"反复卡、漂移、跑偏，但 session 整体还能抢救。
+
+| 信号 | 含义 | 触发动作 |
+|------|------|---------|
+| **"claudecode 卡这个子问题了"** | 单个子问题反复失败 | **本 skill（sub-problem mode）** |
+| **"刚才那个子问题到底怎么回事"** | 用户想知道子问题根因 | **本 skill（sub-problem mode）** |
+| **"claudecode 在 X 这个事上疯了"** | X = 显式指定的子问题 | **本 skill（sub-problem mode）** |
+| **"子问题急诊"** | 主动召唤 | **本 skill（sub-problem mode）** |
+
+### 粒度判定（caller 自决）
+
+**claudecode 不自动判定粒度**——遵循"医者不可信"原则（参见 [CONTEXT.md Decision 4](./CONTEXT.md)）。caller（用户）通过触发词显式选择 mode：
+
+- `医者不可自医` / `session 急诊` → session mode
+- `claudecode 子问题急诊` / `子问题急诊` / `sub-problem triage` → sub-problem mode
+
+如果 caller 词义模糊（如只说"急诊"），claudecode 应**主动问粒度**而不是自己猜。
 
 ## 与 session-chapter 的边界（C3 互斥）
 
@@ -58,20 +89,37 @@ user-invocable: true
 
 ## 输出 contract
 
-报告写到：`~/.claude/state/healer-reports/{session-id}-{YYYYMMDD-HHMMSS}.md`
+报告写到：`~/.claude/state/healer-reports/{session-id}-{YYYYMMDD-HHMMSS}[-{scope}].md`
+
+`{scope}` 仅在 sub-problem mode 下出现：
+- session mode（默认）：文件名不附加 scope
+- sub-problem mode：`-subproblem-{n}.md`（n = 子问题序号，claudecode 自增）
 
 ### 必须包含
 
-1. **transcript 原始路径**（让用户能 re-verify）
-2. **claudecode 作第三方主语**（不写"我"）
-3. **密集证据**（不是叙述）：
+1. **`Scope` 字段**（必填）：
+   - `session` = 整个对话范围
+   - `sub-problem` = 最近一个子问题范围（claudecode 判定话题转换点作为起点）
+2. **transcript 原始路径**（让用户能 re-verify）
+3. **claudecode 作第三方主语**（不写"我"）
+4. **密集证据**（不是叙述）：
    - 默认：**完整工具调用**（input + output + error）
    - 关键反复处：升级到**上下文窗口**（前后各 N 行）
-4. **怀疑标注**：只在不确定时标 `?`，不在每条都加
-5. **`next-step hints` 区**：每条标 LOW-CONF
+   - sub-problem mode 下：证据范围 = "话题转换点 L_start → 现在 L_end"，**不**回溯更早
+5. **怀疑标注**：只在不确定时标 `?`，不在每条都加
+6. **`next-step hints` 区**：每条标 LOW-CONF
    - 建议调 `/record-case` (conf: low)
    - 建议调 `/rich-audit` (conf: low)
-6. **不落地**：不写 case、不改规则、不调 evolution-trigger
+7. **不落地**：不写 case、不改规则、不调 evolution-trigger
+
+### sub-problem mode 专属
+
+- **边界判定**：claudecode 在 transcript 中找"最近一次明确的话题/任务切换"作为子问题起点 `L_start`
+  - 判定信号：用户用 "另外" / "顺便" / "回到" / "换个话题" / "刚才说的 X" 等明示切换 → 信任用户词
+  - 判定信号：claudecode 观察到工具调用上下文从 A 主题跳到 B 主题 → 标记 `?` 标"claudecode 自判"
+  - 判定信号：用户未明示切换但子问题明显卡住 → 取最近一次"该子问题首次出现"的 L 作为起点
+- **报告体积**：sub-problem 模式天然较小（不抓整 session），允许 G3 升级（始终上下文窗口）
+- **递归保护**：sub-problem mode 报告**不**包含其他 sub-problem mode 报告的内容（避免嵌套）
 
 ### 报告模板
 

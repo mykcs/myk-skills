@@ -6,7 +6,10 @@
 
 ```
 ~/.claude/state/healer-reports/{session-id}-{YYYYMMDD-HHMMSS}.md
+~/.claude/state/healer-reports/{session-id}-{YYYYMMDD-HHMMSS}-subproblem-{n}.md
 ```
+
+第二种文件名仅在 sub-problem mode 下使用，n 是 claudecode 自增的子问题序号。
 
 ## 模板
 
@@ -17,6 +20,8 @@
 **Trigger**: {触发词原文}
 **Transcript path**: {transcript 绝对路径}
 **Mode**: 人工召唤 (非自动)
+**Scope**: {session | sub-problem}
+**Scope 起点** (仅 sub-problem 模式): L{L_start_subproblem} — {claudecode 自判 / 用户明示 "另外|顺便|换个话题" / 其他}
 
 ---
 
@@ -29,6 +34,8 @@
 | 工具调用总次数 | {整数} |
 | 错误次数 | {整数} (?) |
 | 重复命令次数 | {整数} |
+| **Scope 起点** | {L_start 或 "N/A" (session mode)} |
+| **Scope 终点** | L{L_end} |
 
 > claudecode 观察到 token 接近耗尽。证据见 L{L1}-L{L2}。
 > (?) 表示 claudecode 对此数据点不确定。
@@ -126,8 +133,10 @@ claudecode 观察到以下模式，但**不**认为自己的判断可靠：
 
 | 字段 | 必填 | 含义 |
 |------|------|------|
+| `Scope` | ✅ | `session` \| `sub-problem`，由触发词决定 |
+| `Scope 起点` | sub-problem 必填 | L 编号，claudecode 判定话题转换点 |
 | `症状 S#` | ✅ | 每个观察到的症状一条 |
-| `时间窗` | ✅ | L 编号区间，引用 transcript |
+| `时间窗` | ✅ | L 编号区间，引用 transcript；sub-problem 模式下 L_start ≥ Scope 起点 |
 | `证据` | ✅ | 原始材料，**不能改写** |
 | `置信` | ✅ | high/medium/low/? |
 | `可能根因` | 可选 | 多假设列出，不下判断 |
@@ -141,10 +150,19 @@ claudecode 观察到以下模式，但**不**认为自己的判断可靠：
 - ❌ 不调 audit/run-audit.py
 - ❌ 不调 record-case / rich-audit / evolution-trigger（只建议）
 - ❌ 不把处方当事实
+- ❌ **sub-problem mode 下不"假装"判定 Scope 起点**——若 claudecode 无法识别话题转换点，必须标 `?` 并让用户确认
 - ✅ 报告主体是 transcript 原始材料
 - ✅ claudecode 作第三方主语
 - ✅ 怀疑标注只在不确定时出现
 - ✅ 报告必须包含 transcript 原始路径
+- ✅ sub-problem mode 证据范围严格 ≥ Scope 起点
+
+## sub-problem mode 特有约束
+
+1. **Scope 起点 = 不可信的自判**：claudecode 找的话题转换点本质上是 claudecode 的判断，**必须**在报告中显式标"自判"或"用户明示"，**不**伪装成客观事实
+2. **回溯禁止**：sub-problem 模式下，**不**回溯 Scope 起点之前的 transcript。理由：起点之前的"症状"可能与当前子问题无关
+3. **嵌套禁止**：sub-problem 报告**不**包含其他 sub-problem 报告的内容（避免递归造成报告膨胀）
+4. **G3 默认**：sub-problem 模式天然范围小，允许默认升级到 G3 上下文窗口（前后各 N 行）以提高证据质量
 
 ## 与其他模板的区别
 
@@ -153,4 +171,5 @@ claudecode 观察到以下模式，但**不**认为自己的判断可靠：
 | `record-case` Case 模板 | 知识归档 | 写 case 文件，落盘 |
 | `rich-audit` Layer 1 报告 | 项目审计 | 自动修复 |
 | `nightly-meta-cognition` 报告 | 周期体检 | dry-run 默认 |
-| **本模板** | **session 急诊** | **不落地，只描述** |
+| **本模板（session mode）** | **整个 session 急诊** | **不落地，只描述** |
+| **本模板（sub-problem mode）** | **子问题急诊** | **Scope 起点 + 回溯禁止 + 嵌套禁止** |

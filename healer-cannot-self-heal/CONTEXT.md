@@ -118,3 +118,27 @@ _Avoid_: 详细分析, 流畅报告（这些是 LLM 默认输出，与原则冲�
 详见 [docs/adr/0001-name-healer-paradox.md](./docs/adr/0001-name-healer-paradox.md)
 
 **Date**: 2026-06-02
+
+### Decision 7: 粒度 = 二元粒度（session-level | sub-problem-level）
+
+**Context**: 早期实现（v0.1.0）只支持 session-level。但用户 2026-06-05 反馈：现实里更常见的是"最近一个子问题"卡住/漂移，而不是整个 session 失控。
+
+**Decision**: 二元粒度，触发词显式分叉
+- `医者不可自医` / `session 急诊` → session mode
+- `claudecode 子问题急诊` / `子问题急诊` / `sub-problem triage` → sub-problem mode
+
+子问题边界由 claudecode 在 transcript 中判定话题转换点（信任用户明示切换词，或 claudecode 自判并标 `?`）。
+
+**Why**:
+- **不自动判定粒度**：与 Decision 4（"医者不可信"）一致——claudecode 自己判粒度本身就是不可靠动作
+- **触发词显式分叉**：与 ADR 0001 的"词边界"原则一致——避免 `claudecode-checkup` vs `session-autopsy` 的歧义
+- **保持 session-level 不变**：现有用户已习惯 `医者不可自医` = 整个对话，新触发词是叠加而非替换
+
+**拒绝的候选**:
+- **同一触发词自动判定**：claudecode 看用户描述（"最近一个子问题"）自动切粒度 → 违反"医者不可信"
+- **session-only / sub-problem-only 二选一**：用户两种场景都有需求，强制二选一会让一半场景用不上
+- **三级粒度**（task / sub-problem / session）：粒度过细，触发词爆炸；现实里 session 和 sub-problem 已覆盖 95%
+
+详见 [docs/adr/0003-granularity-session-vs-subproblem.md](./docs/adr/0003-granularity-session-vs-subproblem.md)
+
+**Date**: 2026-06-05
