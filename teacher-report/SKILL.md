@@ -1,7 +1,13 @@
 ---
 name: teacher-report
 description: |
-  Generate a PhD advisor / professor intelligence dossier as a Feishu wiki doc (Docx). Use when the user mentions a specific researcher / advisor / 老师 / 导师 and asks to "调研 / 写一份报告 / 整理材料 / 看看这位老师" — output is a structured 5-section report (TL;DR / 导师画像 / 方向匹配度 / 套磁建议 / 论文全景) ready to share. Triggers on phrases like "调研一下 XXX", "生成 XXX 老师的报告", "看看张三是不是值得报", "写一份老师材料", "PhD advisor report for XXX". Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
+  Generate OR audit a PhD advisor / professor intelligence dossier as a Feishu wiki doc (Docx).
+  
+  **Generate mode**: use when the user mentions a specific researcher / advisor / 老师 / 导师 and asks to "调研 / 写一份报告 / 整理材料 / 看看这位老师" — output is a structured 5-section report (TL;DR / 导师画像 / 方向匹配度 / 套磁建议 / 论文全景) ready to share. Triggers on phrases like "调研一下 XXX", "生成 XXX 老师的报告", "看看张三是不是值得报", "写一份老师材料", "PhD advisor report for XXX".
+  
+  **Audit mode** (v0.2.8+): use when the user provides an EXISTING docx (URL or doc_id) and asks to "审计 / 检查 / 看看合不合规 / review" — fetches the doc, runs 12 compliance checks against v0.2.5+ rules (title numbering / ① ② / block charts / TL;DR callout / 5-section completeness / Persona footer etc), outputs a pass/fail report with fix suggestions. Triggers on phrases like "审计一下 [URL]", "看看 [老师] 报告合不合规", "review teacher report compliance", "teacher-report audit [doc_id]".
+  
+  Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
 ---
 
 # Teacher Report
@@ -42,6 +48,17 @@ If 1 + 2 are both missing, do NOT start fetching — ask the user.
 **为什么需要这个 step**:LLM-prompt.md 和 report-template.md §11 dashboard 摘要都假设 dashboard token 已提供,但实际 user 经常忘了。提前问一次,避免生成完 docx 后再问 "要不要加 dashboard"。
 
 ## Procedure
+
+### Step 0 — Mode selection (v0.2.8+)
+
+- **Generation mode (default)**:user 提供老师姓名 / 学校,生成新 docx
+- **Audit mode**:user 提供 docx URL / doc_id,审计已有 docx 合规性
+
+**Mode 判定**:
+- 触发词含 "审计 / audit / 检查 / 合规 / review" → Audit mode
+- 触发词含 "调研 / 生成 / 写一份 / 看看这位老师" → Generation mode
+- 显式提供 docx URL/doc_id 且无 Generation 触发词 → Audit mode
+- 显式提供老师姓名 → Generation mode
 
 ### Step 1 — Data fetching (4-level fallback)
 
@@ -148,6 +165,101 @@ Reply to the user with:
 2. A 1-line "建议下一步": 套磁信草稿可直接 copy / 添加到知识库得 wiki 链接 / 等等
 3. If any section was `🟡 数据待补`, list the specific gaps so the user can补
 
+### Audit mode (v0.2.8+) — 审计已有 docx
+
+> **用途**:对**已发布**的 Feishu docx 跑 v0.2.5+ 合规检查,识别"(1) ② ████"等反模式 + TL;DR 缺失 + Persona 违规,输出修复建议。
+>
+> **不写飞书,只读飞书**。审计完成后,user 决定是否 overwrite 修复。
+
+#### Audit 触发模式
+
+| 用户输入 | 模式 |
+|---------|------|
+| `审计一下 https://xxx.feishu.cn/docx/MqEz...` | Audit mode |
+| `看看 况琨 报告合不合规` + 已知 doc_id | Audit mode |
+| `teacher-report audit MqEzdtwcso2AGyxUPuCcyQRAnwe` | Audit mode |
+| `review teacher report compliance for MqEz...` | Audit mode |
+| `调研一下 XXX 老师` | Generation mode(忽略 audit) |
+
+#### Audit 流程(4 步)
+
+**Step A1 — Fetch 现状**
+
+```bash
+lark-cli docs +fetch --api-version v2 --doc {doc_id}
+```
+
+提取 `data.document.content` (XML 字符串)。如果 fetch 失败:
+- `LARK_USER_AUTH_REQUIRED` → 提示 user 跑 `lark-cli auth login`
+- `404` / doc not found → 提示 user 检查 doc_id
+- 其他错误 → 报原始错误,不要重试
+
+**Step A2 — 跑 12 项合规检查**
+
+详见 `references/audit-checklist.md`。每项输出 ✅ / ❌ + 失败时附原始片段。
+
+| # | Check | Hard rule 引用 |
+|---|-------|---------------|
+| 1 | h2 章节为 5 个(顺序:TL;DR / 画像 / 匹配 / 套磁 / 论文 / 来源) | Output contract |
+| 2 | h2 标题用 `1.` `2.` `3.` `4.` `5.` 风格 | SKILL.md 飞书标题号硬规则 |
+| 3 | h3 标题用 `1.1` `1.2` 等子节风格 | 同上 |
+| 4 | 无 h4 手动 `(1) (2) (3)` 编号 | 同上 |
+| 5 | 无内联 `① ② ③` 字符 | 同上 |
+| 6 | 无 `████████` 字符画趋势图 | 同上 |
+| 7 | TL;DR 用 callout + grid | report-template.md §1 |
+| 8 | §5 数据来源含检索时间 | report-template.md §9 |
+| 9 | ≥ 3 个 callout(全文字段不算) | report-template.md 视觉丰富度 |
+| 10 | table 用 `<table>` + `<colgroup>`(无 markdown table) | llm-prompt.md 反模式 |
+| 11 | 论文精读含 arXiv/DOI link(无则降级) | llm-prompt.md §8 |
+| 12 | Footer Persona = `claudecode teacher-report skill` | report-template.md §9 |
+
+**Step A3 — 生成审计报告**
+
+写到 `/tmp/teacher-report-audit-{name}-{doc_id_short}.md`,格式:
+
+```markdown
+# 审计报告 — {老师}({doc_id_short})
+审计时间: {YYYY-MM-DD HH:MM}
+docx URL: {url}
+
+## 总览
+- 12 项检查: ✅ X / ❌ Y / ⚠️ Z(降级)
+- 合规度:{百分比}%
+
+## 失败项详情
+
+### ❌ Check 4: h4 手动 (1) 编号
+**位置**:§2.3 论文精读
+**原始片段**:`<h4>(1) 大模型 + 因果(3 篇)</h4>`
+**修复建议**:改为 `<h4>1. 大模型 + 因果(3 篇)</h4>`
+
+### ❌ Check 5: 内联 ① 字符
+**位置**:§2.3 第 1 篇
+**原始片段**:`<p><b>① Causality for LLMs...</b></p>`
+**修复建议**:改为 `<p><b>Causality for LLMs...</b></p>`
+
+## 修复命令(可选)
+
+如需批量应用所有修复,user 跑:
+\`\`\`bash
+lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
+  --content "<v0.2.5-compliant XML>"
+\`\`\`
+```
+
+**Step A4 — Reply to user**
+
+1. 1 行总结:`{老师} 报告 12 项检查: ✅ 8 / ❌ 3 / ⚠️ 1,详情见 /tmp/audit-{name}.md`
+2. 列出 ❌ 项(每项 1 行)
+3. 提示:`如需修复,跑命令 ...`
+
+#### Audit 模式限制
+
+- **不直接 overwrite** — 审计完只报问题,user 决定是否修复(避免误覆盖已定制内容)
+- **不抓新数据** — 只读现有 docx,不重新跑 L1-L4 数据源
+- **不比对历史版本** — 单一快照,不做 diff
+- **不验证内容正确性** — 只验证结构合规,内容真伪(数据来源)超出 audit 范围
+
 ## Output contract
 
 - **Primary**: a Feishu `docx` URL (looks like `https://{tenant}.feishu.cn/docx/doxcn...`)
@@ -187,9 +299,20 @@ Reply to the user with:
 - Fetch: L1 404, L2 returns 12 papers, L3 returns 8 (overlap with L2), L4 returns a stale personal page from 2019
 - Output: docx URL with TL;DR showing 🟡 数据待补, `5. 数据来源` explicitly says "L1 抓取失败,依赖 L2+L3 共 8 篇去重论文"
 
+### Example 3 — Audit mode pass (v0.2.8+)
+- Input: "审计一下 MqEzdtwcso2AGyxUPuCcyQRAnwe"
+- Action: Step A1 fetch → A2 12 项 check → A3 写 `/tmp/teacher-report-audit-况琨-MqEzdtwcso.md`
+- Output: 1 行总结 "况琨 v0.2.4 子节点: ✅ 12/12,完全合规" + 完整报告路径
+
+### Example 4 — Audit mode fail
+- Input: "审计一下 [URL]" 指向 v0.2.3 模板的旧 doc
+- Action: Check 4 (h4 (1) 编号) + Check 5 (① 字符) + Check 6 (████ 字符画) 失败
+- Output: "吴飞 wiki: ✅ 8 / ❌ 3 / ⚠️ 1,失败项 Check 4/5/6,详见 /tmp/audit-吴飞.md;跑 overwrite 命令可修复"
+
 ## References
 
 - `references/report-template.md` — 飞书 docx XML 模板 (TL;DR callout / 5 章节结构)
 - `references/data-sources.md` — L1-L4 抓取细节 + ZJU URL 模式 + S2 API 字段
 - `references/llm-prompt.md` — 总结 prompt (synthesis rules + 章节填充指引)
+- `references/audit-checklist.md` — 12 项合规检查 (Audit mode 跑这份 checklist)
 - `references/normalization-audit-2026-06-05.md` — 4 docx 飞书标题号规范化审计追踪(v0.2.5 → v0.2.7 重跑记录)
