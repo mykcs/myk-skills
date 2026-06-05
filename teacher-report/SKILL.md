@@ -21,6 +21,26 @@ Before fetching, confirm or infer the following from the user's message:
 
 If 1 + 2 are both missing, do NOT start fetching — ask the user.
 
+### Disambiguation edge cases (must read)
+
+- **同名老师跨校任职**:S2 affiliations 可能跨校混合(如老师从清华转浙大)。**先 L1 查现职学校官网**,若学校已变动,以**现职**为准;在报告 §5 数据来源标 "L2 论文列表含 2 单位混合数据(2024 前 X 校 / 2024 后 Y 校)"。
+- **同名 + 同校 + 跨学院**:CS 学院有 "李明",医学院也有 "李明"。**用学院+研究方向的 L1 静态页或学院教师列表 grep** 二次定位。
+- **拼音歧义**:"李伟" / "Li Wei" 在 S2 上可能匹配英文姓名写法 "Wei Li" (last-first)。**优先用中文名 + 学校搜 L1**,再 S2 验证。
+
+### Step 0.5 — Confirm dashboard/parent token
+
+> **⏰ 时机**:在 Step 1 抓取之前,先问 user 5/6 token 提供意愿,决定 Step 3 走模式 A / B / C。
+
+如果 user 没有主动提供 §5/§6 token,使用 `AskUserQuestion` 给 3 个选项:
+
+1. **两个 token 都有** → 模式 A(子页 + dashboard 摘要)
+2. **只 dashboard** → 模式 B(my_library + dashboard 摘要)
+3. **都没有 / 不在乎** → 模式 C(独立 docx,user 手动归档)
+
+如果 user 在原始消息里**显式说过** token(从上下文提取),跳过询问直接用。
+
+**为什么需要这个 step**:LLM-prompt.md 和 report-template.md §11 dashboard 摘要都假设 dashboard token 已提供,但实际 user 经常忘了。提前问一次,避免生成完 docx 后再问 "要不要加 dashboard"。
+
 ## Procedure
 
 ### Step 1 — Data fetching (4-level fallback)
@@ -35,12 +55,14 @@ Try sources in this order. Stop when a source yields enough signal; you do not n
 
 | Level | Source | How to query | What to extract |
 |-------|--------|-------------|----------------|
-| L1 | 学校/学院官网 | `webfetch` or `playwright` on `{university}.edu.cn/{school}/{name}` patterns. ZJU common patterns: `person.zju.edu.cn/{pinyin}`, `mypage.zju.edu.cn/{pinyin}`, `cs.zju.edu.cn` faculty page | 基本信息、职称、行政职务、联系方式、研究方向、代表性工作 |
+| L1 | 学校/学院官网 | **`webfetch` 先试静态 HTML**;失败 / 明显是 SPA 框架(`<div id="app"></div>` 标记)→ **切 `playwright` MCP** `browser_navigate` + `browser_snapshot` 拿渲染后文本。ZJU common patterns: `person.zju.edu.cn/{pinyin}`, `mypage.zju.edu.cn/{pinyin}`, `cs.zju.edu.cn` faculty page | 基本信息、职称、行政职务、联系方式、研究方向、代表性工作 |
 | L2 | Semantic Scholar API | `https://api.semanticscholar.org/graph/v1/author/search?query={name}&fields=name,affiliations,paperCount,hIndex,homepage` then `/author/{id}/papers?fields=title,year,venue,citationCount,authors&limit=100` | 论文清单（近 3 年）、h-index、合作者 |
-| L3 | DBLP | `https://dblp.org/search/author/api?q={name}&format=json` then `/pid/{pid}.xml` for full paper list | 论文 venue 验证、CCF-A/B 标注 |
+| L3 | DBLP | `https://dblp.org/search/author/api?q={name}&format=json` then `/pid/{pid}.xml` for full paper list | 论文 venue 标准化(DBLP 提供的 venue 是规范名,不是缩写) |
 | L4 | 个人主页 / 知乎 / Google Scholar | `web_search` for `"{name}" {university} site:{personal_domain}` or `"{name}" scholar profile` | 个人 CV、学生名单、研究亮点 |
 
 L2 (Google Scholar) is intentionally **skipped** in mainland-China network environments — go L2 Semantic Scholar → L3 DBLP → L4 directly.
+
+**🚨 v0.1 CCF-A/B 限制 (2026-06-05)**:**本 skill 当前不在报告中标注 CCF 等级**。`LLM 估算` 的 "CCF-A 65" 数字不可信,容易被反例数据(LLM 把 ICLR submitted 当 CCF-A)污染。报告里**只写 venue 名**(NeurIPS / ICLR / ACL / KDD / TPAMI),**不写 CCF-A/B**。v0.2 实现方案见 `data-sources.md §CCF mapping (deferred)`。
 
 If L1 fails (e.g., personal page 404 or 动态加载), continue to L2 — the data is still salvageable.
 
@@ -129,14 +151,15 @@ Reply to the user with:
 | Failure | What to do |
 |---------|------------|
 | L1-L4 all return nothing | Stop, tell the user "信息黑洞 — 五级抓取都失败,建议手动提供主页 URL 或姓名 + 单位"。Do not fabricate. |
+| L1 成功 + L2/L3/L4 部分失败(半失败):L2 抓到的近 3 年论文 < 5 篇,或 venue 验证不全 | 🟡 中。报告顶部 ⚠️ callout 必须显式标"**数据稀疏 — 套磁信引文可能不准确**",**禁止**在套磁信里引用 L2 没验证过的论文。 |
 | L1 成功 + 近 3 年署名论文 ≥ 30 篇,但**本人一作 / 共一论文 = 0** | 🟡 中。典型"通讯/末位 PI 模式",实际带生者高度疑为青年教师。报告中必须显式标红 + 套磁信必须追问 1v1 带生安排。 |
-| 课题组定位"双核心 / 三核心"硬塞给学生代笔模式 | ⛔ **禁止**。如果导师是末位/通讯 PI、实际带生者疑为青年教师,**必须**用 ⚠️ callout 显式标"实际带生者高度疑似 X,导师时间投入 < 50%,需邮件确认 1v1 带生安排"——不可包装成"X-Y 双核心"或"X-Y-Z 三核心" callout(那是把"学生代笔"美化成"团队结构")。 |
+| 课题组定位"双核心 / 三核心"硬塞给学生代笔模式 | ⛔ **禁止**(见 `report-template.md §3` 反模式段)。如果导师是末位/通讯 PI、实际带生者疑为青年教师,**必须**用 ⚠️ callout 显式标"实际带生者高度疑似 X,导师时间投入 < 50%,需邮件确认 1v1 带生安排"——不可包装成"X-Y 双核心"或"X-Y-Z 三核心" callout(那是把"学生代笔"美化成"团队结构")。 |
+| User asks for many teachers at once (≥ 3 位) | **Out of scope, redirect to `phd-scout --mode batch`**。回复模板:"`teacher-report` 一次只处理一位老师(深度报告)。如需批量调研多位老师,请告诉我 — 我会切换到 `phd-scout --mode batch` 写 Bitable 表,之后再对感兴趣的字段再做深度 `teacher-report`。" |
 | Personal page exists but is JS-rendered SPA | Use `playwright` MCP `browser_navigate` → `browser_snapshot` to get rendered text. Avoid `webfetch` on SPAs. |
 | L2 Semantic Scholar rate-limited (429) | 1 次重试 (5s),仍 429 跳 L3。**不要指数退避** — 5s/15s/30s/60s 在已知失败的端点上浪费 ≥2 分钟。L4 web_search 聚合是 S2 字段的有效替代。 |
 | User has not enabled lark-cli auth | The `docs +create` call will return `LARK_USER_AUTH_REQUIRED`. Tell the user to run `lark-cli auth login` and retry. |
 | LLM output exceeds `--content` size limit | Split into skeleton + appends per Step 3. |
 | Same teacher fetched twice with different results | Trust L2 (Semantic Scholar) h-index + paperCount over L1 self-claimed numbers. Note both in `5. 数据来源`. |
-| User asks for many teachers at once | Out of scope — defer to `phd-scout --mode batch`. Only one teacher per `teacher-report` run. |
 
 ## Examples
 

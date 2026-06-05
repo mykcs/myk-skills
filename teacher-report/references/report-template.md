@@ -242,7 +242,7 @@
 </ul>
 <hr/>
 <p>文档生成时间：{YYYY-MM-DD}</p>
-<p>整理人：Mavis teacher-report skill</p>
+<p>整理人：claudecode teacher-report skill</p>
 ```
 
 ## 分块写入(超长文档)

@@ -17,15 +17,27 @@
 | 北京大学 | `ai.pku.edu.cn/{pinyin}.htm` 或 `eecs.pku.edu.cn` 教师列表 | 静态页,直接 `webfetch` |
 | 复旦大学 | `faculty.fudan.edu.cn/{pinyin}` | |
 | 上海交通大学 | `cs.sjtu.edu.cn/FacultyShow/{id}` 或 `faculty.sjtu.edu.cn/{pinyin}` | |
+| 中国科学院 | `people.cas.cn/...` 或 `{lab}.cas.cn/...` 或 `ia.cas.cn/yjsjy/dsfc/` | 自动化所/计算所/软件所等子站各异,先 `web_search "{name} 中科院"` |
+| 南京大学 | `cs.nju.edu.cn/people/{pinyin}.htm` 或 `lamda.nju.edu.cn/{pinyin}` | LAMDA 等实验室有独立子站 |
+| 中国科学技术大学 | `staff.ustc.edu.cn/~{pinyin}/` 或 `cs.ustc.edu.cn/.../{name}.htm` | 老教师多在 staff 子域 |
+| 香港中文大学 | `cse.cuhk.edu.hk/~{pinyin}/` | |
+| 香港科技大学 | `cse.hkust.edu.hk/~{pinyin}/` | |
+| Stanford | `cs.stanford.edu/people/{pinyin}` 或 `web.stanford.edu/~{pinyin}/` | 老教师多在 web 子域 |
+| MIT CSAIL | `people.csail.mit.edu/{pinyin}/` | 缺人脸主页时试 CSAIL People |
+| MIT EECS | `www.eecs.mit.edu/people/{pinyin}` | |
+| UC Berkeley | `people.eecs.berkeley.edu/~{pinyin}/` 或 `bair.berkeley.edu/people/{pinyin}/` | BAIR / EECS 双路径 |
+| CMU | `www.cs.cmu.edu/~{pinyin}/` | 多学院(MLD/LTI/HCII),先 web_search 定位学院 |
+| Caltech | `www.cms.caltech.edu/people/{pinyin}` 或 `thesis.library.caltech.edu` 找学生反推 | CMS / EE 跨系 |
 
 **抓取策略**:
-1. 先 `webfetch` 拿静态 HTML;失败或明显是 SPA 框架(<div id="app"></div>),改 `playwright` MCP 的 `browser_navigate` + `browser_snapshot`
+1. **先 `webfetch` 拿静态 HTML**;失败或明显是 SPA 框架(`<div id="app"></div>` 标记或 `<script>` 渲染),改 `playwright` MCP 的 `browser_navigate` + `browser_snapshot`
 2. 提取字段: 中文姓名 / 职称 / 行政职务 / 邮箱 / 电话 / 研究方向关键词 / 代表性论文 5-10 篇
 3. 找不到个人页时,fallback 到学院教师列表页 → grep 名字 → 拿该卡片内的信息
+4. **英文大学**常常没有静态 HTML,直接走 `web_search` + L4(个人主页 / Google Scholar / DBLP 拿基本信息)
 
 **失败兜底**:
 - 抓不到主页 → 记录 `L1 失败原因:{原因}` → 跳 L2
-- 抓到了但内容空洞(只一行"教授,博士生导师")→ 仍算 L1 部分成功,基本信息填表用,其他字段从 L2 补
+- 抓到了但内容空洞(只一行"Professor, PhD Advisor")→ 仍算 L1 部分成功,基本信息填表用,其他字段从 L2 补
 
 ## L2 — Semantic Scholar API
 
@@ -110,3 +122,30 @@ curl "https://dblp.org/pid/{pid}.xml"
 | 学生名单 | L4 优先(从合著论文高频作者 + 主页"学生"页面) |
 
 **冲突处理**: L1 与 L2 h-index 差 > 5 → 报告"5. 数据来源"注明两者差值,取 L2。
+
+## 关键词库(PhD 方向匹配)
+
+> v0.2.6 新增(2026-06-05)。User 当前 PhD 方向是 **CV + medical imaging (echocardiography video segmentation, OSA, GDKVM)** + **LLM/Coding Agent** 双轨。
+
+**用户方向 (myk, 2026-06-05)**:
+- CV/medical imaging:echocardiography, cardiac MRI, ultrasound, video segmentation, semi-supervised, domain adaptation
+- LLM/Agent:Large Language Model, agent, multi-agent, tool use, reasoning, prompt engineering, code generation, RAG
+- 跨方向 medical LLM:Medical LLM, clinical NLP, medical VQA, Med-PaLM-style
+
+**匹配判定**(v0.2.6 简化版):
+- **🟢 高匹配**:老师研究方向与用户任一方向 ≥ 2 个近 3 年论文重叠
+- **🟡 中匹配**:1 个重叠,或方向相邻(如"医学影像"与"医学 LLM"相邻)
+- **🔴 低匹配**:0 重叠,方向无关(例如纯 NLP 老师 vs 用户 CV 方向)
+
+**禁止在报告中估算匹配度** — 必须基于 L2 抓到的近 3 年论文关键词聚类,精确给到方向-方向,而不是"大致相关"。
+
+## CCF mapping (deferred, v0.2 待实现)
+
+> **状态**:**v0.1 不实现 CCF-A/B 标注**。LLM 估算的 "CCF-A 65" 不可信(把 ICLR submitted 当 CCF-A、把 Nature 子刊当 Nature、把 ACM Computing Surveys 当 CCF-A 等反例)。
+
+**v0.2 实现方案**:
+1. 维护 `references/ccf-mapping.json` 静态表(DBLP venue → CCF 等级),定期从 https://www.ccf.org.cn/Academic_Evaluation/By_category/ 同步
+2. LLM-prompt.md §2 改:`{DBLP venue} → ccftable[venue] → CCF-{A|B|C|null}` 精确查询
+3. 报告中 CCF 等级只从这张表出,LLM 不参与判断
+
+**v0.1 临时处理**:报告**只写 venue 名**(NeurIPS / ICLR / TPAMI),**不写 CCF-A/B**。**禁止** LLM 自行标 CCF-A/B(违反 = skill 协议破坏)。
