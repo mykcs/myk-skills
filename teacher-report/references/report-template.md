@@ -245,3 +245,42 @@
 - "核心观察 / 关键判断 / 风险点" 段落必须用 callout(💡/⚠️ emoji)
 - 论文精读用列表 + 加粗,不要写成大段叙述
 - 表格用 `<table>` 块,**不要**用 markdown 表格(飞书 v2 API 不渲染 markdown table)
+
+## 11. 申博 wiki dashboard 摘要模板
+
+**用途**:每次跑完老师报告,**append 一段摘要**到"申博 wiki dashboard"主节点,让 user 在一个地方看到所有候选老师。
+
+```xml
+<hr/>
+<h3>🎓 申博候选:{学校} {老师}({YYYY-MM-DD} 调研)</h3>
+<table>
+  <colgroup><col/><col/><col/></colgroup>
+  <thead>
+    <tr>
+      <th><p>匹配度</p></th>
+      <th><p>关键数字</p></th>
+      <th><p>主风险</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p>{🟢 高 / 🟡 中 / 🔴 低}({1 行理由})</p></td>
+      <td><p>{近 3 年论文数 / 顶会产出 / 本人一作} </p></td>
+      <td><p>{行政岗 / 方向偏 / 招生名额 / 实际带生者 等}</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><b>飞书 docx 全文</b>:<a href="{report_url}">{学校} {老师}(v0.2.3 精细化报告)</a></p>
+<p><b>核心建议</b>:{1 行:直接套磁 / 改推替代导师 / 暂缓}</p>
+```
+
+**填表规则**:
+- 摘要 ≤ 5 行,user 扫一眼就懂要不要细读全文
+- 飞书 docx 用 `<a href="...">` 链接,user 一键跳转
+- "核心建议" 必含 1 个 actionable 决策
+- 多个老师时,dashboard 持续 append,自然形成"申博候选池"时序
+
+**反例**(禁止):
+- ❌ 摘要超过 5 行 — 失去 dashboard 一目了然的价值
+- ❌ 不带飞书 docx 链接 — user 无法跳转看全文
+- ❌ 缺"核心建议" — 摘要失去决策价值

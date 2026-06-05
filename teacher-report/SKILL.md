@@ -12,10 +12,12 @@ Generate a single-advisor PhD dossier in Feishu wiki doc format. Input: a resear
 
 Before fetching, confirm or infer the following from the user's message:
 
-1. **老师姓名** (required) — full Chinese name or Pinyin. If ambiguous (common name + no university), ask the user.
+1. **老师姓名** (required) — full Chinese name or Pinyin. If ambiguous (common name + university), ask the user.
 2. **学校** (strongly recommended) — disambiguates homonyms and lets L1 (university site) work. If missing, infer from context or ask.
 3. **学院 / 系** (optional) — narrows L1 search.
 4. **用户的研究方向 / 匹配诉求** (optional) — used in the 方向匹配度 section to score fit. If user didn't say, write a generic "通用 CV/ML/Agent" profile and note "无特定方向假设" in the report.
+5. **申博 wiki dashboard token** (recommended) — 飞书 wiki/docx token,代表用户的"申博候选池 dashboard"。提供时,生成的报告**自动 append 摘要**到这个 wiki(让用户在一个 wiki 节点看到所有候选老师)。不提供时,fallback 到 my_library(每个老师独立 docx)。
+6. **申博 wiki parent token** (optional) — 飞书 folder/wiki 节点 token,生成的 docx **作为子页**放到这个 parent 下。和 (5) 配合:parent 是 wiki 树,dashboard 是顶层汇总。
 
 If 1 + 2 are both missing, do NOT start fetching — ask the user.
 
@@ -59,18 +61,50 @@ You are the LLM. Use the fetched data to produce a structured dossier. Read `ref
 
 ### Step 3 — Write to Feishu
 
-```bash
-# Write the synthesized XML to a temp file (avoids shell quoting hell)
-cat > /tmp/teacher-report-{name}.xml <<'XML_EOF'
-<title>...</title>... (full XML)
-XML_EOF
+**🚨 硬要求(2026-06-05 v0.2.4)**:每位老师报告**必须**出现在用户的"申博 wiki"里。三种模式,按用户输入(Inputs §5 §6)分支:
 
-# Create the doc
+#### 模式 A — 提供 wiki parent + dashboard(完整 wiki 集成)
+```bash
+# 1. 创建子 docx(作为 wiki parent 的子页)
 lark-cli docs +create --api-version v2 \
   --title "{学校} {老师}" \
-  --content "$(cat /tmp/teacher-report-{name}.xml)" \
-  --parent-position my_library
+  --content "<skeleton>" \
+  --parent-token {WIKI_PARENT_TOKEN}
+
+# 2. append 章节到子 docx
+lark-cli docs +update --command append --content "<section-X>" --doc {child_doc_id}
+
+# 3. append 摘要到 dashboard wiki 节点(让 user 在一个地方看到所有候选老师)
+lark-cli docs +update --command append --content "<dashboard-摘要>" --doc {WIKI_DASHBOARD_TOKEN}
 ```
+
+#### 模式 B — 只提供 dashboard
+```bash
+# 1. 报告仍 create 到 my_library(独立 docx,user 可手动归档)
+lark-cli docs +create --api-version v2 \
+  --title "{学校} {老师}" \
+  --content "<skeleton>" \
+  --parent-position my_library
+
+# 2. append 章节
+lark-cli docs +update --command append --content "<section-X>" --doc {child_doc_id}
+
+# 3. append 摘要到 dashboard(让 user 在 dashboard 看到链接)
+lark-cli docs +update --command append --content "<dashboard-摘要>" --doc {WIKI_DASHBOARD_TOKEN}
+```
+
+#### 模式 C — 都没提供(legacy 兼容)
+```bash
+# 直接 create 到 my_library,不 append 到 dashboard
+lark-cli docs +create --api-version v2 \
+  --title "{学校} {老师}" \
+  --content "<skeleton>" \
+  --parent-position my_library
+
+# append 章节(同上)
+```
+
+> 摘要模板见 `report-template.md` § 11 申博 wiki dashboard 摘要。
 
 If the doc body is > 30 blocks, split: create with skeleton (title + headings + TL;DR callout only), then `lark-cli docs +update --api-version v2 --doc {doc_id} --command append` per section. This avoids the v2 single-call content-size limit and makes failures recoverable.
 
