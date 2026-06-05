@@ -145,6 +145,11 @@ Reply to the user with:
 - **Document title**: `{学校} {老师姓名}` (e.g. "浙江大学 吴飞")
 - **5 required sections in order**: TL;DR callout, 导师与课题组画像, 申博匹配度评估, 套磁与行动建议, 论文产出全景（按年）, 数据来源与说明
 - **Visual elements required**: 1 TL;DR callout + 1 grid, ≥ 1 callout per section for non-text observations, all data tables formatted as `<table>` blocks (not markdown)
+- **🚨 5 章节必含硬要求(2026-06-05 v0.2.6,违反 = skill 协议破坏)**:
+  - 必须有 `<h2>1. ...</h2>` / `<h2>2. ...</h2>` / `<h2>3. ...</h2>` / `<h2>4. ...</h2>` / `<h2>5. ...</h2>` 5 个 h2 章节,顺序固定
+  - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
+  - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
+  - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
 
 ## Failure handling
 
