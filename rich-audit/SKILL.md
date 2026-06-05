@@ -183,139 +183,41 @@ User: "rich审计" / "进化"
 
 ## 并行 Agent 策略
 
-> **核心原则**：无依赖关系的任务必须并行启动 Agent，缩短总耗时；有依赖关系（如修复依赖审计结果、报告依赖修复结果）的任务必须顺序执行。
+> **下沉到 references**：完整 108 行已迁出（含 3 个 Layer Agent 启动模板 + 8 维度加权模型）。
+> 详见 [`references/agent-strategy.md`](references/agent-strategy.md)
 
-### Layer 1 审计层 — 双模并行
+**核心原则**：无依赖关系的任务必须并行启动 Agent，缩短总耗时；有依赖关系的任务必须顺序执行。
 
-两个审计模式相互独立，**同时启动**两个 Agent：
+**3 个并行域**：
+- **Layer 1 双模并行**: `Agent-Audit-A`（配置）+ `Agent-Audit-C`（Python/ML）同时启动
+- **Layer 3 多源并行**: `Agent-Evolve-1/2/3`（配置/ML/文档）同时启动
+- **Layer 2 子任务并行**: `Agent-Fix-Rules/Memory/Skills/Python` 按文件类型并行
 
-| Agent | 名称 | 职责 | 输出格式 |
-|-------|------|------|----------|
-| `Agent-Audit-A` | 配置审计 | 扫描 `~/.claude/rules/`、`memory/`、`skills/`、`settings.json`，计算架构健康度 | JSON：`{ "architecture_health": N, "rules_issues": [...], "memory_issues": [...] }` |
-| `Agent-Audit-C` | ML 审计 | 检测 Python 项目（如有），检查依赖安全、版本一致性、CUDA 兼容、类型检查 | JSON：`{ "python_health": N, "dependency_issues": [...], "type_check_status": "..." }` |
+**8 维度加权模型**：architecture 25% + integrity 30% + security 20% + consistency 20% + github_sync 5% + timeliness 5% + redundancy 5% + performance 5%。
 
-**启动方式**：单次消息内批量发送多个 `Agent` 调用。示例如下：
-
-```
-Agent({
-  description: "Audit Claude Code config + memory alignment",
-  prompt: "Run the mechanical audit script and the memory alignment check:\n\n# 1. Mechanical audit\npython3 ~/.agents/skills/rich-audit/scripts/rich_audit.py --output /tmp/audit-a.json\n\n# 2. Memory alignment check (L1 Phantom + L2 Missing + L3 mem0 gap)\n# L1: phantom in MEMORY.md\nphantom=0; while IFS= read -r line; do [[ \"$line\" =~ ^\\-\ \\\\[.*\\\\]\\\\((~/.claude/knowledge/cases/wiki/CASE-[^)]+)\\\\) ]] || continue; file=\"${BASH_REMATCH[1]/#\\~/$HOME}\"; [[ -f \"$file\" ]] || { echo \"[PHANTOM] $file\"; ((phantom++)); }; done < ~/.claude/memory/MEMORY.md; echo \"L1_PHANTOM=$phantom\"\n\n# L2: missing in MEMORY.md\nindexed=$(sed -n 's/.*(\\/\\/\\/.claude\\/knowledge\\/cases\\/wiki\\/(CASE-[^)]*))/\\/1/p' ~/.claude/memory/MEMORY.md | sort -u)\nfilesystem=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | xargs -I{} basename {} | sort -u)\nmissing=$(comm -23 <(echo \"$filesystem\") <(echo \"$indexed\"))\necho \"L2_MISSING=$(echo \\\"$missing\\\" | grep -c . 2>/dev/null || echo 0)\"\n\n# L3: mem0 case drift
-# Use mcp__plugin_mem0_mem0__search_memories with query="CASE" top_k=500
-# Parse result (JSON string in .result field), extract all metadata.source starting with "CASE-"
-# Check each against ~/.claude/knowledge/cases/wiki/ filesystem
-# Report: MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES, [MEM0_GAP] files
-
-# Read audit JSON and summarize\nRead /tmp/audit-a.json and summarize: architecture_health score, top 3 rules_issues, top 3 memory_issues, skill_symlink mismatches, L1_PHANTOM, L2_MISSING, MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES. Return structured JSON: {architecture_health, rules_issues, memory_issues, skill_symlink, l1_phantom, l2_missing, l3_mem0_gap}."
-})
-Agent({
-  description: "Audit Python/ML project",
-  prompt: "Check if current workspace has pyproject.toml or requirements.txt. If yes, run python checks (dependency security, version consistency, CUDA compatibility, type checking) per references/python-checklist.md. Return JSON: {python_health: N, dependency_issues: [...], type_check_status: '...'}. If no Python project, return {python_health: null, skipped: true}."
-})
-```
-
-**汇总规则**：
-- 等待全部 Agent 返回后，合并两份 JSON
-- 综合健康分 = weighted_average(8 维度加权模型)
-  - architecture 25% | integrity 30% | security 20% | consistency 20%
-  - github_sync 5% | timeliness 5% | redundancy 5% | performance 5%
-- 脚本层使用 `_FileIndex` 统一预扫描 + `ThreadPoolExecutor(max_workers=4)` 并行执行维度，消除重复 rglob
-
-### Layer 3 进化层 — 多源并行扫描
-
-Layer 2 完成后，**同时启动**多个进化 Agent：
-
-| Agent | 名称 | 职责 | 搜索关键词示例 |
-|-------|------|------|----------------|
-| `Agent-Evolve-1` | 配置进化 | WebSearch: Claude Code 最新最佳实践、OMC 生态更新 | `"Claude Code best practices 2026"`, `"OMC oh-my-claudecode latest"` |
-| `Agent-Evolve-2` | ML 进化 | WebSearch: Python / PyTorch / ML 项目最佳实践（仅 Mode C 触发） | `"PyTorch best practices 2026"`, `"Python project structure 2026"` |
-| `Agent-Evolve-3` | 文档进化 | Context7 查询：Python docs / Claude SDK docs | 使用 `mcp__context7__resolve-library-id` + `query-docs` |
-**启动方式**：单次消息内批量发送多个 `Agent` 调用。示例如下：
-
-```
-Agent({
-  description: "Evolve Claude Code config",
-  prompt: "WebSearch: 'Claude Code best practices 2026', 'OMC oh-my-claudecode latest updates'. Also check Context7 for Claude SDK latest patterns. Compare findings against current ~/.claude/rules/ and ~/.claude/settings.json. Return: {new_knowledge: [{source, finding, recommendation}], adoptable_items: [...]}."
-})
-Agent({
-  description: "Evolve Python/ML practices",
-  prompt: "WebSearch: 'PyTorch best practices 2026', 'Python project structure 2026', 'ML engineering patterns 2026'. Only run if current workspace has Python project. Return: {new_knowledge: [...], adoptable_items: [...]}."
-})
-Agent({
-  description: "Evolve from official docs",
-  prompt: "Use mcp__context7__resolve-library-id for 'Claude SDK' and 'Python', then query-docs for latest patterns. Return: {new_knowledge: [...], adoptable_items: [...]}."
-})
-```
-
-**汇总规则**：
-- 收集所有 Agent 返回的 "新知识条目"
-- 与当前配置逐项对比，标记：
-  - `ADOPTED` — 已采纳并应用
-  - `PENDING` — 待用户确认
-  - `REJECTED` — 不适用或已过时
-  - `NO_CHANGE` — 无新进展（仍需列出搜索证据）
-
-### 可并行的修复子任务（Layer 2 内部并行）
-
-Layer 2 的**优先级排序**必须基于 Layer 1 汇总结果（顺序），但**实际修复操作**可按文件类型并行拆分：
-
-| Agent | 职责 | 并行安全性 |
-|-------|------|------------|
-| `Agent-Fix-Rules` | 合并重复规则、重写冲突段落、补充 Binary Assertions | 高（仅编辑 `~/.claude/rules/`） |
-| `Agent-Fix-Memory` | 更新陈旧记忆引用、修复 MEMORY.md 索引 | 高（仅编辑 `~/.claude/memory/`） |
-| `Agent-Fix-Skills` | 修复 skill symlink、清理 orphan | 高（仅编辑 `~/.claude/skills/` 和 `~/.agents/skills/`） |
-| `Agent-Fix-Python` | 补充 README、修复 MarkupSafe 约束、添加 requires-python | 高（仅编辑工作区 Python 文件） |
-
-```
-Agent({ description: "Fix rules issues", prompt: "Read Layer 1 JSON rules_issues. Fix top 3 issues in ~/.claude/rules/ by editing files directly. Return: {fixed_files: [...], skipped: [...]}." })
-Agent({ description: "Fix memory alignment issues (L1/L2/L3)", prompt: "Read Layer 1 JSON memory_issues. Fix all three alignment layers:\n\n1. L1 Phantom: 从 ~/.claude/memory/MEMORY.md 删除指向不存在文件的 entry\n2. L2 Missing: 为存在于 ~/.claude/knowledge/cases/wiki/ 但未进入 MEMORY.md 的 case 文件添加 entry（从 case 文件 frontmatter 提取 title + 首行描述）\n3. L3 mem0 Gap: 对 mem0 有 source=CASE-XXX 但文件系统无对应文件的记忆，生成 case 文件模板到 ~/.claude/knowledge/cases/wiki/CASE-XXX.md，模板包含 frontmatter + '## 症状' + '## 根因（待补充）' + '## 修复（待补充）'，通知用户补充内容\n\nReturn: {l1_fixed: N, l1_remaining: N, l2_added: N, l3_created: N, errors: [...]}." })
-Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -maxdepth 1 -type l | while read f; do ... done. Repair broken/missing symlinks to ~/.agents/skills/. Return: {fixed: N, broken: N}." })
-```
-
-### 必须顺序执行的环节
-
-| 环节 | 原因 |
-|------|------|
-| Layer 2 优先级排序 | 必须基于 Layer 1 完整汇总结果 |
-| 生成进化报告 | 必须基于 Layer 2 修复结果 + Layer 3 进化结果 |
-| Verification Gates | 必须在所有修改完成后执行 |
+**Layer 3 进化层约束**：每次 `rich审计` 都必须执行外部扫描（禁止以"分数已经很高"为由跳过 WebSearch / Context7）。
 
 ---
-
-### Layer 3 进化层详解
-
-进化层是区分"审计"与"自我进化"的核心。详细来源、基准和搜索策略见 [references/evolution-sources.md](references/evolution-sources.md)。
-
-**核心约束**：无论当前健康度多少，每次 `rich审计` 都必须执行 Layer 3 外部扫描。禁止以"分数已经很高"为由跳过 WebSearch / Context7。
-
----
-
 ## 双模扫描范围
 
-### 模式 A: Claude Code 配置审计（默认）
+> **模式 A**: Claude Code 配置审计（默认）。详见 [`references/audit-patterns.md`](references/audit-patterns.md)（663 行详细检测命令）。
+>
+> **模式 B**: Python / ML 项目审计（条件触发，检测 `pyproject.toml` / `requirements.txt` 时启用）。详见 [`references/python-checklist.md`](references/python-checklist.md)。
+
+**模式 A 路径清单**（速查表，详细检测见 audit-patterns.md）：
 
 | 路径 | 用途 |
 |------|------|
 | `~/.claude/rules/` | 行为护栏与约束 |
 | `~/.claude/memory/` | 持久化用户/项目/上下文记忆 |
 | `~/.claude/knowledge/cases/wiki/` | Case 文件系统（221+ case files） |
-| **mem0 ↔ filesystem 对齐** | 双轨记忆同步检测（见下方详解） |
+| **mem0 ↔ filesystem 对齐** | 双轨记忆同步检测 |
 | `~/.claude/hooks/` | PreToolUse / PostToolUse / Stop hooks |
 | `~/.claude/scripts/` | 自动化脚本 |
 | `~/.claude/skills/` | OMC 和自定义 skills |
 | `~/.claude/settings.json` | Claude Code 配置 |
 | `~/.omc/skills/` | OMC 市场与用户 skills |
 | `~/.agents/skills/` | `.agents` 框架 skills（应与 `~/.claude/skills/` 保持硬链接一致） |
-
-### 模式 B: Python / ML 项目审计（条件触发）
-
-检测 `pyproject.toml` / `requirements.txt` 时叠加：
-- **Dependency Security**: torch CVE 检查、wandb/GitHub token 检测
-- **Version Consistency**: torch 版本、MarkupSafe 冲突
-- **CUDA Compatibility**: `torch.cuda.is_available()`
-- **Project Completeness**: README 质量、requires-python
-- **Type Checking**: pyright/mypy 配置
-
-详见 [references/python-checklist.md](references/python-checklist.md)。
 
 ---
 
@@ -329,7 +231,7 @@ Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -
 | 单规则文件长度 | ≤ 50 行 | 长规则被忽略 |
 | frontmatter 覆盖率 | 100% | 加载器不识别 |
 
-检测命令见 [references/audit-patterns.md](references/audit-patterns.md)。
+> 检测命令、可执行脚本、9 维度加权模型见 [`references/audit-patterns.md`](references/audit-patterns.md)。
 
 ---
 
@@ -381,20 +283,11 @@ Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -
 
 ## 自动修复行为
 
-### 脚本层安全修复（无破坏性）
-- 删除指向不存在文件的 hook
-- 清理过量的 settings.json 备份
-- 重新格式化损坏的 JSON
-- 将 777 权限重置为 644/755
-- **Skill symlink 修复**: 物理目录 → symlink、broken symlink → 重建、missing symlink → 创建
-- **Orphan 清理**: `.claude/skills/` 中存在但 `.agents/skills/` 中不存在的孤立项自动移除
-- **Python**: 空 README.md 自动替换为模板、补充缺失的 requires-python
+> 完整 19 行已下沉到 [`references/auto-fix.md`](references/auto-fix.md)。本节保留摘要。
 
-### AI 层语义修复（允许编辑）
-- 合并重复规则、重写冲突段落
-- 补充缺失的 Binary Assertions
-- 更新陈旧的记忆引用
-- **Python**: 建议统一 torch 版本、添加 lock 文件、修复 MarkupSafe 约束
+**脚本层安全修复**（无破坏性）：hook 清理、JSON 修复、权限重置、skill symlink 修复、orphan 清理、Python README 模板。
+
+**AI 层语义修复**（允许编辑）：合并重复规则、补充 Binary Assertions、更新陈旧记忆引用、统一 torch 版本。
 
 ---
 
@@ -428,52 +321,17 @@ Agent({ description: "Fix skill symlinks", prompt: "Run: find ~/.claude/skills -
 
 ## Verification Gates (报告完成前强制检查)
 
-**在声明 "审计完成" 前，必须执行以下物理验证并粘贴输出：**
+> **下沉到 references**：10 项物理验证完整版见 [`references/verification-gates.md`](references/verification-gates.md)。
+>
+> **Why**：rich-audit 自身曾多次出现误报（memory-audit cascade、ghost case detection）。验证门禁防止审计工具自身的幻觉被当作结论输出。
 
-1. **备份确认**: `ls -la ~/.claude/backups/ | head -5` — 确认本次审计备份已创建
-2. **规则语法检查**: 如修改了任何 `.md` 规则文件，执行 `head -5 <file>` 确认 frontmatter 未损坏
-3. **JSON 有效性**: 如修改了 `settings.json`，执行 `python3 -m json.tool ~/.claude/settings.json > /dev/null && echo "JSON_VALID"` — 确认无语法错误
-4. **差异摘要**: `git -C ~/.claude diff --stat 2>/dev/null || echo "NO_GIT_TRACKING"` — 确认变更范围符合预期
-5. **GitHub 同步状态**: 执行 `git -C ~/.claude log @{u}..HEAD --oneline 2>/dev/null | wc -l` 和 `git -C ~/.agents/skills log @{u}..HEAD --oneline 2>/dev/null | wc -l` — 确认无未推送提交
-6. **项目模式检测验证**: 如当前工作区含 Python 项目，确认 `project_modes` 输出正确标记了对应模式
-7. **Skill 目录 Symlink 一致性**: 如修改了 skill 文件，执行以下命令确认 `.claude/skills/` 与 `.agents/skills/` symlink 一致：
-   ```bash
-   find ~/.claude/skills -maxdepth 1 -type l | while read f; do
-     rel=$(basename "$f")
-     target=$(readlink "$f")
-     expected="$HOME/.agents/skills/$rel"
-     [ "$target" = "$expected" ] && echo "[OK] $rel" || echo "[MISMATCH] $rel -> $target (expected $expected)"
-   done
-   ```
-8. **健康分计算**: 重新运行 `python3 ~/.agents/skills/rich-audit/scripts/rich_audit.py`，确认 8 维度分数已正确记录
-9. **MCP Server 冲突验证**: 执行 `/doctor`（或在非交互环境运行检测命令）确认无 `same command/URL as already-configured` 类 MCP 冲突错误
-10. **MEMORY.md 索引一致性 + 记忆系统对齐**: 执行以下三层验证：
-    ```bash
-    # L1: Phantom entries（MEMORY.md 索引指向不存在的文件）
-    phantom=0; while IFS= read -r line; do [[ "$line" =~ ^\-\ \[.*\]\((~/.claude/knowledge/cases/wiki/CASE-[^)]+)\) ]] || continue; file="${BASH_REMATCH[1]/#\~/$HOME}"; [[ -f "$file" ]] || { echo "[PHANTOM] $file"; ((phantom++)); }; done < ~/.claude/memory/MEMORY.md; echo "L1_PHANTOM=$phantom"
+**简版 5 项速查**（完整 10 项见 references）：
 
-    # L2: Missing entries（case 文件存在但 MEMORY.md 未索引）
-    indexed=$(sed -n 's/.*(~\/.claude\/knowledge\/cases\/wiki\/(CASE-[^)]*))/\1/p' ~/.claude/memory/MEMORY.md | sort -u)
-    filesystem=$(ls ~/.claude/knowledge/cases/wiki/CASE-*.md 2>/dev/null | xargs -I{} basename {} | sort -u)
-    missing=$(comm -23 <(echo "$filesystem") <(echo "$indexed"))
-    echo "L2_MISSING_COUNT=$(echo "$missing" | grep -c . 2>/dev/null || echo 0)"
-    [[ -n "$missing" ]] && echo "$missing" | head -10
-
-    # L3: mem0 云端 vs case 文件系统对齐
-    # Use mcp__plugin_mem0_mem0__search_memories with query="CASE" top_k=500
-    # Parse result (JSON string in .result field), extract all metadata.source starting with "CASE-"
-    # Check each against ~/.claude/knowledge/cases/wiki/ filesystem
-    # Report: MEM0_CASE_COUNT, MEM0_CASE_MISSING_FILES, [MEM0_GAP] files
-    - `L1_PHANTOM=0` → 通过；>0 → L1 drift detected
-    - `INDEXED_CASES` 应 >= `FILESYSTEM_CASES * 0.9` → 通过；低于说明 L2 gap 严重
-    - `MEM0_CASE_MISSING_FILES=0` → 通过；>0 → L3 mem0 drift detected
-
-**若任何验证失败，审计未完成。** 修复后重新运行验证。
-
-**Why**: rich-audit 自身曾多次出现误报（memory-audit cascade、ghost case detection）。验证门禁防止审计工具自身的幻觉被当作结论输出。
-
----
-
+1. **备份确认**: `ls -la ~/.claude/backups/` — 确认本次审计备份已创建
+2. **规则语法检查**: 修改的 `.md` 规则文件 frontmatter 未损坏
+3. **JSON 有效性**: 修改的 `settings.json` `python3 -m json.tool` 通过
+4. **GitHub 同步状态**: `git -C ~/.claude log @{u}..HEAD --oneline` 无未推送
+5. **MEMORY.md 索引一致性**: L1_PHANTOM=0 / L2_MISSING=0 / L3_CASE_GAP=0
 ## 安全与回滚
 
 - 任何修改前自动备份到 `~/.claude/backups/rich-audit-YYYY-MM-DD-HHMMSS/`
