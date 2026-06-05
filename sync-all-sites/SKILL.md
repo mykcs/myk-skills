@@ -54,15 +54,27 @@ For each site, launch 1 Agent with this prompt:
 
 You are auditing <SITE_REPO> for SEO/accessibility/i18n/CI/build issues.
 
+**EVIDENCE-BASED AUDIT (强制)**：
+每个 issue 必须给出 grep/curl/ls 的实际命令输出，**禁止报"verify X" / "check Y" / "should audit Z"**。
+- ❌ BAD: `{"fix": "verify if Google Sans is configured"}`
+- ✅ GOOD: `{"fix": "Google Sans fallback — global.css:7 'was Google Sans' comment", "evidence": "grep -n 'Google_Sans\\|Google Sans' src/ 2>/dev/null | head -5"}`
+
+**DEAD-CODE PROOF 协议**：
+- 报"dead i18n key"前必须 `grep -rn '<key>' src/` 显示 0 matches
+- 报"unused font"前必须 `grep -rn 'fontfile' src/ --include="*.astro"` 显示 0 imports
+- 报"unused file"前必须 `grep -rn 'filename' src/` 显示 0 references
+- **找不到 = 不存在，不算 dead**
+
 Output JSON schema:
 {
   "site": "<name>",
   "score": 0-100,
   "issues": [
-    {"severity": "P0|P1|P2", "type": "seo|a11y|i18n|build|ci|security", "file": "path", "fix": "concrete action"}
-  ],
-  "deferred": []
+    {"severity": "P0|P1|P2", "type": "seo|a11y|i18n|build|ci|security", "file": "path", "fix": "concrete action", "evidence": "grep/curl/ls output snippet"}
+  ]
 }
+
+**No `deferred` field** — 报出来就是要 fix 的，看不到 grep 证据的不报。
 
 Use the website-improve skill (v3.3+) for the audit protocol.
 Do NOT make any edits — read-only mode.
@@ -122,11 +134,13 @@ cat > "$CASE_PATH" <<EOF
 ## CI status
 <list>
 
-## Deferred items
-<list>
+## Action items (当场执行 — no deferred)
+- [x] DONE: <item> (commit <hash>, ci green)
+- [ ] BLOCKED on <X>: <item> — trigger: <user runs Y / CI shows Z>
+- [ ] NEEDS USER INPUT: <question> (use AskUserQuestion inline, not in this list)
 
 ## Lessons
-<bullet list>
+<bullet list — only lessons learned, no follow-up TODOs>
 EOF
 ```
 
@@ -138,17 +152,25 @@ EOF
 ## Sites
 - mykcs: score=98, fixes=3, ci=green ✅
 - GDKVM: score=87, fixes=12, ci=green ✅
-- OSA:   score=92, fixes=5, ci=red ❌ (see deferred)
+- OSA:   score=92, fixes=5, ci=green ✅
 
 ## Total commits
 N
 
-## Deferred items (next run)
-- [ ] OSA: <issue>
-
 ## Case file
 ~/.claude/knowledge/cases/CASE-SYNC-ALL-SITES-YYYYMMDD.md
 ```
+
+**禁用的输出段**（2026-06-05 规则硬化）：
+- ❌ `## Deferred items (next run)` 列表
+- ❌ `## P2 (out of scope this run)` 段落
+- ❌ `## Followup` / `## TODO next session` / `## Carried over` 任何形式
+- ❌ 案例文件"Lessons"段里出现"待做" / "建议改" / "应该审计" 的 follow-up 项
+
+**未完成项的唯一合法出口**：
+1. 当场 commit + push（"已完成 N 项" 写入 case）
+2. `AskUserQuestion` 立即问用户（不静默 defer）
+3. 标 `BLOCKED on <X>` 并写明触发条件（"等用户跑 X 命令" / "等 CI 跑完确认 Y"）
 
 ## 硬规则
 
@@ -156,6 +178,8 @@ N
 - ❌ Phase 3 编辑未被 issue 列表覆盖的文件 → scope creep
 - ❌ 任何 CI red 时声明"完成" → verification gate 违反
 - ❌ 不写 case 文件 → self-evolution 协议违反
+- ❌ 输出报告含 "Deferred items" 段 → 零容忍
+- ❌ audit 报"verify X 是否存在"式推测 → 必须 grep/curl 给出证据
 - ✅ 任何 abort 条件触发时立即停，不重试
 
 ## 已知反模式
@@ -164,6 +188,9 @@ N
 - **silent skip**：CI red 不报"未完成"
 - **全量 auto-apply**：把 P2 也一起 fix → scope creep
 - **不写 case**：跑完不沉淀 → 下次跑同样的问题
+- **deferred theater**（2026-06-05 新增）：用"Deferred items"段把没做的事写得很整齐，假装在管理 follow-up → 实际等于不做的合法化包装
+- **speculative audit**（2026-06-05 新增）：audit 报"verify X" / "check Y" / "should audit Z" → 不是审计，是 todo list。审计必须 grep/curl 给出具体证据（`grep -rEn 'pattern' src/` 输出行号 / `curl -sI <url>` 输出状态码 / `ls -la <file>` 输出大小）。**无证据 = 不存在**
+- **fake dead code**（2026-06-05 新增）：报"5 个 dead i18n keys"但其中 3 个根本不在 i18n 文件里（不是 dead，是从未存在）→ 删除前必须 grep 证明 dead，否则就是数据捏造
 
 ## 与其他 skill 的关系
 
