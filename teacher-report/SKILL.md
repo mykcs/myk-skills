@@ -89,8 +89,9 @@ Reply to the user with:
 | Failure | What to do |
 |---------|------------|
 | L1-L4 all return nothing | Stop, tell the user "信息黑洞 — 五级抓取都失败,建议手动提供主页 URL 或姓名 + 单位"。Do not fabricate. |
+| L1 成功 + 近 3 年署名论文 ≥ 30 篇,但**本人一作 / 共一论文 = 0** | 🟡 中。典型"通讯/末位 PI 模式",实际带生者高度疑为青年教师。报告中必须显式标红 + 套磁信必须追问 1v1 带生安排。 |
 | Personal page exists but is JS-rendered SPA | Use `playwright` MCP `browser_navigate` → `browser_snapshot` to get rendered text. Avoid `webfetch` on SPAs. |
-| L2 Semantic Scholar rate-limited (429) | Wait 5s, retry once. If still 429, skip to L3 DBLP. |
+| L2 Semantic Scholar rate-limited (429) | 1 次重试 (5s),仍 429 跳 L3。**不要指数退避** — 5s/15s/30s/60s 在已知失败的端点上浪费 ≥2 分钟。L4 web_search 聚合是 S2 字段的有效替代。 |
 | User has not enabled lark-cli auth | The `docs +create` call will return `LARK_USER_AUTH_REQUIRED`. Tell the user to run `lark-cli auth login` and retry. |
 | LLM output exceeds `--content` size limit | Split into skeleton + appends per Step 3. |
 | Same teacher fetched twice with different results | Trust L2 (Semantic Scholar) h-index + paperCount over L1 self-claimed numbers. Note both in `5. 数据来源`. |
