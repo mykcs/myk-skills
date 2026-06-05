@@ -23,6 +23,12 @@ If 1 + 2 are both missing, do NOT start fetching — ask the user.
 
 ### Step 1 — Data fetching (4-level fallback)
 
+> **🚨 硬规则**(违反 = skill 协议破坏):
+> - **L2 Semantic Scholar 失败时,只准 1 次 5s 重试,任何 5s/15s/30s/60s 指数退避 = 违反本 skill**。L4 web_search 聚合是 S2 字段的有效替代,直接跳。
+> - **L3 DBLP pid 0 hits 时,不要无限重试**,直接走 L4 web_search。
+> - **L1 抓到 SPA 锚点不全时,必须切 playwright**,不要只 webfetch。
+> - **任何 L1-L4 抓取中,"导师本人一作顶会论文数"是必查字段**,0 → 风险灯号 🟡 中(见 Failure handling)。
+
 Try sources in this order. Stop when a source yields enough signal; you do not need all four.
 
 | Level | Source | How to query | What to extract |
@@ -90,6 +96,7 @@ Reply to the user with:
 |---------|------------|
 | L1-L4 all return nothing | Stop, tell the user "信息黑洞 — 五级抓取都失败,建议手动提供主页 URL 或姓名 + 单位"。Do not fabricate. |
 | L1 成功 + 近 3 年署名论文 ≥ 30 篇,但**本人一作 / 共一论文 = 0** | 🟡 中。典型"通讯/末位 PI 模式",实际带生者高度疑为青年教师。报告中必须显式标红 + 套磁信必须追问 1v1 带生安排。 |
+| 课题组定位"双核心 / 三核心"硬塞给学生代笔模式 | ⛔ **禁止**。如果导师是末位/通讯 PI、实际带生者疑为青年教师,**必须**用 ⚠️ callout 显式标"实际带生者高度疑似 X,导师时间投入 < 50%,需邮件确认 1v1 带生安排"——不可包装成"X-Y 双核心"或"X-Y-Z 三核心" callout(那是把"学生代笔"美化成"团队结构")。 |
 | Personal page exists but is JS-rendered SPA | Use `playwright` MCP `browser_navigate` → `browser_snapshot` to get rendered text. Avoid `webfetch` on SPAs. |
 | L2 Semantic Scholar rate-limited (429) | 1 次重试 (5s),仍 429 跳 L3。**不要指数退避** — 5s/15s/30s/60s 在已知失败的端点上浪费 ≥2 分钟。L4 web_search 聚合是 S2 字段的有效替代。 |
 | User has not enabled lark-cli auth | The `docs +create` call will return `LARK_USER_AUTH_REQUIRED`. Tell the user to run `lark-cli auth login` and retry. |
