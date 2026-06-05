@@ -51,6 +51,15 @@ If 1 + 2 are both missing, do NOT start fetching — ask the user.
 > - **L1 抓到 SPA 锚点不全时,必须切 playwright**,不要只 webfetch。
 > - **任何 L1-L4 抓取中,"导师本人一作顶会论文数"是必查字段**,0 → 风险灯号 🟡 中(见 Failure handling)。
 
+> **🚨 飞书标准标题号硬要求(v0.2.5,违反 = skill 协议破坏)**:
+> - **h2 / h3 / h4 标题**:`1.` `2.` `3.` / `1.1` `2.1` / `1.` `2.` `3.`(飞书自动识别为有序列表,显示在 outline)
+> - **禁止**手动 `(1) (2) (3)` 编号 — 飞书 outline 不识别,user 看不到大纲
+> - **禁止**论文精读内联 `① ② ③` 字符 — 用 `<p><b>完整标题</b></p>` 即可,飞书 outline 通过 h4 定位
+> - **禁止** `████████` 字符画 — 趋势表用 `<table>` + 精确数字(LLM-prompt §7)
+> - **不混用** `1.` / `(1)` / `①` 三种编号风格
+> - **论文精读标题**:完整标题 + `(venue year)` + `⭐/📝/⚠️/🆕` 状态标记(无 arXiv id / 无作者列表)
+> - **详见**:`references/report-template.md §5` 论文精读模板 + `references/normalization-audit-2026-06-05.md`(4 文档规范化审计追踪)
+
 Try sources in this order. Stop when a source yields enough signal; you do not need all four.
 
 | Level | Source | How to query | What to extract |
@@ -183,3 +192,4 @@ Reply to the user with:
 - `references/report-template.md` — 飞书 docx XML 模板 (TL;DR callout / 5 章节结构)
 - `references/data-sources.md` — L1-L4 抓取细节 + ZJU URL 模式 + S2 API 字段
 - `references/llm-prompt.md` — 总结 prompt (synthesis rules + 章节填充指引)
+- `references/normalization-audit-2026-06-05.md` — 4 docx 飞书标题号规范化审计追踪(v0.2.5 → v0.2.7 重跑记录)
