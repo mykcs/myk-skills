@@ -130,6 +130,32 @@
 </ul>
 ```
 
+**🚨 论文精读硬规则(违反 = skill 协议破坏)**:
+
+1. **禁止作者列表** — 论文标题后**只接 `(venue year)`**,**省略**所有作者姓名 / et al. / Kun Kuang* / 通讯标记。吴飞原模板不显示作者(读者关注的是论文本身,不是作者)。
+
+2. **venue 必须是 venue 名** — `NeurIPS 2025` / `ACL 2025` / `KDD 2026` / `ICLR 2026` / `arXiv preprint` / `ACM Computing Surveys` / `TPAMI` / `Cell Patterns` 等。**禁止**用 arXiv ID(`arXiv 2410.15319` ❌) / DOI / 通讯邮箱 / 期刊缩写作为 venue。
+
+3. **状态标记** 在 `(venue year)` 之后空一格:
+   - `⭐` = 重点关注
+   - `📝` = 投稿中(submitted)
+   - `⚠️` = 撤稿/被拒(withdrawn/desk-rejected)
+   - `🆕` = 最新发表
+   - 例:`② InfiGUI-R1: Advancing Multimodal GUI Agents from Reactive Actors to Deliberative Reasoners (ICLR 2026 Submitted) ⭐ 📝`
+
+4. **5 字段必含 + 顺序固定**:
+   - 类型(Survey / 原创研究 / Benchmark)
+   - {老师}角色(末位/通讯/无/合作)
+   - 核心贡献(一句话,不超 30 字)
+   - 与你关联(具体到论文技术点 + 用户方向连接,**禁止**"高度契合"等空话)
+   - 技术关键词(**5 个**英文逗号分隔,不是 6 个、不是中文)
+
+5. **套磁可引用度自检** — 每篇论文精读写完后,问自己:"如果我在套磁信中引用这篇论文,我能不能**只读这两行 + 5 字段**就理解它?" 不行就改。
+
+**反例**(我跑况琨时犯的错,以后禁止):
+- ❌ `① Causality for Large Language Models(Anpeng Wu, Kun Kuang*, Minqin Zhu, et al., arXiv 2410.15319, 2024) ⭐` — 加了作者列表 + arxiv id 当 venue
+- ✅ `① Causality for Large Language Models (arXiv preprint 2024) ⭐` — 完整标题 + venue 名 + 年份
+
 **状态标记约定**:
 - `⭐` = 重点关注
 - `📝` = 投稿中(submitted)
