@@ -241,6 +241,88 @@ lark-cli docs +update --api-version v2 --doc "<doc_id>" --command str_replace \
   3. 这样可以保留文档中其他不相关的内容（图片、评论等）
 - **视觉丰富度**：插入或替换内容时，同样遵循 [`lark-doc-style.md`](style/lark-doc-style.md) 中的样式指南，主动使用结构化 block
 
+## 踩坑与陷阱（实战经验，2026-06 验证）
+
+> 这些是反复踩过的坑，写新流程前请先扫一遍。
+
+### 1. `--content @<filepath>` 必须用相对路径
+
+```
+# ❌ 报错：invalid file path "..." --file must be a relative path
+lark-cli docs +update --content @/Users/myk/.../foo.md
+
+# ✅ 先 cd 到目标目录，用相对路径
+cd /Users/myk/.mavis/sessions/<sid>/workspace
+lark-cli docs +update --content @./foo.md
+```
+
+**原因**：`--content @file` 形式启用了 sandbox-style path resolution，绝对路径会被拒绝。
+
+### 2. `block_replace` 同一 block 只能调用一次（静默失败）
+
+```bash
+# 第一次：ok ✓
+lark-cli docs +update ... --command block_replace --block-id "X" --content "A"
+
+# 第二次：仍返回 "ok": true 但 "result": "failed" —— 看起来成功实际没动
+lark-cli docs +update ... --command block_replace --block-id "X" --content "B"
+```
+
+**应对**：每次修改前重新 `docs +fetch` 拿最新 block_id，不要靠记忆中的旧 id。第二次修改用新 block_id（同一逻辑位置重建出来的 cell 会有新 id）。
+
+### 3. `str_replace` 在 markdown 模式不能写 XML/HTML 标签
+
+```bash
+# ❌ 标签被转义成字面量
+--pattern "Genomic...</p></td><td></td>"
+--content "Genomic...</p></td><td><p>2022.10</p></td>"
+# 实际写入：<p>2022.10</p> 变成 &lt;p&gt;2022.10&lt;/p&gt; 文本
+```
+
+**应对**：
+- 想插纯文本 → 直接用文本
+- 想插段落 → 改用 `block_insert_after` 走 XML 模式
+- 改表格 cell → 用 `前缀...后缀` 省略号语法绕开空 cell 匹配问题
+
+### 4. markdown 模式支持 `前缀...后缀` 省略号语法
+
+```bash
+# 跨多 cell 匹配并整体替换
+lark-cli docs +update --command str_replace --doc-format markdown \
+  --pattern '论文标题...会议/期刊' \
+  --content '论文标题</p></td><td><p>2024</p></td><td><p>会议/期刊'
+```
+
+省略号 `...` 中间内容**完全替换**为 `--content`，不会被保留。适合处理表格内连续多 cell。
+
+### 5. 飞书 H1 vs H2 vs title 的关系
+
+- Markdown 的 `# 一级标题` **会变成文档唯一 `<title>`**（不进入 body），不会出现在 `outline` 里
+- body 实际从 H2 开始
+- 飞书对 H2 里的 `1.` `2.` `3.` 等数字格式会**自动识别**为编号列表，但**仅在编辑器里实时输入时**触发；用 API str_replace 写入的 `1.` 是纯文本，不会自动激活编号 UI
+- 想真用编号功能 → 在 Feishu 编辑器里手动把光标放在标题前敲 `1. ` 触发智能编号
+
+### 6. 表格空 cell 无法用 str_replace 匹配
+
+```xml
+<td></td>  <!-- 空格也算不到字符 -->
+```
+
+**应对**：
+- 用 `前缀...后缀` 省略号语法跨越空 cell
+- 或用 `block_replace` 直接对 `<td>` 内部 `<p>` 操作（注意 1 次性限制）
+- 或 str_replace 整行内容（包括前后 cell 作锚点）
+
+### 7. 复杂结构（callout / grid）的子块用 `block_insert_after` 走 XML 模式
+
+```bash
+# 想要 callout，必须 --doc-format xml（默认），不能 markdown
+lark-cli docs +update --command block_insert_after --block-id "X" \
+  --content '<callout emoji="💡"><p>高亮框</p></callout>'
+```
+
+markdown 模式下的 `<callout>` `<grid>` 不会渲染，会被转义为字面量。
+
 ## 参考
 
 - [`lark-doc-update-workflow.md`](style/lark-doc-update-workflow.md) — 改写增强工作流（Code-Act Loop、并行执行策略）
