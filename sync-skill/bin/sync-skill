@@ -29,6 +29,7 @@ Modes:
   (default)        Verify that ~/.claude/skills and ~/.mavis/skills are
                    directory symlinks to ~/.agents/skills.
                    Exit 0 if OK, non-zero if migration is needed.
+                   With --check-mtime, also verify per-skill mtime alignment.
   --migrate        Convert from per-skill symlinks to directory symlink.
                    Backs up, moves local-only skills, commits.
   --restore        Roll back from the most recent .bak of each target.
@@ -39,6 +40,12 @@ Options:
   --message=MSG    With --migrate, custom commit message
   --dry-run        With --migrate: show what would happen, no changes
   --target=PATH    Override target list (comma-separated; default: claude + mavis)
+  --check-mtime    With verify (default): also assert per-skill mtime alignment
+                   between source skill and symlinked target. Detects drift
+                   where source mtime advances but target mtime lags > N hours.
+                   Per CASE-SKILLS-SYMLINK-REGRESSION-20260602.
+  --mtime-threshold=H  Drift threshold in hours (default: 24). Drift > H
+                   triggers WARN, > 2H triggers ERROR.
   -h, --help       Show this help
 
 Examples:
@@ -52,11 +59,14 @@ Exit codes:
   0  OK
   1  Verification failed / migration error
   2  Bad arguments
+  3  Symlink OK but mtime drift detected (only with --check-mtime)
 
 EOF
 }
 
 # ---- Argument parsing ----
+CHECK_MTIME=false
+MTIME_THRESHOLD_H=24
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --migrate)         MODE="migrate"; shift ;;
@@ -69,6 +79,8 @@ while [[ $# -gt 0 ]]; do
       IFS=',' read -ra TARGETS <<< "${1#*=}"
       shift
       ;;
+    --check-mtime)     CHECK_MTIME=true; shift ;;
+    --mtime-threshold=*) MTIME_THRESHOLD_H="${1#*=}"; shift ;;
     -h|--help)         usage; exit 0 ;;
     *)                 err "Unknown arg: $1"; usage >&2; exit 2 ;;
   esac
@@ -124,7 +136,70 @@ verify_all() {
   else
     log "Some target(s) need attention. Run with --migrate to fix."
   fi
+  if [[ "$CHECK_MTIME" == "true" ]] && [[ $rc -eq 0 ]]; then
+    if ! check_mtime_drift; then
+      rc=3  # Symlink OK but drift detected
+    fi
+  fi
   return $rc
+}
+
+# ---- Check per-skill mtime drift (EV-4, 2026-06-08) ----
+check_mtime_drift() {
+  local drift_count=0
+  local warn_threshold_err_h=$((MTIME_THRESHOLD_H * 2))
+  log "Checking per-skill mtime drift (threshold: ${MTIME_THRESHOLD_H}h warn, ${warn_threshold_err_h}h err)..."
+
+  for target in "${TARGETS[@]}"; do
+    # Only meaningful if target is a symlink (verified already)
+    [[ -L "$target" ]] || continue
+
+    # Iterate skills in source
+    if [[ -d "$SOURCE" ]]; then
+      for skill_dir in "$SOURCE"/*/; do
+        [[ -d "$skill_dir" ]] || continue
+        local skill_name
+        skill_name=$(basename "$skill_dir")
+        local source_skill="$target/$skill_name"
+        # Skip if not present at target (could be local-only or post-merge)
+        [[ -e "$source_skill" ]] || continue
+
+        # Source mtime: max mtime of SKILL.md + any files in skill (last commit)
+        local source_mtime=0
+        while IFS= read -r -d '' f; do
+          local m
+          m=$(stat -f "%m" "$f" 2>/dev/null || echo 0)
+          [[ "$m" -gt "$source_mtime" ]] && source_mtime=$m
+        done < <(find "$skill_dir" -type f -print0 2>/dev/null)
+
+        # Target mtime: symlink itself
+        local target_mtime
+        target_mtime=$(stat -f "%m" "$source_skill" 2>/dev/null || echo 0)
+
+        # Compare (target should match source for symlink)
+        if [[ "$target_mtime" -lt "$source_mtime" ]]; then
+          local lag=$(( source_mtime - target_mtime ))
+          local lag_h=$(( lag / 3600 ))
+          if [[ $lag_h -gt $warn_threshold_err_h ]]; then
+            err "MTIME_DRIFT (err): $skill_name lags ${lag_h}h (threshold ${warn_threshold_err_h}h)"
+            err "  source: $SOURCE/$skill_name (mtime=$(date -r $source_mtime '+%Y-%m-%d %H:%M:%S'))"
+            err "  target: $target/$skill_name (mtime=$(date -r $target_mtime '+%Y-%m-%d %H:%M:%S'))"
+            drift_count=$((drift_count + 1))
+          elif [[ $lag_h -gt $MTIME_THRESHOLD_H ]]; then
+            warn "MTIME_DRIFT (warn): $skill_name lags ${lag_h}h (threshold ${MTIME_THRESHOLD_H}h)"
+            drift_count=$((drift_count + 1))
+          fi
+        fi
+      done
+    fi
+  done
+
+  if [[ $drift_count -eq 0 ]]; then
+    log "No mtime drift detected across all skills."
+    return 0
+  fi
+  err "$drift_count skill(s) with mtime drift"
+  return 1
 }
 
 # ---- Migrate: convert from per-skill to directory symlink ----
