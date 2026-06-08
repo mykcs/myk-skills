@@ -3,9 +3,12 @@ name: sync-all-sites
 description: 跨 3-5 个 Astro 站点的并行 audit + fix + deploy 编排
 metadata:
   type: skill
-  version: 1.0.0
+  version: 1.1.0
   author: myk
   source: insights-friction-2026-06-03
+  changelog:
+    - 1.1.0 (2026-06-08): L14 hardening — agent final message 强制 JSON schema (Phase 2/3 prompt 顶部 + 硬规则 + 已知反模式)
+    - 1.0.0 (2026-06-03): 初版
   requires: [website-improve, context-verify.sh, gh-api-push.sh]
 ---
 
@@ -76,6 +79,13 @@ Output JSON schema:
 
 **No `deferred` field** — 报出来就是要 fix 的，看不到 grep 证据的不报。
 
+**L14 FINAL MESSAGE PROTOCOL (mandatory, orchestrator 会 grep 验证 JSON 合法性)**:
+- 你的 final message MUST 是 EXACTLY 一个 JSON block matching 上面的 schema
+- Wrap in ` ```json ... ``` ` 三反引号
+- NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble
+- 任何非 JSON 内容（含 ack / 解释 / "Subagent acknowledged" / "Acknowledged"）→ orchestrator 拒收, 整个 run 失败, Phase 2/3 需重做
+- 验证方式: orchestrator 评分前会 `grep -q '"site":' <output>` + `python3 -c "import json; json.loads(...)"` 双层 check
+
 Use the website-improve skill (v3.3+) for the audit protocol.
 Do NOT make any edits — read-only mode.
 Report back as a single JSON block.
@@ -100,6 +110,24 @@ For each fix:
 
 Do NOT touch issues not in this list. (scope discipline)
 Do NOT mark done until build passes.
+
+**L14 FINAL MESSAGE PROTOCOL (mandatory)**:
+- 你的 final message MUST 是 EXACTLY 一个 JSON block:
+  ```json
+  {
+    "site": "<name>",
+    "p0_fixed": <count>,
+    "p1_fixed": <count>,
+    "p2_deferred": <count>,
+    "commits": ["<hash1>: <msg1>", "<hash2>: <msg2>"],
+    "ci_status": "green|red|pending|unknown",
+    "evidence_blocking": "<reason if not all P0/P1 fixed, else empty>"
+  }
+  ```
+- Wrap in ` ```json ... ``` ` 三反引号
+- NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble
+- 任何非 JSON 内容 → orchestrator 拒收
+- 验证方式同 Phase 2 (grep + python3 json.loads)
 ```
 
 **barrier**：所有 agent 返回后聚合。
@@ -180,6 +208,7 @@ N
 - ❌ 不写 case 文件 → self-evolution 协议违反
 - ❌ 输出报告含 "Deferred items" 段 → 零容忍
 - ❌ audit 报"verify X 是否存在"式推测 → 必须 grep/curl 给出证据
+- ❌ Agent final message 含非 JSON 内容 (L14) → orchestrator 拒收, 整 run 失败
 - ✅ 任何 abort 条件触发时立即停，不重试
 
 ## 已知反模式
@@ -191,6 +220,7 @@ N
 - **deferred theater**（2026-06-05 新增）：用"Deferred items"段把没做的事写得很整齐，假装在管理 follow-up → 实际等于不做的合法化包装
 - **speculative audit**（2026-06-05 新增）：audit 报"verify X" / "check Y" / "should audit Z" → 不是审计，是 todo list。审计必须 grep/curl 给出具体证据（`grep -rEn 'pattern' src/` 输出行号 / `curl -sI <url>` 输出状态码 / `ls -la <file>` 输出大小）。**无证据 = 不存在**
 - **fake dead code**（2026-06-05 新增）：报"5 个 dead i18n keys"但其中 3 个根本不在 i18n 文件里（不是 dead，是从未存在）→ 删除前必须 grep 证明 dead，否则就是数据捏造
+- **L14 · Agent ack 协议弱点**（2026-06-08 新增）：3 个 sonnet agent 中 2 个只返 ack 缺结构化 JSON。Run 3 暴露 (CASE-SYNC-ALL-SITES-20260608 Run 3 L14)。**Mitigation**: agent prompt 顶部加"FINAL MESSAGE MUST be a JSON block, NO OTHER TEXT" + orchestrator 评分前 grep 验证 JSON 包含必需 field (`site`, `score|fixes`, `commits`, `ci_status`)。已写入 Phase 2/3 prompt 顶部。
 
 ## 与其他 skill 的关系
 
