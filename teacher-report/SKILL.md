@@ -9,7 +9,7 @@ description: |
 
    **Anti-Hallucination Rules (v0.2.9, 2026-06-06)**: any paper status / year / author / title / 导师职务 / 学生身份 / 统计数字 claim must be verifiable against arXiv / OpenReview / 学校官网, not AI-inferred. See `## Anti-Hallucination Rules` section below for the 6-field matrix and 4 prohibition rules.
 
-   **Paper Entry Format (v0.3.2, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 paper card 格式 (**4 维 taxonomy 4 行** 大领域/中方向/小任务/子技术 每字段独立一行 + verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行 / 4 列表格(用 4 个独立 <p> 块)。详见 `## Paper Entry Format (v0.3.2) — 硬要求` 章节。
+   **Paper Entry Format (v0.3.3, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 paper card 格式 (**4 维 taxonomy 4 行** 大领域/中方向/小任务/子技术 每字段独立一行 + verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行 / 4 列表格(用 4 个独立 <p> 块)。详见 `## Paper Entry Format (v0.3.2) — 硬要求` 章节。
 
    Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
 ---
@@ -275,23 +275,29 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
-- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.2,违反 = skill 协议破坏)**:
-  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.2) — 硬要求` 章节定义的 paper card 格式
+- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3,违反 = skill 协议破坏)**:
+  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.3) — 硬要求` 章节定义的 paper card 格式
   - **必须包含 4 维 taxonomy 4 行独立 <p> 块**(`大领域：` / `中方向：` / `小任务：` / `子技术：` 每行 1 字段)— **禁止** 4 列表格
-  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格
-  - LLM 必须自检:每篇论文均含 4 维 taxonomy 4 行 + `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段
+  - **作者列表: 写完整 verbatim**,禁止 `(末位/通讯)` 缩写 / `(通讯 PI 模式)` 描述 / `... 16 名作者` 省略
+  - **标注行: 单独成行**: `通讯作者：`, `一作/共一：`, `学生：` 等独立 `<p>` 块
+  - **Fei Wu 显式标 `Fei Wu（吴飞）`**(中文括号),即使排在第 1 位
+  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格 / 用缩写
+  - LLM 必须自检:每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表 + 标注行 + `发表：` `arXiv：` `paperscool：` 3 个字段
 
-## Paper Entry Format (v0.3.2, 2026-06-08) — 硬要求
+## Paper Entry Format (v0.3.3, 2026-06-08) — 硬要求
 
 > **背景**:v0.3.0 之前 docx 论文展示痛点:① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮(通讯作者被埋没) ③ 没法直接跳到 arXiv 全文(用户必须自己搜) ④ 论文在 4 级研究 hierarchy(大领域→中方向→小任务→子技术)中的位置不可见,套磁信无法精准定位方向。
 >
-> **v0.3.0 → v0.3.1 → v0.3.2 升级**: 
+> **v0.3.0 → v0.3.1 → v0.3.2 → v0.3.3 升级**: 
 > - **v0.3.1**: 在原 6 行 paper card 基础上,**追加 4 维 taxonomy** (大领域/中方向/小任务/子技术) — 但用 4 列表格
-> - **v0.3.2 (2026-06-08 hotfix)**: **4 维 taxonomy 改为 4 行独立 <p> 块**(每字段一行,不是表格)
-> - 原因:表格形式在飞书 UI 里读起来割裂,4 行更清晰可读
-> - 便于套磁信引用 + 方向匹配度评估
+> - **v0.3.2 hotfix**: 4 维 taxonomy 改为 4 行独立 <p> 块(每字段一行,不是表格)
+> - **v0.3.3 hotfix (2026-06-08)**:
+>   1. **作者列表: 写完整 verbatim**。禁止 "(末位/通讯)" 或 "(通讯 PI 模式)" 描述性缩写 — 必须 verbatim 列出全部作者
+>   2. **标注行: 单独成行**。作者身份/位置/学生身份等元信息(谁通讯、谁一作、谁是 Fei Wu)写独立 `<p>标注：</p>` 段,不混在作者列表里
+>   3. **Fei Wu 显式标 `Fei Wu（吴飞）`**(中文括号),即使排在第 1 位
+> - 原因: 表格形式在飞书 UI 里读起来割裂; 模板构造的"(末位/通讯)"缩写无法审计、可读性差
 
-### Paper Card 模板(v0.3.2,每篇论文一份,无例外)
+### Paper Card 模板(v0.3.3,每篇论文一份,无例外)
 
 ```
 {论文完整标题 (verbatim, 不可改字/改序/省字)}
@@ -300,7 +306,11 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
 小任务：{小任务}
 子技术：{子技术}
 作者：
-{作者 1, 作者 2, ..., Fei Wu（吴飞）, ..., 末位作者}    ← 全部列出(不省略),吴飞显式标 Fei Wu（吴飞）即使他/她就是第 1 作者
+{作者 1, 作者 2, 作者 3, ..., Fei Wu（吴飞）, ..., 末位作者}    ← 全部 verbatim 列出(无 et al. 无缩写),吴飞显式标 Fei Wu（吴飞）
+标注：
+通讯作者：{通讯 1, 通讯 2}    ← 单独成行;不混在作者列表里
+一作/共一：{一作 1, 一作 2}    ← 第一作者(可多个,共一用括号)
+学生：{学生 1, 学生 2}    ← 博士生/硕士生身份,标 (学生) 后缀
 发表：{venue year (角色)}    ← 例: ACL 2025 (Oral) / ICLR 2026 (Spotlight) / KDD 2024 (Long Paper) / TPAMI 2024 (期刊) / arXiv preprint
 arXiv：https://arxiv.org/abs/{arxiv-id}    ← 必须 arXiv ID;无 arXiv 用 DOI
 paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-click 阅读入口
@@ -345,7 +355,7 @@ paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-cl
 | **arXiv** | ✅ | URL 必含 `https://arxiv.org/abs/{id}`;无 arXiv 用 `https://doi.org/{DOI}` 兜底 |
 | **paperscool** | ✅ | URL 必含 `https://papers.cool/arxiv/{id}`;与 arXiv ID 一致;**禁止**漏 |
 
-### 正确示例 (v0.3.2,4 维 taxonomy 用 4 行)
+### 正确示例 (v0.3.3,完整作者列表 + 单独标注行)
 
 ```
 OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use
@@ -388,6 +398,10 @@ paperscool：https://papers.cool/arxiv/2508.04482
 ❌ Wu et al. (2025) OS Agents ACL                          ← 缩写 + 顺序错乱
 ❌ arXiv: 2508.04482                                       ← arXiv 没给 URL
 ❌ paperscool (省略)                                       ← 缺 user 1-click 入口
+❌ 大领域:CV | 中方向:Agent | 小任务:GUI | 子技术:RL      ← 单行 taxonomy 压平 (应 4 行)
+❌ <table>大领域 中方向 小任务 子技术</table>                ← 4 列表格 (应 4 个 <p> 块)
+❌ 作者：... (末位/通讯), Fei Wu                           ← (末位/通讯) 缩写 (应写完整 + 单独标注)
+❌ 作者：... (通讯 PI 模式)                                 ← 模式描述 (应写完整作者 + 标注)
 ```
 
 ### 适用位置 (全 docx 强制,5 章均生效)
@@ -428,12 +442,23 @@ paperscool：https://papers.cool/arxiv/2508.04482
 
 | # | Check | 期望 | 失败处理 |
 |---|-------|------|---------|
-| 14a | 每篇 paper card 含 4-列 taxonomy 分类表(大领域/中方向/小任务/子技术) | 100% 论文含 4-列 1 行表 | ❌ 缺表 → 必须补 4-列 table |
+| 14a | 每篇 paper card 含 4 维 taxonomy 4 行独立 <p> 块(大领域/中方向/小任务/子技术) | 100% 论文含 4 行 | ❌ 缺 4 行 / 用了 4 列表格 → 必须改为 4 个 <p> 块 |
 | 14b | taxonomy 4 字段均有具体值(无 `未知` / `N/A` / `待补` placeholder) | 100% 4/4 | ❌ placeholder → 必须从 abstract 抽取或 L1-L4 反查 |
 | 14c | 4 维 hierarchy 一致性:大领域 ⊃ 中方向 ⊃ 小任务 ⊃ 子技术 | 100% 无逻辑冲突 | ❌ 跨级冲突(如"小任务=图像编辑"配"子技术=RLHF")→ 必须重判 |
 | 14d | taxonomy 描述 ≤ 12 字(简洁,可对比) | ≥ 95% 论文满足 | ❌ 过长 → 截断为关键词 |
 
 > Check 14 的 4 子项 (a-d) 全 ✅ 才算 Check 14 PASS;任一 ❌ = Check 14 FAIL (≥ 3 ❌ = 整体审计 fail, 降级为 🟡)。
+
+### Audit Check 15 (2026-06-08 v0.3.3 新增 — 完整作者列表 + 单独标注行)
+
+| # | Check | 期望 | 失败处理 |
+|---|-------|------|---------|
+| 15a | 作者列表 verbatim 全列 | 100% 论文完整列出全部作者,无 `et al.` / 无 `... N 名作者` 省略 / 无缩写 | ❌ 缩写 → 必须补全作者列表(查 arXiv abs 页) |
+| 15b | 禁止 `(末位/通讯)` / `(通讯 PI 模式)` 等描述性缩写 | 100% 作者行无描述性缩写 | ❌ 缩写 → 必须 verbatim 复制 + 标注行单列 |
+| 15c | 标注行: 通讯作者/一作/学生 独立成行 | 100% 论文含 `<p>标注：</p>` 段 | ❌ 缺标注行 → 必须从 arXiv byline 抽取并单列 |
+| 15d | Fei Wu 显式标 `Fei Wu（吴飞）` 即使排第 1 | 100% Fei Wu 署名论文 | ❌ 漏 `（吴飞）` → 必须补中文括号 |
+
+> Check 15 的 4 子项 (a-d) 全 ✅ 才算 Check 15 PASS;任一 ❌ = Check 15 FAIL (≥ 3 ❌ = 整体审计 fail, 降级为 🟡)。
 
 ## Anti-Hallucination Rules (v0.2.9, 2026-06-06)
 
