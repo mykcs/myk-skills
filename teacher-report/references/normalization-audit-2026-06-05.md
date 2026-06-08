@@ -187,6 +187,33 @@ cat fixed.xml | lark-cli docs +update --api-version v2 --doc {doc_id} \
 
 - ✅ 3 项核心修复完成(Check 5/6/12)
 - ⚠️ Check 1 FAIL by design (11 h2 扩展版)
-- ⚠️ Check 13 部分缺(2 论文缺 arXiv 前缀,用户持续编辑引入)
-- ⏳ `J35xdiI04oeQEUxhRajc8QJmnLd` (吴飞 v0.2.2) paper section 仍 v0.2.5 紧凑格式,需后续单独升级
+- ✅ Check 13 已修:2 篇漏 arXiv 论文(Cell Patterns / Nature Communications)补 `arXiv：<DOI link>` (rev 170 → 187,2026-06-08)
+- ⏳ `J35xdiI04oeQEUxhRajc8QJmnLd` (吴飞 v0.2.2) paper section 升级阻塞(arXiv 429/timeout,11 篇中 0/11 完成,2026-06-08)
+
+# 2026-06-08 17:00+ 状态
+
+## 已完成
+
+- ✅ 吴飞 wiki 13 项 check(11/13 PASS,Check 1 by design,Check 13 全修)
+- ✅ 2 篇 Cell Patterns + Nature Communications 论文补 DOI link(用 `arXiv：<a href="doi">DOI</a>` 格式)
+
+## 部分完成 / 阻塞
+
+- ⏳ `J35xdiI04oeQEUxhRajc8QJmnLd` (吴飞 v0.2.2) paper section 升级:
+  - 11 篇 2026 论文需 arXiv IDs
+  - arXiv API 持续 429 / timeout (8/11 timeout 错误)
+  - 下次会话 arXiv 恢复后重跑:`python3` 调 `http://export.arxiv.org/api/query?search_query=ti:"{title}"`
+
+## 新启动 (3 个 ZJU agent 方向老师 batch)
+
+后台 agent 并行执行(2026-06-08 17:00 启动):
+
+| Teacher | 主页模式 | 方向 |
+|---------|---------|------|
+| 汤斯亮 (Siliang Tang) | mypage.zju.edu.cn/siliangtang | LLM / Agent / 多模态 |
+| 周晓巍 (Xiaowei Zhou) | person.zju.edu.cn/xiaowenzhou / cs.zju.edu.cn | CV / 3D / 生成式 AI |
+| 张圣宇 (Shengyu Zhang) | person.zju.edu.cn/shengyuz / 同名 disambig | LLM Agent / 多模态 / KG |
+
+每个 agent 按 v0.3.0 teacher-report 标准执行:L1-L4 抓取 → 6-line paper card → Feishu docx(my_library) → 返回 docx URL + TL;DR + 风险灯号。
+
 
