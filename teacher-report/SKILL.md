@@ -9,7 +9,7 @@ description: |
 
    **Anti-Hallucination Rules (v0.2.9, 2026-06-06)**: any paper status / year / author / title / 导师职务 / 学生身份 / 统计数字 claim must be verifiable against arXiv / OpenReview / 学校官网, not AI-inferred. See `## Anti-Hallucination Rules` section below for the 6-field matrix and 4 prohibition rules.
 
-   **Paper Entry Format (v0.3.1, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 paper card 格式 (**4 维 taxonomy 分类表** 大领域/中方向/小任务/子技术 + verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行。详见 `## Paper Entry Format (v0.3.1) — 硬要求` 章节。
+   **Paper Entry Format (v0.3.2, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 paper card 格式 (**4 维 taxonomy 4 行** 大领域/中方向/小任务/子技术 每字段独立一行 + verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行 / 4 列表格(用 4 个独立 <p> 块)。详见 `## Paper Entry Format (v0.3.2) — 硬要求` 章节。
 
    Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
 ---
@@ -275,33 +275,48 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
-- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.1,违反 = skill 协议破坏)**:
-  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.1) — 硬要求` 章节定义的 paper card 格式
-  - **必须包含 4 维 taxonomy 分类表**(大领域 / 中方向 / 小任务 / 子技术, 4 列 1 行)— 标识论文在 4 级研究 hierarchy 中的位置
-  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy
-  - LLM 必须自检:每篇论文均含 4 维 taxonomy + `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段前缀
+- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.2,违反 = skill 协议破坏)**:
+  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.2) — 硬要求` 章节定义的 paper card 格式
+  - **必须包含 4 维 taxonomy 4 行独立 <p> 块**(`大领域：` / `中方向：` / `小任务：` / `子技术：` 每行 1 字段)— **禁止** 4 列表格
+  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格
+  - LLM 必须自检:每篇论文均含 4 维 taxonomy 4 行 + `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段
 
-## Paper Entry Format (v0.3.1, 2026-06-08) — 硬要求
+## Paper Entry Format (v0.3.2, 2026-06-08) — 硬要求
 
 > **背景**:v0.3.0 之前 docx 论文展示痛点:① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮(通讯作者被埋没) ③ 没法直接跳到 arXiv 全文(用户必须自己搜) ④ 论文在 4 级研究 hierarchy(大领域→中方向→小任务→子技术)中的位置不可见,套磁信无法精准定位方向。
 >
-> **v0.3.0 → v0.3.1 升级**: 在原 6 行 paper card 基础上,**追加 4 维 taxonomy 分类表**(大领域/中方向/小任务/子技术),标识每篇论文在研究体系中的精确位置,便于套磁信引用 + 方向匹配度评估。
+> **v0.3.0 → v0.3.1 → v0.3.2 升级**: 
+> - **v0.3.1**: 在原 6 行 paper card 基础上,**追加 4 维 taxonomy** (大领域/中方向/小任务/子技术) — 但用 4 列表格
+> - **v0.3.2 (2026-06-08 hotfix)**: **4 维 taxonomy 改为 4 行独立 <p> 块**(每字段一行,不是表格)
+> - 原因:表格形式在飞书 UI 里读起来割裂,4 行更清晰可读
+> - 便于套磁信引用 + 方向匹配度评估
 
-### Paper Card 模板(v0.3.1,每篇论文一份,无例外)
+### Paper Card 模板(v0.3.2,每篇论文一份,无例外)
 
 ```
 {论文完整标题 (verbatim, 不可改字/改序/省字)}
-┌──────────┬──────────────┬──────────────┬──────────────┐
-│ 大领域    │ 中方向        │ 小任务        │ 子技术        │
-├──────────┼──────────────┼──────────────┼──────────────┤
-│ {大领域}  │ {中方向}      │ {小任务}      │ {子技术}      │
-└──────────┴──────────────┴──────────────┴──────────────┘
+大领域：{大领域}    ← 1 行 1 字段,不是表格
+中方向：{中方向}
+小任务：{小任务}
+子技术：{子技术}
 作者：
 {作者 1, 作者 2, ..., Fei Wu（吴飞）, ..., 末位作者}    ← 全部列出(不省略),吴飞显式标 Fei Wu（吴飞）即使他/她就是第 1 作者
 发表：{venue year (角色)}    ← 例: ACL 2025 (Oral) / ICLR 2026 (Spotlight) / KDD 2024 (Long Paper) / TPAMI 2024 (期刊) / arXiv preprint
 arXiv：https://arxiv.org/abs/{arxiv-id}    ← 必须 arXiv ID;无 arXiv 用 DOI
 paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-click 阅读入口
 ```
+
+#### v0.3.1 → v0.3.2 关键变化
+
+- **4 维 taxonomy 从 4-列表格改为 4 行独立 <p> 块**(`大领域：` / `中方向：` / `小任务：` / `子技术：` 每行 1 字段)
+- 表格形式在飞书 UI 里读起来割裂;4 行更清晰可读,可直接 grep/复制
+- LLM 输出格式示例:
+  ```html
+  <p>大领域：人工智能</p>
+  <p>中方向：强化学习</p>
+  <p>小任务：探索策略</p>
+  <p>子技术：状态启发式; 空间链接; 新颖性鼓励</p>
+  ```
 
 #### 4 维 taxonomy 填写规范
 
@@ -313,6 +328,8 @@ paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-cl
 | **子技术** | 实现小任务的关键技术 / 方法(论文核心贡献) | 扩散模型 / 注意力机制 / RLHF / 思维链 / 世界模型 |
 
 > 4 维 taxonomy 关系:**大领域 ⊃ 中方向 ⊃ 小任务 ⊃ 子技术**。每篇论文对应唯一的 4 元组。LLM 必须从论文 abstract + 引言 + 方法 章节判定,**禁止**用 placeholder(如"未知 / N/A")。
+>
+> **v0.3.2 强制输出格式**: 每字段 1 个独立 `<p>` 块,不是 1 个 4-列 `<table>`。例:见上方 Paper Card 模板。
 
 ### 字段规范(v0.3.1,共 9 字段)
 
@@ -328,15 +345,14 @@ paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-cl
 | **arXiv** | ✅ | URL 必含 `https://arxiv.org/abs/{id}`;无 arXiv 用 `https://doi.org/{DOI}` 兜底 |
 | **paperscool** | ✅ | URL 必含 `https://papers.cool/arxiv/{id}`;与 arXiv ID 一致;**禁止**漏 |
 
-### 正确示例 (用户提供,2026-06-08,v0.3.1 升级含 4 维 taxonomy)
+### 正确示例 (v0.3.2,4 维 taxonomy 用 4 行)
 
 ```
 OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use
-┌──────────┬──────────────┬──────────────┬──────────────┐
-│ 大领域    │ 中方向        │ 小任务        │ 子技术        │
-├──────────┼──────────────┼──────────────┼──────────────┤
-│ 多模态    │ 智能体 Agent  │ OS 操作      │ 综述 + Benchmark │
-└──────────┴──────────────┴──────────────┴──────────────┘
+大领域：多模态
+中方向：智能体 Agent
+小任务：OS 操作
+子技术：综述 + Benchmark
 作者：
 Xueyu Hu, Tao Xiong, Biao Yi, Zishu Wei, Ruixuan Xiao, Yurun Chen, Jiasheng Ye, Meiling Tao, Xiangxin Zhou, Ziyu Zhao, Yuhuai Li, Shengze Xu, Shenzhi Wang, Xinchen Xu, Shuofei Qiao, Zhaokai Wang, Kun Kuang, Tieyong Zeng, Liang Wang, Jiwei Li, Yuchen Eleanor Jiang, Wangchunshu Zhou, Guoyin Wang, Keting Yin, Zhou Zhao, Hongxia Yang, Fan Wu, Shengyu Zhang, Fei Wu（吴飞）
 发表：ACL 2025 (Oral)
