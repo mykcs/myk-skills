@@ -53,10 +53,22 @@ If 1 + 2 are both missing, do NOT start fetching — ask the user.
 
 ## Procedure
 
-### Step 0 — Mode selection (v0.2.8+)
+### Step 0 — Mode selection (v0.3.4+)
 
 - **Generation mode (default)**:user 提供老师姓名 / 学校,生成新 docx
 - **Audit mode**:user 提供 docx URL / doc_id,审计已有 docx 合规性
+- **Rewrite mode (v0.3.4+ 新增)**:user 提供 docx URL / doc_id + 显式 "按 skill 模板重写 / 排版 / 规范化 / 升级到 v0.3.3" 指令 → fetch + 解析 + 按 v0.3.3 fixed-template 全量 regenerate + `overwrite`
+
+**Rewrite 触发词** (任一即触发 Rewrite mode):
+- "按 skill 模板重写" / "按 v0.3.3 重写" / "规范化 doc"
+- "重排版" / "按模板排版" / "升级到最新格式"
+- "fix this doc to match the skill"
+- "regenerate according to skill template"
+
+**Rewrite 不响应场景** (LLM 必须显式 user-confirm 才执行):
+- 用户只说 "审计一下 [URL]" → 走 Audit mode, **不** 自动 rewrite
+- 用户说 "看看 [老师] 报告合不合规" → 走 Audit mode
+- 用户说 "fix this" 但没指明 docx URL → 反问 user 哪一篇, 不要随便 apply to 9 docs
 
 **Mode 判定**:
 - 触发词含 "审计 / audit / 检查 / 合规 / review" → Audit mode
@@ -88,9 +100,17 @@ Try sources in this order. Stop when a source yields enough signal; you do not n
 | L1 | 学校/学院官网 | **`webfetch` 先试静态 HTML**;失败 / 明显是 SPA 框架(`<div id="app"></div>` 标记)→ **切 `playwright` MCP** `browser_navigate` + `browser_snapshot` 拿渲染后文本。ZJU common patterns: `person.zju.edu.cn/{pinyin}`, `mypage.zju.edu.cn/{pinyin}`, `cs.zju.edu.cn` faculty page | 基本信息、职称、行政职务、联系方式、研究方向、代表性工作 |
 | L2 | Semantic Scholar API | `https://api.semanticscholar.org/graph/v1/author/search?query={name}&fields=name,affiliations,paperCount,hIndex,homepage` then `/author/{id}/papers?fields=title,year,venue,citationCount,authors&limit=100` | 论文清单（近 3 年）、h-index、合作者 |
 | L3 | DBLP | `https://dblp.org/search/author/api?q={name}&format=json` then `/pid/{pid}.xml` for full paper list | 论文 venue 标准化(DBLP 提供的 venue 是规范名,不是缩写) |
-| L4 | 个人主页 / 知乎 / Google Scholar | `web_search` for `"{name}" {university} site:{personal_domain}` or `"{name}" scholar profile` | 个人 CV、学生名单、研究亮点 |
+| L4 | MiniMax Web Search (优先) | `mcp__MiniMax__web_search` MCP tool 搜 `"{name}" {university} site:arxiv.org` 或 `"{name}" personal homepage`. Mainland China 可用 | 论文全文(arXiv abs 页面)、个人 CV、学生名单、研究亮点 |
+| L5 | Kimi WebBridge (浏览器兜底) | `kimi-webbridge` skill 调用真实 Chrome,打开 `arxiv.org/abs/{id}` 拿 abstract + 完整作者列表 + arXiv ID。SPA 渲染不下来的论文用这个 | arXiv abs 完整 HTML(渲染后)、下载图片/附件、个人主页 1-click 截图 |
+| L6 | AnySearch (最后兜底) | `anysearch` skill 23 个垂直域 + 实时网页抽取,搜 `"{paper_title}"` 或 `"{name}" CV filetype:pdf` | 真实 PDF 链接、研究亮点汇总、跨平台交叉验证 |
 
-L2 (Google Scholar) is intentionally **skipped** in mainland-China network environments — go L2 Semantic Scholar → L3 DBLP → L4 directly.
+L2 (Google Scholar) is intentionally **skipped** in mainland-China network environments — go L2 Semantic Scholar → L3 DBLP → L4 MiniMax → L5 Kimi WebBridge → L6 AnySearch.
+
+**v0.3.4 搜索链(vs 旧 L1→L2→L3→L4)**:
+- L1 官网 → L2 S2 → L3 DBLP → **L4 MiniMax** (mcp__MiniMax__web_search, 优先用) → **L5 Kimi WebBridge** (浏览器兜底, SPA/动态渲染场景) → **L6 AnySearch** (23 域垂直 + 实时抽取, 最后兜底)
+- 顺序逐级 fallback, 任一级成功即可停;失败时跳下一级
+- 论文数据采集用 L4/L5 优先(覆盖 arxiv abs 完整内容),L6 做交叉验证
+- 反例:不要一上来用 L6(anysearch 太宽泛),先用 L4/L5 精确抓 arxiv
 
 **🚨 v0.1 CCF-A/B 限制 (2026-06-05)**:**本 skill 当前不在报告中标注 CCF 等级**。`LLM 估算` 的 "CCF-A 65" 数字不可信,容易被反例数据(LLM 把 ICLR submitted 当 CCF-A)污染。报告里**只写 venue 名**(NeurIPS / ICLR / ACL / KDD / TPAMI),**不写 CCF-A/B**。v0.2 实现方案见 `data-sources.md §CCF mapping (deferred)`。
 
@@ -168,6 +188,79 @@ Reply to the user with:
 1. The docx URL
 2. A 1-line "建议下一步": 套磁信草稿可直接 copy / 添加到知识库得 wiki 链接 / 等等
 3. If any section was `🟡 数据待补`, list the specific gaps so the user can补
+
+### Rewrite mode (v0.3.4+ 新增) — 详细流程
+
+> **入参必填**:docx URL / token + user 显式指令(触发词匹配)
+> **输出**:overwrite 后的新 docx URL + diff summary
+
+**Step R1 — Fetch 现状**
+```bash
+lark-cli docs +fetch --api-version v2 --doc {doc_id} --detail with-ids
+```
+提取:
+- docx content(完整 XML)
+- revision_id(基线版本,后续用 --revision-id -1)
+- 已知 paper cards 位置(用于 dedup)
+
+**Step R2 — 解析当前内容**
+按 section 拆解(基于 5 章结构):
+- §1 TL;DR callout: 保留(若合规)
+- §2 申博匹配度: 重写为 5 维度,每维度引用 paper card
+- §3 套磁与行动建议: 重写套磁信,引用 1-2 篇 paper card
+- §4 论文产出全景: **整段重写**——按 v0.3.3 paper card 格式重组,删除 v0.3.0 compact 残留
+- §5 数据来源: 更新为 4-level 数据源(L1/L2/L3 + 新 L4 MiniMax / L5 Kimi / L6 AnySearch)
+
+**Step R3 — 抓取真实论文数据**
+对 §4 每篇论文:
+1. L4 MiniMax: `mcp__MiniMax__web_search` 搜 `"{title}" arxiv`
+2. L5 Kimi WebBridge(若 L4 失败):浏览器打开 arxiv.org/abs/{id} 拿完整 byline
+3. L6 AnySearch(若 L4/L5 失败):搜 `"{title}" filetype:pdf` 拿 PDF 链接 + 摘要
+4. fallback: 用现有数据 + 标注 `[待 L4/L5/L6 重抓]` (不直接用 placeholder,留 hook 供后续补)
+
+**Step R4 — 生成 v0.3.3 全量 XML**
+按 `Output Schema (v0.3.3 strict)` 章节的 fixed-template,11-12 个 block/论文,顺序固定。
+
+**Step R5 — 跑 12 项 LLM 自检**
+(详见 `Output Schema (v0.3.3 strict)` 章节)
+- 任一 ❌ 必修正后重跑
+- 全 ✅ 后才能 overwrite
+
+**Step R6 — Overwrite**
+```bash
+lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \
+  --content @/tmp/rewrite-{doc_id_short}.xml
+```
+
+**Step R7 — Verify + Diff Summary**
+```bash
+lark-cli docs +fetch --api-version v2 --doc {doc_id} --scope outline
+```
+输出 diff summary:
+- 5 章节是否齐全(各 1 个 <h2> 标题)
+- paper card 数量(旧 vs 新)
+- 4 行 taxonomy 覆盖率
+- 完整作者列表覆盖率
+- arXiv URL 真实率(目标:100%)
+
+**Step R8 — Reply**
+```
+[X] 报告按 v0.3.3 fixed-template 重写完成:
+- 删除了 N 条 v0.3.0 compact 残留
+- 重写了 M 条 paper card(完整作者 + 单独标注行)
+- L4 MiniMax 抓取 K 论文(arXiv 真实 URL 100%)
+- L5 Kimi 补全 J 论文(完整 byline)
+- L6 AnySearch 补全 L 论文(PDF 链接)
+
+⚠️ [仍有 G 条占位,需手动补]: {title list}
+🔗 新 docx URL: {url}
+```
+
+**Rewrite mode 风险控制**:
+- **必先 user-confirm** 列出:"会删原 §4 重写,论文数据全部走 L4/L5/L6 重抓,4-5 分钟。OK 吗?" → user 回复"是"才执行
+- 不 rewrite 不相关的 docx(只 rewrite user 提供的 URL)
+- backup: rewrite 前先 `cp` 旧 docx 到 `/tmp/wiki-audit/backup-rewrite-{date}/`
+
 
 ### Audit mode (v0.2.8+) — 审计已有 docx
 
@@ -633,7 +726,13 @@ paperscool：https://papers.cool/arxiv/2508.04482
 - Action: Step A1 fetch → A2 12 项 check → A3 写 `/tmp/teacher-report-audit-况琨-MqEzdtwcso.md`
 - Output: 1 行总结 "况琨 v0.2.4 子节点: ✅ 12/12,完全合规" + 完整报告路径
 
-### Example 4 — Audit mode fail
+### Example 4 — Rewrite mode (v0.3.4+)
+
+- Input: "按 skill 模板重写 https://lxpii9q8vy0.feishu.cn/wiki/P49mwGQU0iEh9CkXbCTcC418nPb"
+- Action: R1 fetch → R2 解析 → R3 L4/L5/L6 重抓 → R4 11-12 block/论文 → R5 12 项自检 → R6 overwrite → R7 验证
+- Output: 新 docx URL + diff summary
+
+### Example 5 — Audit mode fail
 - Input: "审计一下 [URL]" 指向 v0.2.3 模板的旧 doc
 - Action: Check 4 (h4 (1) 编号) + Check 5 (① 字符) + Check 6 (████ 字符画) 失败
 - Output: "吴飞 wiki: ✅ 8 / ❌ 3 / ⚠️ 1,失败项 Check 4/5/6,详见 /tmp/audit-吴飞.md;跑 overwrite 命令可修复"
