@@ -9,10 +9,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.4.0"
+  version: "3.5.0"
   author: mykcs
   category: web-development
   changelog:
+    - 3.5.0 (2026-06-08): L17+L18 orchestrator 硬化. Phase 0 工具预加载 (ToolSearch 治本 subagent tool loading bug) + L17 auto-fallback (agent ack → SendMessage 重发 JSON). 解决 Run 4 暴露的 L14 enforcement 2/3 success + GDKVM 0 tool uses 2 个 bug.
     - 3.4.0 (2026-06-08): 吞并 sync-all-sites as Mode D (multi-site 编排). 4-phase 协议 + L14 + 4-section output contract. sync-all-sites 目录删除.
     - 3.3.0 (2026-06-03): 自进化协议 + 反模式硬化 (§30-§32)
     - 3.2.0 (2026-06-03): 3 站 Mode A 跨站 bug 模式 (§23-§29)
@@ -301,6 +302,21 @@ disable-model-invocation: false
 
 ### 4 阶段协议
 
+#### Phase 0: 工具预加载 (L18 硬化, 2026-06-08 Run 4 验证 — 治本 subagent tool loading bug)
+
+> **Run 4 发现**: GDKVM agent 0 tool uses. 错误信息: "SubagentStart hook did not provide working tools to begin audit. Deferred tool schemas (WebFetch, WebSearch, etc.) require ToolSearch loading before use." mykcs + OSA 同时跑 66 + 44 tool uses, 正常. 根因: General-purpose subagent tool provisioning 偶尔失败 (SubagentStart hook 漏 inject 某些 tool schema).
+
+**强制流程** (orchestrator 在 Phase 1 之前必须跑):
+
+```bash
+# 1. 显式 load 基础 5 tool (确保 subagent 拿到 schemas)
+ToolSearch(query="select:Bash,Read,Edit,Grep,Glob")
+```
+
+**为什么**: SubagentStart hook 偶尔漏 inject tool schemas. 预加载是治本方案 — 显式 load 后所有后续 subagent 都能拿到基础 5 tool.
+
+**注意**: 仍可能有其他 deferred tool (WebFetch / WebSearch / LSP / mcp_*) 需 on-demand load. Phase 2 agent prompt 需明确 "如需 WebFetch, 用前先 ToolSearch load".
+
 #### Phase 1: 验仓 (必须先做, 不能跳过)
 
 ```bash
@@ -419,6 +435,23 @@ done
 CASE_PATH=~/.claude/knowledge/cases/CASE-SYNC-ALL-SITES-$(date +%Y%m%d).md
 ```
 
+### L17 Orchestrator Fallback (Agent ack → 自动 follow-up, 2026-06-08 Run 4 验证)
+
+> **Run 4 发现**: L14 enforcement 2/3 success. 即便 prompt 顶部硬性要求 JSON, 仍有 ~33% agent 返 plain text ack (e.g. OSA "OSA Run 4 audit complete."). L14 内化非 100% 有效.
+
+**强制流程** (orchestrator 在收到 agent final message 后, Phase 2/3 barrier 之前):
+
+1. **验证 L14 compliance**:
+   ```bash
+   # 双层 check: JSON 存在 + 合法
+   grep -q '"site":' <agent_output> && \
+   python3 -c "import json; json.loads(<agent_output_with_fences>)"
+   ```
+2. **L14 失败时**: 自动 `SendMessage(to=<agent_id>, message="L14 violation detected. Please resend your final message as a single JSON block matching the schema, wrapped in \`\`\`json fences. NO other text. NO acknowledgments.")` 一次
+3. **二次失败**: 不再 retry, 改用 `git log + gh run list` 重建证据链 (Run 3 fallback 模式). 在 evidence_blocking 字段标注 `"L17 fallback applied: agent returned plain text after 1 retry"`.
+
+**为什么**: L14 prompt 内化非 100% 有效. Orchestrator 端兜底是必要的. 与 Run 3 mykcs agent 行为同款 (那次也用 SendMessage 救场). **不要让 plain-text 失败导致整 run 失败** — 用 fallback 重建即可.
+
 ### Output contract (strict 4-section)
 
 ```markdown
@@ -464,7 +497,8 @@ N
 - ❌ 不写 case 文件 → self-evolution 协议违反
 - ❌ 输出报告含 "Deferred items" 段 → 零容忍
 - ❌ audit 报"verify X 是否存在"式推测 → 必须 grep/curl 给出证据
-- ❌ Agent final message 含非 JSON 内容 (L14) → orchestrator 拒收, 整 run 失败
+- ❌ Agent final message 含非 JSON 内容 (L14) → orchestrator 自动 follow-up 一次 (L17 fallback); 二次仍 fail → 重建证据链, 标 `evidence_blocking: L17 fallback applied`
+- ❌ 跳过 Phase 0 工具预加载 (L18) → subagent 0 tool uses 风险; 必须 `ToolSearch(select:Bash,Read,Edit,Grep,Glob)` 在 Phase 1 之前
 - ✅ 任何 abort 条件触发时立即停, 不重试
 
 ### Mode D 已知反模式
@@ -477,6 +511,8 @@ N
 - **speculative audit** (2026-06-05 新增): audit 报"verify X" / "check Y" / "should audit Z" → 不是审计, 是 todo list
 - **fake dead code** (2026-06-05 新增): 报 dead 但未 grep 证明 → 数据捏造
 - **L14 · Agent ack 协议弱点** (2026-06-08 新增): 3 个 sonnet agent 中 2 个只返 ack → 强制 JSON final message
+- **L17 · L14 enforcement 不一致** (2026-06-08 新增): 即使 prompt 顶部硬性要求 JSON, 仍有 ~33% agent 返 plain text (Run 4 OSA). 解决: orchestrator 端 L17 fallback (auto SendMessage 重发一次)
+- **L18 · Subagent tool loading bug** (2026-06-08 新增): General-purpose subagent 偶尔 0 tool uses (Run 4 GDKVM). 解决: Phase 0 ToolSearch 预加载基础 5 tool (Bash/Read/Edit/Grep/Glob)
 
 ### 触发式决策表 (Mode D 入口判定)
 
