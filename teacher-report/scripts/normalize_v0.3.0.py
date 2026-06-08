@@ -353,38 +353,100 @@ def format_paper_card(p: Paper, index: int) -> str:
         status_tag = f" ❓ {p.error}"
     arxiv_line = p.arxiv_url or "（❓ 待核）"
     paperscool_line = p.paperscool_url or "（❓ 待核 — 无 arXiv ID）"
+    # 注: 不用 <URL> 包裹 (lark 解析会重复渲染); 直接用纯 URL, 飞书自动转 link
     return (
         f"#### {index}. {title}{status_tag}\n\n"
         f"作者：\n\n"
         f"{authors_str}\n\n"
         f"发表：{venue} ({year}){role}\n\n"
-        f"arXiv：<{arxiv_line}>\n\n"
-        f"paperscool：<{paperscool_line}>\n\n"
+        f"arXiv：{arxiv_line}\n\n"
+        f"paperscool：{paperscool_line}\n\n"
         f"---\n\n"
     )
 
 
 def build_section(papers: list[Paper], section_no: str = "7") -> str:
-    """生成完整 v0.3.0 paper card section"""
+    """生成完整 v0.3.0 paper card section (含未找到列表 + 真升级命令)"""
     found = [p for p in papers if p.status == "found" or p.status == "ambiguous"]
     found.sort(key=lambda p: p.year_arxiv or p.year, reverse=True)
     today = datetime.now().strftime("%Y-%m-%d")
+    not_found = [p for p in papers if p.status not in ("found", "ambiguous")]
+    not_found.sort(key=lambda p: p.seq)
+    errored = [p for p in not_found if p.status == "error"]
+    truly_missing = [p for p in not_found if p.status == "not_found"]
+
     lines: list[str] = []
+    # §7 父标题
     lines.append(f"## {section_no}. v0.3.0 Paper Card 详展（批量规范化产物，{today}）\n\n")
+    # 顶部 callout: 怎么用本节
     lines.append(
-        f"> 本节由 `teacher-report v0.3.0 normalize.py` 批量生成，含 {len(found)}/{len(papers)} 篇已找到 arXiv ID 的论文 paper card。\n\n"
+        f"> 本节由 `teacher-report v0.3.0 normalize.py` 批量生成，"
+        f"含 **{len(found)}/{len(papers)}** 篇已找到 arXiv ID 的论文 paper card。\n\n"
     )
     lines.append(
         f"> 6 行 paper card 格式：① verbatim 标题 ② 完整作者列表（Fei Wu 显式标 `（吴飞）`） ③ 发表 venue/year/role ④ arXiv URL ⑤ papers.cool URL。\n\n"
     )
+    lines.append(
+        f"> ❓ 未找到 arXiv 的 {len(not_found)} 篇见 §{section_no}.2（多为 CCF-B / 中文期刊 / 标题不完全匹配），处理流程见 §{section_no}.3 升级命令。\n\n"
+    )
+
+    # §7.1 顶会 / arXiv 论文
     lines.append(f"### {section_no}.1 顶会 / arXiv 论文（{len(found)} 篇，按发表时间倒序）\n\n")
     for i, p in enumerate(found, 1):
         lines.append(format_paper_card(p, i))
-    not_found = [p for p in papers if p.status not in ("found", "ambiguous")]
+
+    # §7.2 未找到 arXiv 论文
     if not_found:
-        lines.append(f"### {section_no}.2 ❓ arXiv 未找到（{len(not_found)} 篇，需人工核）\n\n")
-        for p in not_found:
-            lines.append(f"- 序号 {p.seq}: {p.title_table} ({p.venue} {p.year}) — {p.status} {p.error}\n")
+        lines.append(f"### {section_no}.2 ❓ arXiv 未找到（{len(not_found)} 篇，需人工核或换数据源）\n\n")
+        if errored:
+            lines.append(f"**网络/超时错误 {len(errored)} 篇** — 脚本重试 3 次仍失败，建议稍后重跑：\n\n")
+            for p in errored:
+                lines.append(f"- 序号 {p.seq}: {p.title_table} ({p.venue} {p.year}) — `{p.error}`\n")
+            lines.append("\n")
+        if truly_missing:
+            lines.append(f"**arXiv 0 结果 {len(truly_missing)} 篇** — 3 类常见原因 + 对应修法：\n\n")
+            lines.append(
+                "1. **标题不完全一致**（如 arXiv 论文带 subtitle）→ 手工到 arxiv.org 搜首句, 改 `title_table` 后重跑\n"
+            )
+            lines.append(
+                "2. **CCF-B / 中文期刊 / 期刊**（如 *TPAMI*, *Cell Patterns*, *Eng. Sci.*）→ arXiv 搜不到, 改用 DOI 补 `paperscool_url`\n"
+            )
+            lines.append(
+                "3. **OCR/转写错**（如 `叶鑫海` vs `叶昕海`）→ 修表格标题后重跑\n\n"
+            )
+            lines.append(f"**{len(truly_missing)} 篇清单**:\n\n")
+            for p in truly_missing:
+                lines.append(f"- 序号 {p.seq}: {p.title_table} ({p.venue} {p.year})\n")
+
+    # §7.3 升级命令 (真命令, 不是假的 lark-doc audit)
+    lines.append(f"### {section_no}.3 升级命令\n\n")
+    lines.append("**重跑全 102 篇 paper card batch**:\n\n")
+    lines.append("```bash\n")
+    lines.append("cd ~/.agents/skills/teacher-report/scripts\n")
+    lines.append("python3 normalize_v0.3.0.py \\\n")
+    lines.append("  --doc EFlmwpPgKiUARAkTplIcoOqrn3w \\\n")
+    lines.append("  --workers 4\n")
+    lines.append("# 预计 8-12 分钟 (3s/rate-limit × 102 篇 + retry)\n")
+    lines.append("```\n\n")
+    lines.append("**只处理特定年份**:\n\n")
+    lines.append("```bash\n")
+    lines.append("python3 normalize_v0.3.0.py \\\n")
+    lines.append("  --doc EFlmwpPgKiUARAkTplIcoOqrn3w \\\n")
+    lines.append("  --workers 4 \\\n")
+    lines.append("  --year-range 2025 2026  # 只跑 2025-2026 年\n")
+    lines.append("```\n\n")
+    lines.append("**SOP 完整指南**: `~/.agents/skills/teacher-report/SOP-v0.3.0-normalize.md`\n\n")
+    lines.append("**audit 模式 (Check 13)**:\n\n")
+    lines.append("```bash\n")
+    lines.append("lark-cli docs +update --api-version v2 --doc EFlmwpPgKiUARAkTplIcoOqrn3w \\\n")
+    lines.append("  --command block_replace --block-id {paper_block_id} \\\n")
+    lines.append("  --content \"<new paper card 6-line block>\"\n")
+    lines.append("# 对 §4.1-4.5 表格内每篇 v0.2.5 紧凑格式 block 跑 block_replace\n")
+    lines.append("# 模板见 references/report-template.md §5.1\n")
+    lines.append("```\n\n")
+    lines.append("---\n\n")
+    lines.append(f"> 本节由 `claudecode teacher-report skill v0.3.0` 规范化 ({today}). 数据源: arXiv API (3s rate-limit) + lark-cli 1.0.19. 完整状态报告: `/tmp/normalize-report-{today}.json`\n")
+
     return "".join(lines)
 
 

@@ -5,16 +5,40 @@
 > **适用**: 任何已发布的 teacher-report docx (飞书) — 把 §4 表格内 100+ 论文批量转 6 行 paper card
 > **目标耗时**: 102 篇 ≈ 10 分钟 (arXiv 限流 3s/req + retry)
 
+## 0. 步骤 0: 清理 doc 旧 v0.3.0 段（仅 doc 已脏时跑）
+
+> **何时跑**: doc 已有 v0.3.0 段但是乱 / 重复 / 含假命令时。先清理再重新 batch。
+
+```bash
+cd ~/.agents/skills/teacher-report/scripts
+
+# 0.1 先 dry-run 扫描看 doc 现状
+python3 cleanup_v0.3.0.py --doc <DOC_TOKEN> --dry-run
+
+# 0.2 实际清理 (删旧 + 重 append 干净 §7)
+python3 cleanup_v0.3.0.py --doc <DOC_TOKEN>
+```
+
+清理脚本行为：
+- 扫描 doc 找 `v0.3.0 Paper Card 详展` + `7.4 剩余 92` + `本文档由 claudecode` 块
+- `block_delete` H2 块（级联删 H3/H4/paragraph 子块）
+- 重生成干净 §7（41 found + 59 not_found + 真命令段）append 到末尾
+- 全程 ~30 秒
+
+**注意**: cleanup 复用 `/tmp/normalize-report.json` 缓存（不再查 arXiv）。若要重新查 arXiv，先跑 `normalize_v0.3.0.py --doc <DOC> --dry-run` 刷新缓存。
+
 ## 1. 目标与背景
 
 v0.3.0 起的 teacher-report skill 要求所有论文条目用 6 行 paper card 格式（标题 + 完整作者列表 + Fei Wu 显式标注 + 发表 venue/year/role + arXiv URL + papers.cool URL）。但已发布的 docx 还在用 v0.2.5 的紧凑 `<p><b>标题 (venue year) ⭐</b></p>` 格式。
 
 本文档配套脚本 `scripts/normalize_v0.3.0.py`，一键完成：
 1. **EXTRACT** — 从飞书 doc §4.x 表格提取 102+ 论文元数据
-2. **LOOKUP** — 并行查 arXiv API (带 3s 限流 + retry/backoff)
-3. **BUILD** — 按 v0.3.0 6 行 paper card 格式生成 markdown
+2. **LOOKUP** — 串行查 arXiv API (3s 限流 + retry/backoff) — **NOTE: arXiv 不容忍并发, 强制 1 worker**
+3. **BUILD** — 按 v0.3.0 6 行 paper card 格式生成 markdown (含 not_found 列表 + 真命令段)
 4. **APPEND** — 用 lark-cli append 到 doc 末尾
 5. **REPORT** — 输出 JSON 报告 (哪些找到/未找到/失败)
+
+清理脚本 `scripts/cleanup_v0.3.0.py` 在 doc 乱时先跑步骤 0。
 
 ## 2. 前置条件
 

@@ -136,3 +136,57 @@ cat new.xml | lark-cli docs +update --api-version v2 --doc {doc_id} \
 - [ ] **浙江大学 吴飞** wiki (`HpyNdN2s2oiy7xxhXumcEKr3nHO` / wiki `EFlmwpPgKiUARAkTplIcoOqrn3w`,rev 73) — user 2026-06-08 11:55 提出
 - [ ] `J35xdiI04oeQEUxhRajc8QJmnLd` 实际是 吴飞 v0.2.2(被错认为况琨 v0.2.2)— Persona 已修,但 paper section 仍需 v0.3.0 升级
 
+# 2026-06-08 吴飞 wiki 规范化记录
+
+> **触发**:user 2026-06-08 11:55 主动提出"也规范 吴飞 doc",附 URL `https://lxpii9q8vy0.feishu.cn/wiki/EFlmwpPgKiUARAkTplIcoOqrn3w`。
+>
+> **doc_id**:`HpyNdN2s2oiy7xxhXumcEKr3nHO` (wiki 节点 `EFlmwpPgKiUARAkTplIcoOqrn3w` 的内嵌 docx)
+
+## 修复记录
+
+| 失败项 | 修复前 | 修复后 | rev |
+|--------|--------|--------|-----|
+| **Check 12 Persona** | `整理人：Kimi` (原始 Kimi 整理版标注) | `整理人:claudecode teacher-report skill(v0.3.0,5 章节模板 + 6 行 paper card + Persona 规则)` | 73 → 151 |
+| **Check 5 ① ② ③ ④** | 7 个 ① 描述性文本(v0.3.0 paper card 介绍段) | 0 个(替换为 1. 2. 3. 4. 阿拉伯数字) | 151 → 170 |
+| **Check 6 ██ 字符画** | 17 个 `██` (方向演变趋势 `<pre><code>` 块) | 0 个(替换为 ` · ` 分隔符) | 73 → 151 |
+| **Check 1 (5 h2)** | 10 个 h2 | 11 个 h2(用户持续编辑增加) | by design — 5 章节 + §6 信息更新 + §7 paper card 详展 |
+| **Check 13 论文 arXiv 前缀** | 95/94/93/95 (2 论文缺前缀) | (同前) | ⚠️ 用户新编辑后未补 arXiv 字段 |
+
+## 特殊情况
+
+- **Check 1 FAIL 是 by design**:这个 doc 是 5 章节模板的**扩展版**(`§6 2026-06 信息更新与备选套磁路线` + `§7 v0.3.0 Paper Card 详展`),不是标准生成。5 章节模板适用于新生成报告,扩展版需要单独审计。
+- **Check 2 strict arabic**:11 个 h2 全部是阿拉伯数字(包括 §7.2 / §7.3 / §7.4 子节,看似 h3 风格但在 h2 位置是合理的,属于 §7 的子节分隔)。
+- **Check 13 degraded**:95 篇论文,3 篇 `arXiv：暂无`(KDD 2026 等太新),但 2 篇**完全缺 arXiv 字段**(用户新编辑后未补)。需 user 手动补:用 `lark-cli docs +update --command replace` 在对应论文 card 后插入 `<p>arXiv：暂无</p>`。
+
+## 操作流程(可复用,带 stdin pipe 模板)
+
+```bash
+# 1. 拉当前 XML
+lark-cli docs +fetch --api-version v2 --doc {doc_id} > current.json
+
+# 2. Python 本地 3 步修复
+#    - Kimi → claudecode (Persona)
+#    - ①②③④ → 1.2.3.4. (Check 5)
+#    - ██ → · in <pre><code> (Check 6)
+
+# 3. stdin pipe overwrite (lark-cli @file 必须相对路径,cd 后最稳)
+cat fixed.xml | lark-cli docs +update --api-version v2 --doc {doc_id} \
+    --command overwrite --content -
+
+# 4. 重 fetch + 跑 13 项 audit 验证
+```
+
+## 教训固化(增量)
+
+7. **🆕 Check 12 修复需注意全角/半角冒号**:Kimi 整理版 footer 用全角 `整理人：Kimi`(中文冒号),而 v0.3.0 标准 footer 用半角 `整理人:claudecode`(英文冒号)。str_replace 字符串必须完全匹配,半角/全角不互通。
+8. **🆕 Check 5 ① ② 是 v0.3.0 描述性文本** — 修复时不能误伤"4 行 paper card 描述"等说明文字,这些是 v0.3.0 模板的注释(① verbatim 标题 ② 完整作者列表 ③ ...)。需替换为 `1. 2. 3. 4.` 阿拉伯数字,保持 enumeration 语义。
+9. **🆕 Check 6 ██ 在 `<pre><code>` 块中可作分隔符** — 不是所有 `█` 都是 bar chart。审计 regex `█` 应区分 context:`<pre><code>` 块内 `██` 常作视觉分隔符,合理;`<p>` 块内 `████████` 才是 bar chart。当前实现统一视为违规(简化),吴飞 doc 通过替换为 `·` 解决。
+10. **🆕 Overwrite 触发 doc 重新计算 revision_id** — 1 次 overwrite = +1 rev,但发现从 153 直接跳到 170,可能 lark 服务端内部 batching 机制。吴飞 doc 多次 overwrite(3 次)后从 rev 73 跳到 170。
+
+## Status
+
+- ✅ 3 项核心修复完成(Check 5/6/12)
+- ⚠️ Check 1 FAIL by design (11 h2 扩展版)
+- ⚠️ Check 13 部分缺(2 论文缺 arXiv 前缀,用户持续编辑引入)
+- ⏳ `J35xdiI04oeQEUxhRajc8QJmnLd` (吴飞 v0.2.2) paper section 仍 v0.2.5 紧凑格式,需后续单独升级
+
