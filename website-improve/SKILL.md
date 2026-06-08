@@ -1,15 +1,21 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill。覆盖检查+提升、Astro 建站、项目页创建三大场景。
-  所有"改进/审计/优化/检查/upgrade/modernize/重构/cleanup"类请求默认进入检查+提升模式；
-  说"create astro""deploy astro""build static blog"时触发 Astro 建站指南；说"project page""项目页"时触发项目页创建。
-  这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites 等分散 skill。
+  一站式网站改进 skill。覆盖 4 大场景：
+  - Mode A: 检查+提升 (默认, 所有"改进/审计/优化/检查/upgrade/modernize/重构/cleanup"类请求)
+  - Mode B: Astro 建站 ("create astro" / "deploy astro" / "build static blog")
+  - Mode C: 项目页创建 ("project page" / "项目页")
+  - Mode D: Multi-Site 编排 (2026-06-08 吞并 sync-all-sites; "sync all sites" / "fan-out N sites" / "deploy all" / "audit all" / "multi-site")
+  这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.2.0"
+  version: "3.4.0"
   author: mykcs
   category: web-development
+  changelog:
+    - 3.4.0 (2026-06-08): 吞并 sync-all-sites as Mode D (multi-site 编排). 4-phase 协议 + L14 + 4-section output contract. sync-all-sites 目录删除.
+    - 3.3.0 (2026-06-03): 自进化协议 + 反模式硬化 (§30-§32)
+    - 3.2.0 (2026-06-03): 3 站 Mode A 跨站 bug 模式 (§23-§29)
   triggers:
     - website-improve
     - 改进网站
@@ -61,6 +67,16 @@ metadata:
     - configure astro i18n
     - build static blog
     - astro markdown setup
+    - sync all sites
+    - multi-site
+    - multi site
+    - fan-out
+    - fan out
+    - deploy all
+    - audit all
+    - parallel sites
+    - 多站点
+    - 并行部署
   tags:
     - audit
     - improve
@@ -118,12 +134,14 @@ disable-model-invocation: false
 | **A. 检查+提升** | 默认（所有"改进/审计/优化/检查"类请求） | 30min+ | `scan-checklist.md` + `astro-modernization-checklist.md` + `site-audit-checklist.md` + `academic-project-checklist.md`(条件) |
 | **B. Astro 建站** | `create astro` / `deploy astro` / `build static blog` 等 | 视 scope | `astro-build-guide.md` + `astro-modernization-checklist.md` + `deployment-platforms.md` + `markdown-deep-dive.md` |
 | **C. 项目页创建** | `project page` / `项目页` | 20-40min | `project-page-template.astro` + `academic-project-checklist.md` |
+| **D. Multi-Site 编排** | `sync all sites` / `fan-out` / `deploy all` / `audit all` / `multi-site` / "同时在 N 个站点上部署 N 个 agent" | 10-20 min wall-clock (= slowest site) | (无额外 reference; 调用 Mode A per site) |
 
 ### 意图路由（入口判断）
 
 ```
 用户输入
   │
+  ├─ 包含 "sync all sites" / "fan-out" / "deploy all" / "audit all" / "multi-site" / "并行部署 N 个 agent" / "3 个独立审计" → 模式 D
   ├─ 包含 "project page" / "项目页" → 模式 C
   ├─ 包含 "create astro" / "deploy astro" / "build static blog" → 模式 B
   └─ 其他 → 模式 A（默认）
@@ -258,6 +276,225 @@ disable-model-invocation: false
 **Stack**: Astro 6.x + Tailwind CSS v4 + `@fontsource/*` + `oklch()` 色彩
 **URL 结构**: `/<project>/` → redirect → `/<project>/en/` + `/<project>/zh/`
 **标准区块**: Hero → Abstract → Motivation → Method → Results → BibTeX → Links
+
+---
+
+## 模式 D: Multi-Site 编排 (2026-06-08 吞并自 sync-all-sites v1.1.0)
+
+> **适用**：mykcs.github.io / GDKVM / OSA / Academic / wangrui2025(arch) 等 Astro 站点
+> **来源**：insights 2026-06-03 — 用户 5-9 parallel agent runs 显著提升 session 完成度
+> **吞并决策**：2026-06-08 (CASE-MERGE-SYNC-ALL-SITES-20260608) — 减少 skill 分散, 单一入口更易调用
+
+**适用场景**: 用户要求"在 N 个站点上同时部署 N 个 agent"/"sync all sites"/"fan-out"/"deploy all"。Wall-clock = 最慢站点时长, 通常 10-15 min for 3 sites。
+
+**与 Mode A 关系**: 每个 per-site agent 内部用 Mode A 协议 (Check → Fix → Improve → Verify)。Mode D 是 multi-site 编排层, 负责 4-phase 同步 (验仓/audit/fix/CI)。
+
+### 触发
+
+```bash
+# 直接说触发词即可
+"sync all sites" / "fan-out 3 sites" / "audit all" / "deploy all" / "multi-site"
+"同时在 N 个站点部署 N 个 agent" / "并行 audit" / "3 个独立审计会话变成一次协调操作"
+```
+
+默认 scope: `mykcs, GDKVM, OSA` (3 个 active Astro 站). User 可 override scope 指定 sites.
+
+### 4 阶段协议
+
+#### Phase 1: 验仓 (必须先做, 不能跳过)
+
+```bash
+# 对每个目标站点：
+for site in $SITES; do
+  case "$site" in
+    mykcs)   repo=~/Repo/webs/active/mykcs.github.io ;;
+    GDKVM)   repo=~/Repo/webs/active/GDKVM ;;
+    OSA)     repo=~/Repo/webs/active/OSA ;;
+    *)       echo "Unknown site: $site"; exit 1 ;;
+  esac
+  cd "$repo" || exit 1
+  echo "=== $site ==="
+  git remote -v
+  git status --short
+  git log @{u}..HEAD --oneline | wc -l
+done
+```
+
+**abort 条件**:
+- 任何站点 `git status` 非空 (uncommitted changes) → 提示用户提交
+- 任何站点 `git log HEAD..origin/main` 有新 commit → 提示 `git pull --rebase`
+
+#### Phase 2: 并行 audit (N agent, N = site count)
+
+```text
+For each site, launch 1 Agent with this prompt:
+
+You are auditing <SITE_REPO> for SEO/accessibility/i18n/CI/build issues.
+
+**EVIDENCE-BASED AUDIT (强制)**:
+每个 issue 必须给出 grep/curl/ls 的实际命令输出, **禁止报"verify X" / "check Y" / "should audit Z"**。
+- ❌ BAD: {"fix": "verify if Google Sans is configured"}
+- ✅ GOOD: {"fix": "Google Sans fallback — global.css:7 'was Google Sans' comment", "evidence": "grep -n 'Google_Sans\\|Google Sans' src/ 2>/dev/null | head -5"}
+
+**DEAD-CODE PROOF 协议**:
+- 报"dead i18n key"前必须 `grep -rn '<key>' src/` 显示 0 matches
+- 报"unused font"前必须 `grep -rn 'fontfile' src/ --include="*.astro"` 显示 0 imports
+- 报"unused file"前必须 `grep -rn 'filename' src/` 显示 0 references
+- **找不到 = 不存在, 不算 dead**
+
+**L14 FINAL MESSAGE PROTOCOL (mandatory, orchestrator 会 grep 验证 JSON 合法性)**:
+- 你的 final message MUST 是 EXACTLY 一个 JSON block matching 上面的 schema
+- Wrap in ` ```json ... ``` ` 三反引号
+- NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble
+- 任何非 JSON 内容 (含 ack / 解释 / "Subagent acknowledged" / "Acknowledged") → orchestrator 拒收, 整个 run 失败, Phase 2/3 需重做
+- 验证方式: orchestrator 评分前会 `grep -q '"site":' <output>` + `python3 -c "import json; json.loads(...)"` 双层 check
+
+Output JSON schema:
+{
+  "site": "<name>",
+  "score": 0-100,
+  "issues": [
+    {"severity": "P0|P1|P2", "type": "seo|a11y|i18n|build|ci|security", "file": "path", "fix": "concrete action", "evidence": "grep/curl/ls output snippet"}
+  ]
+}
+
+**No `deferred` field** — 报出来就是要 fix 的, 看不到 grep 证据的不报。
+
+Use the website-improve skill (Mode A) for the audit protocol.
+Do NOT make any edits — read-only mode.
+Report back as a single JSON block.
+```
+
+**barrier**: 等所有 agent 返回后聚合。
+
+#### Phase 3: 并行 fix (仅 P0 + P1)
+
+```text
+Filter issues by severity ∈ {P0, P1}.
+Group by site. Launch 1 Agent per site with this prompt:
+
+Apply the following fixes to <SITE_REPO>:
+<issue list>
+
+For each fix:
+1. Show the diff
+2. Run the relevant build/test command
+3. Commit with conventional commit message
+4. Push via autopush.sh (not raw git push)
+
+Do NOT touch issues not in this list. (scope discipline)
+Do NOT mark done until build passes.
+
+**L14 FINAL MESSAGE PROTOCOL (mandatory)**:
+- 你的 final message MUST 是 EXACTLY 一个 JSON block:
+{
+  "site": "<name>",
+  "p0_fixed": <count>,
+  "p1_fixed": <count>,
+  "p2_deferred": <count>,
+  "commits": ["<hash1>: <msg1>", "<hash2>: <msg2>"],
+  "ci_status": "green|red|pending|unknown",
+  "evidence_blocking": "<reason if not all P0/P1 fixed, else empty>"
+}
+- Wrap in ` ```json ... ``` ` 三反引号
+- NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble
+- 任何非 JSON 内容 → orchestrator 拒收
+- 验证方式同 Phase 2 (grep + python3 json.loads)
+```
+
+**barrier**: 所有 agent 返回后聚合。
+
+#### Phase 4: CI gate + case 记录
+
+```bash
+# Wait for all CI runs to settle
+for site in $SITES; do
+  echo "=== $site CI ==="
+  gh run list --repo <OWNER>/<REPO> --limit 3 --json status,conclusion,name
+done
+```
+
+**Case file** (强制):
+```bash
+CASE_PATH=~/.claude/knowledge/cases/CASE-SYNC-ALL-SITES-$(date +%Y%m%d).md
+```
+
+### Output contract (strict 4-section)
+
+```markdown
+# sync-all-sites report
+
+## Sites
+- mykcs: score=98, fixes=3, ci=green ✅
+- GDKVM: score=87, fixes=12, ci=green ✅
+- OSA:   score=92, fixes=5, ci=green ✅
+
+## Total commits
+N
+
+## Case file
+~/.claude/knowledge/cases/CASE-SYNC-ALL-SITES-YYYYMMDD.md
+```
+
+**禁用的输出段** (2026-06-05 规则硬化):
+- ❌ `## Deferred items (next run)` 列表
+- ❌ `## P2 (out of scope this run)` 段落
+- ❌ `## Followup` / `## TODO next session` / `## Carried over` 任何形式
+- ❌ 案例文件"Lessons"段里出现"待做" / "建议改" / "应该审计" 的 follow-up 项
+
+**未完成项的唯一合法出口**:
+1. 当场 commit + push (写"已完成 N 项"入 case)
+2. `AskUserQuestion` 立即问用户 (不静默 defer)
+3. 标 `BLOCKED on <X>` 并写明触发条件 ("等用户跑 X 命令" / "等 CI 跑完确认 Y")
+
+**NEVER 在响应中加** (这些进 case file on disk, 不进 chat):
+- Audit score breakdown tables
+- Per-commit hash tables
+- Wall-clock summary
+- Key insights / Lessons
+- Verification evidence with raw grep output
+
+**Inline en+zh 规则**: 报告提到有 en+zh 两种形式的值 (e.g. `aria-label`), pick ONE (zh 或 en) and reference the other in case file. **禁止 inline concatenate** (曾导致 `aria-label="Switch"切换语言"` shipped bug).
+
+### Mode D 硬规则
+
+- ❌ 跳过 Phase 1 验仓 → 禁止进入 Phase 2
+- ❌ Phase 3 编辑未被 issue 列表覆盖的文件 → scope creep
+- ❌ 任何 CI red 时声明"完成" → verification gate 违反
+- ❌ 不写 case 文件 → self-evolution 协议违反
+- ❌ 输出报告含 "Deferred items" 段 → 零容忍
+- ❌ audit 报"verify X 是否存在"式推测 → 必须 grep/curl 给出证据
+- ❌ Agent final message 含非 JSON 内容 (L14) → orchestrator 拒收, 整 run 失败
+- ✅ 任何 abort 条件触发时立即停, 不重试
+
+### Mode D 已知反模式
+
+- **快速通道**: 跳过 Phase 1 直接派 agent → 改错仓 (已发生 4+ 次)
+- **silent skip**: CI red 不报"未完成"
+- **全量 auto-apply**: 把 P2 也一起 fix → scope creep
+- **不写 case**: 跑完不沉淀 → 下次跑同样的问题
+- **deferred theater** (2026-06-05 新增): 用"Deferred items"段把没做的事写得很整齐, 假装在管理 follow-up
+- **speculative audit** (2026-06-05 新增): audit 报"verify X" / "check Y" / "should audit Z" → 不是审计, 是 todo list
+- **fake dead code** (2026-06-05 新增): 报 dead 但未 grep 证明 → 数据捏造
+- **L14 · Agent ack 协议弱点** (2026-06-08 新增): 3 个 sonnet agent 中 2 个只返 ack → 强制 JSON final message
+
+### 触发式决策表 (Mode D 入口判定)
+
+| 场景 | 决策 |
+|------|------|
+| "sync all sites" / "fan-out" / "deploy all" | 直接进 Mode D |
+| "audit mykcs" (single site) | 走 Mode A (default) |
+| "compare mykcs vs GDKVM" | 走 Mode D (multi-site), 但 audit 而非 fix |
+| "all sites broken" (no specific) | AskUserQuestion: 确认是 Mode D multi-site 还是 single-site 深度 audit |
+| 5+ sites | 警告: context overflow 风险, 建议拆 2 个 session (per §15 5-site audit 教训) |
+
+### v3.4.0 已知限制 (从 sync-all-sites 继承)
+
+- 不处理 monorepo (每个 site 必须是独立 git 仓)
+- 不处理"某站点需要不同的 base branch" (默认 main)
+- 不处理"某站点有手动 hold" (用户需在调用前告知)
+- 5+ sites 时 wall-clock 优势递减 (token cost linear 但 context overflow 风险)
+- L14 enforcement 仅在 orchestrator 评分前生效, 旁路 agent (不用本协议) 不受约束
 
 ---
 
