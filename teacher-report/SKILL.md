@@ -639,6 +639,52 @@ paperscool：https://papers.cool/arxiv/2508.04482
 
 **正确做法**:5 章节全部填实,§1 画像完整,§2 匹配度具体,§3 套磁信有 call-to-action,§4 论文全列,§5 数据源标检索时间。**不要告诉用户"省略了 X"或"见原报告"**。
 
+### §C 块级升级协议(v0.3.6+ 必须遵守)
+
+**禁止**用 `docs +update --command overwrite` 重写整个 doc(v0.3.5 我犯过这错,删了原 200+ KB 内容)。
+
+正确做法:**保留所有原内容**,只对不规范的元素用块级操作升级:
+
+| 操作 | 适用场景 | 命令 |
+|------|---------|------|
+| `block_insert_after` | 在某 block 后插入新 block(如 4 行 taxonomy) | `lark-cli docs +update --api-version v2 --doc X --command block_insert_after --block-id <h4_id> --content @4tax.xml` |
+| `block_replace` | 替换某 block(如 4 列表格换 4 行) | `lark-cli docs +update --api-version v2 --doc X --command block_replace --block-id <table_id> --content @4lines.xml` |
+| `block_delete` | 删除冗余 block(如重复 paper card) | `lark-cli docs +update --api-version v2 --doc X --command block_delete --block-id <id>` |
+| `str_replace` | 局部文字替换(如 删 "(末位/通讯)" 缩写) | `lark-cli docs +update --api-version v2 --doc X --command str_replace --pattern "..." --content "..."` |
+
+**overwrite 的使用边界**(极严格):
+- **仅**当用户**显式**说"按 v0.3.5 模板完整重写"+提供完整新数据(新论文清单 + 完整作者列表 + 真实 arXiv ID)
+- **绝不**在"重写 / 规范化 / 升级"等模糊指令下用 overwrite
+- overwrite 前必先 `cp` 备份原 docx 到 `/tmp/wiki-audit/backup-overwrite-{date}/`
+- 备份内容保留 ≥ 7 天
+
+**块级升级的优先级清单**(按 v0.3.5/3.6 升级):
+1. 4 列表格 → 4 行 p blocks (Check 14a)
+2. paper card 缺 4 行 taxonomy → block_insert_after
+3. paper card 缺完整作者 → 抓 arXiv 补 + block_replace
+4. paper card 缺标注行 → block_insert_after
+5. 全文 "(末位/通讯)" 缩写 → str_replace
+6. 全文 "v0.3.3 重写版" framing → str_replace
+
+### §D 备份要求(v0.3.6+ 强制)
+
+**任何块级操作前必先 backup 当前 doc 全文**到 `/tmp/wiki-audit/backup-{date}-{teacher}/`:
+
+```bash
+TOKEN="EFlmwpPgKiUARAkTplIcoOqrn3w"
+DATE=$(date +%Y%m%d)
+TEACHER="wufei"
+mkdir -p /tmp/wiki-audit/backup-$DATE-$TEACHER
+lark-cli docs +fetch --api-version v2 --doc $TOKEN --detail with-ids --format json \
+  > /tmp/wiki-audit/backup-$DATE-$TEACHER/original.xml
+```
+
+如果发现"删太多",从 backup 恢复:
+```bash
+cd /tmp/wiki-audit/backup-$DATE-$TEACHER
+lark-cli docs +update --api-version v2 --doc $TOKEN --command overwrite --content @original.xml
+```
+
 ### "脏"输出反例 (v0.3.3 全部禁止)
 
 ```
