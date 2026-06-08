@@ -460,6 +460,100 @@ paperscool：https://papers.cool/arxiv/2508.04482
 
 > Check 15 的 4 子项 (a-d) 全 ✅ 才算 Check 15 PASS;任一 ❌ = Check 15 FAIL (≥ 3 ❌ = 整体审计 fail, 降级为 🟡)。
 
+## Output Schema (v0.3.3 strict, 2026-06-08)
+
+> **背景**:v0.3.3 之前 skill 输出混乱(混 4 列表 + 4 行 + 缩写 + 占位符)。本节定义**严格的输出 schema**,LLM 写每篇 paper card 严格按 schema 走,自检 12 项通过才允许输出。
+
+### 强制 Output Schema — v0.3.3 paper card block 结构
+
+每篇论文 paper card **必须**由以下 11 个 block 顺序构成(顺序固定,不可调换):
+
+```
+1. <p>                          ← 标题 (verbatim,不可改字/改序/省字)
+2. <p>大领域：{X}</p>             ← 4 行 taxonomy(每行 1 <p> 块,不是 table)
+3. <p>中方向：{X}</p>
+4. <p>小任务：{X}</p>
+5. <p>子技术：{X}</p>
+6. <p>作者：</p>                 ← 作者段头(空 <p>,下个 block 是作者列表)
+7. <p>{完整作者列表}</p>           ← verbatim 完整作者,无 et al.,无缩写,Fei Wu 显式标（吴飞）
+8. <p>标注：</p>                 ← 标注段头(空 <p>,下个 block 是标注)
+9. <p>通讯作者：{X}</p>           ← 独立标注行(可选,无则整段省略)
+10. <p>发表：{venue year (角色)}</p>  ← 发表信息
+11. <p>arXiv：<a href="https://arxiv.org/abs/{id}">https://arxiv.org/abs/{id}</a></p>  ← arXiv 链接
+12. <p>paperscool：<a href="https://papers.cool/arxiv/{id}">https://papers.cool/arxiv/{id}</a></p>  ← papers.cool 链接
+```
+
+### 12 项 LLM 自检清单(写完 paper card 必跑,任一 ❌ 必须修正后才能输出)
+
+| # | 检查项 | 通过条件 | 常见错误 |
+|---|--------|---------|---------|
+| 1 | 标题 verbatim | 完全从 arXiv abs 页复制,无改字/改序/省字 | ❌ "OS Agents: Survey" (缺 "A Survey on MLLM-based Agents for General Computing Devices Use") |
+| 2 | 标题无 et al. 缩写 | 完整标题,无 "et al." 替代 | ❌ "Xinyu: ... (Yiquan Wu et al., 16 authors)" |
+| 3 | 4 行 taxonomy 顺序 | 顺序固定:大领域→中方向→小任务→子技术,每行独立 `<p>` 块 | ❌ 单行 "大领域:CV\|中方向:Agent\|小任务:GUI" 压平 |
+| 4 | 4 行 taxonomy 无 table | **禁止** 4 列表格 `<table>`,**必须** 4 个 `<p>` 块 | ❌ `<table>大领域 中方向 小任务 子技术</table>` |
+| 5 | taxonomy 无占位符 | 4 字段均有具体值,无 "未知" / "N/A" / "待补" | ❌ `<p>大领域：待补</p>` |
+| 6 | 作者完整 verbatim | 全部列出,无 "... N 名作者" 省略,无 et al. | ❌ "Xueyu Hu, Tao Xiong, ... 27 名作者, Fei Wu" |
+| 7 | 禁止 (末位/通讯) 缩写 | 作者行无 "(末位/通讯)" / "(通讯 PI 模式)" 描述 | ❌ "作者：..., (末位/通讯), Fei Wu" |
+| 8 | 禁止 (通讯 PI 模式) 描述 | 作者行无 "通讯 PI 模式" 等描述性短语 | ❌ "作者：... (通讯 PI 模式)" |
+| 9 | Fei Wu 显式标 (吴飞) | 100% Fei Wu 署名论文含 `Fei Wu（吴飞）`(中文括号) | ❌ "Fei Wu" 漏中文括号 |
+| 10 | 标注行单独成行 | 通讯作者/一作/学生 独立 `<p>标注：</p>` 段,不混作者列表 | ❌ "作者：..., (通讯), ..., 一作 Xueyu" |
+| 11 | arXiv 真实 URL | `<a href="https://arxiv.org/abs/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>arXiv：待 arXiv 验证</p>` |
+| 12 | paperscool 真实 URL | `<a href="https://papers.cool/arxiv/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>paperscool：待 arXiv 验证</p>` |
+
+> 12 项全 ✅ 才能输出 paper card;任一 ❌ 必须修正后重跑自检
+
+### v0.3.3 fixed-template (LLM 输出时直接 fill)
+
+```xml
+<p>{TITLE}</p>
+<p>大领域：{D}</p>
+<p>中方向：{M}</p>
+<p>小任务：{T}</p>
+<p>子技术：{S}</p>
+<p>作者：</p>
+<p>{A1}, {A2}, {A3}, ..., Fei Wu（吴飞）, ..., {An}</p>
+<p>标注：</p>
+<p>通讯作者：{CORR1}, {CORR2}</p>
+<p>一作/共一：{FIRST1}, {FIRST2}</p>
+<p>学生：{STU1} (学生), {STU2} (学生)</p>
+<p>发表：{VENUE} {YEAR} ({ROLE})</p>
+<p>arXiv：<a href="https://arxiv.org/abs/{ARXIV_ID}">https://arxiv.org/abs/{ARXIV_ID}</a></p>
+<p>paperscool：<a href="https://papers.cool/arxiv/{ARXIV_ID}">https://papers.cool/arxiv/{ARXIV_ID}</a></p>
+```
+
+### "脏"输出反例 (v0.3.3 全部禁止)
+
+```
+❌ <table>大领域 中方向 小任务 子技术</table>          ← 4 列表格
+❌ <p>大领域:CV|中方向:Agent|小任务:GUI|子技术:RL</p>  ← 单行压平
+❌ 作者: ..., (末位/通讯), Fei Wu                     ← 缩写
+❌ 作者: ..., (通讯 PI 模式)                            ← 模式描述
+❌ Xinyu: ... (Yiquan Wu, Bo Tang, ... 16 authors)      ← 省略
+❌ arXiv: 2508.04482                                    ← 不是 URL
+❌ arXiv: 待 arXiv 验证                                  ← 占位符
+❌ paperscool (省略)                                     ← 缺 user 1-click 入口
+❌ Wu et al. (2025) OS Agents ACL                       ← 缩写 + 顺序错乱
+```
+
+### Output Schema 强制流程(LLM 必须按此顺序执行)
+
+```
+1. 写完论文 abstract 后 → 反推 4 维 taxonomy (从 abstract + 引言 + 方法)
+2. 抓 arXiv abs 页 → 复制完整标题 + 完整作者列表 + arXiv ID + venue/year/role
+3. 标注 (通讯作者/一作/学生) → 从论文 byline + 课题组主页查
+4. 按 v0.3.3 fixed-template 顺序填 11-12 个 block
+5. 跑 12 项 LLM 自检清单 → 任一 ❌ 必须修正后重跑
+6. 全 ✅ 后才能进 1v1 block 写入
+```
+
+### v0.3.3 + 后续清理路径
+
+- **新生成的 doc**(teacher-report --mode generate):严格按 v0.3.3 schema + 12 项自检
+- **已有 v0.3.0/3.1/3.2 的 doc**:跑 audit mode Check 13+14+15,会标 ❌ "未用 v0.3.3 schema"
+- **修复方法**:`overwrite` 整篇 doc,重写时用 v0.3.3 fixed-template
+
+---
+
 ## Anti-Hallucination Rules (v0.2.9, 2026-06-06)
 
 > **背景**:v0.2.8 之前的 teacher-report 曾出现系统性幻觉 —— 5 字段(论文状态/年份/作者/学生身份/职务)直接从 AI 推断而非平台校验,5 篇 ICLR 2026 论文"已撤稿"标注全部错误,行政职务滞后 2 个时间点。**后续 v0.2.9+ 必须强制走以下规则**。
