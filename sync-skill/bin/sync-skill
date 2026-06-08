@@ -144,58 +144,66 @@ verify_all() {
   return $rc
 }
 
-# ---- Check per-skill mtime drift (EV-4, 2026-06-08) ----
+# ---- Check per-skill mtime drift (EV-4, 2026-06-08, refined 2026-06-08) ----
+# Original metric (file-mtime vs dir-mtime) produced FALSE POSITIVES for symlinks:
+#   - source_mtime = max mtime of FILES in skill dir (always > 0 for active skills)
+#   - target_mtime = mtime of symlinked DIR (only updated on mkdir/touch, not file changes)
+#   - For any active skill, file mtime > dir mtime → always drift
+# Fix (Run 2): for SYMLINK targets, skip mtime check (dir IS source via symlink).
+# For REAL DIR targets, check meaningful dir-to-dir mtime (consumer may lag).
 check_mtime_drift() {
   local drift_count=0
   local warn_threshold_err_h=$((MTIME_THRESHOLD_H * 2))
   log "Checking per-skill mtime drift (threshold: ${MTIME_THRESHOLD_H}h warn, ${warn_threshold_err_h}h err)..."
 
   for target in "${TARGETS[@]}"; do
-    # Only meaningful if target is a symlink (verified already)
-    [[ -L "$target" ]] || continue
+    # For symlinks, mtime check is meaningless (target IS source). Skip.
+    if [[ -L "$target" ]]; then
+      log "  skip mtime check for symlink target: $target (dir IS source via symlink)"
+      continue
+    fi
+    # For real dirs, meaningful drift detection (source != target physically)
+    if [[ -d "$target" ]]; then
+      if [[ -d "$SOURCE" ]]; then
+        for skill_dir in "$SOURCE"/*/; do
+          [[ -d "$skill_dir" ]] || continue
+          local skill_name
+          skill_name=$(basename "$skill_dir")
+          local target_skill="$target/$skill_name"
+          [[ -e "$target_skill" ]] || continue
 
-    # Iterate skills in source
-    if [[ -d "$SOURCE" ]]; then
-      for skill_dir in "$SOURCE"/*/; do
-        [[ -d "$skill_dir" ]] || continue
-        local skill_name
-        skill_name=$(basename "$skill_dir")
-        local source_skill="$target/$skill_name"
-        # Skip if not present at target (could be local-only or post-merge)
-        [[ -e "$source_skill" ]] || continue
+          # Source mtime: max mtime of FILES in source skill
+          local source_mtime=0
+          while IFS= read -r -d '' f; do
+            local m
+            m=$(stat -f "%m" "$f" 2>/dev/null || echo 0)
+            [[ "$m" -gt "$source_mtime" ]] && source_mtime=$m
+          done < <(find "$skill_dir" -type f -print0 2>/dev/null)
 
-        # Source mtime: max mtime of SKILL.md + any files in skill (last commit)
-        local source_mtime=0
-        while IFS= read -r -d '' f; do
-          local m
-          m=$(stat -f "%m" "$f" 2>/dev/null || echo 0)
-          [[ "$m" -gt "$source_mtime" ]] && source_mtime=$m
-        done < <(find "$skill_dir" -type f -print0 2>/dev/null)
+          # Target mtime: mtime of consumer's copy
+          local target_mtime
+          target_mtime=$(stat -f "%m" "$target_skill" 2>/dev/null || echo 0)
 
-        # Target mtime: symlink itself
-        local target_mtime
-        target_mtime=$(stat -f "%m" "$source_skill" 2>/dev/null || echo 0)
-
-        # Compare (target should match source for symlink)
-        if [[ "$target_mtime" -lt "$source_mtime" ]]; then
-          local lag=$(( source_mtime - target_mtime ))
-          local lag_h=$(( lag / 3600 ))
-          if [[ $lag_h -gt $warn_threshold_err_h ]]; then
-            err "MTIME_DRIFT (err): $skill_name lags ${lag_h}h (threshold ${warn_threshold_err_h}h)"
-            err "  source: $SOURCE/$skill_name (mtime=$(date -r $source_mtime '+%Y-%m-%d %H:%M:%S'))"
-            err "  target: $target/$skill_name (mtime=$(date -r $target_mtime '+%Y-%m-%d %H:%M:%S'))"
-            drift_count=$((drift_count + 1))
-          elif [[ $lag_h -gt $MTIME_THRESHOLD_H ]]; then
-            warn "MTIME_DRIFT (warn): $skill_name lags ${lag_h}h (threshold ${MTIME_THRESHOLD_H}h)"
-            drift_count=$((drift_count + 1))
+          if [[ "$target_mtime" -lt "$source_mtime" ]]; then
+            local lag=$(( source_mtime - target_mtime ))
+            local lag_h=$(( lag / 3600 ))
+            if [[ $lag_h -gt $warn_threshold_err_h ]]; then
+              err "MTIME_DRIFT (err): $skill_name lags ${lag_h}h (threshold ${warn_threshold_err_h}h, real-dir target)"
+              err "  source: $SOURCE/$skill_name (mtime=$(date -r $source_mtime '+%Y-%m-%d %H:%M:%S'))"
+              err "  target: $target/$skill_name (mtime=$(date -r $target_mtime '+%Y-%m-%d %H:%M:%S'))"
+              drift_count=$((drift_count + 1))
+            elif [[ $lag_h -gt $MTIME_THRESHOLD_H ]]; then
+              warn "MTIME_DRIFT (warn): $skill_name lags ${lag_h}h (threshold ${MTIME_THRESHOLD_H}h, real-dir target)"
+              drift_count=$((drift_count + 1))
+            fi
           fi
-        fi
-      done
+        done
+      fi
     fi
   done
 
   if [[ $drift_count -eq 0 ]]; then
-    log "No mtime drift detected across all skills."
+    log "No mtime drift detected (all targets are symlinks or in sync)."
     return 0
   fi
   err "$drift_count skill(s) with mtime drift"
