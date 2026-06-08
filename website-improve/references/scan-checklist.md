@@ -528,6 +528,91 @@ diff /tmp/en_keys.txt /tmp/zh_keys.txt && echo "KEYS_MATCH" || echo "KEY_MISMATC
 
 **适用场景**：EN/ZH 双语页面的所有内容对比（CV、论文、About 等）
 
+### §5.2 i18n Dead-Key Detection (Run 3 lesson, L13)
+
+**问题**：多个 site 在 [en|zh].json 累积 dead keys, grep 显示 0 ref 但未删. Run 3 修复 GDKVM 2 个 (`home.venue`, `home.authors`); mykcs Run 1 已清 5 个. i18n dead-key 清理是 `sync-all-sites` 高频遗漏区 (per L13).
+
+**检测命令**：
+```bash
+# 枚举所有 i18n content json files
+for json in $(find src/content -name '*en.json' -o -name '*zh.json' 2>/dev/null); do
+  echo "=== $json ==="
+  # 用 jq 提取所有 scalar paths
+  KEYS=$(jq -r 'paths(scalars) | join(".")' "$json" 2>/dev/null)
+  for key in $KEYS; do
+    # 跳过短 key (< 5 chars) + 跳过 "." 开头的 nested
+    [ ${#key} -lt 5 ] && continue
+    # 提取 leaf key name
+    KEY_NAME=$(echo "$key" | awk -F. '{print $NF}')
+    # 排除常见 content key (title, label, description 等)
+    case "$KEY_NAME" in
+      title|label|description|name|text|content|placeholder|heading|caption|alt) continue ;;
+    esac
+    # grep 全 src/ 找 ref files count (排除 self)
+    COUNT=$(grep -rln "\b${KEY_NAME}\b" src/ --include="*.astro" --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v "^${json}:\|/${json##*/}:" | wc -l | tr -d ' ')
+    if [ "$COUNT" = "0" ]; then
+      echo "DEAD_KEY: $json::$key"
+    fi
+  done
+done
+```
+
+**输出格式**：
+- `=== <file> ===` — 文件标识
+- `DEAD_KEY: <file>::<key>` — dead key (0 ref in src/)
+- 若全 file 无 dead key → 输出空 (但仍打印 `===` 分隔符)
+- 总计: `DEAD_KEY_COUNT: <N>`
+
+**修法**：删 dead key, **同时** en.json 和 zh.json 保持 sync. 走 bilingual sync protocol (per `~/.claude/memory/MEMORY.md` HOT FACTS).
+
+**已知边界**：
+- 不检查 `data-action`/`id` 等非语义 attribute
+- 不检查 comment (TODO, FIXME)
+- 不检查 dynamic `t(key)` 调用 (但 Phase 2 报出后必须 grep 验证 dynamic 也没用)
+
+### §5.3 [lang]/404.astro 存在性检查 (Run 3 lesson, L13)
+
+**问题**：双语 site 经常只有默认 `src/pages/404.astro`, 没有 `[lang]/404.astro`. 用户访问 `/zh/non-existent` 会 fall back 到英文 404, i18n 不一致. Run 3 修复 mykcs 加 `src/pages/[lang]/404.astro` (commit `2e5db38`). 已知 issue: CASE-WEBSITE-IMPROVE-MULTI-SITE-20260603 (双语 404.astro).
+
+**检测命令**：
+```bash
+# 1. 是否双语 site?
+HAS_EN=$(test -f src/content/homepage/en.json && echo "yes" || echo "no")
+HAS_ZH=$(test -f src/content/homepage/zh.json && echo "yes" || echo "no")
+if [ "$HAS_EN" = "yes" ] && [ "$HAS_ZH" = "yes" ]; then
+  # 2. 双语 site, 检查 [lang]/404.astro
+  if [ -f "src/pages/[lang]/404.astro" ]; then
+    echo "I18N_404_OK"
+    # 3. 验证含 locale 判断
+    if grep -q "Astro.params.lang\|getStaticPaths" "src/pages/[lang]/404.astro"; then
+      echo "I18N_404_LOCALE_AWARE"
+    else
+      echo "I18N_404_NOT_LOCALE_AWARE (warning: 文件存在但无 locale 判断)"
+    fi
+  else
+    echo "I18N_404_MISSING (P1 issue: 用户访问 /zh/non-existent 会 fall back 英文 404)"
+  fi
+else
+  echo "MONOLINGUAL (no check needed)"
+fi
+```
+
+**输出格式**：
+- `I18N_404_OK` — `[lang]/404.astro` 存在
+- `I18N_404_LOCALE_AWARE` — 存在且含 locale 判断
+- `I18N_404_NOT_LOCALE_AWARE` — 存在但无 locale 判断 (warning)
+- `I18N_404_MISSING` — 不存在 (P1 issue)
+- `MONOLINGUAL` — 非双语 site, 跳过
+
+**修法**：
+1. 复制 `src/pages/404.astro` → `src/pages/[lang]/404.astro`
+2. 加 `Astro.params.lang` 判断 → 选对应语言文本
+3. 加 `getStaticPaths` 返回 `[{params: {lang: 'en'}}, {params: {lang: 'zh'}}]`
+4. Bilingual 翻译 404 标题/正文到 en/zh (走 bilingual sync protocol)
+5. 验证: `npm run build` 后 `dist/en/404/index.html` + `dist/zh/404/index.html` 都生成
+
+**参考实现**：mykcs Run 3 commit `2e5db38` (`feat(i18n): add bilingual 404 page for /en/404/ and /zh/404/`)
+
 ---
 
 ## §6. Agent-Check-Deps — 依赖检查
