@@ -65,3 +65,38 @@ consider §33 specifically targeting the failure mode.
 - ⏳ 当前 `HpyNdN2s2oiy7xxhXumcEKr3nHO` (吴飞 docx) 仍 v0.2.5 格式, Check 13 标 ❌, 需 user 确认后批量升级
 - 4 docx in `normalization-audit-2026-06-05.md` 已知反例表中, 况琨 v0.2.4 (`MqEzdtwcso2AGyxUPuCcyQRAnwe`) 标 None, 但 v0.3.0 起 Check 13 会标 ❌, 需 reprocess
 
+
+## 2026-06-08 — v0.3.0 配套工具: normalize_v0.3.0.py + SOP
+
+| ts | skill | verdict | reason |
+|----|-------|---------|--------|
+| 2026-06-08T11:10:00+08:00 | teacher-report | update (v0.3.0 +tool) | Batch-convert any teacher-report docx to v0.3.0 paper card format. 5-phase Python script (EXTRACT/LOOKUP/BUILD/APPEND/REPORT) using only stdlib (urllib, xml.etree, subprocess, concurrent.futures). |
+
+### Files added (2)
+
+| file | size | purpose |
+|------|------|---------|
+| `teacher-report/scripts/normalize_v0.3.0.py` | 504 lines | 5-phase batch normalize pipeline |
+| `teacher-report/SOP-v0.3.0-normalize.md` | 190 lines | Usage guide, output format, 故障排查, idempotency policy |
+
+### Pipeline
+
+1. **EXTRACT** - `lark-cli docs +fetch` + regex parse §4.x tables → 102 papers
+2. **LOOKUP** - arXiv API `ti:"<title>"` search with 3s throttle + 3-retry backoff (handles 429 + SSL)
+3. **BUILD** - 6-line paper card format (verbatim title + authors + venue/year/role + arXiv URL + paperscool URL)
+4. **APPEND** - `lark-cli docs +update --command append` with `@file` relative path (lark-shared gotcha 1)
+5. **REPORT** - JSON status report (found/not_found/error/ambiguous)
+
+### Test results
+
+- 3-paper manual test: 17.5s (1 × 429 retry auto-handled), 3/3 found
+- 102-paper dry-run: extracted 102, found 10 (rate-limit issue exposed, fixed with serial + retry)
+- 102-paper live run: ETA 8-12 min (3s/rate-limit × 102 papers)
+
+### Usage
+
+```bash
+cd ~/.agents/skills/teacher-report/scripts
+python3 normalize_v0.3.0.py --doc <DOC_TOKEN> --dry-run  # preview
+python3 normalize_v0.3.0.py --doc <DOC_TOKEN>             # append to doc
+```
