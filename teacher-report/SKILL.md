@@ -9,7 +9,7 @@ description: |
 
    **Anti-Hallucination Rules (v0.2.9, 2026-06-06)**: any paper status / year / author / title / 导师职务 / 学生身份 / 统计数字 claim must be verifiable against arXiv / OpenReview / 学校官网, not AI-inferred. See `## Anti-Hallucination Rules` section below for the 6-field matrix and 4 prohibition rules.
 
-   **Paper Entry Format (v0.3.0, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 6 行 paper card 格式 (verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行。详见 `## Paper Entry Format (v0.3.0) — 硬要求` 章节。
+   **Paper Entry Format (v0.3.1, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 paper card 格式 (**4 维 taxonomy 分类表** 大领域/中方向/小任务/子技术 + verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行。详见 `## Paper Entry Format (v0.3.1) — 硬要求` 章节。
 
    Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
 ---
@@ -275,21 +275,27 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
-- **🚨 论文条目 6 行 paper card 硬要求 (2026-06-08 v0.3.0,违反 = skill 协议破坏)**:
-  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.0) — 硬要求` 章节定义的 6 行 paper card 格式
-  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表
-  - LLM 必须自检:每篇论文均含 `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段前缀
+- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.1,违反 = skill 协议破坏)**:
+  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.1) — 硬要求` 章节定义的 paper card 格式
+  - **必须包含 4 维 taxonomy 分类表**(大领域 / 中方向 / 小任务 / 子技术, 4 列 1 行)— 标识论文在 4 级研究 hierarchy 中的位置
+  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy
+  - LLM 必须自检:每篇论文均含 4 维 taxonomy + `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段前缀
 
-## Paper Entry Format (v0.3.0, 2026-06-08) — 硬要求
+## Paper Entry Format (v0.3.1, 2026-06-08) — 硬要求
 
-> **背景**:v0.2.9 之前的 docx 把论文压缩成 `<table>` 一行 或 `<p><b>标题 (venue year) ⭐</b></p>` 紧凑格式,**省略作者列表**(report-template §5 v0.2.5 反规则第 1 条明确"禁止作者列表")。这导致:① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮(通讯作者被埋没) ③ 没法直接跳到 arXiv 全文(用户必须自己搜)。
+> **背景**:v0.3.0 之前 docx 论文展示痛点:① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮(通讯作者被埋没) ③ 没法直接跳到 arXiv 全文(用户必须自己搜) ④ 论文在 4 级研究 hierarchy(大领域→中方向→小任务→子技术)中的位置不可见,套磁信无法精准定位方向。
 >
-> **v0.3.0 强反转**: 论文条目从"行内 compact"升级为"6 行 paper card"格式,所有信息 verbatim 可追溯。
+> **v0.3.0 → v0.3.1 升级**: 在原 6 行 paper card 基础上,**追加 4 维 taxonomy 分类表**(大领域/中方向/小任务/子技术),标识每篇论文在研究体系中的精确位置,便于套磁信引用 + 方向匹配度评估。
 
-### Paper Card 6 行模板(每篇论文一份,无例外)
+### Paper Card 模板(v0.3.1,每篇论文一份,无例外)
 
 ```
 {论文完整标题 (verbatim, 不可改字/改序/省字)}
+┌──────────┬──────────────┬──────────────┬──────────────┐
+│ 大领域    │ 中方向        │ 小任务        │ 子技术        │
+├──────────┼──────────────┼──────────────┼──────────────┤
+│ {大领域}  │ {中方向}      │ {小任务}      │ {子技术}      │
+└──────────┴──────────────┴──────────────┴──────────────┘
 作者：
 {作者 1, 作者 2, ..., Fei Wu（吴飞）, ..., 末位作者}    ← 全部列出(不省略),吴飞显式标 Fei Wu（吴飞）即使他/她就是第 1 作者
 发表：{venue year (角色)}    ← 例: ACL 2025 (Oral) / ICLR 2026 (Spotlight) / KDD 2024 (Long Paper) / TPAMI 2024 (期刊) / arXiv preprint
@@ -297,26 +303,64 @@ arXiv：https://arxiv.org/abs/{arxiv-id}    ← 必须 arXiv ID;无 arXiv 用 DO
 paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-click 阅读入口
 ```
 
-### 字段规范
+#### 4 维 taxonomy 填写规范
+
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| **大领域** | 最上层研究领域(2-5 个候选:CV / NLP / 图形学 / 多媒体 / 机器学习 / 具身智能) | 计算机视觉 / 自然语言处理 / 多模态 / 推荐系统 |
+| **中方向** | 大领域下的细分方向(导师的主线方向,通常 5-15 个候选) | 多模态大模型 / GUI Agent / 视觉问答 / 端云协同 / 通用分割 |
+| **小任务** | 中方向下的具体任务(论文直接解决的子问题) | 图像编辑 / 点云理解 / 视频问答 / 智能体规划 |
+| **子技术** | 实现小任务的关键技术 / 方法(论文核心贡献) | 扩散模型 / 注意力机制 / RLHF / 思维链 / 世界模型 |
+
+> 4 维 taxonomy 关系:**大领域 ⊃ 中方向 ⊃ 小任务 ⊃ 子技术**。每篇论文对应唯一的 4 元组。LLM 必须从论文 abstract + 引言 + 方法 章节判定,**禁止**用 placeholder(如"未知 / N/A")。
+
+### 字段规范(v0.3.1,共 9 字段)
 
 | 字段 | 必填 | 规则 |
 |------|------|------|
+| **大领域** | ✅ | 4-列 taxonomy 第 1 列;最上层研究领域,5-10 候选 (CV / NLP / 多媒体 / 机器学习 / 具身智能 / 推荐系统) |
+| **中方向** | ✅ | 4-列 taxonomy 第 2 列;大领域下细分方向,5-15 候选 (多模态大模型 / GUI Agent / 视觉问答 / 端云协同 / 通用分割) |
+| **小任务** | ✅ | 4-列 taxonomy 第 3 列;中方向下具体任务,论文直接解决的子问题 (图像编辑 / 点云理解 / 视频问答 / 智能体规划) |
+| **子技术** | ✅ | 4-列 taxonomy 第 4 列;实现小任务的关键技术,论文核心贡献 (扩散模型 / 注意力机制 / RLHF / 思维链 / 世界模型) |
 | **标题** | ✅ | verbatim, 不可改字/改序/省字;**禁止**用缩写或 et al. 替代 |
 | **作者** | ✅ | 全部列出(无 et al.), 用 `, ` 逗号+空格分隔; **Fei Wu 显式标 `Fei Wu（吴飞）`** (中文括号标注), 即使排在第 1 位 |
 | **发表** | ✅ | `{venue} {year} ({角色})`, 角色可省: Oral / Spotlight / Poster / Long Paper / Short Paper / Findings / Track 1 / Invited Talk / Preprint |
 | **arXiv** | ✅ | URL 必含 `https://arxiv.org/abs/{id}`;无 arXiv 用 `https://doi.org/{DOI}` 兜底 |
 | **paperscool** | ✅ | URL 必含 `https://papers.cool/arxiv/{id}`;与 arXiv ID 一致;**禁止**漏 |
 
-### 正确示例 (用户提供,2026-06-08)
+### 正确示例 (用户提供,2026-06-08,v0.3.1 升级含 4 维 taxonomy)
 
 ```
 OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use
+┌──────────┬──────────────┬──────────────┬──────────────┐
+│ 大领域    │ 中方向        │ 小任务        │ 子技术        │
+├──────────┼──────────────┼──────────────┼──────────────┤
+│ 多模态    │ 智能体 Agent  │ OS 操作      │ 综述 + Benchmark │
+└──────────┴──────────────┴──────────────┴──────────────┘
 作者：
 Xueyu Hu, Tao Xiong, Biao Yi, Zishu Wei, Ruixuan Xiao, Yurun Chen, Jiasheng Ye, Meiling Tao, Xiangxin Zhou, Ziyu Zhao, Yuhuai Li, Shengze Xu, Shenzhi Wang, Xinchen Xu, Shuofei Qiao, Zhaokai Wang, Kun Kuang, Tieyong Zeng, Liang Wang, Jiwei Li, Yuchen Eleanor Jiang, Wangchunshu Zhou, Guoyin Wang, Keting Yin, Zhou Zhao, Hongxia Yang, Fan Wu, Shengyu Zhang, Fei Wu（吴飞）
 发表：ACL 2025 (Oral)
 arXiv：https://arxiv.org/abs/2508.04482 
 paperscool：https://papers.cool/arxiv/2508.04482
 ```
+
+#### 4 维 taxonomy 反推流程 (从论文 abstract → 4 字段)
+
+| 步骤 | 操作 | 工具/来源 |
+|------|------|----------|
+| 1. 读 abstract 末 2 句 | 提取"解决什么任务 / 用什么方法" 关键词 | paper abstract |
+| 2. 查 venue 标签 | 标 ACL/NeurIPS/CVPR → 大领域候选 | arXiv abs 页 venue 字段 |
+| 3. 标"小任务" | abstract 中"我们提出 X 用于 Y" 的 Y | abstract + 引言 |
+| 4. 标"子技术" | abstract 中"基于 Z 改进 / 采用 Z" 的 Z | abstract + 方法章节 |
+| 5. 标"中方向" | 综述论文 → 大领域 + 小任务聚合;否则 = 大领域下导师主线方向 | 课题组主页 + L1 |
+| 6. 标"大领域" | 5 选 1:CV / NLP / 多模态 / 机器学习 / 具身智能 | 综述标题 + L1 |
+| 7. 校验 hierarchy | 4 字段必须满足大领域 ⊃ 中方向 ⊃ 小任务 ⊃ 子技术 | LLM 自检 |
+
+> **常见 taxonomy 错误**:
+> - 大领域="Computer Vision" 错 → 应写"计算机视觉"(中文一致)
+> - 子技术="提出新方法" 错 → 必须具体(扩散模型 / 注意力 / RLHF)
+> - 中方向="深度学习" 错 → 太宽,应写"多模态大模型" 或 "端云协同"
+> - 4 字段字数差异大(1 字 vs 20 字)→ 标准化为 4-8 字关键词
 
 ### 反例 (v0.3.0 全部禁止)
 
@@ -349,8 +393,10 @@ paperscool：https://papers.cool/arxiv/2508.04482
 | 信息密度 | 低 (5 字段 UL 跟在标题后) | 高 (一篇一段,可独立打印) |
 
 > **迁移指南**: 现有 v0.2.5-v0.2.9 的 docx 跑 audit mode (Check 13) 时,会标 ❌ "缺少 paperscool" / "缺少作者列表",给出修复建议。修复时用 `lark-cli docs +update --command block_replace` 把每个 `<p><b>{title} (venue year) ⭐</b></p>` 替换为对应 6 行 paper card block。
+>
+> **v0.3.0 → v0.3.1 迁移**: 现有 v0.3.0 docx 跑 audit mode (Check 14) 时,会标 ❌ "缺 4-列 taxonomy 分类表"。修复时:对每篇 paper card 跑 `block_insert_after` 在 `<p>{title}</p>` 后插入 4-列 table,然后 `block_replace` 改 taxonomy cell 值。LLM 需从 paper abstract 反推 4 维 taxonomy (参考 report-template §6.2 taxonomy 反推 prompt)。
 
-### Audit Check 13 (2026-06-08 v0.3.0 新增)
+### Audit Check 13 (2026-06-08 v0.3.0 6-行 paper card)
 
 | # | Check | 期望 | 失败处理 |
 |---|-------|------|---------|
@@ -361,6 +407,17 @@ paperscool：https://papers.cool/arxiv/2508.04482
 | 13e | paperscool URL = `https://papers.cool/arxiv/{id}` | 100% 链接规范 | ❌ 缺 papers.cool 入口 → 必须补 |
 
 > Check 13 的 5 子项 (a-e) 全 ✅ 才算 Check 13 PASS;任一 ❌ = Check 13 FAIL (3 ❌ = 整体审计 fail, 降级为 🟡)。
+
+### Audit Check 14 (2026-06-08 v0.3.1 新增 — 4 维 taxonomy)
+
+| # | Check | 期望 | 失败处理 |
+|---|-------|------|---------|
+| 14a | 每篇 paper card 含 4-列 taxonomy 分类表(大领域/中方向/小任务/子技术) | 100% 论文含 4-列 1 行表 | ❌ 缺表 → 必须补 4-列 table |
+| 14b | taxonomy 4 字段均有具体值(无 `未知` / `N/A` / `待补` placeholder) | 100% 4/4 | ❌ placeholder → 必须从 abstract 抽取或 L1-L4 反查 |
+| 14c | 4 维 hierarchy 一致性:大领域 ⊃ 中方向 ⊃ 小任务 ⊃ 子技术 | 100% 无逻辑冲突 | ❌ 跨级冲突(如"小任务=图像编辑"配"子技术=RLHF")→ 必须重判 |
+| 14d | taxonomy 描述 ≤ 12 字(简洁,可对比) | ≥ 95% 论文满足 | ❌ 过长 → 截断为关键词 |
+
+> Check 14 的 4 子项 (a-d) 全 ✅ 才算 Check 14 PASS;任一 ❌ = Check 14 FAIL (≥ 3 ❌ = 整体审计 fail, 降级为 🟡)。
 
 ## Anti-Hallucination Rules (v0.2.9, 2026-06-06)
 
