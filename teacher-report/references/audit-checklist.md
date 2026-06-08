@@ -242,6 +242,8 @@ rg -c 'doi.org'        # 备选
 
 **修复**:从 S2 论文 metadata 拿 `externalIds.ArXiv` / `externalIds.DOI`,在 (venue year) 后加 `<a>` 链接。
 
+> **v0.3.0 (2026-06-08) 注意**: 本 Check 11 在 v0.3.0 升级为 Check 13 (论文 6 行 paper card 必含 arXiv 行 + paperscool 行). 旧 v0.2.5-v0.2.9 docx 仍可保留 inline link 形式 (✅), 但升级时必须改用 paper card 6 行格式.
+
 ---
 
 ## Check 12 — Footer Persona = `claudecode teacher-report skill`
@@ -288,7 +290,7 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command replace \\
 
 ```markdown
 ## 总览
-- 12 项检查: ✅ X / ❌ Y / ⚠️ Z
+- 13 项检查: ✅ X / ❌ Y / ⚠️ Z (v0.3.0 起 12 → 13, 加 Check 13 paper card)
 - 合规度:{百分比}%
 - 关键问题:{最严重的 1-2 项}
 ```
@@ -300,14 +302,98 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command replace \\
 - **不比对历史版本** — 单一快照,不做 diff
 - **不直接修复** — 只报问题,user 决定是否 overwrite
 
+## Check 13 — 论文 6 行 Paper Card 格式 (2026-06-08 v0.3.0 新增)
+
+> **🚨 背景**:v0.3.0 强制所有论文条目用 6 行 paper card 格式 (verbatim 标题 + 全作者列表 + Fei Wu（吴飞）显式标注 + 发表 venue/year/角色 + arXiv URL + paperscool URL). 旧 v0.2.5-v0.2.9 的紧凑 `<p><b>{title} (venue year) ⭐</b></p>` 格式 **DEPRECATED**.
+
+**期望**: 每篇论文均含以下 6 行 (顺序固定, 空行不算):
+
+```
+{论文标题 (verbatim, 通常是 h4 bold 段)}
+{空行}作者：{空行}
+{完整作者列表，含 Fei Wu（吴飞）}
+{空行}发表：{venue} {year} ({角色})
+{空行}arXiv：https://arxiv.org/abs/{id}
+{空行}paperscool：https://papers.cool/arxiv/{id}
+```
+
+**反模式 (v0.3.0 全部 ❌)**:
+- ❌ `<p><b>{title} (venue year) ⭐</b></p>` (v0.2.5 紧凑格式, DEPRECATED)
+- ❌ `<h4>{title}</h4><p>Authors: ... (et al.)</p>` (作者 et al. 缩写, 缺中文 Fei Wu 标注)
+- ❌ 缺 `作者：` / `发表：` / `arXiv：` / `paperscool：` 任一前缀
+- ❌ arXiv URL 缺 `https://arxiv.org/abs/{id}` 完整格式
+- ❌ 缺 `paperscool：` 行 (user 失去 1-click 阅读入口)
+- ❌ Fei Wu 漏 `（吴飞）` 中文标注 (即使 Fei Wu 是第 1 作者)
+
+**检测命令**:
+```bash
+# 13a: 论文条目 ≥ 6 行结构
+rg -c '作者：' | xargs -I{} echo "author count: {}"  # 期望 = 论文数
+rg -c '发表：' | xargs -I{} echo "venue count: {}"   # 期望 = 论文数
+rg -c 'arXiv：' | xargs -I{} echo "arxiv count: {}"  # 期望 = 论文数
+rg -c 'paperscool：' | xargs -I{} echo "paperscool count: {}"  # 期望 = 论文数
+# 13c: Fei Wu 中文标注
+rg 'Fei Wu' | rg -v '（吴飞）' | wc -l  # 期望 0
+# 13d: arXiv URL 完整
+rg -c 'arxiv.org/abs'  # 期望 = 论文数 (含 https://)
+# 13e: paperscool URL 完整
+rg -c 'papers.cool/arxiv'  # 期望 = 论文数
+```
+
+**5 子项 (a-e) 全 ✅ 才算 Check 13 PASS; 任一 ❌ = Check 13 FAIL**:
+- ✅ Check 13a: 4 前缀齐 (`作者：` `发表：` `arXiv：` `paperscool：`)
+- ✅ Check 13b: 6 行结构 (含标题 + 5 字段, 允许空行)
+- ✅ Check 13c: Fei Wu 全部有 `（吴飞）` 标注
+- ✅ Check 13d: arXiv URL 完整
+- ✅ Check 13e: paperscool URL 完整
+
+**修复**: 旧 v0.2.5 docx 升级, 推荐按 paper 块逐个 `block_replace`:
+
+```bash
+lark-cli docs +update --api-version v2 --doc {doc_id} --command block_replace \
+  --block-id {old_paper_block_id} \
+  --content "<new paper card 6-line block>"
+```
+
+**报告模板新增 Check 13 段落**:
+
+```markdown
+### ❌ Check 13: 论文 6 行 paper card 格式
+**位置**: §4 论文产出全景 — rows 3, 7, 12 (举例)
+**原始片段**:
+\`\`\`xml
+<h4>1. OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use (ACL 2025 Oral) ⭐</h4>
+\`\`\`
+**失败子项**: 13a (缺 4 字段前缀) + 13b (非 6 行结构) + 13c (Fei Wu 漏中文标注) + 13d/e (缺 arXiv / paperscool URL)
+**修复建议**:
+\`\`\`xml
+<h4>1. OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use</h4>
+<p>作者：</p>
+<p>Xueyu Hu, ..., Fei Wu（吴飞）</p>
+<p>发表：ACL 2025 (Oral)</p>
+<p>arXiv：<a href="https://arxiv.org/abs/2508.04482">https://arxiv.org/abs/2508.04482</a></p>
+<p>paperscool：<a href="https://papers.cool/arxiv/2508.04482">https://papers.cool/arxiv/2508.04482</a></p>
+\`\`\`
+```
+
 ## 已知反例(2026-06-05 之前的 4 docx)
 
 | doc_id | 失败项 | 已修复? |
 |--------|--------|---------|
-| HpyNdN2s2oiy7xxhXumcEKr3nHO (吴飞) | Check 4, 5, 6 | ✅ v0.2.5 overwrite |
+| HpyNdN2s2oiy7xxhXumcEKr3nHO (吴飞) | Check 4, 5, 6, 13 (v0.3.0) | ⏳ v0.3.0 待办 (2026-06-08) |
 | J35xdiI04oeQEUxhRajc8QJmnLd (况琨 v0.2.2) | Check 2 (中文数字) | ✅ v0.2.5 overwrite |
 | DnlbdntvNoiUTexclCic00ChnYe (况琨 v0.2.3) | Check 1 (缺 §2) | ✅ v0.2.5 overwrite |
 | MqEzdtwcso2AGyxUPuCcyQRAnwe (况琨 v0.2.4) | None | ✅ 原本就 OK |
 | WBLvdxoFCokxmLxSU27cxIxjnSe (dashboard) | Check 12 (Persona) | ✅ v0.2.5 清理 |
 
-详见 `references/normalization-audit-2026-06-05.md`。
+详见 `references/normalization-audit-2026-06-05.md`.
+
+## v0.3.0 (2026-06-08) 升级清单
+
+| 文件 | 变更 |
+|------|------|
+| `SKILL.md` | +新增 `## Paper Entry Format (v0.3.0) — 硬要求` 章节; Output contract 引用新格式; description 标注 v0.3.0 |
+| `references/report-template.md` | §5.0 标 DEPRECATED; 新增 §5.1 6 行 paper card 模板 + 反例 + 迁移命令 |
+| `references/llm-prompt.md` | §8 套磁信章节加 paper card 硬要求; 检查清单加 v0.3.0 自检项 |
+| `references/audit-checklist.md` | Check 11 升级说明; 新增 Check 13 (5 子项 a-e); 总览从 12 项 → 13 项 |
+| (user 已发布 docx) | v0.2.5-v0.2.9 docx 跑 audit mode (Check 13) 会标 ❌; 修复用 `block_replace` 逐 paper 升级 |

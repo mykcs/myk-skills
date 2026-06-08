@@ -140,6 +140,21 @@ lark-cli docs +create --api-version v2 \
 
 **arXiv/DOI inline link 硬要求**:每篇被引用的论文,在 (venue year) 之后加 `<a href="{arXiv abs URL}">arXiv</a>` 或 `<a href="https://doi.org/{DOI}">DOI</a>` 链接(如有)。飞书 docx 支持 inline link,user 可直接跳转原文。**禁止**只放裸论文标题。
 
+**🚨 论文条目 6 行 paper card 硬要求 (2026-06-08 v0.3.0, 违反 = skill 协议破坏)**:
+
+每篇被引用的论文, **必须**用 6 行 paper card 格式 (取代 v0.2.5 的紧凑 `<p><b>...</b></p>` 格式):
+
+```xml
+<h4>{N}. {论文完整标题 (verbatim)}</h4>
+<p>作者：</p>
+<p>{作者 1, 作者 2, ..., Fei Wu（吴飞）, ..., 末位作者}</p>
+<p>发表：{venue} {year} ({角色})</p>
+<p>arXiv：<a href="https://arxiv.org/abs/{arxiv-id}">https://arxiv.org/abs/{arxiv-id}</a></p>
+<p>paperscool：<a href="https://papers.cool/arxiv/{arxiv-id}">https://papers.cool/arxiv/{arxiv-id}</a></p>
+```
+
+5 字段前缀必含 (`作者：` / `发表：` / `arXiv：` / `paperscool：`), 全作者列出(无 et al.), Fei Wu 显式标 `Fei Wu（吴飞）`. 完整模板见 `report-template.md §5.1`.
+
 **🚨 数据稀疏硬规则 (2026-06-05)**:
 
 如果 L2 / L3 抓到的近 3 年论文 < 5 篇,套磁信必须**显式说明**:
@@ -172,3 +187,4 @@ lark-cli docs +create --api-version v2 \
 - [ ] **h2 / h3 / h4 标题用 `1.` `2.` `3.`(无 `(1) (2) (3)` 手动编号)** — 飞书 outline 硬要求
 - [ ] **论文精读用 `<p><b>完整标题</b></p>`(无 `① ② ③` 内联字符)** — 飞书 outline 硬要求
 - [ ] **趋势表用 `<table>` 精确数字(无 `████████` 字符画)** — SKILL.md 硬规则
+- [ ] **每篇论文用 6 行 paper card 格式 (2026-06-08 v0.3.0)** — 含 `作者：` / `发表：` / `arXiv：` / `paperscool：` 4 前缀 + Fei Wu（吴飞）显式标注 + 标题 verbatim

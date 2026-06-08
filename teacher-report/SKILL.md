@@ -8,8 +8,10 @@ description: |
    **Audit mode** (v0.2.8+): use when the user provides an EXISTING docx (URL or doc_id) and asks to "审计 / 检查 / 看看合不合规 / review" — fetches the doc, runs 12 compliance checks against v0.2.5+ rules (title numbering / ① ② / block charts / TL;DR callout / 5-section completeness / Persona footer etc), outputs a pass/fail report with fix suggestions. Triggers on phrases like "审计一下 [URL]", "看看 [老师] 报告合不合规", "review teacher report compliance", "teacher-report audit [doc_id]".
 
    **Anti-Hallucination Rules (v0.2.9, 2026-06-06)**: any paper status / year / author / title / 导师职务 / 学生身份 / 统计数字 claim must be verifiable against arXiv / OpenReview / 学校官网, not AI-inferred. See `## Anti-Hallucination Rules` section below for the 6-field matrix and 4 prohibition rules.
-  
-  Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
+
+   **Paper Entry Format (v0.3.0, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 6 行 paper card 格式 (verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行。详见 `## Paper Entry Format (v0.3.0) — 硬要求` 章节。
+
+   Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
 ---
 
 # Teacher Report
@@ -273,6 +275,92 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
+- **🚨 论文条目 6 行 paper card 硬要求 (2026-06-08 v0.3.0,违反 = skill 协议破坏)**:
+  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.0) — 硬要求` 章节定义的 6 行 paper card 格式
+  - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表
+  - LLM 必须自检:每篇论文均含 `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段前缀
+
+## Paper Entry Format (v0.3.0, 2026-06-08) — 硬要求
+
+> **背景**:v0.2.9 之前的 docx 把论文压缩成 `<table>` 一行 或 `<p><b>标题 (venue year) ⭐</b></p>` 紧凑格式,**省略作者列表**(report-template §5 v0.2.5 反规则第 1 条明确"禁止作者列表")。这导致:① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮(通讯作者被埋没) ③ 没法直接跳到 arXiv 全文(用户必须自己搜)。
+>
+> **v0.3.0 强反转**: 论文条目从"行内 compact"升级为"6 行 paper card"格式,所有信息 verbatim 可追溯。
+
+### Paper Card 6 行模板(每篇论文一份,无例外)
+
+```
+{论文完整标题 (verbatim, 不可改字/改序/省字)}
+作者：
+{作者 1, 作者 2, ..., Fei Wu（吴飞）, ..., 末位作者}    ← 全部列出(不省略),吴飞显式标 Fei Wu（吴飞）即使他/她就是第 1 作者
+发表：{venue year (角色)}    ← 例: ACL 2025 (Oral) / ICLR 2026 (Spotlight) / KDD 2024 (Long Paper) / TPAMI 2024 (期刊) / arXiv preprint
+arXiv：https://arxiv.org/abs/{arxiv-id}    ← 必须 arXiv ID;无 arXiv 用 DOI
+paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-click 阅读入口
+```
+
+### 字段规范
+
+| 字段 | 必填 | 规则 |
+|------|------|------|
+| **标题** | ✅ | verbatim, 不可改字/改序/省字;**禁止**用缩写或 et al. 替代 |
+| **作者** | ✅ | 全部列出(无 et al.), 用 `, ` 逗号+空格分隔; **Fei Wu 显式标 `Fei Wu（吴飞）`** (中文括号标注), 即使排在第 1 位 |
+| **发表** | ✅ | `{venue} {year} ({角色})`, 角色可省: Oral / Spotlight / Poster / Long Paper / Short Paper / Findings / Track 1 / Invited Talk / Preprint |
+| **arXiv** | ✅ | URL 必含 `https://arxiv.org/abs/{id}`;无 arXiv 用 `https://doi.org/{DOI}` 兜底 |
+| **paperscool** | ✅ | URL 必含 `https://papers.cool/arxiv/{id}`;与 arXiv ID 一致;**禁止**漏 |
+
+### 正确示例 (用户提供,2026-06-08)
+
+```
+OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use
+作者：
+Xueyu Hu, Tao Xiong, Biao Yi, Zishu Wei, Ruixuan Xiao, Yurun Chen, Jiasheng Ye, Meiling Tao, Xiangxin Zhou, Ziyu Zhao, Yuhuai Li, Shengze Xu, Shenzhi Wang, Xinchen Xu, Shuofei Qiao, Zhaokai Wang, Kun Kuang, Tieyong Zeng, Liang Wang, Jiwei Li, Yuchen Eleanor Jiang, Wangchunshu Zhou, Guoyin Wang, Keting Yin, Zhou Zhao, Hongxia Yang, Fan Wu, Shengyu Zhang, Fei Wu（吴飞）
+发表：ACL 2025 (Oral)
+arXiv：https://arxiv.org/abs/2508.04482 
+paperscool：https://papers.cool/arxiv/2508.04482
+```
+
+### 反例 (v0.3.0 全部禁止)
+
+```
+❌ OS Agents  ACL 2025, Hu et al.                          ← 1 行简化
+❌ OS Agents (ACL 2025 Oral) ⭐                             ← 标题 + venue 1 行,无作者
+❌ <p><b>OS Agents (ACL 2025 Oral) ⭐</b></p>               ← HTML 紧凑格式
+❌ Xinyu: ... (Yiquan Wu, Bo Tang, ... 16 名作者)          ← 作者被压在标题括号里
+❌ Wu et al. (2025) OS Agents ACL                          ← 缩写 + 顺序错乱
+❌ arXiv: 2508.04482                                       ← arXiv 没给 URL
+❌ paperscool (省略)                                       ← 缺 user 1-click 入口
+```
+
+### 适用位置 (全 docx 强制,5 章均生效)
+
+1. **§4 论文产出全景** — 每个分年表**上方或下方**列出该年所有论文的 paper cards (year ≥ 3 篇 → 列在表下; year 1-2 篇 → 可用 callout 装)
+2. **§2.2 方向匹配度** — 引用具体论文举例时, 用 paper card 格式 (5 字段+作者)
+3. **§3 套磁与行动建议** — 套磁信草稿引用具体论文时, paper card 块嵌入
+4. **§1 TL;DR** — 提到"代表论文"时, paper card 列在 callout 下方
+5. **§1.2 / §1.3 学生代表作** — 列每位博士代表作时, paper card
+
+### 与 v0.2.5 旧"论文精读子段模板"的关系
+
+| 维度 | v0.2.5 (旧) | v0.3.0 (新) |
+|------|-------------|-------------|
+| 论文展示形式 | 表内 1 行 / `<p><b>...</b></p>` 紧凑 | 6 行 paper card |
+| 作者列表 | 禁止 (et al.) | 必须 (全名 + Fei Wu 中文标注) |
+| arXiv 链接 | inline `<a href>` 在标题后 | 独立 `arXiv：` 行 |
+| papers.cool | 无 | 必须 `paperscool：` 行 |
+| 信息密度 | 低 (5 字段 UL 跟在标题后) | 高 (一篇一段,可独立打印) |
+
+> **迁移指南**: 现有 v0.2.5-v0.2.9 的 docx 跑 audit mode (Check 13) 时,会标 ❌ "缺少 paperscool" / "缺少作者列表",给出修复建议。修复时用 `lark-cli docs +update --command block_replace` 把每个 `<p><b>{title} (venue year) ⭐</b></p>` 替换为对应 6 行 paper card block。
+
+### Audit Check 13 (2026-06-08 v0.3.0 新增)
+
+| # | Check | 期望 | 失败处理 |
+|---|-------|------|---------|
+| 13a | 论文条目 ≥ 6 行 (标题 + 5 字段) | 100% paper cards 符合 6 行结构 | ❌ 简化为 1 行 → 必须扩为 6 行 |
+| 13b | 含 `作者：` `发表：` `arXiv：` `paperscool：` 4 个字段前缀 | 100% 4/4 | ❌ 缺任一字段 → 必须补 |
+| 13c | `Fei Wu（吴飞）` 显式标注 | 100% Fei Wu 署名的论文 | ❌ 漏 `（吴飞）` → 必须补中文括号 |
+| 13d | arXiv URL = `https://arxiv.org/abs/{id}` | 100% 链接规范 | ❌ 缺 URL / 用缩写 ID → 必须规范化 |
+| 13e | paperscool URL = `https://papers.cool/arxiv/{id}` | 100% 链接规范 | ❌ 缺 papers.cool 入口 → 必须补 |
+
+> Check 13 的 5 子项 (a-e) 全 ✅ 才算 Check 13 PASS;任一 ❌ = Check 13 FAIL (3 ❌ = 整体审计 fail, 降级为 🟡)。
 
 ## Anti-Hallucination Rules (v0.2.9, 2026-06-06)
 

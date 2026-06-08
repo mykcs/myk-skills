@@ -118,6 +118,10 @@
 
 ## 5. 论文精读子段模板(每个论文一段)
 
+> **🚨 v0.3.0 (2026-06-08) 重大变更**: 论文精读子段**已升级为 6 行 paper card 格式**, 详见 §5.1 模板。下方 §5.0 旧紧凑格式 **DEPRECATED** — 仍保留作为 v0.2.5 → v0.3.0 迁移对照参考, 但 v0.3.0+ **禁止**使用。
+
+### §5.0 旧紧凑格式 (v0.2.5-v0.2.9, DEPRECATED)
+
 ```xml
 <h4>{N}. {方向分组}（{数量} 篇）</h4>
 <p><b>{论文标题} ({venue} {year}) {⭐}</b></p>
@@ -148,27 +152,22 @@
    - **禁止**罗马数字"i. ii. iii."(避免 5 章节结构跟主流不一致)
    - **禁止**混用三种风格 `1.` `(1)` `①`
 
-**🚨 论文精读硬规则(违反 = skill 协议破坏)**:
+**🚨 §5.0 旧论文精读硬规则(2026-06-05 v0.2.5, v0.3.0 起 DEPRECATED,违反新规则见 §5.1)**:
 
-1. **禁止作者列表** — 论文标题后**只接 `(venue year)`**,**省略**所有作者姓名 / et al. / Kun Kuang* / 通讯标记。吴飞原模板不显示作者(读者关注的是论文本身,不是作者)。
+1. ~~**禁止作者列表** — 论文标题后**只接 `(venue year)`**,**省略**所有作者姓名 / et al. / Kun Kuang* / 通讯标记。~~ — **v0.3.0 已反转**: 必须列全部作者, Fei Wu 显式标 `Fei Wu（吴飞）`
 
-2. **venue 必须是 venue 名** — `NeurIPS 2025` / `ACL 2025` / `KDD 2026` / `ICLR 2026` / `arXiv preprint` / `ACM Computing Surveys` / `TPAMI` / `Cell Patterns` 等。**禁止**用 arXiv ID(`arXiv 2410.15319` ❌) / DOI / 通讯邮箱 / 期刊缩写作为 venue。
+2. **venue 必须是 venue 名** — `NeurIPS 2025` / `ACL 2025` / `KDD 2026` / `ICLR 2026` / `arXiv preprint` / `ACM Computing Surveys` / `TPAMI` / `Cell Patterns` 等。**禁止**用 arXiv ID(`arXiv 2410.15319` ❌`) / DOI / 通讯邮箱 / 期刊缩写作为 venue。 (v0.3.0 仍生效)
 
-3. **状态标记** 在 `(venue year)` 之后空一格:
+3. **状态标记** 在 `发表：{venue} {year} ({角色})` 之后空一格:
    - `⭐` = 重点关注
    - `📝` = 投稿中(submitted)
    - `⚠️` = 撤稿/被拒(withdrawn/desk-rejected)
    - `🆕` = 最新发表
-   - 例:`② InfiGUI-R1: Advancing Multimodal GUI Agents from Reactive Actors to Deliberative Reasoners (ICLR 2026 Submitted) ⭐ 📝`
+   - 例:`发表：ICLR 2026 (Submitted) ⭐ 📝`
 
-4. **5 字段必含 + 顺序固定**:
-   - 类型(Survey / 原创研究 / Benchmark)
-   - {老师}角色(末位/通讯/无/合作)
-   - 核心贡献(一句话,不超 30 字)
-   - 与你关联(具体到论文技术点 + 用户方向连接,**禁止**"高度契合"等空话)
-   - 技术关键词(**5 个**英文逗号分隔,不是 6 个、不是中文)
+4. ~~**5 字段必含 + 顺序固定**~~ — **v0.3.0 已替换**: 改为 `5 字段前缀必含: 作者：/ 发表：/ arXiv：/ paperscool： + 标题行`
 
-5. **套磁可引用度自检** — 每篇论文精读写完后,问自己:"如果我在套磁信中引用这篇论文,我能不能**只读这两行 + 5 字段**就理解它?" 不行就改。
+5. **套磁可引用度自检** — 每篇 paper card 写完后,问自己:"如果我在套磁信中引用这篇论文,我能不能**只读这 6 行**就理解它?" 不行就改。
 
 **反例**(我跑况琨时犯的错,以后禁止):
 - ❌ `① Causality for Large Language Models(Anpeng Wu, Kun Kuang*, Minqin Zhu, et al., arXiv 2410.15319, 2024) ⭐` — 加了作者列表 + arxiv id 当 venue
@@ -179,6 +178,81 @@
 - `📝` = 投稿中(submitted)
 - `⚠️` = 撤稿/被拒(withdrawn/desk-rejected)
 - `🆕` = 最新发表
+
+### §5.1 v0.3.0 Paper Card 6 行模板 (2026-06-08, 硬要求, 取代 §5.0 旧格式)
+
+```xml
+<h4>{N}. {论文标题 (verbatim)}</h4>
+<p>作者：</p>
+<p>{作者 1, 作者 2, ..., Fei Wu（吴飞）, ..., 末位作者}</p>
+<p>发表：{venue} {year} ({角色}) {状态标记}</p>
+<p>arXiv：<a href="https://arxiv.org/abs/{arxiv-id}">https://arxiv.org/abs/{arxiv-id}</a></p>
+<p>paperscool：<a href="https://papers.cool/arxiv/{arxiv-id}">https://papers.cool/arxiv/{arxiv-id}</a></p>
+```
+
+#### 正确示例 (用户提供模板, 2026-06-08)
+
+```xml
+<h4>1. OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use</h4>
+<p>作者：</p>
+<p>Xueyu Hu, Tao Xiong, Biao Yi, Zishu Wei, Ruixuan Xiao, Yurun Chen, Jiasheng Ye, Meiling Tao, Xiangxin Zhou, Ziyu Zhao, Yuhuai Li, Shengze Xu, Shenzhi Wang, Xinchen Xu, Shuofei Qiao, Zhaokai Wang, Kun Kuang, Tieyong Zeng, Liang Wang, Jiwei Li, Yuchen Eleanor Jiang, Wangchunshu Zhou, Guoyin Wang, Keting Yin, Zhou Zhao, Hongxia Yang, Fan Wu, Shengyu Zhang, Fei Wu（吴飞）</p>
+<p>发表：ACL 2025 (Oral)</p>
+<p>arXiv：<a href="https://arxiv.org/abs/2508.04482">https://arxiv.org/abs/2508.04482</a></p>
+<p>paperscool：<a href="https://papers.cool/arxiv/2508.04482">https://papers.cool/arxiv/2508.04482</a></p>
+```
+
+#### §5.1 硬规则 (v0.3.0, 违反 = skill 协议破坏)
+
+| # | 规则 | 说明 |
+|---|------|------|
+| 1 | **标题 verbatim** | 不可改字/改序/省字,直接复制 arXiv abs 页 Title 字段 |
+| 2 | **作者全部列出** | 禁止 `et al.` / `...` / 缩写(即使 30+ 作者) |
+| 3 | **Fei Wu 显式标 `（吴飞）`** | 即使 Fei Wu 是第 1 作者也要标 |
+| 4 | **`发表：` 前缀** | `{venue} {year} ({角色})` 3 段式 |
+| 5 | **`arXiv：` 前缀 + 完整 URL** | URL 必含 `https://arxiv.org/abs/{id}` |
+| 6 | **`paperscool：` 前缀 + 完整 URL** | URL 必含 `https://papers.cool/arxiv/{id}` |
+
+#### §5.1 位置适用 (全 docx 强制)
+
+| 位置 | 用 paper card 吗? | 备注 |
+|------|-------------------|------|
+| §4 论文产出全景 (按年表下方) | ✅ 必 | year ≥ 3 篇 → 列表;1-2 篇 → callout 装 |
+| §2.2 方向匹配度 引用具体论文 | ✅ 必 | 即使只 1 篇引用也要 paper card |
+| §3 套磁信 引用具体论文 | ✅ 必 | paper card 块嵌入 |
+| §1 TL;DR 代表论文 | ✅ 必 | callout 下方列 paper card |
+| §1.2 / §1.3 学生代表作 | ✅ 必 | 每位博士代表作 1 份 paper card |
+| §4 大方向分布 table (仅统计) | ❌ 不要 | table 仅数字,无具体论文,无需 paper card |
+
+#### §5.1 反例 (v0.3.0 全部禁止)
+
+```xml
+❌ <p><b>OS Agents (ACL 2025 Oral) ⭐</b></p>                                <!-- 紧凑格式,无作者 -->
+❌ <h4>OS Agents: ... (Hu et al., ACL 2025)</h4>                            <!-- 作者被缩写 -->
+❌ <h4>1. OS Agents: ...</h4>                                               <!-- 缺 4 字段前缀 -->
+❌ <h4>1. OS Agents: ...</h4><p>Authors: Xueyu Hu...</p><p>...</p>            <!-- 缺 arXiv / paperscool -->
+❌ OS Agents  ACL 2025                                                       <!-- 1 行简化 -->
+```
+
+#### §5.1 与旧 §5.0 迁移对照
+
+| 旧 (v0.2.5) | 新 (v0.3.0) |
+|--------------|-------------|
+| 表内 1 行 / `<p><b>...</b></p>` | 6 行 paper card (5 字段) |
+| `et al.` 缩写 | 全名列出 |
+| 禁作者列 | 必作者列 + Fei Wu（吴飞） |
+| arXiv inline `<a>` | `arXiv：` 独立行 + 完整 URL |
+| 无 paperscool | `paperscool：` 必含行 |
+| 5 字段 UL 跟在标题后 | 5 字段前缀行 (作者/发表/arXiv/paperscool) |
+
+#### v0.2.5 → v0.3.0 升级命令 (已发布 docx)
+
+```bash
+# 把现有 v0.2.5 紧凑 <p><b>{title} (venue year) ⭐</b></p> 替换为 paper card 6 行 block
+# 推荐: 跑 audit mode (Check 13) 找到所有 ❌ 行,逐个 block_replace
+lark-cli docs +update --api-version v2 --doc {doc_id} --command block_replace \
+  --content "<new paper card 6-line block>" \
+  --block-id {old_compact_block_id}
+```
 
 ## 6. 方向分布 table 模板
 
