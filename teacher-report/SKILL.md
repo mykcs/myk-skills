@@ -572,8 +572,8 @@ paperscool：https://papers.cool/arxiv/2508.04482
 8. <p>标注：</p>                 ← 标注段头(空 <p>,下个 block 是标注)
 9. <p>通讯作者：{X}</p>           ← 独立标注行(可选,无则整段省略)
 10. <p>发表：{venue year (角色)}</p>  ← 发表信息
-11. <p>arXiv：<a href="https://arxiv.org/abs/{id}">https://arxiv.org/abs/{id}</a></p>  ← arXiv 链接
-12. <p>paperscool：<a href="https://papers.cool/arxiv/{id}">https://papers.cool/arxiv/{id}</a></p>  ← papers.cool 链接
+11. <p>arXiv：<a href="https://arxiv.org/abs/{id}">https://arxiv.org/abs/{id}</a></p>  ← **优先 arXiv URL**;若论文无 arXiv 预印本,改用原会议/期刊网址 (例: SIGMOD `https://dl.acm.org/doi/10.1145/{doi}`、 ASPLOS `https://dl.acm.org/doi/10.1145/{doi}`、 CVPR `https://openaccess.thecvf.com/content/CVPR{YEAR}/html/{paper}.html`、 NeurIPS `https://proceedings.neurips.cc/paper/{YEAR}/hash/{hash}-Abstract.html`、 期刊 `https://ieeexplore.ieee.org/document/{id}`)。禁止 `[待验证]` 占位符 — 必须有 1-click 入口
+12. <p>URL 类型：arXiv 预印本</p>  ← 或 `<p>URL 类型：会议正式版 (SIGMOD/ASPLOS/CVPR/...)</p>` 标注 URL 来源类型,让用户一眼区分
 ```
 
 ### 12 项 LLM 自检清单(写完 paper card 必跑,任一 ❌ 必须修正后才能输出)
@@ -590,7 +590,7 @@ paperscool：https://papers.cool/arxiv/2508.04482
 | 8 | 禁止 (通讯 PI 模式) 描述 | 作者行无 "通讯 PI 模式" 等描述性短语 | ❌ "作者：... (通讯 PI 模式)" |
 | 9 | Fei Wu 显式标 (吴飞) | 100% Fei Wu 署名论文含 `Fei Wu（吴飞）`(中文括号) | ❌ "Fei Wu" 漏中文括号 |
 | 10 | 标注行单独成行 | 通讯作者/一作/学生 独立 `<p>标注：</p>` 段,不混作者列表 | ❌ "作者：..., (通讯), ..., 一作 Xueyu" |
-| 11 | arXiv 真实 URL | `<a href="https://arxiv.org/abs/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>arXiv：待 arXiv 验证</p>` |
+| 11 | 真实 1-click URL (arXiv 优先 / 会议期刊兜底) | 100% 论文有 1-click 入口 URL;有 arXiv 用 arxiv.org,无 arXiv 用 dl.acm.org/openaccess.thecvf.com/proceedings.neurips.cc/ieeexplore.ieee.org,**禁止** `[待验证]` 占位符 | ❌ `<p>arXiv：待 arXiv 验证</p>` (应填会议 doi) / ❌ 缺 URL |
 | 12 | paperscool 真实 URL | `<a href="https://papers.cool/arxiv/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>paperscool：待 arXiv 验证</p>` |
 
 > 12 项全 ✅ 才能输出 paper card;任一 ❌ 必须修正后重跑自检
@@ -610,8 +610,17 @@ paperscool：https://papers.cool/arxiv/2508.04482
 <p>一作/共一：{FIRST1}, {FIRST2}</p>
 <p>学生：{STU1} (学生), {STU2} (学生)</p>
 <p>发表：{VENUE} {YEAR} ({ROLE})</p>
-<p>arXiv：<a href="https://arxiv.org/abs/{ARXIV_ID}">https://arxiv.org/abs/{ARXIV_ID}</a></p>
-<p>paperscool：<a href="https://papers.cool/arxiv/{ARXIV_ID}">https://papers.cool/arxiv/{ARXIV_ID}</a></p>
+<p>arXiv：<a href="https://arxiv.org/abs/{ARXIV_ID}">https://arxiv.org/abs/{ARXIV_ID}</a></p>  ← 优先 arXiv
+<p>URL 类型：arXiv 预印本</p>  ← 或 "URL 类型：{VENUE_ABBR} 正式版"
+<p>paperscool：<a href="https://papers.cool/arxiv/{ARXIV_ID}">https://papers.cool/arxiv/{ARXIV_ID}</a></p>  ← arXiv 才有 paperscool;无 arXiv 跳过此行
+
+--- v0.3.5 无 arXiv 兜底模板 (e.g. SIGMOD/ASPLOS/CVPR 正式版) ---
+
+<XML><![CDATA[
+<p>arXiv：无预印本</p>
+<p>URL 类型：{VENUE_ABBR} 正式版</p>
+<p>论文网址：<a href="{VENUE_URL}">{VENUE_URL}</a></p>  ← dl.acm.org/doi/... 或 openaccess.thecvf.com 或 proceedings.neurips.cc
+]]></XML>
 ```
 
 ### "脏"输出反例 (v0.3.3 全部禁止)
