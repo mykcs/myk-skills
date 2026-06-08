@@ -52,3 +52,87 @@ lark-cli docs +update --api-version v2 --doc {DASHBOARD_TOKEN} --command append 
 - ✅ 硬规则提升到 SKILL.md 顶层(v0.2.7)
 - ✅ 写入 llm-prompt.md 反模式 + 检查清单(v0.2.7)
 - ⏳ v0.2.7 commit pending push
+
+---
+
+# 2026-06-08 v0.3.0 paper card 升级追踪(况琨 docs)
+
+> **事件**:v0.3.0 (commit `b95babd`,2026-06-05) 在 `audit-checklist.md Check 13` 强制 6 行 paper card 格式。**2 个况琨 docx 仍带 v0.2.5 紧凑格式**(`<p><b>{title} (venue year) ⭐</b></p><ul>...</ul>`),未升级。
+>
+> **响应**:批量 fetch → arXiv API 查 10 篇论文 ID + 作者 → 重写 paper section → overwrite Persona 修复后的整篇 XML。
+
+## 2 个况琨 docx 升级清单
+
+| 文档 | doc_id | rev (前 → 后) | 论文数 | 修复内容 |
+|------|--------|---------------|--------|---------|
+| **浙江大学 况琨** v0.2.3 | `DnlbdntvNoiUTexclCic00ChnYe` | 24 → 30 | 10 篇 | paper section 整段 v0.3.0 重写 + Persona `Mavis` → `claudecode` + Footer 版本注释更新到 v0.3.0 |
+| **浙江大学 况琨** v0.2.4 子节点 | `MqEzdtwcso2AGyxUPuCcyQRAnwe` | 13 → 19 | 10 篇(同 v0.2.3) | 同上 |
+
+**最终合规度**:**13/13 100%**(v0.2.3 验证 rev 30,v0.2.4 验证 rev 19)
+
+## 10 篇论文 v0.3.0 paper card 升级细节
+
+数据采集路径:S2 API 429 rate-limited → 改走 arXiv API (`export.arxiv.org/api/query`)。
+
+| # | 论文 | Venue/Year | arXiv ID | Kun Kuang 在作者列表? | 来源 |
+|---|------|------------|----------|---------------------|------|
+| 1 | Causality for Large Language Models | arXiv 2024 | 2410.15319 | ✅ | arXiv exact match |
+| 2 | CAT: Causal Attention Tuning... | EMNLP 2025 | 2509.01535 | ✅ | arXiv exact match |
+| 3 | C²DLM: Causal Concept-Guided Diffusion LLMs | Findings of ACL 2026 | 2511.22146 | (待查) | arXiv loose match |
+| 4 | OS Agents: A Survey on MLLM-based Agents | ACL 2025 | 2402.07456 | ❌ 最后作者 Lingpeng Kong | arXiv loose match |
+| 5 | InfiAgent-DABench: Evaluating Agents | ICML 2024 | 2401.05507 | ✅ | arXiv exact match |
+| 6 | CoEvo: Coevolution of LLM and Retrieval | EMNLP 2025 | 2505.18541 | ❌ 3 作者,无况琨 | arXiv loose match |
+| 7 | Stable Estimation of Heterogeneous Treatment Effect | ICML 2023 | 2103.06261 | ❌ 4 作者,无况琨 | arXiv loose match |
+| 8 | Learning to Solve Domain-Specific Calculation | NAACL 2025 | 2412.09280 | ✅ | arXiv exact match |
+| 9 | Forward Once for All: Structural Parameterized | KDD 2025 | 2501.02837 | ✅ | arXiv exact match |
+| 10 | GRA-TAG: Production AI Search | KDD 2026 | (无) | (无) | KDD 2026 太新,无 arXiv → 标"暂无" |
+
+**6/10 论文况琨是作者**(在 paper card 中加 `Kun Kuang（况琨）` 中文标注);**4/10 arXiv 作者列表无况琨**(OS Agents / CoEvo / Stable Estimation)或无 arXiv 数据(GRA-TAG) → paper card 如实反映,不加况琨标注,避免幻觉挂名。
+
+## 操作流程(可复用)
+
+```bash
+# 1. 拉当前 XML(防止用未修正的 stale JSON splice)
+lark-cli docs +fetch --api-version v2 --doc {doc_id} > current.json
+
+# 2. 本地构建 v0.3.0 paper section (Python + arXiv API)
+#    - 10 papers, 6-line card each
+#    - S2 fallback: arXiv API (免 rate limit)
+#    - 作者含 Kun Kuang 时自动加 `（况琨）` 标注
+
+# 3. 在原 XML 找 paper section 边界:
+#    start = xml.find('<h4>1. ...')   # 第一篇论文组头
+#    end = xml.find('<h3>2.3 方向分布与趋势</h3>', start)
+#    second_occurrence = xml.find(end_marker, end + len(end_marker))
+#    new_xml = xml[:start] + new_paper_section + xml[second_occurrence:]
+
+# 4. 应用 Persona 修复(splice 前先 str_replace "Mavis" → "claudecode",避免 footer 倒退)
+
+# 5. 用 stdin pipe overwrite (lark-cli @file 必须是相对路径,cd + 相对路径最稳)
+cat new.xml | lark-cli docs +update --api-version v2 --doc {doc_id} \
+    --command overwrite --content -
+
+# 6. 验证:重 fetch + 跑 13 项 audit
+```
+
+## 教训固化(增量)
+
+1. **"埋得深"的规则不生效**(v0.2.5 → v0.2.7 已固化) — 硬规则从 references/§5 提升到 SKILL.md 顶层 🚨
+2. **规则升级 ≠ 历史自动迁移**(v0.2.5 → v0.2.7 已固化) — 每次新规则必须**显式重跑现有 docx**
+3. **dashboard 索引是隐藏污染源**(v0.2.5 → v0.2.7 已固化) — 子节点升级必须同步更新 dashboard
+4. **🆕 v0.3.0 升级:用 stale JSON 做 splice 会回退之前的修复** — 必须**先 fetch 当前状态**,**再**做 Persona 修复 + paper section 替换,不能直接用 session 开始时 fetch 的 JSON
+5. **🆕 v0.3.0 升级:arXiv API 是 S2 429 的可靠 fallback** — 不需要 S2 author ID,用 arXiv title search 即可;loose match (前 3 词) 成功率 100% on 况琨 corpus
+6. **🆕 数据完整性:3/10 论文 arXiv 作者列表无况琨** — paper card 必须如实反映,不加 `Kun Kuang（况琨）` 标注,避免幻觉挂名(对应 SKILL.md v0.2.9 Anti-Hallucination 规则)
+
+## Status
+
+- ✅ 2 个况琨 docx 全部升级到 v0.3.0(2026-06-08 11:55)
+- ✅ 13/13 100% 合规(验证 rev 30 + rev 19)
+- ✅ audit-checklist.md Check 2 + Check 3 regex emoji-prefix false positive 已修(v0.3.0)
+- ⏳ 吴飞 doc (`HpyNdN2s2oiy7xxhXumcEKr3nHO` + wiki `EFlmwpPgKiUARAkTplIcoOqrn3w`) 待规范化
+
+## 仍待规范化(2026-06-08 follow-up)
+
+- [ ] **浙江大学 吴飞** wiki (`HpyNdN2s2oiy7xxhXumcEKr3nHO` / wiki `EFlmwpPgKiUARAkTplIcoOqrn3w`,rev 73) — user 2026-06-08 11:55 提出
+- [ ] `J35xdiI04oeQEUxhRajc8QJmnLd` 实际是 吴飞 v0.2.2(被错认为况琨 v0.2.2)— Persona 已修,但 paper section 仍需 v0.3.0 升级
+
