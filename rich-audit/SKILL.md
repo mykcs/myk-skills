@@ -135,7 +135,7 @@ user-invocable: true
 |------|----------------|
 | 用户未指定工作区，但当前 cwd 在 `~/Repo/xxx` 下且有 Python 项目 | 在 "条件范围" 一行追加：当前 cwd = `$(pwd)` |
 | 用户明确指定了"只审计 X" | 将"目标文件夹"章节替换为用户指定的 X，其他保持默认 |
-| 用户说"全面审计" / "深度审计" | 在 "Layer 3 进化层" 标注 `深度模式：3 次 WebSearch + 2 次 Context7` |
+| 用户说"全面审计" / "深度审计" | 在 "Layer 3 进化层" 标注 `深度模式：3-tool cascade (minimax → kimi-webbridge → anysearch) + 2 次 Context7` |
 | mem0 MCP 不可用 | 在 "关联范围 2" 后追加警告：`⚠️ mem0 MCP 不可用，L3 记忆对齐将降级为 L1/L2 双轨` |
 
 **反例（禁止）**：
@@ -166,11 +166,12 @@ User: "rich审计" / "进化"
     自动修复安全可论证的问题
   |
   v
-[3] Layer 3 — 进化层（Evolve）【并行 Agent 启动】
-    ├─ Agent-Evolve-1 → WebSearch: Claude Code / OMC 最新实践
-    ├─ Agent-Evolve-2 → WebSearch: Python/ML/PyTorch 最新实践（如有 Mode B）
-    ├─ Agent-Evolve-3 → Context7 查询官方文档（Python / Claude SDK）
-    └─ 汇总 → 对比当前配置，产出进化建议
+[3] Layer 3 — 进化层（Evolve）【3-tool WebSearch cascade + 并行 Agent 启动】
+    ├─ Step 1 (primary): mcp__MiniMax__web_search — Claude Code / OMC / Python/ML 最新实践
+    ├─ Step 2 (deeper): kimi-webbridge skill — 真实浏览器交互, 抓需要登录的 docs / 论坛 / GitHub issues
+    ├─ Step 3 (cross-validate): anysearch skill — 多源 cross-search 验证 (避免单源偏差)
+    ├─ Context7: 官方文档 fallback (Python / Claude SDK)
+    └─ 汇总 → 3-tool cascade 产出进化建议
   |
   v
 [4] 生成进化报告（五段式）
@@ -196,6 +197,13 @@ User: "rich审计" / "进化"
 **8 维度加权模型**：architecture 25% + integrity 30% + security 20% + consistency 20% + github_sync 5% + timeliness 5% + redundancy 5% + performance 5%。
 
 **Layer 3 进化层约束**：每次 `rich审计` 都必须执行外部扫描（禁止以"分数已经很高"为由跳过 WebSearch / Context7）。
+
+**3-tool WebSearch cascade (2026-06-08 落地)**:
+1. **mcp__MiniMax__web_search** (primary, fast) — `MiniMax__web_search` MCP tool, 适合大批量 query
+2. **kimi-webbridge skill** (deeper, real browser) — 真实浏览器抓 docs / 论坛 / GitHub issues (需要 login 的内容)
+3. **anysearch skill** (cross-validate) — 多源 cross-search 验证, 避免单源偏差
+
+**Why 3 tools (而非单源)**: Run 1 (2026-06-08) 发现单源 WebSearch 有 400 error + incomplete coverage, agent L14 1/3 fail. 3-tool cascade 提供: (a) redundancy (单 tool 挂掉不影响), (b) depth (kimi-webbridge 抓单源抓不到的内容), (c) cross-validation (anysearch 验证 minimax 结果). **Layer 3 至少 1 次 Context7 fallback 查询** (Python/Claude SDK 官方文档).
 
 ---
 ## 双模扫描范围
@@ -316,7 +324,7 @@ User: "rich审计" / "进化"
 4. Layer 3 产出进化报告，包含外部知识对比与搜索证据
 5. 安全机械修复自动应用，无需用户干预
 6. 计算修复前后健康评分（0-100）和进化度评分（0-100）
-7. **永不休眠：无论健康度多少，Layer 3 必须执行至少 2 次 WebSearch 或 1 次 Context7 查询，并在报告中列出搜索关键词、来源 URL 与结论**
+7. **永不休眠：无论健康度多少，Layer 3 必须执行 3-tool WebSearch cascade（minimax web search → kimi-webbridge → anysearch cross-search）+ 1 次 Context7 查询，并在报告中列出每个工具的搜索关键词、来源 URL 与结论。3 工具顺序：minimax (primary, fast) → kimi-webbridge (deeper, real browser) → anysearch (cross-validate, multi-source)。**
 8. **进化报告必须包含"本次搜索发现的新知识"段落，即使结论为"无新进展"，也必须附搜索证据**
 
 ## Verification Gates (报告完成前强制检查)
