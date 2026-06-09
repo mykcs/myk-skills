@@ -216,7 +216,7 @@ lark-cli docs +fetch --api-version v2 --doc {doc_id} --detail with-ids
 1. L4 MiniMax: `mcp__MiniMax__web_search` 搜 `"{title}" arxiv`
 2. L5 Kimi WebBridge(若 L4 失败):浏览器打开 arxiv.org/abs/{id} 拿完整 byline
 3. L6 AnySearch(若 L4/L5 失败):搜 `"{title}" filetype:pdf` 拿 PDF 链接 + 摘要
-4. fallback: 用现有数据 + 标注 `[待 L4/L5/L6 重抓]` (不直接用 placeholder,留 hook 供后续补)
+4. fallback: **见 §F v0.3.7 强化协议** (二选一: a) 触发 L4/L5/L6 重抓; b) L4/L5/L6 全失败 → 拒绝输出 paper card,标 `🟡 跳过: {arxiv-id} 数据不全`)**禁止**用 `[待 L4/L5/L6 重抓]` placeholder 提交 final doc
 
 **Step R4 — 生成 v0.3.3 全量 XML**
 按 `Output Schema (v0.3.3 strict)` 章节的 fixed-template,11-12 个 block/论文,顺序固定。
@@ -580,16 +580,16 @@ paperscool：https://papers.cool/arxiv/2508.04482
 
 | # | 检查项 | 通过条件 | 常见错误 |
 |---|--------|---------|---------|
-| 1 | 标题 verbatim | 完全从 arXiv abs 页复制,无改字/改序/省字 | ❌ "OS Agents: Survey" (缺 "A Survey on MLLM-based Agents for General Computing Devices Use") |
+| 1 | 标题 verbatim | 完全从 arXiv abs 页复制,无改字/改序/省字/中途截断/错字字符 | ❌ "OS Agents: Survey" (缺 "A Survey on MLLM-based Agents for General Computing Devices Use") / ❌ "...A Unified Model for 2D/3D/V" (中途截断 + 幻觉字符) |
 | 2 | 标题无 et al. 缩写 | 完整标题,无 "et al." 替代 | ❌ "Xinyu: ... (Yiquan Wu et al., 16 authors)" |
 | 3 | 4 行 taxonomy 顺序 | 顺序固定:大领域→中方向→小任务→子技术,每行独立 `<p>` 块 | ❌ 单行 "大领域:CV\|中方向:Agent\|小任务:GUI" 压平 |
 | 4 | 4 行 taxonomy 无 table | **禁止** 4 列表格 `<table>`,**必须** 4 个 `<p>` 块 | ❌ `<table>大领域 中方向 小任务 子技术</table>` |
-| 5 | taxonomy 无占位符 | 4 字段均有具体值,无 "未知" / "N/A" / "待补" | ❌ `<p>大领域：待补</p>` |
-| 6 | 作者完整 verbatim | 全部列出,无 "... N 名作者" 省略,无 et al. | ❌ "Xueyu Hu, Tao Xiong, ... 27 名作者, Fei Wu" |
+| 5 | taxonomy + 作者列表 无占位符 | 4 字段 + 作者列表 均有具体值,无 "未知" / "N/A" / "待补" / "[待 L4/L5/L6 重抓]" / "[待验证]" / "[未知]" placeholder | ❌ `<p>大领域：待补</p>` / ❌ `<p>作者：[待 L4/L5/L6 重抓]</p>` |
+| 6 | 作者完整 verbatim | 全部列出,无 "... N 名作者" 省略,无 et al.,**无 [待 L4/L5/L6 重抓] / [待补] / [未知] / [待验证] placeholder** | ❌ "Xueyu Hu, Tao Xiong, ... 27 名作者, Fei Wu" / ❌ `<p>作者：[待 L4/L5/L6 重抓]</p>` / ❌ `<p>作者：[待补]</p>` |
 | 7 | 禁止 (末位/通讯) 缩写 | 作者行无 "(末位/通讯)" / "(通讯 PI 模式)" 描述 | ❌ "作者：..., (末位/通讯), Fei Wu" |
 | 8 | 禁止 (通讯 PI 模式) 描述 | 作者行无 "通讯 PI 模式" 等描述性短语 | ❌ "作者：... (通讯 PI 模式)" |
 | 9 | Fei Wu 显式标 (吴飞) | 100% Fei Wu 署名论文含 `Fei Wu（吴飞）`(中文括号) | ❌ "Fei Wu" 漏中文括号 |
-| 10 | 标注行单独成行 | 通讯作者/一作/学生 独立 `<p>标注：</p>` 段,不混作者列表 | ❌ "作者：..., (通讯), ..., 一作 Xueyu" |
+| 10 | 标注行单独成行 + **跨 paper 串名检查** | 通讯作者/一作/学生 独立 `<p>标注：</p>` 段,不混作者列表;**通讯作者名字必须 verbatim 出现在作者列表中**(防跨 paper 串名/凑数) | ❌ "作者：..., (通讯), ..., 一作 Xueyu" / ❌ 通讯作者="Zhaozhou Zhao" 但作者列表无此名(错配别 paper) |
 | 11 | 真实 1-click URL (arXiv 优先 / 会议期刊兜底) | 100% 论文有 1-click 入口 URL;有 arXiv 用 arxiv.org,无 arXiv 用 dl.acm.org/openaccess.thecvf.com/proceedings.neurips.cc/ieeexplore.ieee.org,**禁止** `[待验证]` 占位符 | ❌ `<p>arXiv：待 arXiv 验证</p>` (应填会议 doi) / ❌ 缺 URL |
 | 12 | paperscool 真实 URL | `<a href="https://papers.cool/arxiv/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>paperscool：待 arXiv 验证</p>` |
 
@@ -658,13 +658,15 @@ paperscool：https://papers.cool/arxiv/2508.04482
 - overwrite 前必先 `cp` 备份原 docx 到 `/tmp/wiki-audit/backup-overwrite-{date}/`
 - 备份内容保留 ≥ 7 天
 
-**块级升级的优先级清单**(按 v0.3.5/3.6 升级):
+**块级升级的优先级清单**(按 v0.3.5/3.6/3.7 升级):
 1. 4 列表格 → 4 行 p blocks (Check 14a)
 2. paper card 缺 4 行 taxonomy → block_insert_after
-3. paper card 缺完整作者 → 抓 arXiv 补 + block_replace
+3. paper card 缺完整作者 / **含 `[待 L4/L5/L6 重抓]` placeholder** → 强制 L4/L5/L6 重抓,**不允许保留 placeholder 在 final doc** (v0.3.7+)
 4. paper card 缺标注行 → block_insert_after
 5. 全文 "(末位/通讯)" 缩写 → str_replace
 6. 全文 "v0.3.3 重写版" framing → str_replace
+7. **NEW (v0.3.7)**: 通讯作者名字与作者列表不一致(跨 paper 串名/凑数) → block_replace 改回(从 arXiv abs 页 verbatim 抽取 corresponding author)
+8. **NEW (v0.3.7)**: 标题中途截断 / 错字字符(hallucination) → block_replace 改回(必须一字不差复制 arXiv abs 页 `<title>` 标签内容)
 
 ### §D 备份要求(v0.3.6+ 强制)
 
@@ -685,7 +687,50 @@ cd /tmp/wiki-audit/backup-$DATE-$TEACHER
 lark-cli docs +update --api-version v2 --doc $TOKEN --command overwrite --content @original.xml
 ```
 
-### "脏"输出反例 (v0.3.3 全部禁止)
+### §E 失败案例(v0.3.7+ 必读)— wiki WxDrwA5HCiK0RLk5pFCczmTbnPc paper card 反面教材(2026-06-08)
+
+> **arXiv 2409.19132 真实数据** (Kun Su, Xiulong Liu, Eli Shlizerman; ICML 2024 PMLR v235) vs **飞书 wiki 实际跑出来的 paper card**:
+
+```
+❌ 标题(wiki):  "From Vision to Audio and Beyond: A Unified Model for 2D/3D/V"
+   ↑ 真实(arXiv abs):  "From Vision to Audio and Beyond: A Unified Model for Audio-Visual Representation and Generation"
+   ↑ 错: 中途截断 + "2D/3D/V" 是 LLM 幻觉字符
+❌ 作者列表(wiki):  [待 L4/L5/L6 重抓]  ← placeholder 提交,违反 12 项 Check 6
+   ↑ 真实(arXiv abs):  Kun Su, Xiulong Liu, Eli Shlizerman (3 人,U. Washington)
+❌ 通讯作者(wiki):  Zhaozhou Zhao（赵洲）  ← 错配别 paper
+   ↑ 真实(论文 byline):  Eli Shlizerman (shlizee@uw.edu, U. Washington)
+❌ 发表(wiki):  (空)
+   ↑ 真实:  ICML 2024 (PMLR v235, pp. 46804-46822)
+❌ 一作/共一(wiki):  (空)
+   ↑ 真实:  Kun Su, Xiulong Liu (共一, U. Washington)
+```
+
+**3 类错的根因**:
+1. **标题截断 + 错字字符**: LLM 没有强制 read arXiv abs 页 verbatim, 而是 LLM 自由发挥 hallucinate 中途字符(`2D/3D/V` 在原文根本不存在)
+2. **作者列表 placeholder**: Step R3 fallback 协议(原 L219)明文允许 `[待 L4/L5/L6 重抓]` placeholder 提交, 12 项自检无 reject 机制 → 漏洞
+3. **通讯作者错配**: LLM 从 **别 paper** 抄了作者名(可能是 "Zhaozhou Zhao" 在 arXiv 别处出现过), 没有任何 cross-paper 一致性 check
+
+**v0.3.7 修复** (本节):
+- 12 项 Check 1 强化: 标题必须一字不差复制, 反例加 "中途截断 + 错字字符" (2409.19132 案例)
+- 12 项 Check 5 强化: 反例加 `[待 L4/L5/L6 重抓]` / `[未知]` placeholder
+- 12 项 Check 6 强化: 反例加 `[待 L4/L5/L6 重抓]` / `[待补]` placeholder 提交
+- 12 项 Check 10 强化: 通讯作者名字必须 verbatim 在作者列表中, 反例加 "跨 paper 串名" (Zhaozhou Zhao 案例)
+- §C 优先级清单 +2 项: 通讯作者串名 → block_replace 改回; 标题截断 → block_replace 改回
+- **Step R3 fallback 协议修改**(下方 §F): 禁止 placeholder 提交, 必须 L4/L5/L6 重抓 或 拒绝输出 paper card
+
+### §F Step R3 fallback 协议(v0.3.7 强化)— **禁止 placeholder 提交**
+
+**原 v0.3.4 协议(Rewrite mode Step R3 第 4 步)**:
+> 4. fallback: 用现有数据 + 标注 `[待 L4/L5/L6 重抓]` (不直接用 placeholder,留 hook 供后续补)
+
+**v0.3.7 新协议**:
+> 4. fallback (二选一, **禁止** 用 `[待 L4/L5/L6 重抓]` 提交 final paper card):
+>    - **a) 触发 L4/L5/L6 重抓**: L4 MiniMax Web Search 搜 `arxiv 2409.19132` → L5 Kimi WebBridge 打开 `arxiv.org/abs/2409.19132` → L6 AnySearch 搜 `{title}` 拿到完整作者 + 通讯作者
+>    - **b) L4/L5/L6 全失败 → 拒绝输出 paper card**: 在 wiki 标 `🟡 跳过: {arxiv-id} 数据不全, 待 L7+ 兜底`, 留下 retry hook, **不** 在 final doc 中保留 placeholder
+
+**为什么禁止 placeholder 提交**: 12 项自检的"❌ 必须修正后才能输出"对 placeholder 无效(因为 LLM 把 placeholder 当成"已处理"), 导致脏 paper card 永久 ship 到 wiki, 与 v0.3.3 strict schema 目标完全相反。
+
+### "脏"输出反例 (v0.3.3 全部禁止,v0.3.7 加 3 条 wiki 实测)
 
 ```
 ❌ <table>大领域 中方向 小任务 子技术</table>          ← 4 列表格
@@ -697,6 +742,9 @@ lark-cli docs +update --api-version v2 --doc $TOKEN --command overwrite --conten
 ❌ arXiv: 待 arXiv 验证                                  ← 占位符
 ❌ paperscool (省略)                                     ← 缺 user 1-click 入口
 ❌ Wu et al. (2025) OS Agents ACL                       ← 缩写 + 顺序错乱
+❌ <p>作者：[待 L4/L5/L6 重抓]</p>                      ← v0.3.7: placeholder 提交
+❌ 标题: "...A Unified Model for 2D/3D/V"              ← v0.3.7: 中途截断 + 幻觉字符
+❌ 通讯作者=Zhaozhou Zhao (作者列表无此名)               ← v0.3.7: 跨 paper 串名
 ```
 
 ### Output Schema 强制流程(LLM 必须按此顺序执行)
