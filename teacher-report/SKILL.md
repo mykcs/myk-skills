@@ -97,7 +97,7 @@ Try sources in this order. Stop when a source yields enough signal; you do not n
 
 | Level | Source | How to query | What to extract |
 |-------|--------|-------------|----------------|
-| L1 | 学校/学院官网 | **`webfetch` 先试静态 HTML**;失败 / 明显是 SPA 框架(`<div id="app"></div>` 标记)→ **切 `playwright` MCP** `browser_navigate` + `browser_snapshot` 拿渲染后文本。ZJU common patterns: `person.zju.edu.cn/{pinyin}`, `mypage.zju.edu.cn/{pinyin}`, `cs.zju.edu.cn` faculty page | 基本信息、职称、行政职务、联系方式、研究方向、代表性工作 |
+| L1 | 学校/学院官网 | **`webfetch` 先试静态 HTML**;失败 / 明显是 SPA 框架(`<div id="app"></div>` 标记)→ **切 `playwright` MCP** `browser_navigate` + `browser_snapshot` 拿渲染后文本。ZJU common patterns: `person.zju.edu.cn/{pinyin}` (`{pinyin}` 是 LLM 不可猜的 slug — 见 §URL 验证硬规则), `mypage.zju.edu.cn/{pinyin}`, `cs.zju.edu.cn` faculty page | 基本信息、职称、行政职务、联系方式、研究方向、代表性工作 |
 | L2 | Semantic Scholar API | `https://api.semanticscholar.org/graph/v1/author/search?query={name}&fields=name,affiliations,paperCount,hIndex,homepage` then `/author/{id}/papers?fields=title,year,venue,citationCount,authors&limit=100` | 论文清单（近 3 年）、h-index、合作者 |
 | L3 | DBLP | `https://dblp.org/search/author/api?q={name}&format=json` then `/pid/{pid}.xml` for full paper list | 论文 venue 标准化(DBLP 提供的 venue 是规范名,不是缩写) |
 | L4 | MiniMax Web Search (优先) | `mcp__MiniMax__web_search` MCP tool 搜 `"{name}" {university} site:arxiv.org` 或 `"{name}" personal homepage`. Mainland China 可用 | 论文全文(arXiv abs 页面)、个人 CV、学生名单、研究亮点 |
@@ -115,6 +115,72 @@ L2 (Google Scholar) is intentionally **skipped** in mainland-China network envir
 **🚨 v0.1 CCF-A/B 限制 (2026-06-05)**:**本 skill 当前不在报告中标注 CCF 等级**。`LLM 估算` 的 "CCF-A 65" 数字不可信,容易被反例数据(LLM 把 ICLR submitted 当 CCF-A)污染。报告里**只写 venue 名**(NeurIPS / ICLR / ACL / KDD / TPAMI),**不写 CCF-A/B**。v0.2 实现方案见 `data-sources.md §CCF mapping (deferred)`。
 
 If L1 fails (e.g., personal page 404 or 动态加载), continue to L2 — the data is still salvageable.
+
+## 🚨 URL 验证硬规则 (2026-06-09 写入, 违反 = skill 协议破坏)
+
+> **反模式案例**: 张圣宇 (Shengyu Zhang) doc 写了 `https://person.zju.edu.cn/shengyu` (404, LLM 瞎编), exa 实查发现真 URL 是 `https://person.zju.edu.cn/shengyuzhang` (200) — `pinyin` 不是简单的名字拼接, 浙大用 `shengyuzhang` (全名连续), 不是 `shengyu` 或 `syzhang` 或 `zhangshengyu` 或 `zhangsy`.
+>
+> **Why**: ZJU `person.zju.edu.cn/{pinyin}` 模板的 `{pinyin}` 是学校分配的**用户自定义 slug**, 不是系统从中文名生成的. 不同老师 slug 命名习惯差异巨大:
+> - 沈春华 → `chunhua` (名 only)
+> - 赵洲 → `zhaozhou` (姓+名连拼)
+> - 张圣宇 → `shengyuzhang` (全名连续)
+> - 英文版可能是 ID 数字: `en/NB23073`
+>
+> **LLM 瞎编的 URL 模式** (实测全部 404): `{pinyin}` / `{surname}{given}` / `{given}{surname}` / `{initial}{surname}` / `{name_en}` 等. **没有任何 LLM 推断能保证正确**, 必须 HTTP HEAD 验证.
+
+### 强制流程 (改/写任何 L1 官网 URL 前必跑)
+
+1. **HTTP HEAD 验证**: `curl -I --max-time 10 "{candidate_url}"` 或 python `urllib.request.Request(method="HEAD")`
+2. **200 OK** → URL 可用
+3. **404 / 403 / 0** → URL 错, **禁止写入 docx**, 立即走 L4 (MiniMax web_search) 或 exa web_search 搜 "{老师姓名} {学校} personal homepage" 找真 URL
+4. **找到真 URL 后** → 再跑一次 HTTP HEAD 验证, 200 OK 才写入
+
+### 反例 (2026-06-09 真实案例, 已被用户发现)
+
+| 老师 | LLM 编的 URL | HTTP HEAD | 真实 URL (exa 搜出) | HTTP HEAD |
+|------|-------------|-----------|---------------------|-----------|
+| 张圣宇 | `https://person.zju.edu.cn/shengyu` | 404 ❌ | `https://person.zju.edu.cn/shengyuzhang` | 200 ✅ |
+| (其他误例) | `https://person.zju.edu.cn/en/shengyu` | 404 ❌ | `https://person.zju.edu.cn/en/NB23073` (ID 数字) | 200 ✅ |
+| 沈春华 | `https://person.zju.edu.cn/en/chunhua` | 200 ✅ | (同上, 已是真实 URL) | 200 ✅ |
+| 赵洲 | `https://person.zju.edu.cn/zhaozhou` | 200 ✅ | (同上, 已是真实 URL) | 200 ✅ |
+
+### 找真实 URL 的 LLM 友好顺序
+
+1. **L4 MiniMax web_search**: `"{中文名}" {学校} 个人主页` 或 `"{英文名}" {学校} personal homepage`
+2. **exa web_search_exa**: 同上
+3. **OpenReview / Google Scholar 个人主页** 字段: 经常含真 URL
+4. **学院教师列表页** (e.g. `cs.zju.edu.cn` / `ai.zju.edu.cn` faculty) — 链接通常是真 slug
+
+### 自检 (写入 docx 前)
+
+每个 L1 官网 URL 必跑:
+
+```python
+import urllib.request
+def head_check(url, timeout=10):
+    req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "teacher-report-verify/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+    except: return 0
+assert head_check(URL) == 200, f"URL {URL} 验证失败 ({head_check(URL)}), 禁止写入 docx"
+```
+
+### 已知反模式
+
+- **❌ LLM 拼 pinyin**: `shengyu` / `zhangshengyu` / `syzhang` / `zhangsy` / `zs` / `zsy` 等 6+ 种组合, 实测**全 404** (除真实 slug)
+- **❌ 抄 OpenReview / Scholar `Homepage` 字段** 不验证: 这些字段可能过期或指向旧 institution
+- **❌ 拿学院列表页** (e.g. `cs.zju.edu.cn/2024/0315/c64945a123.html`) 当个人主页: 列表页 ≠ 个人主页
+
+### 扩展应用 (除 ZJU 外)
+
+此规则适用于**所有**学校官网, 不限于 ZJU:
+- 清华: `scholar.tsinghua.edu.cn/{slug}`
+- 上交: `faculty.sjtu.edu.cn/{slug}`
+- 北大: `scholar.pku.edu.cn/{slug}`
+- 所有 slug 都必须 HTTP HEAD 验证, 不可 LLM 推断
 
 **Data the model should NOT make up**: student names, h-index, paper counts, CCF tier. If a fact is unverifiable from fetched sources, write `[待验证]` in the report and note it in `5. 数据来源`.
 
