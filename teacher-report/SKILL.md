@@ -2,16 +2,14 @@
 name: teacher-report
 description: |
   Generate OR audit a PhD advisor / professor intelligence dossier as a Feishu wiki doc (Docx).
-  
-  **Generate mode**: use when the user mentions a specific researcher / advisor / 老师 / 导师 and asks to "调研 / 写一份报告 / 整理材料 / 看看这位老师" — output is a structured 5-section report (TL;DR / 导师画像 / 方向匹配度 / 套磁建议 / 论文全景) ready to share. Triggers on phrases like "调研一下 XXX", "生成 XXX 老师的报告", "看看张三是不是值得报", "写一份老师材料", "PhD advisor report for XXX".
-  
-   **Audit mode** (v0.2.8+): use when the user provides an EXISTING docx (URL or doc_id) and asks to "审计 / 检查 / 看看合不合规 / review" — fetches the doc, runs 12 compliance checks against v0.2.5+ rules (title numbering / ① ② / block charts / TL;DR callout / 5-section completeness / Persona footer etc), outputs a pass/fail report with fix suggestions. Triggers on phrases like "审计一下 [URL]", "看看 [老师] 报告合不合规", "review teacher report compliance", "teacher-report audit [doc_id]".
 
-   **Anti-Hallucination Rules (v0.2.9, 2026-06-06)**: any paper status / year / author / title / 导师职务 / 学生身份 / 统计数字 claim must be verifiable against arXiv / OpenReview / 学校官网, not AI-inferred. See `## Anti-Hallucination Rules` section below for the 6-field matrix and 4 prohibition rules.
+  **Generate**: user mentions researcher/advisor/老师/导师 and asks "调研/写一份报告/整理材料". Output: 5-section report (TL;DR / 导师画像 / 方向匹配度 / 套磁建议 / 论文全景). Triggers: "调研 XXX", "生成 XXX 老师的报告", "PhD advisor report for XXX".
 
-   **Paper Entry Format (v0.3.3, 2026-06-08) — 硬要求**: 所有论文条目 (§4 论文产出全景 / §2.2 方向匹配度 / §3 套磁信引用) **必须**用 paper card 格式 (**4 维 taxonomy 4 行** 大领域/中方向/小任务/子技术 每字段独立一行 + verbatim 标题 + 完整作者列表 + 吴飞显式标注 + 发表 venue/year/角色 + arXiv URL + papers.cool URL), 禁止简化为表内一行 / 4 列表格(用 4 个独立 <p> 块)。详见 `## Paper Entry Format (v0.3.2) — 硬要求` 章节。
+  **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks (title numbering, ① ②, block charts, TL;DR, 5-section, Persona footer), outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
-   Do NOT use for: batch-processing many teachers (that's `phd-scout` which writes to Bitable), single paper deep-dive, lab research summary, or collecting a teacher into a structured Bitable row.
+  **v0.3.3 硬要求**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list, 吴飞 annotation, arXiv + papers.cool URL, verifiable claims (v0.2.9 anti-hallucination). See body §Paper Entry Format / §Anti-Hallucination Rules.
+
+  Do NOT use for: batch processing many teachers (→ `phd-scout` Bitable), single paper deep-dive, lab summary.
 ---
 
 # Teacher Report
@@ -660,6 +658,7 @@ paperscool：https://papers.cool/arxiv/2508.04482
 | 12 | paperscool 真实 URL | `<a href="https://papers.cool/arxiv/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>paperscool：待 arXiv 验证</p>` |
 
 > 12 项全 ✅ 才能输出 paper card;任一 ❌ 必须修正后重跑自检
+> 触发 §G audit rule 的条件: 同一 wiki doc 中, 11+ paper cards 标 通讯作者 = wiki subject 本人 (LLM 默认填 wiki subject 模式)
 
 ### v0.3.3 fixed-template (LLM 输出时直接 fill)
 
@@ -733,6 +732,66 @@ paperscool：https://papers.cool/arxiv/2508.04482
 6. 全文 "v0.3.3 重写版" framing → str_replace
 7. **NEW (v0.3.7)**: 通讯作者名字与作者列表不一致(跨 paper 串名/凑数) → block_replace 改回(从 arXiv abs 页 verbatim 抽取 corresponding author)
 8. **NEW (v0.3.7)**: 标题中途截断 / 错字字符(hallucination) → block_replace 改回(必须一字不差复制 arXiv abs 页 `<title>` 标签内容)
+9. **NEW (v0.3.7)**: 通讯作者标 wiki subject 但 **未验证实际 paper 的 †/‡ footnote** → 必须 L4/L5/L6 逐篇验证(见 §G 通讯作者 systemic audit rule)
+
+### §G 通讯作者 Systemic Audit Rule (v0.3.7+ 强制)
+
+**🚨 触发条件**: 同一 wiki doc 中, **11+ paper cards 标 通讯作者 = wiki subject 本人**(如 汤斯亮 wiki 全部 11 篇都标 "Siliang Tang（汤斯亮）")。
+
+**🚨 根因模式 (2026-06-08 实测, 7 错配)**: LLM 在生成时倾向于把通讯作者字段填成 wiki subject, 跳过逐篇验证实际 paper 的 corresponding author footnote。具体错配例子:
+
+| Wiki 节点 | Paper | Wiki 标 | 真实 † Corresponding | 来源 |
+|---------|-------|---------|----------------------|------|
+| 况琨 | 2401.05507 (InfiAgent-DABench) | Kun Kuang（况琨）| **Fei Wu（吴飞）** (last author) | arXiv html footnote |
+| 沈春华 | 2304.03284 (SegGPT) | Chunhua Shen（沈春华）| **Xinlong Wang（王新龙）** (Correspondence to xinlong.wang96@gmail.com) | arXiv html |
+| 周晓巍 | 2503.21751 (Reconstructing) | Xiaowei Zhou（周晓巍）| **Georgios Pavlakos** (last author, UT Austin) | arXiv PDF, OpenReview |
+| 汤斯亮 | WorldGPT (2404.18202) | Siliang Tang（汤斯亮）| **Juncheng Li（李俊成）** (per GitHub "† Corresponding Authors") | GitHub README |
+| 汤斯亮 | On Path to MM Generalist (ICML 2025) | Siliang Tang（汤斯亮）| **Shuicheng Yan（颜水成）, Hanwang Zhang（张寒旺）** (per PMLR 267) | PMLR, ICML 2025 |
+| 汤斯亮 | LOUPE (NeurIPS 2022) | Siliang Tang（汤斯亮）| Yueting Zhuang, Qi Tian, **Siliang Tang** (3 corresponding) | NeurIPS 2022 paper |
+| 肖俊 | AutoManual (NeurIPS 2024) | Jun Xiao（肖俊）| **Binbin Lin（林斌斌）, Xiaofei He（何晓飞）** (Jun Xiao **不在作者列表中**!) | NeurIPS 2024 paper |
+
+**🚨 强制审计流程 (任何 v0.3.7+ 审计必须跑)**:
+
+```bash
+# Step 1: 列出 wiki doc 所有 paper card 的 (title, 通讯作者, arxiv_id)
+python3 -c "
+import json, re
+xml = json.load(open('/path/wiki.json'))['data']['document']['content']
+for t in re.finditer(r'<p[^>]*?id=\"([^\"]+)\"[^>]*?><b>([^<]+)</b></p>', xml):
+    # find 通讯作者 in next 4000 chars
+    ...
+"
+
+# Step 2: 对每篇跑 4 源验证通讯作者
+#   L4: arXiv API 拿 author list (id_list query)
+#   L5: arXiv html 找 †/‡ footnote
+#   L6: OpenReview 找 "Corresponding author" 字段
+#   L7: CVPR/ICCV openaccess.thecvf.com 找 paper 页
+
+# Step 3: 错配 → block_replace 改回 + backup
+mkdir -p /tmp/wiki-audit/backup-$(date +%Y%m%d)-{teacher}/
+cp wiki.json /tmp/wiki-audit/backup-.../original.json
+lark-cli docs +update --api-version v2 --doc {obj_token} \
+  --command block_replace --block-id {comm_bid} \
+  --content '<p>通讯作者：{real_name}</p>' --doc-format xml
+```
+
+**🚨 输出标准**: 任何 paper card 的通讯作者字段必须严格匹配 arXiv abs 页 † / ‡ footnote / OpenReview "Corresponding Author" 字段。**禁止**默认填 wiki subject,除非该 paper 真实通讯作者就是 wiki subject。
+
+**反例 (LLM 自动错配模式)**:
+```html
+<!-- ❌ LLM 默认填 wiki subject (没验证 paper) -->
+<p>通讯作者：Kun Kuang（况琨）</p>
+
+<!-- ✅ 必须从 arXiv html 的 † footnote 抽取 -->
+<p>通讯作者：Fei Wu（吴飞）</p>
+```
+
+**Migrating 现有 doc 步骤** (v0.3.7 hotfix):
+1. 对 9 节点全部 paper card 跑 §G audit
+2. 错配 → backup + block_replace
+3. 报告错配数 + 修复证据
+
 
 ### §D 备份要求(v0.3.6+ 强制)
 
