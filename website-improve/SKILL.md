@@ -9,10 +9,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.5.0"
+  version: "3.6.0"
   author: mykcs
   category: web-development
   changelog:
+    - 3.6.0 (2026-06-09): §33-§35 orchestrator + fix-agent 硬化. H1 ASI 防御 (Workflow 脚本 `SITES.map(...)\n({...})` ASI 解析 bug → TypeError recovery) / H2 autopush fallback (autopush 误判 staged-only deletion → direct `git push` 兜底) / H3 fix agent 二次 `git status` 验证 (避免 dangling untracked-deletion). 来自 CASE-MULTI-SITE-IMPROVE-20260609.
     - 3.5.0 (2026-06-08): L17+L18 orchestrator 硬化. Phase 0 工具预加载 (ToolSearch 治本 subagent tool loading bug) + L17 auto-fallback (agent ack → SendMessage 重发 JSON). 解决 Run 4 暴露的 L14 enforcement 2/3 success + GDKVM 0 tool uses 2 个 bug.
     - 3.4.0 (2026-06-08): 吞并 sync-all-sites as Mode D (multi-site 编排). 4-phase 协议 + L14 + 4-section output contract. sync-all-sites 目录删除.
     - 3.3.0 (2026-06-03): 自进化协议 + 反模式硬化 (§30-§32)
@@ -761,3 +762,100 @@ JSON 中的 key 无 `t('key')` 调用 → 删除。3 站（GDKVM/wangrui/OSA）�
 - §32 §14.1 self-resilient pattern（self-match false-positive 防护）
 
 ---
+
+## Skill Evolution v3.6.0 — 2026-06-09 Orchestrator + Fix-Agent 硬化
+
+> **来源**: `~/.claude/knowledge/cases/wiki/CASE-MULTI-SITE-IMPROVE-20260609.md` (3-site fan-out Run 5, 9 agents, 16.4 min)
+> **触发**: Workflow orchestrator 在 Phase 4 聚合阶段 ASI 解析失败 (TypeError), fix agent 留下 staged-only deletion 残留, autopush 误判无改动导致需手动 direct push.
+> **3 规则** 全部 沉到 orchestrator/fix-agent 必经节点, 不依赖 LLM 自觉.
+
+### §33 — Workflow 脚本 ASI 防御（H1 硬化, Run 5 命中）
+
+**Bug 模式**:
+```js
+SITES.map((s, i) => { ... return {...} })   // 1st call, result discarded
+({ sites: SITES.map((s, i) => { ... }), ... })  // IIFE returning object
+```
+JS 解析为 `SITES.map(callback)({...})` — 把 1st `.map()` 返回的 array 当函数调用, 抛 `TypeError: SITES.map is not a function`.
+
+**根因**: ASI 规则 — 下一行以 `(` 开头 = 可能继续表达式, **不**插入 `;`.
+
+**修复强制** (所有 workflow 脚本):
+
+| Pattern | OK? | 备注 |
+|---------|-----|------|
+| `SITES.map(...)\n({...})` | ❌ ASI ambiguity | TypeError 风险 |
+| `SITES.map(...);` + `({...})` | ✅ 显式 `;` | 推荐 |
+| `const result = { sites: SITES.map(...) }; result` | ✅ assignment + last expression | 隐式 return |
+| `;SITES.map(...); ({...})` | ✅ 双 `;` | 最防御 |
+
+**Lint 规则** (orchestrator 启动时):
+- 扫描脚本中所有 `SITES.map(...)` / `.filter(...)` / `.reduce(...)` 调用
+- 若下一非空行以 `(` 开头 且无前置 `;` → 阻断 + 报错 "ASI risk detected"
+
+### §34 — Autopush Fallback 协议（H2 硬化, Run 5 命中）
+
+**Bug 模式**: fix agent 跑完 `git commit` + `./scripts/autopush.sh ""` 后, autopush 报告 "⏭️ 无有效改动, 跳过" — 但实际 `git log @{u}..HEAD` 显示有 unpushed commit.
+
+**根因**: smart-push.sh / autopush.sh 用文件 mtime / diff signature heuristic 判定"是否有改动", 不识别 staged-only deletion (`git rm` 后的 staged file removal).
+
+**修复强制** (fix agent 流程末段):
+
+```bash
+# 1. Try autopush
+./scripts/smart-autopush.sh ""
+
+# 2. Cross-check: if `git log @{u}..HEAD` non-empty AND autopush said "skip", direct push
+AHEAD=$(git log @{u}..HEAD --oneline | wc -l | tr -d ' ')
+if [ "$AHEAD" -gt 0 ] && ./scripts/smart-autopush.sh 2>&1 | grep -q "无有效改动"; then
+  echo "Autopush skipped but $AHEAD unpushed commits — falling back to direct push"
+  git pull --rebase origin main && git push origin main
+fi
+```
+
+**Future**: 升级 smart-push.sh 使用 `git status --porcelain` + `git diff --stat` 替代 mtime heuristic, 让 staged-only deletion 也被识别为 "valid change".
+
+### §35 — Fix Agent 二次 Git Status 验证（H3 硬化, Run 5 命中）
+
+**Bug 模式**: mykcs fix agent 报告 `p1_fixed: 5, commits: [b96d158], evidence_blocking: ""` — 看起来全 clean. 但实际 working tree 有 1 个 staged-only deletion (`astro/src/pages/index.astro` 已 commit 但 working tree 还有 untracked deletion), 需 orchestrator 后续手动 `git rm` + commit + push 清理.
+
+**根因**: fix agent 验证协议不包含 working tree dirty check. commit 之后只跑了 `npx astro check` + build, 没跑 `git status`.
+
+**修复强制** (fix agent commit 后必跑):
+
+```bash
+# After commit + (autopush or direct push):
+WORK_TREE=$(git status --porcelain | wc -l | tr -d ' ')
+AHEAD=$(git log @{u}..HEAD --oneline | wc -l | tr -d ' ')
+if [ "$WORK_TREE" -gt 0 ]; then
+  echo "Working tree has $WORK_TREE dirty entries after commit — auto-cleanup"
+  git add -A
+  git commit -m "fix(<scope>): cleanup residual working tree changes from P1 fix #N
+
+Auto-cleanup of staged-only changes left behind by previous commit.
+Per SKILL.md v3.6.0 §35 hardening protocol."
+  git pull --rebase origin main && git push origin main
+fi
+```
+
+**Lesson**: working tree 残留 (即使 commit + push 看起来都成功) 仍是 "修复未完成" 状态. fix agent 必须 self-verify working tree clean before reporting `done`.
+
+---
+
+## 跨 § 引用
+
+- §33 ASI 防御 关联 workflow 工具 `parallel()` 语法 (§17 §18 现有约束)
+- §34 Autopush fallback 关联 §18 push rebase 保护 — 兜底链路是 [rebase protection → autopush → direct push]
+- §35 Fix agent cleanup 关联 §15 Deja-Vu Gate — 同一类 working-tree 残留 30 天内第二次出现需走硬化规则
+
+## 验证清单 (v3.6.0 上线后强制)
+
+- [ ] 所有现存 workflow scripts 跑 `node --check` + ASI scan (`grep -B1 -A1 'SITES\.map.*$\n({' *.mjs`)
+- [ ] smart-push.sh 加 `git status --porcelain` 兜底 (或 fix agent 强制走 §34 fallback 协议)
+- [ ] 3 仓 fix agent prompt 模板注入 §35 cleanup 协议 (下一轮 fan-out 验证)
+- [ ] 下一轮 multi-site fan-out 跑完后查 working tree, 0 dirty 视为通过
+
+## Case 引用
+
+- `~/.claude/knowledge/cases/wiki/CASE-MULTI-SITE-IMPROVE-20260609.md` — 触发本次升级的完整 case
+- `~/.claude/scripts/multi-site-improve-20260609.mjs` — 已应用 §33 ASI 修复 (executed `;` after first SITES.map)
