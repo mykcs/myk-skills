@@ -1,4 +1,4 @@
-# Audit Checklist — 12 项合规检查 (v0.2.8+)
+# Audit Checklist — 14 项合规检查 (v0.2.8+ → v0.4.0 加 Check 14)
 
 > **用法**:Audit mode 跑这份 checklist。每项独立 pass/fail,失败时附**原始片段** + **修复建议**。
 >
@@ -299,7 +299,7 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command replace \\
 
 ```markdown
 ## 总览
-- 13 项检查: ✅ X / ❌ Y / ⚠️ Z (v0.3.0 起 12 → 13, 加 Check 13 paper card)
+- 14 项检查: ✅ X / ❌ Y / ⚠️ Z (v0.3.0 起 12 → 13 加 Check 13 paper card; v0.4.0 起 13 → 14 加 Check 14 h2 紧邻 h3)
 - 合规度:{百分比}%
 - 关键问题:{最严重的 1-2 项}
 ```
@@ -406,5 +406,85 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command block_replace \
 | `SKILL.md` | +新增 `## Paper Entry Format (v0.3.0) — 硬要求` 章节; Output contract 引用新格式; description 标注 v0.3.0 |
 | `references/report-template.md` | §5.0 标 DEPRECATED; 新增 §5.1 6 行 paper card 模板 + 反例 + 迁移命令 |
 | `references/llm-prompt.md` | §8 套磁信章节加 paper card 硬要求; 检查清单加 v0.3.0 自检项 |
-| `references/audit-checklist.md` | Check 11 升级说明; 新增 Check 13 (5 子项 a-e); 总览从 12 项 → 13 项 |
+| `references/audit-checklist.md` | Check 11 升级说明; 新增 Check 13 (5 子项 a-e) + Check 14 (h2 紧邻 h3); 总览从 12 项 → 13 → 14 项 |
 | (user 已发布 docx) | v0.2.5-v0.2.9 docx 跑 audit mode (Check 13) 会标 ❌; 修复用 `block_replace` 逐 paper 升级 |
+
+## Check 14 — h2 必须紧邻自家 h3 (2026-06-10 v0.4.0 新增, 来源 邓舒敏 v0.3.5→v0.4.0 case)
+
+> **来源**: 2026-06-10 邓舒敏 wiki doc fix. v0.3.5 generator 把 5 个 h2 集中放在 doc 开头, 然后才接 body — 飞书渲染时 5 个空 § 标题连排 + body 顺序错乱 (§5 body 突然出现), 用户看到"重复一轮又一轮".
+>
+> **硬规则**: h2 必须在它 h3 子节之前出现, 禁止 5 个 h2 集中 doc 开头. XML 物理顺序: `h2 1 + h3 1.x + §1 body + h2 2 + h3 2.x + §2 body + ... + h2 5 + h3 5.x + §5 body`.
+
+### Check 14 强制审计流程 (任何 v0.4.0+ docx 必跑)
+
+```python
+import re
+def check_h2_h3_order(content):
+    """Returns (passed, info)."""
+    h2_positions = [(m.start(), int(m.group(1))) for m in re.finditer(r'<h2[^>]*?>(\d+)\.', content)]
+    h3_pattern = re.compile(r'<h3[^>]*?>(.*?)</h3>', re.DOTALL)
+    h3_with_section = []
+    for m in h3_pattern.finditer(content):
+        text = m.group(1).strip()
+        m_section = re.match(r'(\d+)\.(\d+)', text)  # N.M pattern (e.g., "1.1 基本信息")
+        m_paper = re.match(r'(\d+)\.\s+\w', text)   # N. Title pattern (e.g., "1. SkillX: ...")
+        if m_section:
+            h3_with_section.append((m.start(), int(m_section.group(1))))
+        elif m_paper:
+            h3_with_section.append((m.start(), 4))  # v0.4.0 paper cards belong to §4
+
+    if not h2_positions:
+        return (False, 'no h2 found')
+
+    # Check 1: 5 h2 集中 doc 前 5% (warning)
+    if len(h2_positions) >= 5:
+        first_5_h2_range = max(h2[0] for h2 in h2_positions[:5]) - min(h2[0] for h2 in h2_positions[:5])
+        doc_len = len(content)
+        if first_5_h2_range < doc_len * 0.05:
+            return (False, f'❌ 5 h2 集中 doc 前 5% ({first_5_h2_range} bytes in first {doc_len*0.05:.0f} bytes)')
+
+    # Check 2: each h2 must come BEFORE its h3s (positional)
+    for h2_pos, h2_num in h2_positions:
+        h3_with_same_num = [pos for pos, num in h3_with_section if num == h2_num]
+        if h3_with_same_num and min(h3_with_same_num) < h2_pos:
+            return (False, f'❌ h2 {h2_num} at {h2_pos} appears AFTER its h3 at {min(h3_with_same_num)}')
+
+    return (True, '✅ h2/h3 顺序正确 (h2 紧邻自家 h3)')
+```
+
+### Check 14 失败处理 (强制 block-level 修复)
+
+| 失败场景 | 必做动作 |
+|----------|---------|
+| 5 h2 集中 doc 前 5% | 跑 `python3 reorder_dengshumin_v040_h2.py` 重排 XML (h2 散开), 然后 `lark-cli docs +update --command overwrite` |
+| h2 N 出现在 h3 N.x 之后 | 跑同样 reorder 脚本, h2 提到 h3 紧前 |
+| h2 数量 < 5 | 缺 § 章节, 加缺失 h2 + body |
+| 同一 § 含 2 个 h2 (e.g., h2 1 + h2 1) | 重复 § 标题, 删除多余 h2 + 紧邻 body |
+
+### Check 14 反例 (v0.3.5 generator bug 实测)
+
+```xml
+<!-- ❌ 错误: 5 h2 集中 + body 全部接在后面 -->
+<h2>1. 导师画像</h2><h2>2. 匹配度</h2><h2>3. 套磁</h2><h2>4. 论文</h2><h2>5. 数据源</h2>
+<h3>5.1 ...</h3> ... <h3>5.3 ...</h3>
+<h3>1.1 ...</h3> ... <h3>1.3 ...</h3>
+<h3>2.1 ...</h3> ...
+<h3>3.1 ...</h3> ...
+<h3>1. SkillX...</h3> ... <h3>12. WKM...</h3>
+
+<!-- ✅ 正确: h2 紧邻 h3 -->
+<h2>1. 导师画像</h2>
+<h3>1.1 基本信息</h3>
+<p>...</p>
+<h3>1.2 学术谱系</h3>
+...
+<h2>2. 匹配度</h2>
+<h3>2.1 ...</h3>
+...
+```
+
+### Check 14 总览 (v0.4.0 起 13 → 14 项)
+
+- **Check 1-12**: v0.2.5 / v0.3.0 / v0.3.9 章节 + Persona + 9 项回归
+- **Check 13**: 6 行 paper card 格式 (v0.3.0 → v0.3.9 强化)
+- **Check 14**: h2 紧邻自家 h3 (2026-06-10 v0.4.0 新增, 防 5 h2 集中 doc 开头导致飞书渲染异常)

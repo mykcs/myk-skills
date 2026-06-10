@@ -7,7 +7,7 @@ description: |
 
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks (title numbering, ① ②, block charts, TL;DR, 5-section, Persona footer), outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
-  **v0.3.3 硬要求**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list, 吴飞 annotation, arXiv + papers.cool URL, verifiable claims (v0.2.9 anti-hallucination). See body §Paper Entry Format / §Anti-Hallucination Rules.
+  **v0.3.3 + v0.3.9 硬要求 + v0.4.0 紧凑 (2026-06-10)**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list with Chinese 括注, arXiv + papers.cool URL (v0.3.9 完整版) 或 arXiv inline title (v0.4.0 紧凑版), verifiable claims (v0.2.9 anti-hallucination). See body §Paper Entry Format v0.3.9 / §Paper Card v0.4.0 / §Anti-Hallucination Rules.
 
   Do NOT use for: batch processing many teachers (→ `phd-scout` Bitable), single paper deep-dive, lab summary.
 ---
@@ -432,13 +432,21 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
-- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3 → 2026-06-10 v0.3.9 升级,违反 = skill 协议破坏)**:
-  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.9) — 硬要求` 章节定义的 paper card 格式
-  - **必须包含 4 维 taxonomy 4 行独立 <p> 块**(`大领域：` / `中方向：` / `小任务：` / `子技术：` 每行 1 字段)— **禁止** 4 列表格
+- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3 → 2026-06-10 v0.3.9 升级, 2026-06-10 v0.4.0 紧凑格式新增可选, 违反 = skill 协议破坏)**:
+  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用以下 2 种 paper card 格式之一:
+    - **v0.3.9 完整版** (15 行/paper, 单独标注行): 详见 `## Paper Entry Format (v0.3.9) — 硬要求` 章节
+    - **v0.4.0 紧凑版** (7 行/paper, inline 标记): 详见 `## Paper Card v0.4.0 紧凑 (2026-06-10 新增)` 章节 + `references/paper-card-v0.4.0.md` 完整规范
+  - **选型指南**:
+    - 论文 ≤ 3 篇 → 优先 v0.3.9 完整版 (信息密度高)
+    - 论文 ≥ 10 篇 → 优先 v0.4.0 紧凑版 (节省 53% 篇幅, Feishu outline 展开)
+    - 同一 doc 中可混用 v0.3.9 和 v0.4.0, 但**同一论文不能同时用两种格式** (避免 reader 困惑)
+  - **必须包含 4 维 taxonomy 4 行独立 <p> 块**(`大领域：` / `中方向：` / `小任务：` / `子技术：` 每行 1 字段)— **禁止** 4 列表格 (无论 v0.3.9 还是 v0.4.0)
   - **作者列表: 写完整 verbatim + 中文括注(全作者)**(v0.3.9 强化),禁止 `(末位/通讯)` 缩写 / `(通讯 PI 模式)` 描述 / `... 16 名作者` 省略 / 仅 `Fei Wu` 单独括注
-  - **标注行: 单独成行**: `通讯作者：`, `一作/共一：`, `学生：` 等独立 `<p>` 块
+  - **v0.3.9 标注行: 单独成行**: `通讯作者：`, `一作/共一：`, `学生：` 等独立 `<p>` 块
+  - **v0.4.0 inline 标记**: 通讯 `(通讯)`, 大老板 `**(大老板)**`, 一作/共一 `(一作: X, Y)` 全部 inline 在 author 行
   - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格 / 用缩写
-  - LLM 必须自检:每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表(全作者带中文括注) + 标注行 + `发表：` `arXiv：` `paperscool：` 3 个字段
+  - LLM 必须自检 (无论 v0.3.9 还是 v0.4.0): 每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表(全作者带中文括注) + §G 通讯作者真实 byline + `发表：` 1 字段 + `arXiv：` 1 字段 (v0.4.0 嵌入 title, v0.3.9 单独行)
+  - v0.4.0 还需自检: arXiv ID 嵌入 `<h3>` title + arXiv URL 是 1-click 入口 + 13 项 v0.4.0 必跑 (12 项 v0.3.9 通用 + **Check 13: Wiki Subject Author Verification**, 详见 v0.4.0 章节 + `references/paper-card-v0.4.0.md §6`)
 
 ## Paper Entry Format (v0.3.9, 2026-06-10) — 硬要求
 
@@ -663,6 +671,131 @@ paperscool：https://papers.cool/arxiv/2508.04482
 > ❌ 作者：Nan Chen（陈楠）, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He, Rizal Fathony  ← 后面漏标
 > ❌ 作者：Fei Wu（吴飞）, Xueyu Hu, ...                          ← 仅 Fei Wu 标
 > ```
+
+## Paper Card v0.4.0 紧凑 (2026-06-10 新增) — 替代 v0.3.9 完整版
+
+> **背景**: v0.3.9 完整版 15 行/paper 对 ≥ 10 篇 paper 清单 (e.g. 邓舒敏 12 篇 / 刘泽民 30+ 篇) 太长. v0.4.0 紧凑版 7 行/paper, **不损失任何关键信息** (4 维 taxonomy / 完整作者 / §G audit 通讯 / §H 一作信号), 但视觉压缩 53%.
+>
+> **完整规范**: `references/paper-card-v0.4.0.md` (9 轮 grill-with-docs 问答定型, 9 项决策记录)
+>
+> **适用场景**:
+> - 论文清单 ≥ 10 篇 (节省篇幅, Feishu outline 直接展开 12 h3 paper titles)
+> - Reader 想要横向对比 (4 维 taxonomy 4 行对齐, scannable)
+> - 飞书 outline 偏好 (h3 paper title 不嵌套 h4)
+>
+> **不适用场景**:
+> - 论文 ≤ 3 篇 (e.g. 套磁信 1-2 篇深度引用) → 继续用 v0.3.9 完整版
+> - 论文需要详细 abstract 摘要 → v0.4.0 不含 abstract 字段, 用 v0.3.9
+
+### Paper Card v0.4.0 7-line 模板 (硬要求)
+
+```xml
+<h3>{N}. {TITLE} <a href="https://arxiv.org/abs/{ARXIV_ID}">[arXiv {ARXIV_ID}]</a></h3>
+<p>{AUTHOR_LIST_WITH_INLINE_MARKERS}</p>
+<p>{VENUE} {YEAR} ({ROLE})</p>
+<p>大领域：{D}</p>
+<p>中方向：{M}</p>
+<p>小任务：{T}</p>
+<p>子技术：{S}</p>
+```
+
+**严格 7 行 (加 1 空行) per paper card**. 任何 8-th line 禁止.
+
+### v0.4.0 inline 标记规则 (author 行)
+
+| 维度 | 规则 | 样例 |
+|------|------|------|
+| 通用作者 | `English Name（中文名）` 一律, 不区分师生 | `Xiaohan Wang（王晓晗）` |
+| 外籍作者 | 保留英文, 不加中文括注 | `Bryan Hooi` |
+| 通讯 | author 行末尾追加 `(通讯)` tag | `..., **Name（中文）**(大老板)(通讯)` |
+| 大老板 | bold `**...**` + `(大老板)` tag | `**Huajun Chen（陈华钧）**(大老板)` |
+| 共同末位 | 都 bold + `(大老板)`, 各自可能 (通讯) 或不 | `..., **Nanyun Peng（彭南云）**(通讯), **Huajun Chen（陈华钧）**(大老板)(通讯)` |
+| 一作/共一 | author 行末尾追加 `(一作: X, Y)` (共一用括号分隔) | `(一作: Xiaohan Wang, Shengyu Mao)` |
+| 一作 = 通讯 | 双重身份同时标 | `(大老板)(通讯) (一作: Name)` |
+
+### v0.4.0 完整样例 (邓舒敏 12 papers 中 #11 Editing Conceptual Knowledge)
+
+```xml
+<h3>11. Editing Conceptual Knowledge for Large Language Models <a href="https://arxiv.org/abs/2403.06259">[arXiv 2403.06259]</a></h3>
+<p>Xiaohan Wang（王晓晗）, Shengyu Mao（毛圣雨）, Ningyu Zhang（张宁豫）, Shumin Deng（邓舒敏）, Yunzhi Yao（姚蕴之）, Yue Shen（沈悦）, Lei Liang（梁磊）, Jinjie Gu（顾津锦）, **Huajun Chen（陈华钧）**(大老板)(通讯) (一作: Xiaohan Wang, Shengyu Mao)</p>
+<p>EMNLP 2024 Findings (Findings)</p>
+<p>大领域：自然语言处理</p>
+<p>中方向：知识编辑</p>
+<p>小任务：概念级知识编辑</p>
+<p>子技术：ConceptEdit 数据集; 概念级知识; 知识更新</p>
+```
+
+### v0.3.9 vs v0.4.0 对比
+
+| 维度 | v0.3.9 完整版 | v0.4.0 紧凑版 |
+|------|--------------|--------------|
+| 行数 per paper | 15 行 | 7 行 (-53%) |
+| 标题级别 | `<p>` 段落 | `<h3>` heading (Feishu outline 可见) |
+| 通讯作者 | 单独 `<p>通讯作者：X</p>` 行 | author 行内 `(通讯)` tag |
+| 大老板 | 单独 `<p>作者角色：X</p>` 行 | author 行内 `**(大老板)**` bold + tag |
+| 一作/共一 | 单独 `<p>一作/共一：X</p>` 行 | author 行末 `(一作: X, Y)` |
+| arXiv URL | 单独 `<p>arXiv：URL</p>` 行 | 嵌入 title `[arXiv ID]` |
+| paperscool URL | 单独 `<p>paperscool：URL</p>` 行 | (无, arXiv 1-click 入口替代) |
+| 12 项 LLM 自检 | 必跑 | **必跑 (同样 100%)** |
+| §G audit 通讯 | 必跑 | 必跑 (通讯 inline tag 数据源) |
+| §I hallucination 检查 | 必跑 (4-index 0 results 标 ⚠️) | 必跑 |
+| 数据完整性 | 100% 一致 | 100% 一致 |
+| 主动丢弃 | — | paperscool URL / URL 类型行 / 作者角色行 / abstract |
+
+### 13 项 v0.4.0 LLM 自检清单 (12 项 v0.3.9 通用 + **Check 13 Wiki Subject Author Verification**, 2026-06-10 加, 必跑)
+
+| # | 检查项 | 通过条件 | 常见错误 |
+|---|--------|---------|----------|
+| 1 | 标题 verbatim | 完全从 arXiv abs 页复制 | ❌ 中途截断 / 错字字符 |
+| 2 | 标题无 et al. 缩写 | 完整标题 | ❌ 缩写 |
+| 3 | 标题 h3 + arXiv ID inline | `<h3>N. Title [arXiv X]</h3>` | ❌ 用 `<p>` 而非 h3 |
+| 4 | 4 行 taxonomy 顺序 | 大领域→中方向→小任务→子技术 | ❌ 顺序错乱 |
+| 5 | 4 行 taxonomy 无 table | 4 个 `<p>` 块 | ❌ 4 列表格 |
+| 6 | taxonomy + 作者 无占位符 | 4 字段 + 作者列表均有具体值 | ❌ `[待补]` / `[未知]` |
+| 7 | 作者完整 verbatim | 全部列出, 无 et al. | ❌ 省略 / 缩写 |
+| 8 | 禁止 (末位/通讯) 缩写 | author 行无描述性缩写 | ❌ 缩写 |
+| 9 | 全作者中文括注 | 100% 作者含 `Name（中文名）` | ❌ 部分漏标 |
+| 10 | inline 标记齐全 | 通讯/大老板/一作 全部 inline | ❌ 缺一 |
+| 11 | 真实 1-click URL | `<a href="...">[arXiv X]</a>` 嵌入 title | ❌ URL 缺失 |
+| 12 | arXiv ID 真实 (v3.xxxx 格式) | placeholder 禁止 | ❌ `[待 L4/L5/L6 重抓]` |
+| **13** | **Wiki Subject Author Verification (2026-06-10 新增, 来源 邓舒敏 v0.1.0→v0.3.5 EasyEdit/WISE 误归 case)** | **wiki subject 必须在 paper author list 里** | ❌ wiki subject NOT in author list → paper 误归, 必删除 (不允许"是导师组 paper 算 wiki subject 组"借口) |
+
+### v0.4.0 适用位置 (全 docx 强制, 5 章均生效)
+
+1. **§4 论文产出全景** — 每个 paper card 7 行
+2. **§2.2 方向匹配度** — 引用具体论文时, 7 行 paper card
+3. **§3 套磁信草稿** — 套磁信引用 1-2 篇论文时, 7 行 paper card
+4. **§1.2 / §1.3 学生代表作** — 列每位博士代表作时, 7 行 paper card
+
+### v0.3.9 → v0.4.0 迁移 (block-level 升级)
+
+适用 `v0.3.6 §C 块级升级协议` (保留原内容, 只对 paper card blocks 用 `block_replace`):
+
+```bash
+# 对每个 paper card, block_replace 从 15 行换 7 行
+lark-cli docs +update --api-version v2 --doc {DOC_ID} \
+  --command block_replace --block-id {PAPER_CARD_BLOCK_ID} \
+  --content @paper-card-v040-7lines.xml
+```
+
+**仅适用场景** (v0.3.6 §C 边界):
+- 论文 ≥ 10 篇 (v0.4.0 节省 53% 篇幅值得)
+- 现有 v0.3.9 doc 已合 §G audit (真实通讯作者, 不会因压缩丢信息)
+- Reader 偏好 scannable 横向对比
+
+**保留 v0.3.9 完整版场景**:
+- 论文 ≤ 3 篇 (v0.3.9 完整版视觉更清晰)
+- 论文需要 abstract 摘要
+- 同一 doc 中混用 (e.g. §1 用 v0.3.9, §4 用 v0.4.0) — 但同一论文不能同时用两种格式
+
+### v0.4.0 设计决策来源
+
+详见 `references/paper-card-v0.4.0.md` §12:
+- 9 轮 grill-with-docs 问答定型 (2026-06-10)
+- 关键 trade-off: 视觉紧凑 vs 信息密度 (v0.4.0 选视觉)
+- 关键 trade-off: 单独行 vs inline 标记 (v0.4.0 选 inline, 节省 8 行)
+- 关键 trade-off: 学生识别 (v0.4.0 放弃, 减少数据成本)
+- 关键 trade-off: 一作/共一 单独行 vs 行末 (v0.4.0 选行末)
 
 ## Output Schema (v0.3.9 strict, 2026-06-10)
 
