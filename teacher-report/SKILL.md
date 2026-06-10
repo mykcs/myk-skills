@@ -11,6 +11,8 @@ description: |
 
   **v0.4.0 (2026-06-10) 默认紧凑 + v0.3.9 完整版 fallback**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list with Chinese 括注, arXiv inline title (v0.4.0 紧凑默认) 或 arXiv + papers.cool URL (v0.3.9 完整版, ≤3 篇论文时), 13 项 LLM 自检 (12 v0.3.9 + Check 13 Wiki Subject Author Verification), verifiable claims (v0.2.9 anti-hallucination). See body §Paper Card v0.4.0 紧凑 + references/paper-entry-v0.3.9.md (legacy) + references/output-schema-v0.3.9.md (12 项自检) + §Anti-Hallucination Rules.
 
+  **v0.5.0 (2026-06-10) 申博实操增强**: 5 h2 框架不变, 8 新 h3 字段叠加: §1.3 招生偏好 (名额/竞争/卡本科) + §1.4 培养模式 (指导/组会/放羊/实习) + §1.5 科研资源 (GPU/经费/出国) + §2.2 团队氛围 (优点/缺点/矛盾说法) + §2.3 毕业去向 (年限/就业/留校) + §3.2 申请时间节点 (套磁/材料/考核/录取). 数据源扩到 L7 申博论坛 (mysupervisor.org + 学院 PDF + 知乎/小红书/博客园), L7 字段用 [社区来源] 标签与 L1 官网区分. 详见 §v0.5.0 申博实操增强 章节.
+
   Do NOT use for: batch processing many teachers (→ `phd-scout` Bitable), single paper deep-dive, lab summary.
 ---
 
@@ -103,8 +105,16 @@ Try sources in this order. Stop when a source yields enough signal; you do not n
 | L4 | MiniMax Web Search (优先) | `mcp__MiniMax__web_search` MCP tool 搜 `"{name}" {university} site:arxiv.org` 或 `"{name}" personal homepage`. Mainland China 可用 | 论文全文(arXiv abs 页面)、个人 CV、学生名单、研究亮点 |
 | L5 | Kimi WebBridge (浏览器兜底) | `kimi-webbridge` skill 调用真实 Chrome,打开 `arxiv.org/abs/{id}` 拿 abstract + 完整作者列表 + arXiv ID。SPA 渲染不下来的论文用这个 | arXiv abs 完整 HTML(渲染后)、下载图片/附件、个人主页 1-click 截图 |
 | L6 | AnySearch (最后兜底) | `anysearch` skill 23 个垂直域 + 实时网页抽取,搜 `"{paper_title}"` 或 `"{name}" CV filetype:pdf` | 真实 PDF 链接、研究亮点汇总、跨平台交叉验证 |
+| **L7** | **申博论坛 (v0.5.0 新增, 2026-06-10)** | `mysupervisor.org` 浙大CS学院导师 213 位 + 16 条评价/PI (适用性 100% 浙大CS, 985 高校类比) / 学院 PDF 招生意向信息表 (含意向学生需求数) / 知乎 1.4w 字长文 (浙大CS考研超详解 等) / 小红书 套磁经验贴 / 博客园 cnblogs 保研朝花夕拾 | **团队氛围** (mysupervisor 16 评价 → 优/缺点/矛盾说法) + **招生偏好** (名额/竞争度/卡本科) + **培养模式** (指导频率/组会/放羊) + **毕业去向** (年限/就业/留校) |
 
 L2 (Google Scholar) is intentionally **skipped** in mainland-China network environments — go L2 Semantic Scholar → L3 DBLP → L4 MiniMax → L5 Kimi WebBridge → L6 AnySearch.
+
+**v0.5.0 L7 数据源使用规则** (社区数据, 必须带标签):
+- L1 官网字段 (学术身份/职务/email) → 无标签, 默认权威
+- L7 论坛字段 (招生偏好/团队氛围/培养模式) → 必须显式标 `[社区来源]` 或 `[社区-多人共识]` (≥3 条独立帖子)
+- L1 + L7 冲突 → 标 `[冲突: L1 vs L7]`, 让用户自己判断
+- L7 抓不到 → `❓ 待补 (建议路径: 套磁时追问 / 学长咨询)`, 走 callout 占位
+- **禁止**: 把 L7 字段写得像 L1 一样权威; 必须保留置信度信号
 
 **v0.3.4 搜索链(vs 旧 L1→L2→L3→L4)**:
 - L1 官网 → L2 S2 → L3 DBLP → **L4 MiniMax** (mcp__MiniMax__web_search, 优先用) → **L5 Kimi WebBridge** (浏览器兜底, SPA/动态渲染场景) → **L6 AnySearch** (23 域垂直 + 实时抽取, 最后兜底)
@@ -328,6 +338,70 @@ lark-cli docs +update --api-version v2 --doc {DOC_ID} \
 - 关键 trade-off: 学生识别 (v0.4.0 放弃, 减少数据成本)
 - 关键 trade-off: 一作/共一 单独行 vs 行末 (v0.4.0 选行末)
 
+---
+
+## v0.5.0 申博实操增强 (2026-06-10 新增)
+
+> **背景**: v0.4.0 论文导向 (5 h2 + 2-4 h3) 满足 "找方向" 阶段; 但 "申博可入度" 阶段需要 8 个**操作维度** (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点), v0.4.0 完全没覆盖. v0.5.0 保留 5 h2 框架, 在 §1/§2/§3 内部叠加 8 个新 h3, 总 h3 数 2 → 12.
+
+### 8 新 h3 字段映射
+
+| h2 | h3 | 内容 | 数据源 | 标签规则 |
+|----|-----|------|--------|---------|
+| **1. 导师与课题组画像** | **1.1 基本信息与学术身份** (扩) | 学术荣誉/兼职/职务/email | L1 官网 | 无标签 |
+| | 1.2 研究方向与近年课题 (扩) | 子方向 + 近期 NSFC/重点研发 | L1 + S2 | 无标签 |
+| | **1.3 招生偏好** (新) | 名额/竞争度/本科卡否/背景偏好 | L7 学院 PDF + mysupervisor + 知乎 | [社区来源] |
+| | **1.4 培养模式** (新) | 指导频率/组会/放羊/实习允许度 | L7 mysupervisor + 知乎 + 学长 | [社区来源] |
+| | **1.5 科研资源** (新) | GPU/经费/出国/实习 | L1 主页 + L7 知乎 | [社区来源] 混合 |
+| **2. 申博匹配度评估** | 2.1 方向契合度 (existing) | 论文方向 × 用户方向 | L1 + L2 | 无标签 |
+| | **2.2 团队氛围与学生评价** (新) | 优点/缺点/矛盾说法 (并列) | L7 mysupervisor 16 评价/PI | [社区-多人共识] 必有 |
+| | **2.3 毕业要求与毕业去向** (新) | 年限/论文要求/就业/留校 | L7 知乎/小红书 + L1 alumni 页 | [社区来源] 混合 |
+| **3. 套磁与申请建议** | 3.1 套磁信 (existing) | callout | L1 主页 | 无标签 |
+| | **3.2 申请时间节点** (新) | 套磁/材料/考核/录取 timeline | L1 学院 + 浙大研招 | [官方时间] |
+| | 3.3 风险点 (existing) | callout | 推断 | 无标签 |
+| 4. 论文产出全景 (unchanged) | | | L1-L4 | 无标签 |
+| 5. 数据来源与说明 (扩) | 5.1 L1-L4 数据源 (existing) | | | |
+| | **5.2 L7 社区数据 (新)** | 列出 mysupervisor 抓取时间 / 知乎 URL / 学院 PDF URL | L7 | 显式标 [L7 社区] |
+
+### v0.5.0 数据缺失策略 (3 选项, AskUserQuestion 2026-06-10 选 ❓ 待补 callout 占位)
+
+每 h3 章节末**强制**附 ⚠️ callout 列出本节缺失字段 + 建议补充路径:
+- 缺失字段: `❓ 2027 Fall 招生名额`, `❓ 实际带生者 (1v1 vs 团队)`, `❓ 学生毕业去向`
+- 建议补充路径: 套磁时追问 / mysupervisor 新评价 / 知乎最新经验贴 / 课题组 alumni LinkedIn
+- 与 §5 ❓ 待补机制对齐: 顶部 callout 集中汇总, 避免分散
+
+### v0.5.0 L7 反幻觉协议
+
+- **mysupervisor 1 条评价 ≠ 共识**: 必须 ≥3 条独立评价才能标 [社区-多人共识]; 1-2 条标 [社区-个别观点]
+- **知乎长文 vs 单贴**: 长文 (>5000字) 标 [社区-长文], 单贴标 [社区-单贴]
+- **学院 PDF vs 学院官网**: PDF 招生意向信息表**不是**招生计划 (招生计划以教育部下达为准), 标 [团队意向, 非官方计划]
+- **矛盾说法强制呈现**: e.g. 1 条说 "push 放羊" + 1 条说 "push 严格" → 必须**并列展示**两段 quote, 禁止 AI 仲裁
+- **冲突标注**: L1 官网说 "国家级青年学者" + L7 论坛说 "招生名额少" → 各自标源, 不合并
+
+### v0.5.0 vs v0.4.0 决策对比
+
+| 维度 | v0.4.0 (论文导向) | v0.5.0 (申博实操) |
+|------|-------------------|-------------------|
+| h2 总数 | 5 | 5 (不变) |
+| h3 总数 | 2 (1.1/1.2) | 12 (扩 +10) |
+| 数据源层 | L1-L6 论文类 | L1-L6 + **L7 论坛类** |
+| 核心问题 | 老师做什么 | 怎么进 + 进去什么样 |
+| 缺失数据处理 | 整段省略 | ❓ callout 占位 (强制保留章节) |
+| 置信度标签 | 无 (默认权威) | [社区来源] / [社区-多人共识] / [冲突: L1 vs L7] |
+
+### v0.5.0 适用场景
+
+- 申博阶段用户 (已有论文 list, 需要决策 "跟谁/怎么申")
+- v0.4.0 报告基础上叠加 (8 h3 增量, 不重写论文 card)
+- 13 PIs 全覆盖 (含 v0.1.0 占位, 走完整 v0.5.0 generator)
+
+### v0.5.0 升级路径 (block-level)
+
+- 现有 v0.4.0 docx → 用 `block_insert` 在 §1.1 后插入 §1.2/§1.3/§1.4/§1.5 (4 个新 h3 block)
+- 现有 §2/§3 同样 block_insert
+- 论文 card (§4) **不重写**, 保留 v0.4.0 紧凑版
+- §5 数据来源追加 L7 章节
+
 
 ---
 
@@ -336,6 +410,68 @@ lark-cli docs +update --api-version v2 --doc {DOC_ID} \
 > 完整 Output Schema + 12 项 LLM 自检清单 (404 行) 已下沉到 [`references/output-schema-v0.3.9.md`](references/output-schema-v0.3.9.md) (v0.4.0 progressive disclosure refactor, 2026-06-10)。
 >
 > **v0.4.0 增强**: 13 项自检 (新增 Check 13 Wiki Subject Author Verification, 详见 references/paper-card-v0.4.0.md §6)。每篇 paper card 必跑, 全通过才输出。
+
+---
+
+## 🚨 Paper-Set Diff 硬规则 (H1, 2026-06-10 写入)
+
+> **触发场景**: 任何 teacher-report wiki 推 draft / migrate 任务, push 前**必须**做 paper-set 双向 diff。
+>
+> **来源 case**: [`~/.claude/knowledge/cases/wiki/CASE-V039-DRAFT-WIKI-MISMATCH-20260610.md`](../../knowledge/cases/wiki/CASE-V039-DRAFT-WIKI-MISMATCH-20260610.md)
+> **背景**: 2026-06-10 6 teacher wikis 共有 44 papers, draft 36 papers, **仅 5 papers match (11%)**。两套 papers 来自不同检索 query 时段, 几乎不重叠。直接 push 36 cards 实际**无法命中任何 placeholder**, 浪费 1.5h 工作 + 暴露 2 个 migrate.py bug。
+
+### 触发条件 (任一即触发)
+
+- 推 /tmp/v039-cards-{teacher}.md 等 draft 到 wiki
+- 跑 `migrate-to-v0.3.9.py --all` (会列 wikis 并 transform placeholder)
+- 跨 session 推 v0.3.x 论文条目到 v0.4.0 doc
+- 任何"我有 N 个 draft papers 要推"的批量操作
+
+### 强制流程 (push 前必跑)
+
+```bash
+# Step 1: 列 wiki 实际 paper titles (注意用 24-char obj_token, 非 19-char prefix)
+python3 -c "
+import re, json
+import subprocess
+for tok in WIKI_TOKENS:  # 从 wiki +node-list --parent-node-token=P49mwGQU0iEh9CkXbCTcC418nPb 取
+    out = subprocess.check_output(['lark-cli','docs','+fetch','--api-version=v2','--doc',tok,'--detail','with-ids','--format','json'])
+    titles = re.findall(r'<p[^>]*><b>([^<]+)</b></p>', out.decode())
+    print(f'{tok}: {titles}')
+" > /tmp/wiki-titles.json
+
+# Step 2: 列 draft paper titles
+grep "^###" /tmp/v039-cards-*.md > /tmp/draft-titles.txt
+
+# Step 3: 双向 diff (normalize: lowercase, strip punctuation, strip subtitle)
+python3 -c "
+import re
+def norm(s): return re.sub(r'[:—].*$','',re.sub(r'[^\w\s]','',s.lower())).strip()
+wiki = load_wiki()  # parse /tmp/wiki-titles.json
+draft = load_draft()  # parse /tmp/draft-titles.txt
+matched = set(wiki) & set(draft)
+print(f'wiki={len(wiki)} draft={len(draft)} matched={len(matched)}')
+print(f'wiki-only ({len(set(wiki)-set(draft))}):', sorted(set(wiki)-set(draft))[:5], '...')
+print(f'draft-only ({len(set(draft)-set(wiki))}):', sorted(set(draft)-set(wiki))[:5], '...')
+"
+```
+
+### 判定矩阵 (claudecode 强制 STOP 条件)
+
+| 场景 | matched 比例 | 决策 |
+|------|-------------|------|
+| matched == wiki == draft | 100% | ✅ 直接 push |
+| matched == draft (draft ⊂ wiki) | draft 100% | ⚠️ wiki 有 extras, 先**清理 wiki 残留 placeholder** 或**重抓 wiki-only** |
+| matched == wiki (wiki ⊂ draft) | wiki 100% | ⚠️ draft 有 extras, **加 wiki slot** 或**保留 draft 备用** |
+| matched < 50% max(wiki, draft) | **STOP** | 🛑 **整套 query 错了**, 回去对齐检索策略 (该 case 的真实状态) |
+| matched == 0 | **STOP** | 🛑 推上去无意义, 重新对齐 source-of-truth |
+
+### 同期暴露的 2 个 migrate.py bug (已修)
+
+| Bug | 现象 | 修复 |
+|-----|------|------|
+| **Bug 1**: `transform_authors` regex 只匹配 `Last, First（中文）` 格式 | wiki 现有 v0.3.9 cards 用 `First Last（中文）` 无逗号格式, transform 永远 0 替换 | rewrite regex 改 split-on-comma 方案, 同时支持两种格式 (commit 推送中) |
+| **Bug 2**: `transform_authors` 不处理 placeholder cards | placeholder 卡片是空 `<p>作者：</p>` + `<p>[完整作者列表待补]</p>`, 不是 author 行 | scope 推迟 (wiki 已 v0.4.0, placeholder 不存在) |
 
 ---
 ## Anti-Hallucination Rules (v0.2.9, 2026-06-06)

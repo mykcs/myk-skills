@@ -64,29 +64,62 @@ def lookup_zh(name_en, name_dict):
 
 
 def transform_authors(authors_line, name_dict):
-    """Transform author list to v0.3.9 - each author needs Chinese parens."""
-    matches = list(re.finditer(
-        r'([A-Z][a-zA-Z\-\']+(?:\s+[A-Z][a-zA-Z\-\']+)*,\s+'
-        r'[A-Z一-鿿][\w一-鿿\-\'\s]*(?:（[一-鿿]+）)?)',
-        authors_line
-    ))
-    result = []
-    last_end = 0
-    for m in matches:
-        result.append(authors_line[last_end:m.start()])
-        author = m.group(0).strip()
-        if '（' in author and '）' in author:
-            result.append(author)
+    """Transform author list to v0.3.9 - each author needs Chinese parens.
+
+    Supports BOTH formats:
+      1. "Last, First（中文）" (CSV-style, comma between last and first)
+      2. "First Last（中文）"  (no comma, wiki-style)
+
+    The previous regex only matched format 1, missing the wiki's format 2.
+    Fix: split authors on commas/Chinese-paren boundaries, then look up each.
+    """
+    # Strategy: split on commas not inside Chinese parens, then process each piece
+    # Each piece is either "Last, First" or "First Last" or "Last, First（中文）"
+    parts = []
+    current = []
+    paren_depth = 0
+    for ch in authors_line:
+        if ch == '（':
+            paren_depth += 1
+            current.append(ch)
+        elif ch == '）':
+            paren_depth = max(0, paren_depth - 1)
+            current.append(ch)
+        elif ch == ',' and paren_depth == 0:
+            parts.append(''.join(current).strip())
+            current = []
         else:
-            zh, low_conf = lookup_zh(author, name_dict)
-            if zh:
-                marker = ' // LOW-CONF' if low_conf else ''
-                result.append(f'{author}（{zh}）{marker}')
-            else:
-                result.append(author)
-        last_end = m.end()
-    result.append(authors_line[last_end:])
-    return ''.join(result).strip()
+            current.append(ch)
+    if current:
+        parts.append(''.join(current).strip())
+
+    result = []
+    for part in parts:
+        if not part:
+            continue
+        # Check if already has Chinese parens (skip if so, already v0.3.9)
+        if '（' in part and '）' in part:
+            # Already in v0.3.9 format, leave alone
+            result.append(part)
+            continue
+        # Look up
+        zh, low_conf = lookup_zh(part, name_dict)
+        if zh:
+            marker = ' // LOW-CONF' if low_conf else ''
+            result.append(f'{part}（{zh}）{marker}')
+        else:
+            # No match - try first 2 words as key
+            words = part.split()
+            if len(words) >= 2:
+                # Try "First Last" reversed to "Last First"
+                alt = f'{words[-1]} {words[0]}'
+                zh2, low2 = lookup_zh(alt, name_dict)
+                if zh2:
+                    marker = ' // LOW-CONF' if low2 else ''
+                    result.append(f'{part}（{zh2}）{marker}')
+                    continue
+            result.append(part)
+    return ', '.join(result)
 
 
 def has_full_v039(authors_line):
