@@ -84,5 +84,30 @@ class TestMemoryAuditRunner(unittest.TestCase):
         self.assertIsInstance(data["summary_pass"], bool)
 
 
+class TestSkillOverlapEnhancer(unittest.TestCase):
+    def test_schema(self):
+        data = _run_script("skill_overlap_enhancer.py")
+        for key in ("tool", "version", "skills_scanned", "findings",
+                    "count", "by_type"):
+            self.assertIn(key, data, f"missing key: {key}")
+        self.assertEqual(data["count"], len(data["findings"]))
+
+    def test_finding_types(self):
+        data = _run_script("skill_overlap_enhancer.py")
+        valid = {"trigger_prefix_overlap", "description_overlap"}
+        for f in data["findings"]:
+            self.assertIn(f.get("type"), valid, f"unknown: {f.get('type')}")
+
+
+class TestWasteTokenDetector(unittest.TestCase):
+    def test_schema(self):
+        data = _run_script("waste_token_detector.py")
+        for key in ("tool", "version", "findings", "count", "by_type",
+                    "total_hot_path_tokens"):
+            self.assertIn(key, data, f"missing key: {key}")
+        self.assertEqual(data["count"], len(data["findings"]))
+        self.assertIsInstance(data["total_hot_path_tokens"], int)
+
+
 if __name__ == "__main__":
     unittest.main()
