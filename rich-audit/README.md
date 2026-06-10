@@ -1,0 +1,94 @@
+# rich-audit
+
+三层进化系统: **审计** (发现问题) → **修复** (解决问题) → **进化** (主动获取外部先进知识并应用).
+
+双模审计: Claude Code 配置审计 + Python/ML 项目审计.
+
+## 触发词
+
+- **中文**: `rich审计` / `进化`
+- **英文**: `/rich-audit` / `rich audit` / `claude 审计` / `audit claude files`
+
+## 快速开始
+
+```bash
+# Layer 1 检测脚本 (单独跑, 不需要完整 rich-audit 触发)
+python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py
+python3 ~/.agents/skills/rich-audit/scripts/commands_to_skills_migrator.py
+python3 ~/.agents/skills/rich-audit/scripts/lint_runner.py
+python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py
+
+# 跑测试
+cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scripts -v
+```
+
+## 版本
+
+| 版本 | 日期 | 关键变更 |
+|------|------|---------|
+| v2.6.5 | 2026-06-10 | memory_audit_runner (集成 `~/.claude/scripts/memory-audit.sh`) |
+| v2.6.4 | 2026-06-10 | unittest 烟测覆盖 4 个检测脚本 (6 tests) |
+| v2.6.3 | 2026-06-10 | lint_runner (shellcheck + py_compile) |
+| v2.6.2 | 2026-06-10 | dead-code + commands-to-skills 升级为可执行 Python 脚本 |
+| v2.6.1 | 2026-06-10 | dead-code-orphan + commands-to-skills-migration detection docs |
+| v2.6.0 | 2026-06-10 | Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
+| v2.5.0 | (历史) | 3-tool cascade + 8 维加权模型 |
+
+## 架构
+
+```
+SKILL.md (主入口)
+├── references/
+│   ├── tri-search-protocol.md         (Phase A/B/C 协议, 49 行)
+│   ├── consistency-6d/                (6 个子模块, 34-37 行 × 6)
+│   │   ├── 1-terminology.md
+│   │   ├── 2-cross-references.md
+│   │   ├── 3-rule-conflicts.md
+│   │   ├── 4-index-validity.md
+│   │   ├── 5-frontmatter.md
+│   │   └── 6-priority-scope.md
+│   ├── dead-code-orphan.md            (v2.6.1+)
+│   ├── commands-to-skills-migration.md (v2.6.1+)
+│   ├── audit-patterns.md              (历史, 663 行)
+│   ├── memory-alignment.md            (历史)
+│   ├── agent-strategy.md              (历史)
+│   ├── auto-fix.md                    (历史)
+│   ├── verification-gates.md          (历史)
+│   ├── cascade-reports.md             (历史)
+│   ├── evolution-sources.md           (历史)
+│   └── python-checklist.md            (历史)
+└── scripts/
+    ├── dead_code_detector.py          (v1.0.0, 死代码 + orphan)
+    ├── commands_to_skills_migrator.py (v1.0.0, 命令→skill 迁移 + 重叠)
+    ├── lint_runner.py                 (v1.0.0, shellcheck + py_compile)
+    ├── memory_audit_runner.py         (v1.0.0, 集成 memory-audit.sh)
+    ├── test_detection_scripts.py     (6 unittest 烟测)
+    ├── rich_audit.py                  (历史主脚本, 76KB)
+    └── __pycache__/                   (gitignore)
+```
+
+## 协议 (v2.6)
+
+| Phase | 行为 | 工具 |
+|-------|------|------|
+| A. Parallel Fan-out | 4 工具**并行**同 query | `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` |
+| B. Merge + Compare | 共识 (≥3 源) / 冲突 | 内部 |
+| C. Conflict Resolve | Phase A 递归 ≤2 层 | 同 A |
+
+**输出契约 (3 字段必填)**: 工具 / 搜索内容 / 结论
+
+**降级**: 任一工具不可用 → 同源替代, 报告标注.
+
+完整协议见 `references/tri-search-protocol.md`, 全局化在 `~/.claude/rules/behavioral-process.md` §E.
+
+## 测试
+
+```bash
+cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scripts -v
+```
+
+6 tests, stdlib only (无 pytest 依赖), 覆盖 4 个检测脚本的 schema + finding types.
+
+## License
+
+MIT
