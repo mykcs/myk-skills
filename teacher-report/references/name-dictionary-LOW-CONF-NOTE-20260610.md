@@ -1,7 +1,7 @@
 # Name Dictionary — Confidence Tier 标注 (2026-06-10)
 
 > Sidecar to `name-dictionary-v0.3.9.json` — 标注 535 entries 的可信度
-> 不改原 dictionary 文件 (避免破坏 migrate script 的 plain key→value lookup)
+> **v1.1 (2026-06-10 18:46)**: 改名原字典, 新建带 ` // LOW-CONF` 后缀的 marked 版本
 > 详细 tier 数据: `name-dictionary-tier-20260610.json` (535 entries, each with `tier` + `source`)
 
 ## 总览
@@ -11,6 +11,17 @@
 | **HIGH** | 31 | 6% | Faculty 个人主页 / ORCID / 已毕业知名校友 (lab page 公开列出来中文名) |
 | **LOW** | 504 | 94% | Best guess from paper coauthor (英文名→中文名 by 姓氏 + CS 命名习惯推断) |
 | **TOTAL** | 535 | 100% | |
+
+## 文件结构 (v1.1 改名后)
+
+```
+~/.agents/skills/teacher-report/references/
+├── name-dictionary-v0.3.9-LOW-CONF-MARKED.json   # ✅ 新 canonical (504 LOW 带 ' // LOW-CONF' 后缀, 31 HIGH 干净)
+├── name-dictionary-v0.3.9-DEPRECATED-UNMARKED.json  # ⚠️ 原文件改名, 仍存在但不再引用 (plain zh, 无 tier 标记)
+├── name-dictionary-v0.3.9.json (已不存在, 已 rename)
+├── name-dictionary-tier-20260610.json            # 535 entries × {zh, tier, source} (权威 tier 来源)
+└── name-dictionary-LOW-CONF-NOTE-20260610.md     # 本文件
+```
 
 ## HIGH-CONF Tier 名单 (31 keys / 16 unique 中文)
 
@@ -78,6 +89,15 @@ if args.strict_lookup:
     if zh and tier_data.get(author, {}).get('tier') == 'LOW':
         zh = None  # 跳过低置信度替换
 ```
+
+## v1.1 实施细节 (2026-06-10)
+
+- ✅ Rename: `name-dictionary-v0.3.9.json` → `name-dictionary-v0.3.9-DEPRECATED-UNMARKED.json`
+- ✅ New: `name-dictionary-v0.3.9-LOW-CONF-MARKED.json` (LOW values 带 ' // LOW-CONF' 后缀)
+- ✅ Migrate script `DICT_PATH` 指向新 marked 文件
+- ✅ `lookup_zh` 返回签名从 `str` 改为 `tuple[str, bool]` (zh, is_low_conf)
+- ✅ `transform_authors` 输出: HIGH 干净, LOW 带 ` // LOW-CONF` 后缀, 视觉警告 visible in wiki text
+- ⚠️ 旧 DEPRECATED 文件保留 (回滚 safety net), 但 migrate script 不再引用
 
 ## 历史
 
