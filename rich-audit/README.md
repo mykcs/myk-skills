@@ -12,7 +12,14 @@
 ## 快速开始
 
 ```bash
-# Layer 1 检测脚本 (单独跑, 不需要完整 rich-audit 触发)
+# 一键 (推荐) — 根目录 Makefile
+make help         # 列出所有 target
+make test         # 跑 10 unittest
+make audit        # 跑 7 detection scripts (Layer 1)
+make modernize    # 验证 Tri-Search + 6 维 + 8 脚本存在
+make propose-fix  # dead_code → auto_fix_proposer (141 proposals, 待用户审)
+
+# 单跑 (不进 make)
 python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py
 python3 ~/.agents/skills/rich-audit/scripts/commands_to_skills_migrator.py
 python3 ~/.agents/skills/rich-audit/scripts/lint_runner.py
@@ -26,6 +33,13 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 
 | 版本 | 日期 | 关键变更 |
 |------|------|---------|
+| v2.6.15 | 2026-06-10 | README 引用 Makefile (一键操作) |
+| v2.6.14 | 2026-06-10 | 根目录 `Makefile` (test/lint/audit/modernize/propose-fix) |
+| v2.6.13 | 2026-06-10 | Layer 1 真跑报告 (1007 findings, 7 detection scripts) |
+| v2.6.12 | 2026-06-10 | GitHub Actions CI (`.github/workflows/rich-audit-ci.yml`) |
+| v2.6.11 | 2026-06-10 | auto_fix_proposer (Level 2, 141 proposals 待用户审) |
+| v2.6.10 | 2026-06-10 | B (skill_overlap_enhancer) + C (waste_token_detector) |
+| v2.6.7 | 2026-06-10 | D (skill_authoring_checker) |
 | v2.6.5 | 2026-06-10 | memory_audit_runner (集成 `~/.claude/scripts/memory-audit.sh`) |
 | v2.6.4 | 2026-06-10 | unittest 烟测覆盖 4 个检测脚本 (6 tests) |
 | v2.6.3 | 2026-06-10 | lint_runner (shellcheck + py_compile) |
