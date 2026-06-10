@@ -277,18 +277,21 @@ User: "rich审计" / "进化"
 | [`scripts/dead_code_detector.py`](scripts/dead_code_detector.py) | v1.0.0 | 死 hooks / 死 scripts / orphan cases / orphan skills | `by_type` 分组 |
 | [`scripts/commands_to_skills_migrator.py`](scripts/commands_to_skills_migrator.py) | v1.0.0 | 旧 commands 迁移候选 + skill trigger 重叠 | `migration_count` + `overlap_count` |
 | [`scripts/lint_runner.py`](scripts/lint_runner.py) | v1.0.0 | shellcheck (.sh) + py_compile (.py) on scripts/ 跟 hooks/ | `by_type` 分组 (per `~/.claude/rules/behavioral-core.md` shellcheck 硬规则) |
+| [`scripts/memory_audit_runner.py`](scripts/memory_audit_runner.py) | v1.0.0 | 调用 `~/.claude/scripts/memory-audit.sh` 并解析输出 | `summary_pass` + `missing_files_count` |
 
 **用法**:
 ```bash
 python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('count:',d['count']); print('by_type:',d['by_type'])"
 python3 ~/.agents/skills/rich-audit/scripts/commands_to_skills_migrator.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('migration:',d['migration_count'],'overlap:',d['overlap_count'])"
 python3 ~/.agents/skills/rich-audit/scripts/lint_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('scanned:',d['scanned_sh'],'sh+',d['scanned_py'],'py'); print('count:',d['count']); print('by_type:',d['by_type'])"
+python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('pass:',d.get('summary_pass'),'missing:',d.get('missing_files_count'))"
 ```
 
 **实测 (2026-06-10)**:
 - `dead_code_detector.py`: 139 findings (17 orphan_case + 2 dead_hook + 21 dead_script + 99 orphan_skill)
 - `commands_to_skills_migrator.py`: 72 migration candidates + 0 overlaps
 - `lint_runner.py`: 19 shellcheck findings (28 .sh + 17 .py scanned, 0 py errors)
+- `memory_audit_runner.py`: ✅ pass (0 missing files)
 
 **测试 (v2.6.4, 5 个 unittest)**:
 ```bash

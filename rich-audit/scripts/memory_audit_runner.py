@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""
+memory_audit_runner.py - Rich-Audit v2.6.5 memory-audit.sh wrapper
+
+Runs ~/.claude/scripts/memory-audit.sh, captures output, returns JSON.
+
+Output: JSON {tool, version, exit_code, result_line, summary_pass,
+            missing_files_count, raw_output}
+
+Usage: python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py
+"""
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+MEMORY_AUDIT_SCRIPT = Path.home() / ".claude" / "scripts" / "memory-audit.sh"
+VERSION = "1.0.0"
+
+
+def main() -> int:
+    if not MEMORY_AUDIT_SCRIPT.exists():
+        result = {
+            "tool": "memory_audit_runner.py",
+            "version": VERSION,
+            "error": f"memory-audit.sh not found at {MEMORY_AUDIT_SCRIPT}",
+        }
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 1
+
+    proc = subprocess.run(
+        ["bash", str(MEMORY_AUDIT_SCRIPT)],
+        capture_output=True, text=True, timeout=60,
+    )
+    raw = proc.stdout
+
+    result_match = re.search(r"=== Result ===\s*\n\s*([^\n]+)", raw)
+    result_line = result_match.group(1).strip() if result_match else ""
+    summary_pass = "✅" in result_line and "consistent" in result_line.lower()
+
+    missing_section = re.search(
+        r"--- Referenced in MEMORY.md but missing ---\s*\n([\s\S]+?)(?=\n---|\n===|$)",
+        raw,
+    )
+    missing_count = 0
+    if missing_section and "❌" in missing_section.group(1):
+        missing_count = len(re.findall(r"^\s+❌", missing_section.group(1), re.MULTILINE))
+
+    result = {
+        "tool": "memory_audit_runner.py",
+        "version": VERSION,
+        "exit_code": proc.returncode,
+        "result_line": result_line,
+        "summary_pass": summary_pass,
+        "missing_files_count": missing_count,
+        "raw_output": raw,
+    }
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0 if (summary_pass and proc.returncode == 0) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -75,5 +75,14 @@ class TestLintRunner(unittest.TestCase):
             self.assertIn(f.get("type"), valid_types, f"unknown: {f.get('type')}")
 
 
+class TestMemoryAuditRunner(unittest.TestCase):
+    def test_schema(self):
+        data = _run_script("memory_audit_runner.py")
+        for key in ("tool", "version", "exit_code", "result_line",
+                    "summary_pass", "missing_files_count"):
+            self.assertIn(key, data, f"missing key: {key}")
+        self.assertIsInstance(data["summary_pass"], bool)
+
+
 if __name__ == "__main__":
     unittest.main()
