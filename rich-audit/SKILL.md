@@ -268,6 +268,25 @@ User: "rich审计" / "进化"
 
 ---
 
+## v2.6.2 新增检测脚本 (2026-06-10)
+
+2 个可执行 Python 脚本, Layer 1 模式 A 直接调用, 输出 JSON findings:
+
+| 脚本 | 检测对象 | 输出字段 |
+|------|---------|---------|
+| [`scripts/dead_code_detector.py`](scripts/dead_code_detector.py) | 死 hooks / 死 scripts / orphan cases / orphan skills | `by_type` 分组 |
+| [`scripts/commands_to_skills_migrator.py`](scripts/commands_to_skills_migrator.py) | 旧 commands 迁移候选 + skill trigger 重叠 | `migration_count` + `overlap_count` |
+
+**用法**:
+```bash
+python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('count:',d['count']); print('by_type:',d['by_type'])"
+python3 ~/.agents/skills/rich-audit/scripts/commands_to_skills_migrator.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('migration:',d['migration_count'],'overlap:',d['overlap_count'])"
+```
+
+**实测 (2026-06-10)**: 139 dead/orphan findings + 72 migration candidates + 0 overlaps. 详见 `references/dead-code-orphan.md` 跟 `references/commands-to-skills-migration.md`.
+
+---
+
 ## 记忆系统对齐检测（双轨同步）
 
 > 详细内容见 [`references/memory-alignment.md`](references/memory-alignment.md)。摘要：
