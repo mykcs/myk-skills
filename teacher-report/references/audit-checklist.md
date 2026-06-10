@@ -311,24 +311,26 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command replace \\
 - **不比对历史版本** — 单一快照,不做 diff
 - **不直接修复** — 只报问题,user 决定是否 overwrite
 
-## Check 13 — 论文 6 行 Paper Card 格式 (2026-06-08 v0.3.0 新增)
+## Check 13 — 论文 6 行 Paper Card 格式 (2026-06-08 v0.3.0 新增 → 2026-06-10 v0.3.9 强化)
 
-> **🚨 背景**:v0.3.0 强制所有论文条目用 6 行 paper card 格式 (verbatim 标题 + 全作者列表 + Fei Wu（吴飞）显式标注 + 发表 venue/year/角色 + arXiv URL + paperscool URL). 旧 v0.2.5-v0.2.9 的紧凑 `<p><b>{title} (venue year) ⭐</b></p>` 格式 **DEPRECATED**.
+> **🚨 背景**:v0.3.0 强制所有论文条目用 6 行 paper card 格式 (verbatim 标题 + 全作者列表 + **v0.3.9 强化: 全作者中文括注** + 发表 venue/year/角色 + arXiv URL + paperscool URL). 旧 v0.2.5-v0.2.9 的紧凑 `<p><b>{title} (venue year) ⭐</b></p>` 格式 **DEPRECATED**. **v0.3.9 强化**: 不仅 Fei Wu,所有作者均需 `Name（中文名）` 格式,外籍作者保留英文.
 
 **期望**: 每篇论文均含以下 6 行 (顺序固定, 空行不算):
 
 ```
 {论文标题 (verbatim, 通常是 h4 bold 段)}
 {空行}作者：{空行}
-{完整作者列表，含 Fei Wu（吴飞）}
+{完整作者列表, 含 v0.3.9 全作者中文括注, 例: Nan Chen（陈楠）, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He（何炳生）, Rizal Fathony, Jun Hu（胡军）, Jia Chen（陈佳）}
 {空行}发表：{venue} {year} ({角色})
 {空行}arXiv：https://arxiv.org/abs/{id}
 {空行}paperscool：https://papers.cool/arxiv/{id}
 ```
 
-**反模式 (v0.3.0 全部 ❌)**:
+**反模式 (v0.3.0 + v0.3.9 全部 ❌)**:
 - ❌ `<p><b>{title} (venue year) ⭐</b></p>` (v0.2.5 紧凑格式, DEPRECATED)
-- ❌ `<h4>{title}</h4><p>Authors: ... (et al.)</p>` (作者 et al. 缩写, 缺中文 Fei Wu 标注)
+- ❌ `<h4>{title}</h4><p>Authors: ... (et al.)</p>` (作者 et al. 缩写, 缺中文 标注)
+- ❌ **v0.3.9 新增**: `Nan Chen, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He, Rizal Fathony, Jun Hu（胡军）, Jia Chen` ← 部分作者漏中文括注
+- ❌ **v0.3.9 新增**: 仅 Fei Wu（吴飞）单独标,其他作者无 `（中文名）` (违反 v0.3.9 强一致性)
 - ❌ 缺 `作者：` / `发表：` / `arXiv：` / `paperscool：` 任一前缀
 - ❌ arXiv URL 缺 `https://arxiv.org/abs/{id}` 完整格式
 - ❌ 缺 `paperscool：` 行 (user 失去 1-click 阅读入口)

@@ -432,29 +432,34 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
-- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3,违反 = skill 协议破坏)**:
-  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.3) — 硬要求` 章节定义的 paper card 格式
+- **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3 → 2026-06-10 v0.3.9 升级,违反 = skill 协议破坏)**:
+  - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用 `## Paper Entry Format (v0.3.9) — 硬要求` 章节定义的 paper card 格式
   - **必须包含 4 维 taxonomy 4 行独立 <p> 块**(`大领域：` / `中方向：` / `小任务：` / `子技术：` 每行 1 字段)— **禁止** 4 列表格
-  - **作者列表: 写完整 verbatim**,禁止 `(末位/通讯)` 缩写 / `(通讯 PI 模式)` 描述 / `... 16 名作者` 省略
+  - **作者列表: 写完整 verbatim + 中文括注(全作者)**(v0.3.9 强化),禁止 `(末位/通讯)` 缩写 / `(通讯 PI 模式)` 描述 / `... 16 名作者` 省略 / 仅 `Fei Wu` 单独括注
   - **标注行: 单独成行**: `通讯作者：`, `一作/共一：`, `学生：` 等独立 `<p>` 块
-  - **Fei Wu 显式标 `Fei Wu（吴飞）`**(中文括号),即使排在第 1 位
   - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格 / 用缩写
-  - LLM 必须自检:每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表 + 标注行 + `发表：` `arXiv：` `paperscool：` 3 个字段
+  - LLM 必须自检:每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表(全作者带中文括注) + 标注行 + `发表：` `arXiv：` `paperscool：` 3 个字段
 
-## Paper Entry Format (v0.3.3, 2026-06-08) — 硬要求
+## Paper Entry Format (v0.3.9, 2026-06-10) — 硬要求
 
 > **背景**:v0.3.0 之前 docx 论文展示痛点:① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮(通讯作者被埋没) ③ 没法直接跳到 arXiv 全文(用户必须自己搜) ④ 论文在 4 级研究 hierarchy(大领域→中方向→小任务→子技术)中的位置不可见,套磁信无法精准定位方向。
 >
-> **v0.3.0 → v0.3.1 → v0.3.2 → v0.3.3 升级**: 
+> **v0.3.0 → v0.3.1 → v0.3.2 → v0.3.3 → v0.3.9 升级**: 
 > - **v0.3.1**: 在原 6 行 paper card 基础上,**追加 4 维 taxonomy** (大领域/中方向/小任务/子技术) — 但用 4 列表格
 > - **v0.3.2 hotfix**: 4 维 taxonomy 改为 4 行独立 <p> 块(每字段一行,不是表格)
 > - **v0.3.3 hotfix (2026-06-08)**:
 >   1. **作者列表: 写完整 verbatim**。禁止 "(末位/通讯)" 或 "(通讯 PI 模式)" 描述性缩写 — 必须 verbatim 列出全部作者
 >   2. **标注行: 单独成行**。作者身份/位置/学生身份等元信息(谁通讯、谁一作、谁是 Fei Wu)写独立 `<p>标注：</p>` 段,不混在作者列表里
 >   3. **Fei Wu 显式标 `Fei Wu（吴飞）`**(中文括号),即使排在第 1 位
-> - 原因: 表格形式在飞书 UI 里读起来割裂; 模板构造的"(末位/通讯)"缩写无法审计、可读性差
+> - **v0.3.9 hotfix (2026-06-10)**:
+>   1. **🚨 全作者中文括注(必须)** — 所有作者名字必须带中文括注,如 `Nan Chen, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He（何炳生）, Rizal Fathony, Jun Hu（胡军）, Jia Chen（陈佳）`。**禁止**仅对 Fei Wu/重点作者加括注。**禁止**只列英文名无括注。
+>   2. **原因**:
+>      - 用户在 dashboard 横向对比时,需快速识别每个作者的中文身份(尤其在申博候选池中,中文名是关键的 person 身份锚点)
+>      - 防止 LLM 在 6 节点 30+ papers 批量生成时,只对 Fei Wu (高知名度) 显式标中文,忽略其他作者 (跨 paper card 一致性差)
+>      - 申博场景下,**每个作者都可能成为潜在合作者或评审**,中文括注是必备 disambiguation
+>   3. **v0.3.8 §G 升级**: 之前只对 Fei Wu 显式标(v0.3.3)→ 现在所有作者都必须标(v0.3.9)。**强一致性,无例外**。
 
-### Paper Card 模板(v0.3.3,每篇论文一份,无例外)
+### Paper Card 模板(v0.3.9,每篇论文一份,无例外)
 
 ```
 {论文完整标题 (verbatim, 不可改字/改序/省字)}
@@ -463,10 +468,10 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
 小任务：{小任务}
 子技术：{子技术}
 作者：
-{作者 1, 作者 2, 作者 3, ..., Fei Wu（吴飞）, ..., 末位作者}    ← 全部 verbatim 列出(无 et al. 无缩写),吴飞显式标 Fei Wu（吴飞）
+{作者1（中文名）, 作者2（中文名）, 作者3（中文名）, ..., 作者N（中文名）}    ← 全部 verbatim 列出(无 et al. 无缩写),每个作者都加中文括注
 标注：
-通讯作者：{通讯 1, 通讯 2}    ← 单独成行;不混在作者列表里
-一作/共一：{一作 1, 一作 2}    ← 第一作者(可多个,共一用括号)
+通讯作者：{通讯 1（中文名）, 通讯 2（中文名）}    ← 单独成行;不混在作者列表里;通讯作者也要带中文括注
+一作/共一：{一作 1（中文名）, 一作 2（中文名）}    ← 第一作者(可多个,共一用括号)
 学生：{学生 1, 学生 2}    ← 博士生/硕士生身份,标 (学生) 后缀
 发表：{venue year (角色)}    ← 例: ACL 2025 (Oral) / ICLR 2026 (Spotlight) / KDD 2024 (Long Paper) / TPAMI 2024 (期刊) / arXiv preprint
 arXiv：https://arxiv.org/abs/{arxiv-id}    ← 必须 arXiv ID;无 arXiv 用 DOI
@@ -507,12 +512,12 @@ paperscool：https://papers.cool/arxiv/{arxiv-id}    ← 必须,这是 user 1-cl
 | **小任务** | ✅ | 4-列 taxonomy 第 3 列;中方向下具体任务,论文直接解决的子问题 (图像编辑 / 点云理解 / 视频问答 / 智能体规划) |
 | **子技术** | ✅ | 4-列 taxonomy 第 4 列;实现小任务的关键技术,论文核心贡献 (扩散模型 / 注意力机制 / RLHF / 思维链 / 世界模型) |
 | **标题** | ✅ | verbatim, 不可改字/改序/省字;**禁止**用缩写或 et al. 替代 |
-| **作者** | ✅ | 全部列出(无 et al.), 用 `, ` 逗号+空格分隔; **Fei Wu 显式标 `Fei Wu（吴飞）`** (中文括号标注), 即使排在第 1 位 |
+| **作者** | ✅ | 全部列出(无 et al.), 用 `, ` 逗号+空格分隔; **v0.3.9 强化: 全作者中文括注(必须)**, 例 `Nan Chen, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He（何炳生）, Rizal Fathony, Jun Hu（胡军）, Jia Chen（陈佳）`;**禁止**仅 Fei Wu 单独标 |
 | **发表** | ✅ | `{venue} {year} ({角色})`, 角色可省: Oral / Spotlight / Poster / Long Paper / Short Paper / Findings / Track 1 / Invited Talk / Preprint |
 | **arXiv** | ✅ | URL 必含 `https://arxiv.org/abs/{id}`;无 arXiv 用 `https://doi.org/{DOI}` 兜底 |
 | **paperscool** | ✅ | URL 必含 `https://papers.cool/arxiv/{id}`;与 arXiv ID 一致;**禁止**漏 |
 
-### 正确示例 (v0.3.3,完整作者列表 + 单独标注行)
+### 正确示例 (v0.3.9,完整作者列表 + 单独标注行 + 全作者中文括注)
 
 ```
 OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use
@@ -521,11 +526,19 @@ OS Agents: A Survey on MLLM-based Agents for General Computing Devices Use
 小任务：OS 操作
 子技术：综述 + Benchmark
 作者：
-Xueyu Hu, Tao Xiong, Biao Yi, Zishu Wei, Ruixuan Xiao, Yurun Chen, Jiasheng Ye, Meiling Tao, Xiangxin Zhou, Ziyu Zhao, Yuhuai Li, Shengze Xu, Shenzhi Wang, Xinchen Xu, Shuofei Qiao, Zhaokai Wang, Kun Kuang, Tieyong Zeng, Liang Wang, Jiwei Li, Yuchen Eleanor Jiang, Wangchunshu Zhou, Guoyin Wang, Keting Yin, Zhou Zhao, Hongxia Yang, Fan Wu, Shengyu Zhang, Fei Wu（吴飞）
+Xueyu Hu（胡学宇）, Tao Xiong（熊涛）, Biao Yi（易彪）, Zishu Wei（魏子顺）, Ruixuan Xiao（肖若轩）, Yurun Chen（陈雨润）, Jiasheng Ye（叶家声）, Meiling Tao（陶美玲）, Xiangxin Zhou（周翔鑫）, Ziyu Zhao（赵子宇）, Yuhuai Li（李宇怀）, Shengze Xu（徐胜泽）, Shenzhi Wang（王慎之）, Xinchen Xu（许鑫辰）, Shuofei Qiao（乔硕飞）, Zhaokai Wang（王兆凯）, Kun Kuang（况琨）, Tieyong Zeng（曾铁勇）, Liang Wang（王亮）, Jiwei Li（李纪伟）, Yuchen Eleanor Jiang（蒋雨晨）, Wangchunshu Zhou（周汪春树）, Guoyin Wang（王国印）, Keting Yin（殷科廷）, Zhou Zhao（赵洲）, Hongxia Yang（杨红霞）, Fan Wu（吴帆）, Shengyu Zhang（张圣宇）, Fei Wu（吴飞）
 发表：ACL 2025 (Oral)
 arXiv：https://arxiv.org/abs/2508.04482 
 paperscool：https://papers.cool/arxiv/2508.04482
 ```
+
+> **v0.3.9 中文括注示范 (刘泽民 wiki 真实论文 Consistency Training with Limited Supervision)**:
+>
+> ```
+> 作者：
+> Nan Chen（陈楠）, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He（何炳生）, Rizal Fathony, Jun Hu（胡军）, Jia Chen（陈佳）
+> ```
+> 注意: 即使 Bryan Hooi 是外籍作者(无对应中文名),也保留英文名;**禁止**省略或填 "N/A"。Rizal Fathony 同理。
 
 #### 4 维 taxonomy 反推流程 (从论文 abstract → 4 字段)
 
@@ -559,6 +572,9 @@ paperscool：https://papers.cool/arxiv/2508.04482
 ❌ <table>大领域 中方向 小任务 子技术</table>                ← 4 列表格 (应 4 个 <p> 块)
 ❌ 作者：... (末位/通讯), Fei Wu                           ← (末位/通讯) 缩写 (应写完整 + 单独标注)
 ❌ 作者：... (通讯 PI 模式)                                 ← 模式描述 (应写完整作者 + 标注)
+❌ 作者：Nan Chen, Zemin Liu, Bryan Hooi, Bingsheng He, Rizal Fathony, Jun Hu, Jia Chen    ← v0.3.9 反例: 无中文括注 (必须全作者标中文)
+❌ 作者：Nan Chen（陈楠）, Zemin Liu（刘泽民）, Bryan Hooi   ← v0.3.9 反例: 中间作者漏标 (Bryan Hooi 无中文名时也保留英文, 不可省略)
+❌ 作者：Fei Wu（吴飞）, Xueyu Hu, ...                      ← v0.3.9 反例: 仅 Fei Wu 单标 (必须所有作者全标)
 ```
 
 ### 适用位置 (全 docx 强制,5 章均生效)
@@ -617,11 +633,42 @@ paperscool：https://papers.cool/arxiv/2508.04482
 
 > Check 15 的 4 子项 (a-d) 全 ✅ 才算 Check 15 PASS;任一 ❌ = Check 15 FAIL (≥ 3 ❌ = 整体审计 fail, 降级为 🟡)。
 
-## Output Schema (v0.3.3 strict, 2026-06-08)
+### Audit Check 16 (2026-06-10 v0.3.9 新增 — 全作者中文括注)
 
-> **背景**:v0.3.3 之前 skill 输出混乱(混 4 列表 + 4 行 + 缩写 + 占位符)。本节定义**严格的输出 schema**,LLM 写每篇 paper card 严格按 schema 走,自检 12 项通过才允许输出。
+| # | Check | 期望 | 失败处理 |
+|---|-------|------|---------|
+| 16a | **全作者中文括注(必须)** | 100% 论文的作者列表中,**每个**作者均含 `Name（中文名）` 格式,即使外籍作者无中文名也保留英文名(不可省略) | ❌ 任何作者漏 `（中文名）` → 必须补,外籍作者可保留英文名(不可填 N/A) |
+| 16b | **禁止仅 Fei Wu 单独标** | 100% 论文: 若 Fei Wu 标了 `（吴飞）`,则同一行的**所有其他作者**也必须标中文 | ❌ 出现 "Xueyu Hu, ..., Fei Wu（吴飞）" 部分标注 → 必须补齐 |
+| 16c | 标注行: 通讯作者/一作/学生 也带中文括注 | 100% 论文的 `<p>通讯作者：{X}</p>` 中,通讯作者必须 `Name（中文名）` 格式 | ❌ 通讯作者漏标 → 立即补 |
+| 16d | 中文名与作者姓名正确对应 | 100% 作者的 `（中文名）` 须与 arXiv 真实中文名一致 (e.g., 沈春华 = Chunhua Shen, 刘泽民 = Zemin Liu) | ❌ 中文名错配 → 查 arXiv 作者主页或 Google Scholar 校准 |
 
-### 强制 Output Schema — v0.3.3 paper card block 结构
+> Check 16 的 4 子项 (a-d) 全 ✅ 才算 Check 16 PASS;任一 ❌ = Check 16 FAIL (≥ 3 ❌ = 整体审计 fail, 降级为 🟡)。
+>
+> **示例 (v0.3.9)**:
+> ```
+> 作者：
+> Nan Chen（陈楠）, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He（何炳生）, Rizal Fathony, Jun Hu（胡军）, Jia Chen（陈佳）
+> ```
+> - Nan Chen → 陈楠 ✓ (中文括注)
+> - Zemin Liu → 刘泽民 ✓ (中文括注)
+> - Bryan Hooi → 保留英文 ✓ (外籍作者无对应中文名,保留英文)
+> - Bingsheng He → 何炳生 ✓
+> - Rizal Fathony → 保留英文 ✓
+> - Jun Hu → 胡军 ✓
+> - Jia Chen → 陈佳 ✓
+>
+> **反例 (v0.3.9 禁止)**:
+> ```
+> ❌ 作者：Nan Chen, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He  ← 部分标注
+> ❌ 作者：Nan Chen（陈楠）, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He, Rizal Fathony  ← 后面漏标
+> ❌ 作者：Fei Wu（吴飞）, Xueyu Hu, ...                          ← 仅 Fei Wu 标
+> ```
+
+## Output Schema (v0.3.9 strict, 2026-06-10)
+
+> **背景**:v0.3.3 之前 skill 输出混乱(混 4 列表 + 4 行 + 缩写 + 占位符)。v0.3.9 在 v0.3.3 基础上**强制全作者中文括注**。本节定义**严格的输出 schema**,LLM 写每篇 paper card 严格按 schema 走,自检 12 项通过才允许输出。
+
+### 强制 Output Schema — v0.3.9 paper card block 结构
 
 每篇论文 paper card **必须**由以下 11 个 block 顺序构成(顺序固定,不可调换):
 
@@ -632,9 +679,9 @@ paperscool：https://papers.cool/arxiv/2508.04482
 4. <p>小任务：{X}</p>
 5. <p>子技术：{X}</p>
 6. <p>作者：</p>                 ← 作者段头(空 <p>,下个 block 是作者列表)
-7. <p>{完整作者列表}</p>           ← verbatim 完整作者,无 et al.,无缩写,Fei Wu 显式标（吴飞）
+7. <p>{完整作者列表,所有作者带中文括注}</p>           ← verbatim 完整作者,无 et al.,无缩写,所有作者 `Name（中文名）`, 外籍作者保留英文
 8. <p>标注：</p>                 ← 标注段头(空 <p>,下个 block 是标注)
-9. <p>通讯作者：{X}</p>           ← 独立标注行(可选,无则整段省略)
+9. <p>通讯作者：{X（中文名）, Y（中文名）}</p>           ← 独立标注行(可选,无则整段省略), 通讯作者也带中文括注
 10. <p>发表：{venue year (角色)}</p>  ← 发表信息
 11. <p>arXiv：<a href="https://arxiv.org/abs/{id}">https://arxiv.org/abs/{id}</a></p>  ← **优先 arXiv URL**;若论文无 arXiv 预印本,改用原会议/期刊网址 (例: SIGMOD `https://dl.acm.org/doi/10.1145/{doi}`、 ASPLOS `https://dl.acm.org/doi/10.1145/{doi}`、 CVPR `https://openaccess.thecvf.com/content/CVPR{YEAR}/html/{paper}.html`、 NeurIPS `https://proceedings.neurips.cc/paper/{YEAR}/hash/{hash}-Abstract.html`、 期刊 `https://ieeexplore.ieee.org/document/{id}`)。禁止 `[待验证]` 占位符 — 必须有 1-click 入口
 12. <p>URL 类型：arXiv 预印本</p>  ← 或 `<p>URL 类型：会议正式版 (SIGMOD/ASPLOS/CVPR/...)</p>` 标注 URL 来源类型,让用户一眼区分
@@ -652,13 +699,17 @@ paperscool：https://papers.cool/arxiv/2508.04482
 | 6 | 作者完整 verbatim | 全部列出,无 "... N 名作者" 省略,无 et al.,**无 [待 L4/L5/L6 重抓] / [待补] / [未知] / [待验证] placeholder** | ❌ "Xueyu Hu, Tao Xiong, ... 27 名作者, Fei Wu" / ❌ `<p>作者：[待 L4/L5/L6 重抓]</p>` / ❌ `<p>作者：[待补]</p>` |
 | 7 | 禁止 (末位/通讯) 缩写 | 作者行无 "(末位/通讯)" / "(通讯 PI 模式)" 描述 | ❌ "作者：..., (末位/通讯), Fei Wu" |
 | 8 | 禁止 (通讯 PI 模式) 描述 | 作者行无 "通讯 PI 模式" 等描述性短语 | ❌ "作者：... (通讯 PI 模式)" |
-| 9 | Fei Wu 显式标 (吴飞) | 100% Fei Wu 署名论文含 `Fei Wu（吴飞）`(中文括号) | ❌ "Fei Wu" 漏中文括号 |
-| 10 | 标注行单独成行 + **跨 paper 串名检查** | 通讯作者/一作/学生 独立 `<p>标注：</p>` 段,不混作者列表;**通讯作者名字必须 verbatim 出现在作者列表中**(防跨 paper 串名/凑数) | ❌ "作者：..., (通讯), ..., 一作 Xueyu" / ❌ 通讯作者="Zhaozhou Zhao" 但作者列表无此名(错配别 paper) |
+| 9 | **全作者中文括注(v0.3.9 强化)** | 100% 论文的作者列表中,**所有**作者含 `Name（中文名）` 格式,外籍作者保留英文(不可填 N/A) | ❌ "Nan Chen, Zemin Liu（刘泽民）, Bryan Hooi, Bingsheng He" (部分漏标) / ❌ 仅 Fei Wu 单独标 |
+| 10 | 标注行单独成行 + **跨 paper 串名检查** + **通讯作者中文括注** | 通讯作者/一作/学生 独立 `<p>标注：</p>` 段,不混作者列表;**通讯作者名字必须 verbatim 出现在作者列表中**(防跨 paper 串名/凑数);**通讯作者字段本身也带 `（中文名）`** | ❌ "作者：..., (通讯), ..., 一作 Xueyu" / ❌ 通讯作者="Zhaozhou Zhao" 但作者列表无此名(错配别 paper) / ❌ `<p>通讯作者：Kun Kuang</p>` 漏中文括注 |
 | 11 | 真实 1-click URL (arXiv 优先 / 会议期刊兜底) | 100% 论文有 1-click 入口 URL;有 arXiv 用 arxiv.org,无 arXiv 用 dl.acm.org/openaccess.thecvf.com/proceedings.neurips.cc/ieeexplore.ieee.org,**禁止** `[待验证]` 占位符 | ❌ `<p>arXiv：待 arXiv 验证</p>` (应填会议 doi) / ❌ 缺 URL |
 | 12 | paperscool 真实 URL | `<a href="https://papers.cool/arxiv/{id}">...</a>` 完整 URL,非占位 | ❌ `<p>paperscool：待 arXiv 验证</p>` |
 
 > 12 项全 ✅ 才能输出 paper card;任一 ❌ 必须修正后重跑自检
 > 触发 §G audit rule 的条件: 同一 wiki doc 中, 11+ paper cards 标 通讯作者 = wiki subject 本人 (LLM 默认填 wiki subject 模式)
+>
+> **v0.3.9 强化项**:
+> - 检查 9 从 "Fei Wu 单独标" → "全作者中文括注" (覆盖整个作者列表)
+> - 检查 10 新增 "通讯作者字段本身也带中文括注" (标注行也要 `Name（中文名）`)
 
 ### v0.3.3 fixed-template (LLM 输出时直接 fill)
 
