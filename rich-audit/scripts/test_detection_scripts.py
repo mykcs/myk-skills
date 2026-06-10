@@ -19,9 +19,11 @@ SCRIPTS_DIR = Path.home() / ".agents" / "skills" / "rich-audit" / "scripts"
 
 def _run_script(name: str, timeout: int = 60) -> dict:
     """Run a detection script and return parsed JSON output."""
+    # lint_runner shells out to shellcheck on 28 files, can take 60-90s
+    actual_timeout = 180 if name == "lint_runner.py" else timeout
     result = subprocess.run(
         ["python3", str(SCRIPTS_DIR / name)],
-        capture_output=True, text=True, timeout=timeout,
+        capture_output=True, text=True, timeout=actual_timeout,
     )
     assert result.returncode in (0, 1), (
         f"{name} crashed with exit {result.returncode}: {result.stderr[:200]}"
