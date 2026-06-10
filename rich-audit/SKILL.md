@@ -290,6 +290,11 @@ python3 ~/.agents/skills/rich-audit/scripts/lint_runner.py | python3 -c "import 
 - `commands_to_skills_migrator.py`: 72 migration candidates + 0 overlaps
 - `lint_runner.py`: 19 shellcheck findings (28 .sh + 17 .py scanned, 0 py errors)
 
+**测试 (v2.6.4, 5 个 unittest)**:
+```bash
+cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scripts -v
+```
+
 详见 `references/dead-code-orphan.md` 跟 `references/commands-to-skills-migration.md`.
 
 ---
