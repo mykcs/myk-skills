@@ -59,11 +59,8 @@ modernize:
 	@echo "✅ Modernization check passed"
 
 propose-fix:
-	@echo "▶ Auto-fix Level 2: 6 detection scripts → auto_fix_proposer..."
-	@for s in dead_code_detector commands_to_skills_migrator lint_runner skill_authoring_checker \
-	         skill_overlap_enhancer waste_token_detector; do \
-		$(PY) $(SCRIPTS)/$$s.py; \
-	done | $(PY) $(SCRIPTS)/auto_fix_proposer.py | $(PY) -c "import json,sys; d=json.load(sys.stdin); print('proposals:', d['count']); print('risk:', d['risk_counts']); print('needs_review:', d['requires_user_review_count']); print(''); print('Per scope discipline: NOT auto-applied. Review proposals and apply manual_steps manually.')"
+	@echo "▶ Auto-fix Level 2: dead_code_detector → auto_fix_proposer..."
+	@$(PY) $(SCRIPTS)/dead_code_detector.py | $(PY) $(SCRIPTS)/auto_fix_proposer.py | $(PY) -c "import json,sys; d=json.load(sys.stdin); print('proposals:', d['count']); print('risk:', d['risk_counts']); print('needs_review:', d['requires_user_review_count']); print(''); print('Per scope discipline: NOT auto-applied. Review proposals and apply manual_steps manually.')"
 
 clean:
 	@find $(SKILL) -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
