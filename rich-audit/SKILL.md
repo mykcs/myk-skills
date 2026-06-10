@@ -208,6 +208,10 @@ User: "rich审计" / "进化"
 | 5 | 格式/前置元数据 | [`5-frontmatter.md`](references/consistency-6d/5-frontmatter.md) |
 | 6 | 优先级与作用域 | [`6-priority-scope.md`](references/consistency-6d/6-priority-scope.md) |
 
+**审计覆盖扩展 (v2.6.1, 2026-06-10)**: 2 个新检测维度, 跟 consistency-6d 互补
+- **Dead Code / Orphan** → [`dead-code-orphan.md`](references/dead-code-orphan.md)
+- **Commands → Skills Migration** → [`commands-to-skills-migration.md`](references/commands-to-skills-migration.md)
+
 **Layer 3 进化层约束**：每次 `rich审计` 都必须执行外部扫描（禁止以"分数已经很高"为由跳过 WebSearch / Context7）。
 
 **Tri-Search Protocol v2.6 (2026-06-10 升级, 替换旧 3-tool cascade)**:
