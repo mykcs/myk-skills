@@ -966,6 +966,30 @@ def check_redundancy(report: dict) -> list[dict]:
                 if s in content:
                     referenced.add(s)
 
+        # 6) Memory + knowledge/cases references (v2.2 — FP fix, 2026-06-10)
+        # Lesson from CASE-RICH-AUDIT-ORPHAN-FP-20260610: previous version
+        # only scanned hooks/rules/skills/settings/cross-scripts, missing
+        # references in memory/ and knowledge/cases/wiki/. This produced
+        # 5/8 (62.5%) false positives in a single audit run, including
+        # archiving simulate-doctor.sh (a critical doctor TTY workaround
+        # tool referenced in 4+ memory/case files).
+        # v2.2: Add memory/ + knowledge/ to the reference scan to eliminate
+        # the false positive class entirely.
+        for ref_root in (CLAUDE_DIR / "memory", CLAUDE_DIR / "knowledge"):
+            if not ref_root.exists():
+                continue
+            for ref_file in ref_root.rglob("*.md"):
+                # Skip archived cases (they're not authoritative references)
+                if "archive" in ref_file.parts:
+                    continue
+                try:
+                    content = ref_file.read_text()
+                except OSError:
+                    continue
+                for s in all_scripts:
+                    if s in content:
+                        referenced.add(s)
+
         # Independent CLI tools not meant to be called by anything (CLI tools)
         independent_scripts = {
             "smart-autopush.sh", "ap-intent.sh", "evolve.sh",
@@ -1696,7 +1720,7 @@ def main():
     report = {
         "meta": {
             "tool": "rich-audit.py",
-            "version": "2.2.0",
+            "version": "2.3.0",
             "timestamp": now_iso(),
             "fix_mode": args.fix,
         },
