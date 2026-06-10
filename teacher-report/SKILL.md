@@ -792,6 +792,132 @@ lark-cli docs +update --api-version v2 --doc {obj_token} \
 2. 错配 → backup + block_replace
 3. 报告错配数 + 修复证据
 
+### §H 一作 ≠ 通讯 Override (v0.3.8 新增, 2026-06-09)
+
+**🚨 触发条件**: Wiki subject 是论文的 **第一作者 (一作)** 而非末位作者时，"last author = corresponding PI" 规则不适用。
+
+**反例 (周晓巍 TPAMI 2024 一作 案例, 2026-06-09 实测)**:
+
+| Wiki Paper | Wiki Subject 位置 | Wiki 通讯 | 实际 通讯 | 修复 |
+|------------|------------------|-----------|----------|------|
+| Neural 3D Scene Reconstruction with Indoor Planar Priors (TPAMI 2024) | Zhou (1st/一作) | Xiaowei Zhou | Hujun Bao (last) + Zhou (1st, co-通讯) | ✅ 已修复 |
+| Animatable INRs for Creating Realistic Avatars from Videos (TPAMI 2024) | Zhou (1st/一作) | Xiaowei Zhou | Hujun Bao (last) + Zhou (1st, co-通讯) | ✅ 已修复 |
+
+**根因**: LLM 应用 "last author = corresponding" 通用规则时，**忽略一作 signals**。在 TPAMI/期刊论文中，**一作** 同样可以标记为 通讯 (尤其当一作是 PI 本人时)。
+
+**强制审计流程 (任何 v0.3.8+ audit 必须跑)**:
+
+```bash
+# Step 1: 检测 wiki subject 是否是 一作
+# 检查论文 author list 中 wiki subject 的位置 (1st/2nd/middle/last)
+python3 << EOF
+import re
+with open(f'backup-{teacher}/original.json') as f:
+    content = json.load(f)['data']['document']['content']
+
+# For each paper card, check wiki subject position
+for block in paper_blocks(content):
+    title = block['title']
+    authors = block['authors']
+    wiki_subj = '{wiki_subj_pinyin}'
+    if wiki_subj in authors:
+        position = authors.index(wiki_subj) + 1
+        if position == 1:
+            print(f'WARN: {title} - wiki subject is 一作, must check last author for 通讯')
+EOF
+```
+
+**修复规则**:
+- **一作 case** → 通讯 must include **last author (senior PI)** + **wiki subject (一作)** as co-corresponding
+- **末位 case** → 通讯 = wiki subject (per §G convention)
+- **中间 case** → must verify arXiv byline † footnote (don't default)
+
+### §I Hallucinated Paper Card Detection (v0.3.8 新增, 2026-06-09)
+
+**🚨 触发条件**: 论文标题在 DBLP / arXiv / OpenAlex / Semantic Scholar 4 个主要 index 中 **0 results**。
+
+**反例 (2026-06-09 实测)**:
+
+| Wiki Node | Hallucinated Paper | 实际 | 来源 |
+|----------|-------------------|------|------|
+| 况琨 (Kun Kuang) | "GRA-TAG: Production AI Search via Graph-Based Query Decomposition and Triplet Aligned Generation" | 不存在 — DBLP/arXiv/OpenAlex 全 0 results | 4-index 验证 |
+| 肖俊 (Jun Xiao) | "AutoML Teaching Platform Series" | 不存在 — Jun Xiao ZJU profile 无 AutoML 方向, Google Scholar top-10 全是 CV/cross-media | 课题组主页 + Google Scholar |
+
+**强制审计流程**:
+
+```bash
+# Step 1: 对每个 paper title 跑 4-index 验证
+python3 << EOF
+def check_hallucinated(title):
+    # DBLP XML search
+    dblp_url = f'https://dblp.org/search/publ/api?q={title}&format=json'
+    # arXiv title search
+    arxiv_url = f'https://export.arxiv.org/api/query?search_query=ti:{title}&max_results=1'
+    # OpenAlex API
+    oa_url = f'https://api.openalex.org/works?search={title}'
+    # Semantic Scholar
+    s2_url = f'https://api.semanticscholar.org/graph/v1/paper/search?query={title}&limit=1'
+    # Count results from all 4
+    return total_results
+EOF
+```
+
+**修复规则**:
+- **4-index 全 0 results** → paper card is **HALLUCINATED** → 标 `<p>通讯作者：[待核实 — 论文 DBLP/arXiv/OpenAlex 均查不到,疑似 hallucinated]</p>` + 在 paper card 顶部加 ⚠️ callout 标 "⚠️ 论文疑似不存在"
+- **1-3 indexes 有 hit** → 标 "需用户 disambiguate" 列出所有候选
+- **All 4 indexes agree** → paper is real, proceed to §G 通讯作者 verification
+
+### §J Co-PI Override Rule (v0.3.8 新增, 2026-06-09)
+
+**🚨 触发条件**: Wiki subject 是论文的**中间作者 (middle author)**，**不是一作也不是末位**。
+
+**反例 (汤斯亮组 6+ papers, 2026-06-09 实测)**:
+
+| Wiki Paper | Wiki Subject 位置 | Wiki 通讯 | 实际 通讯 | 修复 |
+|------------|------------------|-----------|----------|------|
+| WorldGPT (arXiv 2024) | Siliang Tang (2nd) | Siliang Tang | Juncheng Li (3rd) per GitHub README † | ✅ 已修复 |
+| Auto-Encoding Morph-Tokens (ICML 2024) | Siliang Tang (2nd) | Siliang Tang | Juncheng Li (3rd) per GitHub README † | ✅ 已修复 |
+| STEP (CVPR 2025) | Siliang Tang (8th) | Siliang Tang | Juncheng Li† (6th, explicit footnote) | ✅ 已修复 |
+| LanDiff (ICCV 2025) | Siliang Tang (7th) | Siliang Tang | Xu Tan† + Juncheng Li† (4th, 6th) | ✅ 已修复 |
+| DDT-LLaMA (CVPR 2025) | Siliang Tang (co-author) | Siliang Tang | Juncheng Li (explicit footer) | ✅ 已修复 |
+| Iris (ICCV 2025) | Siliang Tang (9th) | Siliang Tang | Juncheng Li* + Yueting Zhuang* | ✅ 已修复 |
+
+**根因**: LLM 默认 wiki subject = 通讯，**忽略 middle author 信号**。在 汤斯亮组中，**Juncheng Li (postdoc)** 是大量论文的实际通讯，PI 汤斯亮 仅是 senior 挂名 (middle/middle-last)。
+
+**强制审计流程**:
+
+```bash
+# Step 1: 检测 wiki subject 在 author list 中的位置
+# 1st = 一作, last = 末位, middle = 中间
+# Step 2: 若是 middle → 必查 arXiv byline † footnote, 不能默认填 wiki subject
+# Step 3: 若没有 explicit † → 查 GitHub README / OpenReview / 项目页
+# Step 4: 若仍无 → 标 "待用户 verify"
+```
+
+**修复规则**:
+- **Middle author + 显式 † on someone else** → 用 † 的作者作 通讯
+- **Middle author + no explicit †** → 用 last author 作 通讯 (per ML convention)
+- **Co-first / co-corresponding** → 标"通讯作者：X†, Y†共同通讯"
+
+### §G+ §H+ §I+ §J 综合审计 Checklist (v0.3.8 强制)
+
+对每个 paper card 跑 4 问：
+
+1. **位置问题** (§H §J): Wiki subject 在 author list 的位置？
+   - 1st → §H 触发 (一作 ≠ 通讯)
+   - last → §G 默认 OK (末位 = 通讯)
+   - middle → §J 触发 (Co-PI ≠ 通讯)
+2. **存在性** (§I): 论文是否真实存在？
+   - 4-index 0 results → HALLUCINATED
+3. **† 验证** (§G): 实际 corresponding author 的 † 在哪？
+   - arXiv byline † → 用 † 作者
+   - OpenReview "Corresponding Author" → 用该作者
+   - GitHub README † → 用 † 作者
+4. **末位 fallback** (兜底): 没有 † 怎么办？
+   - 1st author → §H (co-通讯 with last)
+   - last author → §G (default 通讯 = last)
+   - middle author → §J (NOT default wiki subject)
+
 
 ### §D 备份要求(v0.3.6+ 强制)
 
