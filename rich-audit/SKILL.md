@@ -268,22 +268,29 @@ User: "rich审计" / "进化"
 
 ---
 
-## v2.6.2 新增检测脚本 (2026-06-10)
+## v2.6.2+ 新增检测脚本 (2026-06-10)
 
-2 个可执行 Python 脚本, Layer 1 模式 A 直接调用, 输出 JSON findings:
+3 个可执行 Python 脚本, Layer 1 模式 A 直接调用, 输出 JSON findings:
 
-| 脚本 | 检测对象 | 输出字段 |
-|------|---------|---------|
-| [`scripts/dead_code_detector.py`](scripts/dead_code_detector.py) | 死 hooks / 死 scripts / orphan cases / orphan skills | `by_type` 分组 |
-| [`scripts/commands_to_skills_migrator.py`](scripts/commands_to_skills_migrator.py) | 旧 commands 迁移候选 + skill trigger 重叠 | `migration_count` + `overlap_count` |
+| 脚本 | 版本 | 检测对象 | 输出字段 |
+|------|------|---------|---------|
+| [`scripts/dead_code_detector.py`](scripts/dead_code_detector.py) | v1.0.0 | 死 hooks / 死 scripts / orphan cases / orphan skills | `by_type` 分组 |
+| [`scripts/commands_to_skills_migrator.py`](scripts/commands_to_skills_migrator.py) | v1.0.0 | 旧 commands 迁移候选 + skill trigger 重叠 | `migration_count` + `overlap_count` |
+| [`scripts/lint_runner.py`](scripts/lint_runner.py) | v1.0.0 | shellcheck (.sh) + py_compile (.py) on scripts/ 跟 hooks/ | `by_type` 分组 (per `~/.claude/rules/behavioral-core.md` shellcheck 硬规则) |
 
 **用法**:
 ```bash
 python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('count:',d['count']); print('by_type:',d['by_type'])"
 python3 ~/.agents/skills/rich-audit/scripts/commands_to_skills_migrator.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('migration:',d['migration_count'],'overlap:',d['overlap_count'])"
+python3 ~/.agents/skills/rich-audit/scripts/lint_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('scanned:',d['scanned_sh'],'sh+',d['scanned_py'],'py'); print('count:',d['count']); print('by_type:',d['by_type'])"
 ```
 
-**实测 (2026-06-10)**: 139 dead/orphan findings + 72 migration candidates + 0 overlaps. 详见 `references/dead-code-orphan.md` 跟 `references/commands-to-skills-migration.md`.
+**实测 (2026-06-10)**:
+- `dead_code_detector.py`: 139 findings (17 orphan_case + 2 dead_hook + 21 dead_script + 99 orphan_skill)
+- `commands_to_skills_migrator.py`: 72 migration candidates + 0 overlaps
+- `lint_runner.py`: 19 shellcheck findings (28 .sh + 17 .py scanned, 0 py errors)
+
+详见 `references/dead-code-orphan.md` 跟 `references/commands-to-skills-migration.md`.
 
 ---
 
