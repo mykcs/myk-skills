@@ -110,6 +110,12 @@ class TestWasteTokenDetector(unittest.TestCase):
         self.assertEqual(data["count"], len(data["findings"]))
         self.assertIsInstance(data["total_hot_path_tokens"], int)
 
+    def test_types_known(self):
+        data = _run_script("waste_token_detector.py")
+        valid = {"hot_path_heavy", "skill_too_heavy", "stale_hot_path"}
+        for f in data["findings"]:
+            self.assertIn(f.get("type"), valid, f"unknown: {f.get('type')}")
+
 
 if __name__ == "__main__":
     unittest.main()
