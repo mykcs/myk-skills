@@ -278,6 +278,7 @@ User: "rich审计" / "进化"
 | [`scripts/commands_to_skills_migrator.py`](scripts/commands_to_skills_migrator.py) | v1.0.0 | 旧 commands 迁移候选 + skill trigger 重叠 | `migration_count` + `overlap_count` |
 | [`scripts/lint_runner.py`](scripts/lint_runner.py) | v1.0.0 | shellcheck (.sh) + py_compile (.py) on scripts/ 跟 hooks/ | `by_type` 分组 (per `~/.claude/rules/behavioral-core.md` shellcheck 硬规则) |
 | [`scripts/memory_audit_runner.py`](scripts/memory_audit_runner.py) | v1.0.0 | 调用 `~/.claude/scripts/memory-audit.sh` 并解析输出 | `summary_pass` + `missing_files_count` |
+| [`scripts/skill_authoring_checker.py`](scripts/skill_authoring_checker.py) | v1.0.0 | per `platform.claude.com/docs/.../agent-skills/best-practices` (v2.6.7): frontmatter 完整性 + 简洁性 + description 质量 + semver | `by_type` 分组 (5 类) |
 
 **用法**:
 ```bash
@@ -285,6 +286,7 @@ python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py | python3 -c "
 python3 ~/.agents/skills/rich-audit/scripts/commands_to_skills_migrator.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('migration:',d['migration_count'],'overlap:',d['overlap_count'])"
 python3 ~/.agents/skills/rich-audit/scripts/lint_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('scanned:',d['scanned_sh'],'sh+',d['scanned_py'],'py'); print('count:',d['count']); print('by_type:',d['by_type'])"
 python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('pass:',d.get('summary_pass'),'missing:',d.get('missing_files_count'))"
+python3 ~/.agents/skills/rich-audit/scripts/skill_authoring_checker.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('scanned:',d['skills_scanned'],'findings:',d['count']); print('by_type:',d['by_type'])"
 ```
 
 **实测 (2026-06-10)**:
@@ -292,6 +294,7 @@ python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py | python3 -c 
 - `commands_to_skills_migrator.py`: 72 migration candidates + 0 overlaps
 - `lint_runner.py`: 19 shellcheck findings (28 .sh + 17 .py scanned, 0 py errors)
 - `memory_audit_runner.py`: ✅ pass (0 missing files)
+- `skill_authoring_checker.py`: 690 findings (129 skills scanned; 621 missing_field + 31 body_long + 17 desc_short + 21 missing_skill_md)
 
 **测试 (v2.6.4, 5 个 unittest)**:
 ```bash
