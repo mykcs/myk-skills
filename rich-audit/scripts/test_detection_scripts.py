@@ -79,6 +79,10 @@ class TestLintRunner(unittest.TestCase):
 
 class TestMemoryAuditRunner(unittest.TestCase):
     def test_schema(self):
+        # Skip if memory-audit.sh not present (e.g. clean CI runner)
+        if not (Path.home() / ".claude" / "scripts" / "memory-audit.sh").exists():
+            self.skipTest("memory-audit.sh not present (CI runner)")
+            return
         data = _run_script("memory_audit_runner.py")
         for key in ("tool", "version", "exit_code", "result_line",
                     "summary_pass", "missing_files_count"):
