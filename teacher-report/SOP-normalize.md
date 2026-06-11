@@ -13,10 +13,10 @@
 cd ~/.agents/skills/teacher-report/scripts
 
 # 0.1 先 dry-run 扫描看 doc 现状
-python3 cleanup_v0.3.0.py --doc <DOC_TOKEN> --dry-run
+python3 cleanup.py --doc <DOC_TOKEN> --dry-run
 
 # 0.2 实际清理 (删旧 + 重 append 干净 §7)
-python3 cleanup_v0.3.0.py --doc <DOC_TOKEN>
+python3 cleanup.py --doc <DOC_TOKEN>
 ```
 
 清理脚本行为：
@@ -25,20 +25,20 @@ python3 cleanup_v0.3.0.py --doc <DOC_TOKEN>
 - 重生成干净 §7（41 found + 59 not_found + 真命令段）append 到末尾
 - 全程 ~30 秒
 
-**注意**: cleanup 复用 `/tmp/normalize-report.json` 缓存（不再查 arXiv）。若要重新查 arXiv，先跑 `normalize_v0.3.0.py --doc <DOC> --dry-run` 刷新缓存。
+**注意**: cleanup 复用 `/tmp/normalize-report.json` 缓存（不再查 arXiv）。若要重新查 arXiv，先跑 `normalize.py --doc <DOC> --dry-run` 刷新缓存。
 
 ## 1. 目标与背景
 
 v0.3.0 起的 teacher-report skill 要求所有论文条目用 6 行 paper card 格式（标题 + 完整作者列表 + Fei Wu 显式标注 + 发表 venue/year/role + arXiv URL + papers.cool URL）。但已发布的 docx 还在用 v0.2.5 的紧凑 `<p><b>标题 (venue year) ⭐</b></p>` 格式。
 
-本文档配套脚本 `scripts/normalize_v0.3.0.py`，一键完成：
+本文档配套脚本 `scripts/normalize.py`，一键完成：
 1. **EXTRACT** — 从飞书 doc §4.x 表格提取 102+ 论文元数据
 2. **LOOKUP** — 串行查 arXiv API (3s 限流 + retry/backoff) — **NOTE: arXiv 不容忍并发, 强制 1 worker**
 3. **BUILD** — 按 v0.3.0 6 行 paper card 格式生成 markdown (含 not_found 列表 + 真命令段)
 4. **APPEND** — 用 lark-cli append 到 doc 末尾
 5. **REPORT** — 输出 JSON 报告 (哪些找到/未找到/失败)
 
-清理脚本 `scripts/cleanup_v0.3.0.py` 在 doc 乱时先跑步骤 0。
+清理脚本 `scripts/cleanup.py` 在 doc 乱时先跑步骤 0。
 
 ## 2. 前置条件
 
@@ -57,7 +57,7 @@ v0.3.0 起的 teacher-report skill 要求所有论文条目用 6 行 paper card 
 
 ```bash
 cd ~/.agents/skills/teacher-report/scripts
-python3 normalize_v0.3.0.py \
+python3 normalize.py \
   --doc EFlmwpPgKiUARAkTplIcoOqrn3w \
   --workers 4 \
   --dry-run
@@ -72,7 +72,7 @@ python3 normalize_v0.3.0.py \
 
 ```bash
 cd ~/.agents/skills/teacher-report/scripts
-python3 normalize_v0.3.0.py \
+python3 normalize.py \
   --doc EFlmwpPgKiUARAkTplIcoOqrn3w \
   --workers 4
 # workers 参数保留为兼容，实际强制 1 (arXiv 限流)
@@ -85,7 +85,7 @@ python3 normalize_v0.3.0.py \
 ### 3.3 只处理特定年份
 
 ```bash
-python3 normalize_v0.3.0.py \
+python3 normalize.py \
   --doc EFlmwpPgKiUARAkTplIcoOqrn3w \
   --year-range 2025 2026 \
   --dry-run
@@ -190,9 +190,9 @@ arXiv `ti:"..."` 是 literal match。若表格标题有 OCR/转写错字（如 "
 ## 7. 高级: 集成到 teacher-report skill 流程
 
 `teacher-report/SKILL.md` 未来的 generate mode 可以:
-1. 生成完 docx 后, **自动**调用 `normalize_v0.3.0.py --doc {new_doc_id} --dry-run`
+1. 生成完 docx 后, **自动**调用 `normalize.py --doc {new_doc_id} --dry-run`
 2. 检查报告 by_status, 若 `not_found + error > 30%` 触发 ⚠️ callout
-3. 用户确认后再 `python3 normalize_v0.3.0.py --doc {new_doc_id}` append
+3. 用户确认后再 `python3 normalize.py --doc {new_doc_id}` append
 
 ## 8. 故障排查
 

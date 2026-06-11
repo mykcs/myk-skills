@@ -14,7 +14,7 @@ description: |
 ## 触发条件 (任一即触发)
 
 - 推 `/tmp/v039-cards-{teacher}.md` 等 draft 到 wiki
-- 跑 `migrate-to-v0.3.9.py --all` (会列 wikis 并 transform placeholder)
+- 跑 `migrate.py --all` (会列 wikis 并 transform placeholder)
 - 跨 session 推 v0.3.x 论文条目到 v0.4.0 doc
 - 任何"我有 N 个 draft papers 要推"的批量操作
 

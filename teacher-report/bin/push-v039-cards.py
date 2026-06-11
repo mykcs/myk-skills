@@ -2,7 +2,7 @@
 """
 push-v039-cards.py — Push v0.3.9 paper cards to 6 teacher wikis via lark-doc block API.
 
-Replaces the broken transform_authors path in migrate-to-v0.3.9.py with a proper
+Replaces the broken transform_authors path in migrate.py with a proper
 block-level API workflow:
   1. Read all 6 /tmp/v039-cards-{teacher}.md draft files
   2. For each teacher, fetch wiki doc + parse all block_ids
@@ -13,7 +13,7 @@ block-level API workflow:
 Reads:
   - /tmp/v039-cards-{teacher}.md (draft)
   - /tmp/v039-backup/{doc_id}.json (last known good state)
-  - ~/.agents/skills/teacher-report/references/name-dictionary-v0.3.9-LOW-CONF-MARKED.json
+  - ~/.agents/skills/teacher-report/references/name-dictionary-LOW-CONF-MARKED.json
 
 Writes:
   - 6 teacher wikis (via lark-cli docs +update block_replace)
@@ -58,7 +58,7 @@ TEACHERS = {
     },
 }
 
-DICT_PATH = Path(__file__).parent.parent / 'references' / 'name-dictionary-v0.3.9-LOW-CONF-MARKED.json'
+DICT_PATH = Path(__file__).parent.parent / 'references' / 'name-dictionary-LOW-CONF-MARKED.json'
 BACKUP_DIR = Path('/tmp/v039-backup')
 
 

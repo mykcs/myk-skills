@@ -3,7 +3,7 @@
 > **来源**: 从 SKILL.md v0.3.9 (2026-06-10) 拆分（v0.4.0 progressive disclosure refactor, 2026-06-10）。
 > **目的**: 严格输出 schema 定义 — LLM 写每篇 paper card 必跑 12 项自检, 全通过才输出。
 > **加载时机**: 论文输出前最后一步自检 / 套磁信引用论文时 / 审计 docx 时对照。
-> **v0.4.0 增强**: 13 项自检 (新增 Check 13 Wiki Subject Author Verification), 详见 references/paper-card-v0.4.0.md §6。
+> **v0.4.0 增强**: 13 项自检 (新增 Check 13 Wiki Subject Author Verification), 详见 references/paper-card.md §6。
 
 ---
 

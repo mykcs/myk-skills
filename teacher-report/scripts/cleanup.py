@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 teacher-report v0.3.0 飞书 doc 清理脚本
-SOP: ~/.agents/skills/teacher-report/SOP-v0.3.0-normalize.md §步骤 0
+SOP: ~/.agents/skills/teacher-report/SOP-normalize.md §步骤 0
 
 功能: 一键清理飞书 doc 末尾的 v0.3.0 旧段 (§7/§8), 重生成干净 §7
 适用: 之前 batch 跑乱 / 多次 append 产生重复段时
 
 用法:
-  python3 scripts/cleanup_v0.3.0.py --doc <DOC_TOKEN> [--workers 4] [--dry-run]
+  python3 scripts/cleanup.py --doc <DOC_TOKEN> [--workers 4] [--dry-run]
 """
 from __future__ import annotations
 
@@ -201,7 +201,7 @@ def main() -> int:
     import importlib.util
 
     spec = importlib.util.spec_from_file_location(
-        "normalize_v030", "/Users/myk/.agents/skills/teacher-report/scripts/normalize_v0.3.0.py"
+        "normalize_v030", "/Users/myk/.agents/skills/teacher-report/scripts/normalize.py"
     )
     N = importlib.util.module_from_spec(spec)
     sys.modules["normalize_v030"] = N
@@ -209,7 +209,7 @@ def main() -> int:
 
     report_path = "/tmp/normalize-report.json"
     if not Path(report_path).exists():
-        print(f"  ✗ Report {report_path} not found. Re-run normalize_v0.3.0.py first.")
+        print(f"  ✗ Report {report_path} not found. Re-run normalize.py first.")
         return 1
 
     report = json.load(open(report_path))

@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-migrate-to-v0.3.9.py - 批量将现有 wiki 的作者列表从 v0.3.3 (仅 Fei Wu 单独标)
+migrate.py - 批量将现有 wiki 的作者列表从 v0.3.3 (仅 Fei Wu 单独标)
 升级到 v0.3.9 (全作者中文括注)。
 
 Usage:
-    python3 migrate-to-v0.3.9.py <doc_id> [<doc_id2> ...]
-    python3 migrate-to-v0.3.9.py --all          # 处理 dashboard 全部 9 nodes
-    python3 migrate-to-v0.3.9.py --audit       # 只 audit,不修改
+    python3 migrate.py <doc_id> [<doc_id2> ...]
+    python3 migrate.py --all          # 处理 dashboard 全部 9 nodes
+    python3 migrate.py --audit       # 只 audit,不修改
 
 功能:
 1. 从 lark-cli 获取 wiki content
 2. 解析所有 作者: 块
-3. 对每作者查 name-dictionary-v0.3.9.json 加中文括注
+3. 对每作者查 name-dictionary-DEPRECATED-UNMARKED.json 加中文括注
 4. block_replace 更新到 wiki
 5. 显示 audit 报告
 
 要求:
-- ~/.agents/skills/teacher-report/references/name-dictionary-v0.3.9.json 存在
+- ~/.agents/skills/teacher-report/references/name-dictionary-DEPRECATED-UNMARKED.json 存在
 - lark-cli 已 auth login
 - 备份 (脚本会提示) 虽非强制,推荐 SKILL.md §D
 """
@@ -24,8 +24,8 @@ import json, re, subprocess, sys, os
 import argparse
 from pathlib import Path
 
-DICT_PATH = Path(__file__).parent.parent / 'references' / 'name-dictionary-v0.3.9-LOW-CONF-MARKED.json'
-# Deprecated (2026-06-10): original file renamed to name-dictionary-v0.3.9-DEPRECATED-UNMARKED.json
+DICT_PATH = Path(__file__).parent.parent / 'references' / 'name-dictionary-LOW-CONF-MARKED.json'
+# Deprecated (2026-06-10): original file renamed to name-dictionary-DEPRECATED-UNMARKED.json
 # Use the LOW-CONF-MARKED version so LOW values carry ' // LOW-CONF' suffix visible in output.
 DASHBOARD_TOKEN = 'P49mwGQU0iEh9CkXbCTcC418nPb'
 

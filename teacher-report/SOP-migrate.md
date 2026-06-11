@@ -20,7 +20,7 @@ lark-cli docs +fetch --api-version v2 --doc $DOC --detail with-ids --format json
 
 ```bash
 # 检查名字字典是否存在 (535 entries, 覆盖 9 wiki 节点)
-ls -la ~/.agents/skills/teacher-report/references/name-dictionary-v0.3.9.json
+ls -la ~/.agents/skills/teacher-report/references/name-dictionary-DEPRECATED-UNMARKED.json
 
 # 如果缺失, git pull 同步
 cd ~/.agents/skills/teacher-report && git pull
@@ -30,10 +30,10 @@ cd ~/.agents/skills/teacher-report && git pull
 
 ```bash
 # 先 audit-only 看现状 (不修改任何 wiki)
-python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py --audit --all
+python3 ~/.agents/skills/teacher-report/bin/migrate.py --audit --all
 
 # 或者 audit 单个 doc
-python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py --audit <DOC_TOKEN>
+python3 ~/.agents/skills/teacher-report/bin/migrate.py --audit <DOC_TOKEN>
 ```
 
 输出示例:
@@ -48,10 +48,10 @@ RjObd2e5qoz6qKxn1Xhc          8          0            0          0 0
 
 ```bash
 # 实际更新全部 9 dashboard wikis
-python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py --all
+python3 ~/.agents/skills/teacher-report/bin/migrate.py --all
 
 # 或者更新单个 doc
-python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py <DOC_TOKEN>
+python3 ~/.agents/skills/teacher-report/bin/migrate.py <DOC_TOKEN>
 ```
 
 每篇 partial paper card 会:
@@ -63,7 +63,7 @@ python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py <DOC_TOKEN>
 
 ```bash
 # 重新 audit 看效果
-python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py --audit --all
+python3 ~/.agents/skills/teacher-report/bin/migrate.py --audit --all
 ```
 
 ## 5. 步骤 5: 处理 unmapped 作者
@@ -72,7 +72,7 @@ python3 ~/.agents/skills/teacher-report/bin/migrate-to-v0.3.9.py --audit --all
 
 ```bash
 # 编辑字典
-vim ~/.agents/skills/teacher-report/references/name-dictionary-v0.3.9.json
+vim ~/.agents/skills/teacher-report/references/name-dictionary-DEPRECATED-UNMARKED.json
 
 # 添加格式: "English Name (Last, First)": "中文名"
 # 多个 surname variants 都需加:

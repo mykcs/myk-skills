@@ -3,7 +3,7 @@
 > **来源**: 从 SKILL.md v0.3.9 (2026-06-10) 拆分（v0.4.0 progressive disclosure refactor, 2026-06-10）。
 > **目的**: 15 行/paper 完整版 paper card 规范, 适用于论文 ≤ 3 篇场景。
 > **加载时机**: SKILL.md 顶层 pointer 引用本文件时 / 套磁信 1-2 篇深度引用 / 单篇 deep-dive 写作。
-> **v0.4.0 替代**: 论文 ≥ 10 篇应改用 v0.4.0 紧凑版 (7 行/paper, 53% 篇幅节省, 详见 references/paper-card-v0.4.0.md)。
+> **v0.4.0 替代**: 论文 ≥ 10 篇应改用 v0.4.0 紧凑版 (7 行/paper, 53% 篇幅节省, 详见 references/paper-card.md)。
 
 ---
 

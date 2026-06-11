@@ -29,8 +29,8 @@ description: |
 ## 🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3 → 2026-06-10 v0.4.0 紧凑可选)
 
 - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用以下 2 种 paper card 格式之一:
-  - **v0.3.9 完整版** (15 行/paper, 单独标注行): 详见 `references/paper-entry-v0.3.9.md`
-  - **v0.4.0 紧凑版** (7 行/paper, inline 标记): 详见 `references/paper-card-v0.4.0.md`
+  - **v0.3.9 完整版** (15 行/paper, 单独标注行): 详见 `references/paper-entry.md`
+  - **v0.4.0 紧凑版** (7 行/paper, inline 标记): 详见 `references/paper-card.md`
 - **选型指南**:
   - 论文 ≤ 3 篇 → 优先 v0.3.9 完整版 (信息密度高)
   - 论文 ≥ 10 篇 → 优先 v0.4.0 紧凑版 (节省 53% 篇幅, Feishu outline 展开)

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 teacher-report v0.3.0 Paper Card 批量规范化脚本
-SOP: ~/.agents/skills/teacher-report/SOP-v0.3.0-normalize.md
+SOP: ~/.agents/skills/teacher-report/SOP-normalize.md
 
 Usage:
-  python3 scripts/normalize_v0.3.0.py --doc <doc_token> [--year-range 2023 2026] [--workers 4] [--output /tmp/cards.md] [--dry-run]
+  python3 scripts/normalize.py --doc <doc_token> [--year-range 2023 2026] [--workers 4] [--output /tmp/cards.md] [--dry-run]
 
 Phases:
   1. EXTRACT  - 用 lark-cli docs +fetch 拉取文档 §4.x 表格, 解析所有论文 (序号, 标题, 时间, venue, 等级)
@@ -423,19 +423,19 @@ def build_section(papers: list[Paper], section_no: str = "7") -> str:
     lines.append("**重跑全 102 篇 paper card batch**:\n\n")
     lines.append("```bash\n")
     lines.append("cd ~/.agents/skills/teacher-report/scripts\n")
-    lines.append("python3 normalize_v0.3.0.py \\\n")
+    lines.append("python3 normalize.py \\\n")
     lines.append("  --doc EFlmwpPgKiUARAkTplIcoOqrn3w \\\n")
     lines.append("  --workers 4\n")
     lines.append("# 预计 8-12 分钟 (3s/rate-limit × 102 篇 + retry)\n")
     lines.append("```\n\n")
     lines.append("**只处理特定年份**:\n\n")
     lines.append("```bash\n")
-    lines.append("python3 normalize_v0.3.0.py \\\n")
+    lines.append("python3 normalize.py \\\n")
     lines.append("  --doc EFlmwpPgKiUARAkTplIcoOqrn3w \\\n")
     lines.append("  --workers 4 \\\n")
     lines.append("  --year-range 2025 2026  # 只跑 2025-2026 年\n")
     lines.append("```\n\n")
-    lines.append("**SOP 完整指南**: `~/.agents/skills/teacher-report/SOP-v0.3.0-normalize.md`\n\n")
+    lines.append("**SOP 完整指南**: `~/.agents/skills/teacher-report/SOP-normalize.md`\n\n")
     lines.append("**audit 模式 (Check 13)**:\n\n")
     lines.append("```bash\n")
     lines.append("lark-cli docs +update --api-version v2 --doc EFlmwpPgKiUARAkTplIcoOqrn3w \\\n")

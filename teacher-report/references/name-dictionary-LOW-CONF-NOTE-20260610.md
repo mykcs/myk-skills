@@ -1,6 +1,6 @@
 # Name Dictionary — Confidence Tier 标注 (2026-06-10)
 
-> Sidecar to `name-dictionary-v0.3.9.json` — 标注 535 entries 的可信度
+> Sidecar to `name-dictionary-DEPRECATED-UNMARKED.json` — 标注 535 entries 的可信度
 > **v1.1 (2026-06-10 18:46)**: 改名原字典, 新建带 ` // LOW-CONF` 后缀的 marked 版本
 > 详细 tier 数据: `name-dictionary-tier-20260610.json` (535 entries, each with `tier` + `source`)
 
@@ -16,9 +16,9 @@
 
 ```
 ~/.agents/skills/teacher-report/references/
-├── name-dictionary-v0.3.9-LOW-CONF-MARKED.json   # ✅ 新 canonical (504 LOW 带 ' // LOW-CONF' 后缀, 31 HIGH 干净)
-├── name-dictionary-v0.3.9-DEPRECATED-UNMARKED.json  # ⚠️ 原文件改名, 仍存在但不再引用 (plain zh, 无 tier 标记)
-├── name-dictionary-v0.3.9.json (已不存在, 已 rename)
+├── name-dictionary-LOW-CONF-MARKED.json   # ✅ 新 canonical (504 LOW 带 ' // LOW-CONF' 后缀, 31 HIGH 干净)
+├── name-dictionary-DEPRECATED-UNMARKED.json  # ⚠️ 原文件改名, 仍存在但不再引用 (plain zh, 无 tier 标记)
+├── name-dictionary-DEPRECATED-UNMARKED.json (已不存在, 已 rename)
 ├── name-dictionary-tier-20260610.json            # 535 entries × {zh, tier, source} (权威 tier 来源)
 └── name-dictionary-LOW-CONF-NOTE-20260610.md     # 本文件
 ```
@@ -70,7 +70,7 @@
 
 ```
 ~/.agents/skills/teacher-report/references/
-├── name-dictionary-v0.3.9.json         # 原字典 (535 entries, 不改)
+├── name-dictionary-DEPRECATED-UNMARKED.json         # 原字典 (535 entries, 不改)
 ├── name-dictionary-tier-20260610.json  # 535 entries × {zh, tier, source}
 └── name-dictionary-LOW-CONF-NOTE-20260610.md  # 本文件
 ```
@@ -78,7 +78,7 @@
 ## TODO — migrate script 增强 (后续 commit)
 
 ```python
-# migrate-to-v0.3.9.py 增加:
+# migrate.py 增加:
 parser.add_argument('--strict-lookup', action='store_true',
     help='只用 HIGH-CONF tier 做替换, LOW-CONF 跳过留英文')
 
@@ -92,8 +92,8 @@ if args.strict_lookup:
 
 ## v1.1 实施细节 (2026-06-10)
 
-- ✅ Rename: `name-dictionary-v0.3.9.json` → `name-dictionary-v0.3.9-DEPRECATED-UNMARKED.json`
-- ✅ New: `name-dictionary-v0.3.9-LOW-CONF-MARKED.json` (LOW values 带 ' // LOW-CONF' 后缀)
+- ✅ Rename: `name-dictionary-DEPRECATED-UNMARKED.json` → `name-dictionary-DEPRECATED-UNMARKED.json`
+- ✅ New: `name-dictionary-LOW-CONF-MARKED.json` (LOW values 带 ' // LOW-CONF' 后缀)
 - ✅ Migrate script `DICT_PATH` 指向新 marked 文件
 - ✅ `lookup_zh` 返回签名从 `str` 改为 `tuple[str, bool]` (zh, is_low_conf)
 - ✅ `transform_authors` 输出: HIGH 干净, LOW 带 ` // LOW-CONF` 后缀, 视觉警告 visible in wiki text
