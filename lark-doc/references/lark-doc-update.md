@@ -323,6 +323,43 @@ lark-cli docs +update --command block_insert_after --block-id "X" \
 
 markdown 模式下的 `<callout>` `<grid>` 不会渲染，会被转义为字面量。
 
+### 8. `str_replace` 不识别 `<p id="...">` block id 限定符（2026-06-11 case 验证）
+
+**症状**: pattern 看起来 unique (`<p id="doxcnXYZ">旧文本</p>`) 但实际匹配了**所有** `旧文本` 实例。
+**根因**: str_replace 在 lark 序列化层做纯文本匹配，`<p id="...">` 限定符被剥除, 只比较 inner text。
+**典型反例**: 文档模板里 `❓ 待补` 出现 25+ 次，用 `<p id="X">❓ 待补</p>` 限定看似唯一, 实际触发 25 处全文替换, 1 次操作污染 23 个 block (XCkgdqmKSoSyiBxM9FYcbYLjnkb 实测)。
+**应对**:
+- 表格 cell / callout 子块 → 改用 `block_replace --block-id <id>` (API 层寻址, 不走文本匹配)
+- str_replace 只用于**全文唯一**的纯文本 (标题、版本号、url 等)
+- 改前 `grep` 计数目标字符串在文档中出现次数, > 1 即有风险
+- 改后**立即** `docs +fetch --scope section/range` 验证, 不要相信 `result: success`
+
+### 9. `block_insert_after` 多块 content 含 callout 静默吞并（2026-06-11 case 验证）
+
+**症状**: `--content '<li>...</li>...<li>...</li><callout>...</callout>'` (5 块混合) 实际只插入 4 li, callout 丢失。
+**根因**: callout 带 `emoji` / `background-color` / `border-color` 属性, 在多块 content 上下文中被静默跳过; `result: success` 仍返回, 不报错。
+**应对**:
+- callout **必须单独一次** `block_insert_after`, 与其他 block 分开调用
+- 插入后**立即** `docs +fetch --scope range` 跨过目标位置验证
+- 不要相信 `result: success` — 这只表示请求被接受, 不表示全部 block 都插入
+- 如果要插入 li + callout, 先插 li (单独 call), 再插 callout (单独 call)
+
+### 10. 验证脚本
+
+```bash
+# ~/.claude/scripts/lark-doc-update-verify.sh
+# 用法: lark-doc-update-verify.sh <doc_id> <start_block> <end_block> <expected_string>
+DOC=$1
+START=$2
+END=$3
+EXPECTED=$4
+lark-cli docs +fetch --api-version v2 --doc "$DOC" \
+  --scope range --start-block-id "$START" --end-block-id "$END" \
+  --detail with-ids | grep -q "$EXPECTED" \
+  || { echo "VERIFY FAIL: '$EXPECTED' not found in range"; exit 1; }
+echo "VERIFY OK"
+```
+
 ## 参考
 
 - [`lark-doc-update-workflow.md`](style/lark-doc-update-workflow.md) — 改写增强工作流（Code-Act Loop、并行执行策略）
