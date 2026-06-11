@@ -10,6 +10,8 @@
 
 ## 输出
 
+> **🚨 Output Discipline (v0.11.0+, 2026-06-11)**: LLM 在跑这个 prompt 之前/之中, **禁止在 chat 输出 4 行元信息 preamble** (「本报告: vX.X.X ... / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...」). 元信息 (招生匹配度 / 论文产出数 / L? 数据源状态 / 调研对象) 是 docx TL;DR callout 内容, **应在 docx 里写, 不在 chat 复述**. 正确 chat 行为 = 跳过 preamble → 抓取 → `lark-cli docs +create --content @<xml>` → 输出 docx URL 单行收尾. 详见 `SKILL.md §Output Discipline 硬要求`.
+
 一个 lark-doc v2 兼容的 XML 字符串(结构见 `report-template.md`),要能直接喂给:
 
 ```bash

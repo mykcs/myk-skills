@@ -1,5 +1,6 @@
 ---
 
+**v0.11.0 changelog (2026-06-11)**: Output Discipline 硬要求. 禁止 LLM 在 chat 输出 4 行元信息 preamble: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... — ... / 招生匹配度: 🟡/🟢/🔴 ... / 论文产出: N 篇代表论文 (year1-year2)」. 这是 LLM 在调用 lark-cli 前的「自由复述」习惯, 没有任何 prompt 模板要求, 纯属噪音. claudecode 收到 teacher-report 触发后应**直接**调 `lark-cli docs +create` (含 `--content @<xml>`) → 输出 docx URL 单行收尾, 中间不输出元信息. 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)`.
 **v0.10.0 changelog (2026-06-11)**: 中文名字符级 typo 硬要求. Check 17: 老师姓名必须与 L1-L4 权威来源字符级匹配. 触发 case: 邓舒敏 (Shumin Deng) 文档 28 处中文名 typo 「邓**舒**敏 (shū)」→ 实际正确「邓**淑**敏 (shú)」. 同音不同义 LLM auto-generate typo, 之前 v0.2.9 反幻觉规则只校验 OpenReview/arXiv 字段正确性, 不校验中文姓名字符级. 17 项 LLM 自检 (16 v0.9.0 + Check 17 中文名字符). 同音/形近字 typo 启发式列表 (28 pairs, 含 舒/淑/青/清/振/震 等) 已写入 `scripts/check_chinese_name.py`. push wiki 前必跑 `python3 scripts/check_chinese_name.py --wiki-scan`, 返回 0 才算合规.
 **v0.9.0 changelog (2026-06-11)**: Progressive disclosure 进一步拆分 (rich-audit 触发). 595 → 168 lines (-72%). 7 新 reference files: anti-hallucination-rules.md (53) + paper-set-diff-rules.md (65) + v0.5.0-h3-mapping.md (67) + inputs-and-mode.md (40) + output-contract.md (45) + audit-mode-output.md (35) + failure-handling.md (25). main SKILL.md 仅保留概述 + 索引 + v0.7.0/v0.8.0 硬要求引用. 触发 case: rich-audit v2.6.2+ skill_authoring_checker 检测 teacher-report/SKILL.md 超 500 行限制 (Anthropic SKILL.md 最佳实践),违反 documented guideline.
 **v0.8.0 changelog (2026-06-11)**: 深度+1 编号重构. h2 = `1.X.` (5 章 → 1.1./1.2./1.3./1.4./1.5.), h3 章节 = `1.X.Y.` (原 1.1./2.1./3.2./5.3. → 1.1.1./1.2.1./1.3.2./1.5.3.). paper card h3 (N. Title) 不变. 13 docs × 5 h2 + 11-12 h3 = 65 + 144 = 209 段统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). **16 项 LLM 自检 (15 v0.7.0 + Check 16 深度+1 编号)**. 与 v0.2.5 (`h2=1.`) + v0.7.0 (`h3=1.1.`) 旧规则均冲突, 全部作废.
@@ -14,6 +15,7 @@ description: |
 
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks, outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
+  **v0.11.0 (2026-06-11) Output Discipline 硬要求 (NEW)**: 禁止 LLM 在 chat 输出 4 行元信息 preamble (本报告: vX.X.X ... / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...). LLM 应直接调 `lark-cli docs +create` → 输出 docx URL. 元信息 (招生匹配度 / 论文产出数 / L? 数据源状态) 是 docx TL;DR callout 内容, **不应在 chat 复述**.
   **v0.10.0 (2026-06-11) 17 项 LLM 自检 + 中文名字符级 typo 检查**: v0.8.0 编号 + v0.9.0 自评 + Check 17 中文名权威来源字符级匹配 (与 L1-L4 来源对照: faculty 主页 / ORCID / LinkedIn slug / 中文期刊署名). 触发 case: 邓舒敏 doc 28 处「邓**舒**敏 (shū)」→ 实际「邓**淑**敏 (shú)」. Check 17 落地脚本 `scripts/check_chinese_name.py` (同音/形近字启发式 + tier 字典交叉).
   **v0.8.0 (2026-06-11) 16 项 LLM 自检 + H1-H4 编号 dot 后缀 + H2 无装饰性 emoji**: v0.4.0 默认紧凑 paper card (4-dim taxonomy, full author list, arXiv inline title) + v0.5.0 申博实操 8 h3 字段 (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点) + v0.7.0/v0.8.0 编号硬要求. v0.2.9 anti-hallucination (OpenReview/arXiv 校验). See references/paper-entry-v0.3.9.md + output-schema-v0.3.9.md + §Anti-Hallucination Rules + §Output contract.
 
@@ -78,6 +80,40 @@ Generate a single-advisor PhD dossier in Feishu wiki doc format. Input: a resear
 - **同音/形近字 typo 启发式 (28 pairs)**: 已写入 `scripts/check_chinese_name.py` 的 `TYPO_PAIRS` + `NEAR_PAIRS`. LLM 推断中文名时若落在这些 pair, 必须显式标 `[unverified: 同音 X/Y 候选]` 等待用户确认
 - **触发 case (2026-06-11)**: 邓舒敏 doc 28 处字符 typo, claudecode 当时 v0.2.9 反幻觉只校验了 OpenReview/arXiv 字段 (Shumin Deng 这个英文名是正确的, 但没校验中文字符级), 28 处错字穿透了所有 check
 - **执行状态**: scripts/check_chinese_name.py v0.10.0 已写; 待跑全 15 wiki docs 出报告 + 等用户决定是否 batch fix
+
+## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)
+
+**核心禁令**: LLM 在调 `lark-cli docs +create` 之前 / 之后, **禁止在 chat 输出 4 行元信息 preamble**:
+
+| ❌ 禁止 (chat preamble 反例) | 应放在 docx 哪里 (正确) |
+|----------------------------|------------------------|
+| 「本报告: v0.5.0 申博实操增强 (2026-06-10 升级自 v0.4.0, L7 数据已实际抓取)」 | 写 changelog 时已经在 SKILL.md 顶部, docx 不需复述 |
+| 「调研对象: 邓淑敏 (Shumin Deng) — ZJU100 Young Professor, 博士生导师」 | docx §1.1 基本信息与学术身份 + TL;DR callout |
+| 「招生匹配度: 🟡 中 (L7 字段部分已抓, 部分仍 ❓ 待补, 建议套磁时 1v1 追问)」 | docx §2 申博匹配度评估灯号 + TL;DR callout (🟢/🟡/🔴 + 文字) |
+| 「论文产出: 12 篇代表论文 (2024-2026)」 | docx §4 论文产出全景 + TL;DR callout (精确数字, 不写 "12 篇代表论文") |
+
+**正确 chat 行为 (Step 0 协议)**:
+1. 收到 teacher-report 触发词 → 跳过任何 "我将..." / "本次报告..." / "调研对象..." 复述
+2. 直接进入 Step 0/1 抓取 (lark-cli / webfetch / playwright) → 调 `lark-cli docs +create --api-version v2 --title "..." --content @<xml>`
+3. chat 最终输出 = **单行** docx URL (e.g. `https://feishu.cn/docx/MqEzdtwcso2AGyxUPuCcyQRAnwe`) + 必要的错误诊断
+
+**理由**:
+- 元信息 (招生匹配度 / 论文产出数 / L? 数据源状态 / 调研对象) **本就是 docx TL;DR callout 内容** (`references/output-contract.md` §TL;DR). 在 chat 复述 = 重复劳动
+- 暴露内部 L? 抓取阶段 (L1-L7 是 skill 内部协议, user 不需要知道) = 协议泄漏
+- 暴露 ❓ 待补 placeholder = 暗示 docx 内容稀疏, 但实际 docx TL;DR callout 已标 [L7 社区来源] + [社区-个别观点] 标签, 信息密度更高
+- 让 user 误以为 "报告" 是 chat 输出而非 docx = 误导产物位置
+
+**反例 (2026-06-11 触发 case)**:
+邓淑敏 (Shumin Deng) doc 28 处 typo 修复后, LLM 跑 teacher-report 触发时在 chat 输出 4 行元信息 preamble, user 显式要求"去掉这种"。preamble 文本无任何 prompt 模板源头 (SKILL.md / llm-prompt.md / report-template.md 全部 grep 验证 0 命中「本报告/调研对象/代表论文」+ 「招生匹配度」仅命中 docx 内部规则), 纯属 LLM "自由生长" 习惯, 必须用硬规则阻断。
+
+**执行协议**:
+- LLM 跑 teacher-report 触发 → 跳过 preamble → 抓取 → `lark-cli docs +create` → 输出 URL
+- 中间任何 step 失败 → 输出 `🚨 [step X] 错误信息` (单行), 不复述元信息
+- 写多行 chat 输出的**唯一合法场景** = audit mode (12 项 check 结果) 或 rewrite mode (diff summary), 详见 `references/audit-mode-output.md` + `references/output-contract.md`
+
+**审计/重写模式豁免**: audit mode 输出的 12 项 check pass/fail + rewrite mode 的 diff summary 不受本规则约束 (那是合规性报告, 不是 docx 元信息)。
+
+**执行状态**: v0.11.0 已写入 SKILL.md + llm-prompt.md; 待后续 teacher-report session 验证 LLM 是否遵守 (case: 邓淑敏 / 吴飞 / 况琨 3 个 PIs re-run teacher-report 时检查 chat 输出)。
 
 ### Step 1 — Data fetching (4-level fallback)
 
