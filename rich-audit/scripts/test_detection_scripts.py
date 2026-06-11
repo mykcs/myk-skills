@@ -14,7 +14,10 @@ import subprocess
 import unittest
 from pathlib import Path
 
-SCRIPTS_DIR = Path.home() / ".agents" / "skills" / "rich-audit" / "scripts"
+# Use __file__ instead of Path.home() so tests work in CI runners
+# where the repo is checked out to /home/runner/work/<repo>/<repo>/,
+# not symlinked into ~/.agents/skills/.
+SCRIPTS_DIR = Path(__file__).resolve().parent
 
 
 def _run_script(name: str, timeout: int = 60) -> dict:
