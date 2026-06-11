@@ -5,10 +5,13 @@ on:
     branches: [main]
     paths:
       - 'rich-audit/**'
+      - '.github/workflows/rich-audit-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'rich-audit/**'
+      - '.github/workflows/rich-audit-ci.yml'
+  workflow_dispatch:  # allow manual re-run from UI / gh cli
 
 # 防止 rich-audit 自己 trigger 自己 (递归 CI)
 concurrency:
