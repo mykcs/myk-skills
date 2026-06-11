@@ -38,6 +38,29 @@ jobs:
           echo "# CI stub" > ~/.claude/knowledge/cases/wiki/README.md
           mkdir -p ~/.claude/hooks ~/.claude/scripts ~/.claude/rules ~/.claude/memory
           echo "# CI stub" > ~/.claude/memory/MEMORY.md
+          # Stub a script so lint_runner has >=1 file to scan
+          printf '#!/bin/bash\necho "stub"\n' > ~/.claude/scripts/stub.sh
+          chmod +x ~/.claude/scripts/stub.sh
+          # commands/ for commands_to_skills_migrator
+          mkdir -p ~/.claude/commands
+          echo "# stub command" > ~/.claude/commands/stub-cmd.md
+
+      - name: Stub ~/.agents/skills (skill detection scripts need this)
+        # 3 detection scripts (skill_overlap_enhancer / skill_authoring_checker /
+        # description_person_checker / reference_depth_checker) read ~/.agents/skills/.
+        # CI runner has no symlink, so create a minimal stub with 1 valid skill.
+        run: |
+          mkdir -p ~/.agents/skills/stub-skill
+          cat > ~/.agents/skills/stub-skill/SKILL.md <<'EOF'
+          ---
+          name: stub-skill
+          description: Stub skill for CI testing - this is a third-person description.
+          metadata:
+            version: "1.0.0"
+          ---
+          # Stub Skill
+          CI stub for detection script smoke tests.
+          EOF
 
       - name: Run unittest (10 tests)
         working-directory: rich-audit
