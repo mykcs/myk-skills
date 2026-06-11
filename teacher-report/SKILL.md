@@ -1,5 +1,6 @@
 ---
 
+**v0.8.0 changelog (2026-06-11)**: 深度+1 编号重构. h2 = `1.X.` (5 章 → 1.1./1.2./1.3./1.4./1.5.), h3 章节 = `1.X.Y.` (原 1.1./2.1./3.2./5.3. → 1.1.1./1.2.1./1.3.2./1.5.3.). paper card h3 (N. Title) 不变. 13 docs × 5 h2 + 11-12 h3 = 65 + 144 = 209 段统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). **16 项 LLM 自检 (15 v0.7.0 + Check 16 深度+1 编号)**. 与 v0.2.5 (`h2=1.`) + v0.7.0 (`h3=1.1.`) 旧规则均冲突, 全部作废.
 **v0.7.0 changelog (2026-06-11)**: H1-H4 编号标题 dot 后缀硬要求 (`1.1` → `1.1.`, `1.1.1` → `1.1.1.`, `1` → `1.`). 13 docs × 11-12 H3 = 144 段统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). **15 项 LLM 自检 (14 v0.6.0 + Check 15 编号 dot 后缀)**. 与 v0.2.5 旧规则 (`h3 = 1.1` 无 dot) 冲突, 旧规则作废.
 **v0.6.0 changelog (2026-06-11)**: H2 标题去装饰性 emoji 硬要求 (来源 13 docs × 5 H2 = 65 段统一清理, 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). 14 项 LLM 自检 (新增 Check 14: H2 标题无装饰性 emoji). 装饰性 emoji 集合: 👤📊✉📚📖🎯ℹ 等图标类; 保留 ✅❌⚠⭐🟢🟡🔴⛔🚨 等状态/信号类 (allowlist).
 **v0.4.0 changelog (2026-06-10)**: Progressive disclosure refactor (Anthropic SKILL.md 500-line best practice). 1300 → 435 lines (-67%). 3 reference files: url-validation-rules.md (277) + paper-entry-v0.3.9.md (233) + output-schema-v0.3.9.md (413). v0.3.9 paper card demoted to reference (legacy), v0.4.0 紧凑 promoted to default. 13 项 LLM 自检强化 (新增 Check 13 Wiki Subject Author Verification).
@@ -11,8 +12,9 @@ description: |
 
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks (title numbering, ① ②, block charts, TL;DR, 5-section, Persona footer), outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
-  **v0.4.0 (2026-06-10) 默认紧凑 + v0.3.9 完整版 fallback**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list with Chinese 括注, arXiv inline title (v0.4.0 紧凑默认) 或 arXiv + papers.cool URL (v0.3.9 完整版, ≤3 篇论文时), **15 项 LLM 自检 (14 v0.6.0 + Check 15 H3 编号 dot 后缀, 2026-06-11)**, verifiable claims (v0.2.9 anti-hallucination). See body §Paper Card v0.4.0 紧凑 + references/paper-entry-v0.3.9.md (legacy) + references/output-schema-v0.3.9.md (12 项自检) + §Anti-Hallucination Rules.
+  **v0.4.0 (2026-06-10) 默认紧凑 + v0.3.9 完整版 fallback**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list with Chinese 括注, arXiv inline title (v0.4.0 紧凑默认) 或 arXiv + papers.cool URL (v0.3.9 完整版, ≤3 篇论文时), **16 项 LLM 自检 (15 v0.7.0 + Check 16 深度+1 编号, 2026-06-11)**, verifiable claims (v0.2.9 anti-hallucination). See body §Paper Card v0.4.0 紧凑 + references/paper-entry-v0.3.9.md (legacy) + references/output-schema-v0.3.9.md (12 项自检) + §Anti-Hallucination Rules.
   **v0.7.0 (2026-06-11) H1-H4 编号标题 dot 后缀硬要求**: 编号标题必须以 `.<space>` 结尾, 即 `1.1` → `1.1.`, `1.1.1` → `1.1.1.`, `1` → `1.`. 13 docs × 11-12 H3 = 144 段统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). Check 15: H3 编号 dot 后缀 (LLM 自检强化). 与 v0.2.5 旧规则 (h3 = `1.1` 无 dot) 冲突, 旧规则作废.
+  **v0.8.0 (2026-06-11) 深度+1 编号重构**: heading 级别 + 1 段编号. h2 = `1.X.` (5 章统一在 doc parent `1` 下: 1.1./1.2./1.3./1.4./1.5.), h3 章节 = `1.X.Y.` (3 段: 1.1.1./1.2.1./1.3.2./1.5.3.). 13 docs × 5 h2 + 11-12 h3 = 209 段统一清理. Check 16: 深度+1 编号 (LLM 自检强化). 与 v0.2.5 (`h2=1.`) + v0.7.0 (`h3=1.1.`) 旧规则均冲突, 全部作废. paper card h3 (N. Title) 不变.
   **v0.6.0 (2026-06-11) H2 标题无装饰性 emoji 硬要求**: 5 大章节 H2 标题 (导师与课题组画像 / 申博匹配度评估 / 套磁与申请建议 / 论文产出全景 / 数据来源与说明) **禁止**使用装饰性图标 emoji (👤📊✉📚📖🎯ℹ 等); 允许状态/信号类 (✅❌⚠⭐🟢🟡🔴⛔🚨). 13 docs × 5 H2 = 65 段统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). Check 14: H2 标题无装饰性 emoji (LLM 自检强化).
 
   **v0.5.0 (2026-06-10) 申博实操增强**: 5 h2 框架不变, 8 新 h3 字段叠加: §1.3 招生偏好 (名额/竞争/卡本科) + §1.4 培养模式 (指导/组会/放羊/实习) + §1.5 科研资源 (GPU/经费/出国) + §2.2 团队氛围 (优点/缺点/矛盾说法) + §2.3 毕业去向 (年限/就业/留校) + §3.2 申请时间节点 (套磁/材料/考核/录取). 数据源扩到 L7 申博论坛 (mysupervisor.org + 学院 PDF + 知乎/小红书/博客园), L7 字段用 [社区来源] 标签与 L1 官网区分. 详见 §v0.5.0 申博实操增强 章节.
@@ -61,84 +63,29 @@ If 1 + 2 are both missing, do NOT start fetching — ask the user.
 
 ### Step 0 — Mode selection (v0.3.4+)
 
-- **Generation mode (default)**:user 提供老师姓名 / 学校,生成新 docx
-- **Audit mode**:user 提供 docx URL / doc_id,审计已有 docx 合规性
-- **Rewrite mode (v0.3.4+ 新增)**:user 提供 docx URL / doc_id + 显式 "按 skill 模板重写 / 排版 / 规范化 / 升级到 v0.3.3" 指令 → fetch + 解析 + 按 v0.3.3 fixed-template 全量 regenerate + `overwrite`
+- **Generation mode (default)**: user 提供老师姓名/学校 → 生成新 docx
+- **Audit mode**: user 提供 docx URL/doc_id → 审计合规性
+- **Rewrite mode (v0.3.4+)**: user 提供 docx + "按模板重写/排版/规范化/升级" 指令 → 全量 regenerate
 
-**Rewrite 触发词** (任一即触发 Rewrite mode):
-- "按 skill 模板重写" / "按 v0.3.3 重写" / "规范化 doc"
-- "重排版" / "按模板排版" / "升级到最新格式"
-- "fix this doc to match the skill"
-- "regenerate according to skill template"
+**Mode 判定**: 触发词含 "审计/audit/检查/合规/review" → Audit; 含 "调研/生成/写一份" → Generation; 显式提供老师姓名 → Generation; 显式 docx URL 且无 Generation 触发词 → Audit.
 
-**Rewrite 不响应场景** (LLM 必须显式 user-confirm 才执行):
-- 用户只说 "审计一下 [URL]" → 走 Audit mode, **不** 自动 rewrite
-- 用户说 "看看 [老师] 报告合不合规" → 走 Audit mode
-- 用户说 "fix this" 但没指明 docx URL → 反问 user 哪一篇, 不要随便 apply to 9 docs
+**Rewrite 触发词**: "按 skill 模板重写" / "按 v0.3.3 重写" / "规范化 doc" / "重排版" / "按模板排版" / "升级到最新格式" / "fix this doc to match the skill" / "regenerate according to skill template".
 
-**Mode 判定**:
-- 触发词含 "审计 / audit / 检查 / 合规 / review" → Audit mode
-- 触发词含 "调研 / 生成 / 写一份 / 看看这位老师" → Generation mode
-- 显式提供 docx URL/doc_id 且无 Generation 触发词 → Audit mode
-- 显式提供老师姓名 → Generation mode
+**Rewrite 不响应场景**: user 只说 "审计一下 [URL]" → Audit mode, 不自动 rewrite. user 说 "fix this" 但没指明 docx URL → 反问 user 哪一篇.
 
 ### Step 1 — Data fetching (4-level fallback)
 
-> **🚨 硬规则**(违反 = skill 协议破坏):
-> - **L2 Semantic Scholar 失败时,只准 1 次 5s 重试,任何 5s/15s/30s/60s 指数退避 = 违反本 skill**。L4 web_search 聚合是 S2 字段的有效替代,直接跳。
-> - **L3 DBLP pid 0 hits 时,不要无限重试**,直接走 L4 web_search。
-> - **L1 抓到 SPA 锚点不全时,必须切 playwright**,不要只 webfetch。
-> - **任何 L1-L4 抓取中,"导师本人一作顶会论文数"是必查字段**,0 → 风险灯号 🟡 中(见 Failure handling)。
+> **🚨 硬规则**:
+> - L2 Semantic Scholar 失败时, **只准 1 次 5s 重试**, 任何 5s/15s/30s/60s 指数退避 = 违反本 skill. L4 web_search 聚合是 S2 字段的有效替代, 直接跳.
+> - L3 DBLP pid 0 hits 时, 不要无限重试, 直接走 L4.
+> - L1 抓到 SPA 锚点不全时, 必须切 playwright, 不要只 webfetch.
+> - 任何 L1-L4 抓取中, "导师本人一作顶会论文数" 是必查字段, 0 → 风险灯号 🟡 中 (见 §Failure handling).
 
-> **🚨 飞书标准标题号硬要求(v0.7.0 升级, v0.2.5 旧规则作废, 违反 = skill 协议破坏)**:
-> - **h1 / h2 / h3 / h4 编号标题**:`1.` `2.` `3.` / `1.` `2.` `3.` / **`1.1.` `2.1.` `3.2.` (h3 必须带 dot 后缀)** / `1.` `2.` `3.` (h4 同 h2)
-> - **核心 v0.7.0 变更**: h3 编号标题从 v0.2.5 的 `1.1` (无 dot) 升级到 v0.7.0 的 `1.1.` (有 dot 后缀), 与 h2/h4 一致。**所有 5 大章节下的 H3 编号 (1.1/1.2/1.3/1.4/1.5/2.1/2.2/2.3/3.1/3.2/3.3/5.1/5.2/5.3) 末尾必须加 `.` 再接空格**
-> - **示例**:
->   - v0.2.5 旧: `2.3 毕业要求与毕业去向` ❌
->   - v0.7.0 新: `2.3. 毕业要求与毕业去向` ✓
->   - h2 不变: `1. 导师与课题组画像` (已带 dot) ✓
->   - h4 不变: `1. xxx` (已带 dot) ✓
-> - **禁止**手动 `(1) (2) (3)` 编号 — 飞书 outline 不识别,user 看不到大纲
-> - **禁止**论文精读内联 `① ② ③` 字符 — 用 `<p><b>完整标题</b></p>` 即可,飞书 outline 通过 h4 定位
-> - **禁止** `████████` 字符画 — 趋势表用 `<table>` + 精确数字(LLM-prompt §7)
-> - **不混用** `1.` / `1.1.` / `(1)` / `①` 四种编号风格 (v0.7.0 后 h3 用 `1.1.`, paper card h3 用 `1.`)
-> - **论文精读标题**:完整标题 + `(venue year)` + `⭐/📝/⚠️/🆕` 状态标记(无 arXiv id / 无作者列表)
-> - **执行状态**: 13 docs × 11-12 H3 = 144 段已统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb, 2026-06-11), 0 doc 仍含无 dot 的 H3 编号
-> - **详见**:`references/report-template.md §5` 论文精读模板 + `references/normalization-audit-2026-06-05.md`(4 文档规范化审计追踪)
+**数据源链**: L1 学校/学院官网 (webfetch → playwright 兜底) → L2 S2 API → L3 DBLP → L4 MiniMax web_search → L5 kimi-webbridge → L6 anysearch → **L7 申博论坛 (v0.5.0 新增, mysupervisor.org + 学院 PDF + 知乎 + 小红书 + 博客园)**.
 
-Try sources in this order. Stop when a source yields enough signal; you do not need all four.
+**L7 反幻觉**: L1 字段 (学术身份/职务/email) → 无标签; L7 字段 (招生偏好/团队氛围/培养模式) → 必显式标 `[社区来源]` 或 `[社区-多人共识]` (≥3 条独立); L1+L7 冲突 → 标 `[冲突: L1 vs L7]`.
 
-| Level | Source | How to query | What to extract |
-|-------|--------|-------------|----------------|
-| L1 | 学校/学院官网 | **`webfetch` 先试静态 HTML**;失败 / 明显是 SPA 框架(`<div id="app"></div>` 标记)→ **切 `playwright` MCP** `browser_navigate` + `browser_snapshot` 拿渲染后文本。ZJU common patterns: `person.zju.edu.cn/{pinyin}` (`{pinyin}` 是 LLM 不可猜的 slug — 见 §URL 验证硬规则), `mypage.zju.edu.cn/{pinyin}`, `cs.zju.edu.cn` faculty page | 基本信息、职称、行政职务、联系方式、研究方向、代表性工作 |
-| L2 | Semantic Scholar API | `https://api.semanticscholar.org/graph/v1/author/search?query={name}&fields=name,affiliations,paperCount,hIndex,homepage` then `/author/{id}/papers?fields=title,year,venue,citationCount,authors&limit=100` | 论文清单（近 3 年）、h-index、合作者 |
-| L3 | DBLP | `https://dblp.org/search/author/api?q={name}&format=json` then `/pid/{pid}.xml` for full paper list | 论文 venue 标准化(DBLP 提供的 venue 是规范名,不是缩写) |
-| L4 | MiniMax Web Search (优先) | `mcp__MiniMax__web_search` MCP tool 搜 `"{name}" {university} site:arxiv.org` 或 `"{name}" personal homepage`. Mainland China 可用 | 论文全文(arXiv abs 页面)、个人 CV、学生名单、研究亮点 |
-| L5 | Kimi WebBridge (浏览器兜底) | `kimi-webbridge` skill 调用真实 Chrome,打开 `arxiv.org/abs/{id}` 拿 abstract + 完整作者列表 + arXiv ID。SPA 渲染不下来的论文用这个 | arXiv abs 完整 HTML(渲染后)、下载图片/附件、个人主页 1-click 截图 |
-| L6 | AnySearch (最后兜底) | `anysearch` skill 23 个垂直域 + 实时网页抽取,搜 `"{paper_title}"` 或 `"{name}" CV filetype:pdf` | 真实 PDF 链接、研究亮点汇总、跨平台交叉验证 |
-| **L7** | **申博论坛 (v0.5.0 新增, 2026-06-10)** | `mysupervisor.org` 浙大CS学院导师 213 位 + 16 条评价/PI (适用性 100% 浙大CS, 985 高校类比) / 学院 PDF 招生意向信息表 (含意向学生需求数) / 知乎 1.4w 字长文 (浙大CS考研超详解 等) / 小红书 套磁经验贴 / 博客园 cnblogs 保研朝花夕拾 | **团队氛围** (mysupervisor 16 评价 → 优/缺点/矛盾说法) + **招生偏好** (名额/竞争度/卡本科) + **培养模式** (指导频率/组会/放羊) + **毕业去向** (年限/就业/留校) |
-
-L2 (Google Scholar) is intentionally **skipped** in mainland-China network environments — go L2 Semantic Scholar → L3 DBLP → L4 MiniMax → L5 Kimi WebBridge → L6 AnySearch.
-
-**v0.5.0 L7 数据源使用规则** (社区数据, 必须带标签):
-- L1 官网字段 (学术身份/职务/email) → 无标签, 默认权威
-- L7 论坛字段 (招生偏好/团队氛围/培养模式) → 必须显式标 `[社区来源]` 或 `[社区-多人共识]` (≥3 条独立帖子)
-- L1 + L7 冲突 → 标 `[冲突: L1 vs L7]`, 让用户自己判断
-- L7 抓不到 → `❓ 待补 (建议路径: 套磁时追问 / 学长咨询)`, 走 callout 占位
-- **禁止**: 把 L7 字段写得像 L1 一样权威; 必须保留置信度信号
-
-**v0.3.4 搜索链(vs 旧 L1→L2→L3→L4)**:
-- L1 官网 → L2 S2 → L3 DBLP → **L4 MiniMax** (mcp__MiniMax__web_search, 优先用) → **L5 Kimi WebBridge** (浏览器兜底, SPA/动态渲染场景) → **L6 AnySearch** (23 域垂直 + 实时抽取, 最后兜底)
-- 顺序逐级 fallback, 任一级成功即可停;失败时跳下一级
-- 论文数据采集用 L4/L5 优先(覆盖 arxiv abs 完整内容),L6 做交叉验证
-- 反例:不要一上来用 L6(anysearch 太宽泛),先用 L4/L5 精确抓 arxiv
-
-**🚨 v0.1 CCF-A/B 限制 (2026-06-05)**:**本 skill 当前不在报告中标注 CCF 等级**。`LLM 估算` 的 "CCF-A 65" 数字不可信,容易被反例数据(LLM 把 ICLR submitted 当 CCF-A)污染。报告里**只写 venue 名**(NeurIPS / ICLR / ACL / KDD / TPAMI),**不写 CCF-A/B**。v0.2 实现方案见 `data-sources.md §CCF mapping (deferred)`。
-
-If L1 fails (e.g., personal page 404 or 动态加载), continue to L2 — the data is still salvageable.
-
-
----
+完整 L1-L7 字段映射表 + ZJU URL 模式 + S2 API 字段详见 `references/data-sources.md`.
 
 ## 🚨 URL 验证硬规则 (2026-06-09 写入, 违反 = skill 协议破坏)
 
@@ -217,7 +164,7 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **v0.4.0 inline 标记**: 通讯 `(通讯)`, 大老板 `**(大老板)**`, 一作/共一 `(一作: X, Y)` 全部 inline 在 author 行
   - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格 / 用缩写
   - LLM 必须自检 (无论 v0.3.9 还是 v0.4.0): 每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表(全作者带中文括注) + §G 通讯作者真实 byline + `发表：` 1 字段 + `arXiv：` 1 字段 (v0.4.0 嵌入 title, v0.3.9 单独行)
-  - v0.4.0 还需自检: arXiv ID 嵌入 `<h3>` title + arXiv URL 是 1-click 入口 + **15 项 v0.4.0 必跑 (14 项 v0.6.0 通用 + Check 15: H3 编号 dot 后缀, 2026-06-11)**, 详见 v0.4.0 章节 + `references/paper-card-v0.4.0.md §6`
+  - v0.4.0 还需自检: arXiv ID 嵌入 `<h3>` title + arXiv URL 是 1-click 入口 + **16 项 v0.4.0 必跑 (15 项 v0.7.0 通用 + Check 16: 深度+1 编号, 2026-06-11)**, 详见 v0.4.0 章节 + `references/paper-card-v0.4.0.md §6`
 
 
 ---
@@ -231,199 +178,19 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
 > **选型指南**: 论文 ≤ 3 篇 → v0.3.9 完整版 (信息密度高) / 论文 ≥ 10 篇 → v0.4.0 紧凑版 (节省 53% 篇幅, Feishu outline 展开)。同一 doc 中可混用, 但**同一论文不能同时用两种格式**。
 
 ---
-## Paper Card v0.4.0 紧凑 (2026-06-10 新增) — 替代 v0.3.9 完整版
+## Paper Card v0.4.0 紧凑 (2026-06-10 新增)
 
-> **背景**: v0.3.9 完整版 15 行/paper 对 ≥ 10 篇 paper 清单 (e.g. 邓舒敏 12 篇 / 刘泽民 30+ 篇) 太长. v0.4.0 紧凑版 7 行/paper, **不损失任何关键信息** (4 维 taxonomy / 完整作者 / §G audit 通讯 / §H 一作信号), 但视觉压缩 53%.
+> **完整 9 轮 grill-with-docs 决策记录 + 7-line 模板 + inline 标记规则 + 16 项 v0.8.0 LLM 自检清单**已下沉到 [`references/paper-card-v0.4.0.md`](references/paper-card-v0.4.0.md) (~290 行, 2026-06-10 拆分; v0.8.0 加 Check 16 深度+1 编号).
 >
-> **完整规范**: `references/paper-card-v0.4.0.md` (9 轮 grill-with-docs 问答定型, 9 项决策记录)
+> **TL;DR**: v0.3.9 完整版 15 行/paper 对 ≥10 篇 paper 太长, v0.4.0 紧凑版 7 行/paper 不损失关键信息, 节省 53% 篇幅.
 >
-> **适用场景**:
-> - 论文清单 ≥ 10 篇 (节省篇幅, Feishu outline 直接展开 12 h3 paper titles)
-> - Reader 想要横向对比 (4 维 taxonomy 4 行对齐, scannable)
-> - 飞书 outline 偏好 (h3 paper title 不嵌套 h4)
->
-> **不适用场景**:
-> - 论文 ≤ 3 篇 (e.g. 套磁信 1-2 篇深度引用) → 继续用 v0.3.9 完整版
-> - 论文需要详细 abstract 摘要 → v0.4.0 不含 abstract 字段, 用 v0.3.9
-
-### Paper Card v0.4.0 7-line 模板 (硬要求)
-
-```xml
-<h3>{N}. {TITLE} <a href="https://arxiv.org/abs/{ARXIV_ID}">[arXiv {ARXIV_ID}]</a></h3>
-<p>{AUTHOR_LIST_WITH_INLINE_MARKERS}</p>
-<p>{VENUE} {YEAR} ({ROLE})</p>
-<p>大领域：{D}</p>
-<p>中方向：{M}</p>
-<p>小任务：{T}</p>
-<p>子技术：{S}</p>
-```
-
-**严格 7 行 (加 1 空行) per paper card**. 任何 8-th line 禁止.
-
-### v0.4.0 inline 标记规则 (author 行)
-
-| 维度 | 规则 | 样例 |
-|------|------|------|
-| 通用作者 | `English Name（中文名）` 一律, 不区分师生 | `Xiaohan Wang（王晓晗）` |
-| 外籍作者 | 保留英文, 不加中文括注 | `Bryan Hooi` |
-| 通讯 | author 行末尾追加 `(通讯)` tag | `..., **Name（中文）**(大老板)(通讯)` |
-| 大老板 | bold `**...**` + `(大老板)` tag | `**Huajun Chen（陈华钧）**(大老板)` |
-| 共同末位 | 都 bold + `(大老板)`, 各自可能 (通讯) 或不 | `..., **Nanyun Peng（彭南云）**(通讯), **Huajun Chen（陈华钧）**(大老板)(通讯)` |
-| 一作/共一 | author 行末尾追加 `(一作: X, Y)` (共一用括号分隔) | `(一作: Xiaohan Wang, Shengyu Mao)` |
-| 一作 = 通讯 | 双重身份同时标 | `(大老板)(通讯) (一作: Name)` |
-
-### v0.4.0 完整样例 (邓舒敏 12 papers 中 #11 Editing Conceptual Knowledge)
-
-```xml
-<h3>11. Editing Conceptual Knowledge for Large Language Models <a href="https://arxiv.org/abs/2403.06259">[arXiv 2403.06259]</a></h3>
-<p>Xiaohan Wang（王晓晗）, Shengyu Mao（毛圣雨）, Ningyu Zhang（张宁豫）, Shumin Deng（邓舒敏）, Yunzhi Yao（姚蕴之）, Yue Shen（沈悦）, Lei Liang（梁磊）, Jinjie Gu（顾津锦）, **Huajun Chen（陈华钧）**(大老板)(通讯) (一作: Xiaohan Wang, Shengyu Mao)</p>
-<p>EMNLP 2024 Findings (Findings)</p>
-<p>大领域：自然语言处理</p>
-<p>中方向：知识编辑</p>
-<p>小任务：概念级知识编辑</p>
-<p>子技术：ConceptEdit 数据集; 概念级知识; 知识更新</p>
-```
-
-### v0.3.9 vs v0.4.0 对比
-
-| 维度 | v0.3.9 完整版 | v0.4.0 紧凑版 |
-|------|--------------|--------------|
-| 行数 per paper | 15 行 | 7 行 (-53%) |
-| 标题级别 | `<p>` 段落 | `<h3>` heading (Feishu outline 可见) |
-| 通讯作者 | 单独 `<p>通讯作者：X</p>` 行 | author 行内 `(通讯)` tag |
-| 大老板 | 单独 `<p>作者角色：X</p>` 行 | author 行内 `**(大老板)**` bold + tag |
-| 一作/共一 | 单独 `<p>一作/共一：X</p>` 行 | author 行末 `(一作: X, Y)` |
-| arXiv URL | 单独 `<p>arXiv：URL</p>` 行 | 嵌入 title `[arXiv ID]` |
-| paperscool URL | 单独 `<p>paperscool：URL</p>` 行 | (无, arXiv 1-click 入口替代) |
-| 12 项 LLM 自检 | 必跑 | **必跑 (同样 100%)** |
-| §G audit 通讯 | 必跑 | 必跑 (通讯 inline tag 数据源) |
-| §I hallucination 检查 | 必跑 (4-index 0 results 标 ⚠️) | 必跑 |
-| 数据完整性 | 100% 一致 | 100% 一致 |
-| 主动丢弃 | — | paperscool URL / URL 类型行 / 作者角色行 / abstract |
-
-### 15 项 v0.7.0 LLM 自检清单 (14 项 v0.6.0 通用 + **Check 15 H3 编号 dot 后缀**, 2026-06-11 加, 必跑)
-
-| # | 检查项 | 通过条件 | 常见错误 |
-|---|--------|---------|----------|
-| 1 | 标题 verbatim | 完全从 arXiv abs 页复制 | ❌ 中途截断 / 错字字符 |
-| 2 | 标题无 et al. 缩写 | 完整标题 | ❌ 缩写 |
-| 3 | 标题 h3 + arXiv ID inline | `<h3>N. Title [arXiv X]</h3>` | ❌ 用 `<p>` 而非 h3 |
-| 4 | 4 行 taxonomy 顺序 | 大领域→中方向→小任务→子技术 | ❌ 顺序错乱 |
-| 5 | 4 行 taxonomy 无 table | 4 个 `<p>` 块 | ❌ 4 列表格 |
-| 6 | taxonomy + 作者 无占位符 | 4 字段 + 作者列表均有具体值 | ❌ `[待补]` / `[未知]` |
-| 7 | 作者完整 verbatim | 全部列出, 无 et al. | ❌ 省略 / 缩写 |
-| 8 | 禁止 (末位/通讯) 缩写 | author 行无描述性缩写 | ❌ 缩写 |
-| 9 | 全作者中文括注 | 100% 作者含 `Name（中文名）` | ❌ 部分漏标 |
-| 10 | inline 标记齐全 | 通讯/大老板/一作 全部 inline | ❌ 缺一 |
-| 11 | 真实 1-click URL | `<a href="...">[arXiv X]</a>` 嵌入 title | ❌ URL 缺失 |
-| 12 | arXiv ID 真实 (v3.xxxx 格式) | placeholder 禁止 | ❌ `[待 L4/L5/L6 重抓]` |
-| **13** | **Wiki Subject Author Verification (2026-06-10 新增, 来源 邓舒敏 v0.1.0→v0.3.5 EasyEdit/WISE 误归 case)** | **wiki subject 必须在 paper author list 里** | ❌ wiki subject NOT in author list → paper 误归, 必删除 (不允许"是导师组 paper 算 wiki subject 组"借口) |
-| **14** | **H2 标题无装饰性 emoji (2026-06-11 v0.6.0 新增, 来源 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 5 H2 = 65 段清理)** | **5 大章节 H2 标题不含装饰性 emoji (👤📊✉📚📖🎯ℹ 等); 状态/信号类 (✅❌⚠⭐🟢🟡🔴⛔🚨) 允许** | ❌ "👤 1. 导师与课题组画像" / "📊 2. 申博匹配度评估" / "✉️ 3. 套磁与申请建议" / "📚 4. 论文产出全景" / "ℹ️ 5. 数据来源与说明" → 应改为 "1. 导师与课题组画像" / "2. 申博匹配度评估" 等纯中文标题 |
-| **15** | **H1-H4 编号标题 dot 后缀 (2026-06-11 v0.7.0 新增, 来源 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 11-12 H3 = 144 段清理)** | **编号标题必须以 `.<space>` 结尾: h1=`1.`, h2=`1.`, h3=`1.1.`, h4=`1.1.1.`** | ❌ "2.3 毕业要求与毕业去向" → 应改为 "2.3. 毕业要求与毕业去向" (与 v0.2.5 `h3=1.1` 无 dot 旧规则作废, 13 docs 144 段已统一清理) |
-
-### v0.4.0 适用位置 (全 docx 强制, 5 章均生效)
-
-1. **§4 论文产出全景** — 每个 paper card 7 行
-2. **§2.2 方向匹配度** — 引用具体论文时, 7 行 paper card
-3. **§3 套磁信草稿** — 套磁信引用 1-2 篇论文时, 7 行 paper card
-4. **§1.2 / §1.3 学生代表作** — 列每位博士代表作时, 7 行 paper card
-
-### v0.3.9 → v0.4.0 迁移 (block-level 升级)
-
-适用 `v0.3.6 §C 块级升级协议` (保留原内容, 只对 paper card blocks 用 `block_replace`):
-
-```bash
-# 对每个 paper card, block_replace 从 15 行换 7 行
-lark-cli docs +update --api-version v2 --doc {DOC_ID} \
-  --command block_replace --block-id {PAPER_CARD_BLOCK_ID} \
-  --content @paper-card-v040-7lines.xml
-```
-
-**仅适用场景** (v0.3.6 §C 边界):
-- 论文 ≥ 10 篇 (v0.4.0 节省 53% 篇幅值得)
-- 现有 v0.3.9 doc 已合 §G audit (真实通讯作者, 不会因压缩丢信息)
-- Reader 偏好 scannable 横向对比
-
-**保留 v0.3.9 完整版场景**:
-- 论文 ≤ 3 篇 (v0.3.9 完整版视觉更清晰)
-- 论文需要 abstract 摘要
-- 同一 doc 中混用 (e.g. §1 用 v0.3.9, §4 用 v0.4.0) — 但同一论文不能同时用两种格式
-
-### v0.4.0 设计决策来源
-
-详见 `references/paper-card-v0.4.0.md` §12:
-- 9 轮 grill-with-docs 问答定型 (2026-06-10)
-- 关键 trade-off: 视觉紧凑 vs 信息密度 (v0.4.0 选视觉)
-- 关键 trade-off: 单独行 vs inline 标记 (v0.4.0 选 inline, 节省 8 行)
-- 关键 trade-off: 学生识别 (v0.4.0 放弃, 减少数据成本)
-- 关键 trade-off: 一作/共一 单独行 vs 行末 (v0.4.0 选行末)
-
----
+> **选型**: 论文 ≤3 篇 → v0.3.9 完整版; 论文 ≥10 篇 → v0.4.0 紧凑版; 同一 doc 可混用但同一论文不混.
 
 ## v0.5.0 申博实操增强 (2026-06-10 新增)
 
-> **背景**: v0.4.0 论文导向 (5 h2 + 2-4 h3) 满足 "找方向" 阶段; 但 "申博可入度" 阶段需要 8 个**操作维度** (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点), v0.4.0 完全没覆盖. v0.5.0 保留 5 h2 框架, 在 §1/§2/§3 内部叠加 8 个新 h3, 总 h3 数 2 → 12.
-
-### 8 新 h3 字段映射
-
-| h2 | h3 | 内容 | 数据源 | 标签规则 |
-|----|-----|------|--------|---------|
-| **1. 导师与课题组画像** | **1.1 基本信息与学术身份** (扩) | 学术荣誉/兼职/职务/email | L1 官网 | 无标签 |
-| | 1.2 研究方向与近年课题 (扩) | 子方向 + 近期 NSFC/重点研发 | L1 + S2 | 无标签 |
-| | **1.3 招生偏好** (新) | 名额/竞争度/本科卡否/背景偏好 | L7 学院 PDF + mysupervisor + 知乎 | [社区来源] |
-| | **1.4 培养模式** (新) | 指导频率/组会/放羊/实习允许度 | L7 mysupervisor + 知乎 + 学长 | [社区来源] |
-| | **1.5 科研资源** (新) | GPU/经费/出国/实习 | L1 主页 + L7 知乎 | [社区来源] 混合 |
-| **2. 申博匹配度评估** | 2.1 方向契合度 (existing) | 论文方向 × 用户方向 | L1 + L2 | 无标签 |
-| | **2.2 团队氛围与学生评价** (新) | 优点/缺点/矛盾说法 (并列) | L7 mysupervisor 16 评价/PI | [社区-多人共识] 必有 |
-| | **2.3 毕业要求与毕业去向** (新) | 年限/论文要求/就业/留校 | L7 知乎/小红书 + L1 alumni 页 | [社区来源] 混合 |
-| **3. 套磁与申请建议** | 3.1 套磁信 (existing) | callout | L1 主页 | 无标签 |
-| | **3.2 申请时间节点** (新) | 套磁/材料/考核/录取 timeline | L1 学院 + 浙大研招 | [官方时间] |
-| | 3.3 风险点 (existing) | callout | 推断 | 无标签 |
-| 4. 论文产出全景 (unchanged) | | | L1-L4 | 无标签 |
-| 5. 数据来源与说明 (扩) | 5.1 L1-L4 数据源 (existing) | | | |
-| | **5.2 L7 社区数据 (新)** | 列出 mysupervisor 抓取时间 / 知乎 URL / 学院 PDF URL | L7 | 显式标 [L7 社区] |
-
-### v0.5.0 数据缺失策略 (3 选项, AskUserQuestion 2026-06-10 选 ❓ 待补 callout 占位)
-
-每 h3 章节末**强制**附 ⚠️ callout 列出本节缺失字段 + 建议补充路径:
-- 缺失字段: `❓ 2027 Fall 招生名额`, `❓ 实际带生者 (1v1 vs 团队)`, `❓ 学生毕业去向`
-- 建议补充路径: 套磁时追问 / mysupervisor 新评价 / 知乎最新经验贴 / 课题组 alumni LinkedIn
-- 与 §5 ❓ 待补机制对齐: 顶部 callout 集中汇总, 避免分散
-
-### v0.5.0 L7 反幻觉协议
-
-- **mysupervisor 1 条评价 ≠ 共识**: 必须 ≥3 条独立评价才能标 [社区-多人共识]; 1-2 条标 [社区-个别观点]
-- **知乎长文 vs 单贴**: 长文 (>5000字) 标 [社区-长文], 单贴标 [社区-单贴]
-- **学院 PDF vs 学院官网**: PDF 招生意向信息表**不是**招生计划 (招生计划以教育部下达为准), 标 [团队意向, 非官方计划]
-- **矛盾说法强制呈现**: e.g. 1 条说 "push 放羊" + 1 条说 "push 严格" → 必须**并列展示**两段 quote, 禁止 AI 仲裁
-- **冲突标注**: L1 官网说 "国家级青年学者" + L7 论坛说 "招生名额少" → 各自标源, 不合并
-
-### v0.5.0 vs v0.4.0 决策对比
-
-| 维度 | v0.4.0 (论文导向) | v0.5.0 (申博实操) |
-|------|-------------------|-------------------|
-| h2 总数 | 5 | 5 (不变) |
-| h3 总数 | 2 (1.1/1.2) | 12 (扩 +10) |
-| 数据源层 | L1-L6 论文类 | L1-L6 + **L7 论坛类** |
-| 核心问题 | 老师做什么 | 怎么进 + 进去什么样 |
-| 缺失数据处理 | 整段省略 | ❓ callout 占位 (强制保留章节) |
-| 置信度标签 | 无 (默认权威) | [社区来源] / [社区-多人共识] / [冲突: L1 vs L7] |
-
-### v0.5.0 适用场景
-
-- 申博阶段用户 (已有论文 list, 需要决策 "跟谁/怎么申")
-- v0.4.0 报告基础上叠加 (8 h3 增量, 不重写论文 card)
-- 13 PIs 全覆盖 (含 v0.1.0 占位, 走完整 v0.5.0 generator)
-
-### v0.5.0 升级路径 (block-level)
-
-- 现有 v0.4.0 docx → 用 `block_insert` 在 §1.1 后插入 §1.2/§1.3/§1.4/§1.5 (4 个新 h3 block)
-- 现有 §2/§3 同样 block_insert
-- 论文 card (§4) **不重写**, 保留 v0.4.0 紧凑版
-- §5 数据来源追加 L7 章节
-
-
----
+> **完整 8 h3 字段映射表 + L7 反幻觉协议 + 升级路径**已下沉到 [`references/v0.5.0-h3-mapping.md`](references/v0.5.0-h3-mapping.md) (67 行, 2026-06-11 拆分).
+>
+> **TL;DR**: v0.4.0 论文导向满足"找方向"阶段; 但申博可入度阶段需要 8 个操作维度 (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点), v0.4.0 完全没覆盖。v0.5.0 保留 5 h2 框架, 在 §1/§2/§3 内部叠加 8 新 h3, 总 h3 2 → 12. 数据源扩 L7 (mysupervisor.org 浙大CS 213 位 + 16 评价/PI + 知乎 + 小红书 + 学院 PDF), L7 字段用 [社区来源] 标签与 L1 区分.
 
 ## Output Schema (v0.3.9 strict, 12 项自检) — 详见 references/
 
@@ -432,116 +199,21 @@ lark-cli docs +update --api-version v2 --doc {DOC_ID} \
 > **v0.4.0 增强**: 13 项自检 (新增 Check 13 Wiki Subject Author Verification, 详见 references/paper-card-v0.4.0.md §6)。每篇 paper card 必跑, 全通过才输出。
 > **v0.6.0 增强 (2026-06-11)**: 14 项自检 (新增 Check 14: H2 无装饰性 emoji, 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 5 H2 = 65 段清理落地). 装饰性 emoji 集合: 👤📊✉📚📖🎯ℹ 等图标类; allowlist (✅❌⚠⭐🟢🟡🔴⛔🚨) 保留.
 > **v0.7.0 增强 (2026-06-11)**: 15 项自检 (新增 Check 15: H3 编号 dot 后缀, 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 11-12 H3 = 144 段清理落地). 与 v0.2.5 旧规则 (`h3 = 1.1` 无 dot) 冲突, 旧规则作废, h3 统一为 `1.1.` 形式.
+> **v0.8.0 增强 (2026-06-11)**: 16 项自检 (新增 Check 16: 深度+1 编号, 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 5 h2 + 11-12 h3 = 65+144=209 段清理落地). 与 v0.2.5 (`h2=1.`) + v0.7.0 (`h3=1.1.`) 旧规则均冲突, 全部作废. h2 统一为 `1.X.`, h3 章节统一为 `1.X.Y.`, paper card h3 (N. Title) 不变.
 
 ---
 
 ## 🚨 Paper-Set Diff 硬规则 (H1, 2026-06-10 写入)
 
-> **触发场景**: 任何 teacher-report wiki 推 draft / migrate 任务, push 前**必须**做 paper-set 双向 diff。
+> **完整触发条件 + 强制流程 + 判定矩阵 + 已知 bug**已下沉到 [`references/paper-set-diff-rules.md`](references/paper-set-diff-rules.md) (65 行, 2026-06-11 拆分).
 >
-> **来源 case**: [`~/.claude/knowledge/cases/wiki/CASE-V039-DRAFT-WIKI-MISMATCH-20260610.md`](../../knowledge/cases/wiki/CASE-V039-DRAFT-WIKI-MISMATCH-20260610.md)
-> **背景**: 2026-06-10 6 teacher wikis 共有 44 papers, draft 36 papers, **仅 5 papers match (11%)**。两套 papers 来自不同检索 query 时段, 几乎不重叠。直接 push 36 cards 实际**无法命中任何 placeholder**, 浪费 1.5h 工作 + 暴露 2 个 migrate.py bug。
+> **TL;DR**: push v0.3.x draft 到 wiki 前必跑双向 diff (wiki titles ∩ draft titles); matched < 50% 强制 STOP. 来源 case: 2026-06-10 6 teacher wikis 共有 44 papers, draft 36 papers, **仅 5 papers match (11%)**.
 
-### 触发条件 (任一即触发)
+## Anti-Hallucination Rules (v0.2.9+, 2026-06-06+)
 
-- 推 /tmp/v039-cards-{teacher}.md 等 draft 到 wiki
-- 跑 `migrate-to-v0.3.9.py --all` (会列 wikis 并 transform placeholder)
-- 跨 session 推 v0.3.x 论文条目到 v0.4.0 doc
-- 任何"我有 N 个 draft papers 要推"的批量操作
-
-### 强制流程 (push 前必跑)
-
-```bash
-# Step 1: 列 wiki 实际 paper titles (注意用 24-char obj_token, 非 19-char prefix)
-python3 -c "
-import re, json
-import subprocess
-for tok in WIKI_TOKENS:  # 从 wiki +node-list --parent-node-token=P49mwGQU0iEh9CkXbCTcC418nPb 取
-    out = subprocess.check_output(['lark-cli','docs','+fetch','--api-version=v2','--doc',tok,'--detail','with-ids','--format','json'])
-    titles = re.findall(r'<p[^>]*><b>([^<]+)</b></p>', out.decode())
-    print(f'{tok}: {titles}')
-" > /tmp/wiki-titles.json
-
-# Step 2: 列 draft paper titles
-grep "^###" /tmp/v039-cards-*.md > /tmp/draft-titles.txt
-
-# Step 3: 双向 diff (normalize: lowercase, strip punctuation, strip subtitle)
-python3 -c "
-import re
-def norm(s): return re.sub(r'[:—].*$','',re.sub(r'[^\w\s]','',s.lower())).strip()
-wiki = load_wiki()  # parse /tmp/wiki-titles.json
-draft = load_draft()  # parse /tmp/draft-titles.txt
-matched = set(wiki) & set(draft)
-print(f'wiki={len(wiki)} draft={len(draft)} matched={len(matched)}')
-print(f'wiki-only ({len(set(wiki)-set(draft))}):', sorted(set(wiki)-set(draft))[:5], '...')
-print(f'draft-only ({len(set(draft)-set(wiki))}):', sorted(set(draft)-set(wiki))[:5], '...')
-"
-```
-
-### 判定矩阵 (claudecode 强制 STOP 条件)
-
-| 场景 | matched 比例 | 决策 |
-|------|-------------|------|
-| matched == wiki == draft | 100% | ✅ 直接 push |
-| matched == draft (draft ⊂ wiki) | draft 100% | ⚠️ wiki 有 extras, 先**清理 wiki 残留 placeholder** 或**重抓 wiki-only** |
-| matched == wiki (wiki ⊂ draft) | wiki 100% | ⚠️ draft 有 extras, **加 wiki slot** 或**保留 draft 备用** |
-| matched < 50% max(wiki, draft) | **STOP** | 🛑 **整套 query 错了**, 回去对齐检索策略 (该 case 的真实状态) |
-| matched == 0 | **STOP** | 🛑 推上去无意义, 重新对齐 source-of-truth |
-
-### 同期暴露的 2 个 migrate.py bug (已修)
-
-| Bug | 现象 | 修复 |
-|-----|------|------|
-| **Bug 1**: `transform_authors` regex 只匹配 `Last, First（中文）` 格式 | wiki 现有 v0.3.9 cards 用 `First Last（中文）` 无逗号格式, transform 永远 0 替换 | rewrite regex 改 split-on-comma 方案, 同时支持两种格式 (commit 推送中) |
-| **Bug 2**: `transform_authors` 不处理 placeholder cards | placeholder 卡片是空 `<p>作者：</p>` + `<p>[完整作者列表待补]</p>`, 不是 author 行 | scope 推迟 (wiki 已 v0.4.0, placeholder 不存在) |
-
----
-## Anti-Hallucination Rules (v0.2.9, 2026-06-06)
-
-> **背景**:v0.2.8 之前的 teacher-report 曾出现系统性幻觉 —— 5 字段(论文状态/年份/作者/学生身份/职务)直接从 AI 推断而非平台校验,5 篇 ICLR 2026 论文"已撤稿"标注全部错误,行政职务滞后 2 个时间点。**后续 v0.2.9+ 必须强制走以下规则**。
-
-### 6 类事实主张的强制校验矩阵
-
-| 字段 | 必查源 | 不允许的来源 | 失败处理 |
-|------|--------|-------------|---------|
-| **论文发表状态**(Withdrawn/Accepted/Rejected/Submitted) | OpenReview API (`openreview.net/forum?id=...`) **OR** arXiv 摘要页 | ❌ AI 推断、❌ 二手数据库快照、❌ 课题组主页文字 | 查不到 → 标"❓状态未核 (OpenReview/arXiv 未公开)"，不写"已撤稿"或"已接收" |
-| **发表年/月** | arXiv 首次提交时间戳 OR DOI 公布时间 | ❌ 论文里写"2025"但实际 arXiv 提交"2024"的情况 | 必须给出 arXiv ID 或 DOI 作为锚点 |
-| **论文标题 + 作者** | arXiv abs 页 `Title:` `Authors:` 字段 | ❌ 凭印象写(中文名常错字,如"叶鑫海"vs"叶昕海") | 标题必须 verbatim 复制,作者必须 verbatim 复制 |
-| **导师行政职务** | 现任学校官网"现任职务"页(注意时间戳) | ❌ 旧版缓存、❌ 3 年前的新闻稿、❌ 维基类聚合页 | 必须给出官网 URL,注意区分"曾任"(过去)vs"现任" |
-| **学生身份归属** | 论文 byline + 课题组主页"组内成员"页 | ❌ "高频合作 = 学生"(合作者也可能是同事) | 论文里 byline + 合作频率 ≥ 5 篇 + 推断"<推断>"前缀 |
-| **统计数字**(104 篇、CCF-A ~65 等) | L1-L4 抓取后**实际计数**,不预估值 | ❌ "估算"、"约" | 必须给精确数字(自报"+"多少待补充) |
-
-### 3 个生成层 + 1 个使用层防御
-
-#### 生成前(L1-L4 抓取阶段)
-
-- 任何 L1-L4 抓取后,关键字段(year/status/author/title)必须有可追溯的 URL/arXiv ID
-- L1 抓到 SPA 不全时,必须切 playwright 渲染,不要只 webfetch(见 Failure handling)
-- 优先使用 **OpenReview API** (`https://api.openreview.net/notes`) 批量查 ICLR/NeurIPS 等会议的状态(撤回/接受/审稿中),不要靠搜索结果拼凑
-
-#### 生成中(LLM synthesis 阶段)
-
-- **关键字段不预填**:LLM 写论文清单时,状态列如果 L1-L4 没明确给出,留空 + 标"待核",**不**凭"看起来像 Withdrawn"就填 Withdrawn
-- **数字必精确**:统计 "104 篇" 这种,必须是 L1-L4 实际抓到的论文数,**不**用"约 100"或"估算"
-- **名字 verbatim**:作者中文名必须从 arXiv abs 页 verbatim 复制,AI 不要"纠正"看起来错的中文字(常因 OCR/转写污染)
-
-#### 生成后(LLM 自检阶段)
-
-- **5 字段抽样自检**:写完 docx 后,LMM 必须**随机抽 5 篇**论文,逐条在 arXiv/OpenReview 上核对(year + status + authors),不通过 → 重写该字段
-- **可信度标签**:每篇论文的 status 列后必须可加 `[v: arxiv:2512.09396]` 或 `[v: openreview:xxx]` 标签(可选用),让用户能看到哪些字段被实时核过
-
-#### 使用时(用户使用 / 后续 agent 复用)
-
-- **AI-to-AI 不免责**:后续 agent 拿到本 skill 生成的 docx 做编辑/审计/补强时,**任何事实主张必须重新核**,不允许"原文写的所以照搬"
-- **抽样校验 ≥ 10%**:用户拿到 docx 后,使用前应至少抽样 10% 的论文在 arXiv/OpenReview 上验证;**不验证 = 接受幻觉风险**
-- **"AI 整理"红线**:文档底部如有"整理人:AI"字样,后续使用者必须降低置信度,优先复核关键决策字段(导师职务/招生状态/论文状态)
-
-### 4 类绝对禁止(违反 = skill 协议破坏)
-
-1. **❌ 禁止**"凭印象 / 估算 / 大约"写论文状态 → 必须可追溯到 arXiv / OpenReview
-2. **❌ 禁止**照搬前任 AI 输出不做事实复核 → AI-to-AI 链式污染
-3. **❌ 禁止**用"高置信度模板"装饰不确凿的事实(例如把未核的"导师职务"放在 TL;DR callout 高亮框里,会被用户当作可信结论)
-4. **❌ 禁止**把"未核"状态字段(❓)藏在大段表格里,必须显式标黄/标红/单独成行,让用户能一眼看到哪些是"待补"
+> **完整 6 类校验矩阵 + 3 层生成防御 + 1 层使用防御 + 4 类绝对禁止**已下沉到 [`references/anti-hallucination-rules.md`](references/anti-hallucination-rules.md) (53 行, 2026-06-11 拆分).
+>
+> **核心**: v0.2.8 之前 teacher-report 曾出现系统性幻觉 (5 字段从 AI 推断而非平台校验, 5 篇 ICLR 2026 "已撤稿" 标注全部错误, 行政职务滞后 2 时间点)。v0.2.9+ 强制走 OpenReview/arXiv 校验矩阵。
 
 ## Failure handling
 
