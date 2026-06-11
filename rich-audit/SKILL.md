@@ -6,7 +6,7 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.5.0"
+  version: "2.6.12"
   author: mykcs
   category: self-evolution
   triggers:
@@ -368,6 +368,73 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 **脚本层安全修复**（无破坏性）：hook 清理、JSON 修复、权限重置、skill symlink 修复、orphan 清理、Python README 模板。
 
 **AI 层语义修复**（允许编辑）：合并重复规则、补充 Binary Assertions、更新陈旧记忆引用、统一 torch 版本。
+
+---
+
+## Decision Pattern Reversal (2026-06-11 引入)
+
+> **核心**: 用户决策的是"是否 revert"，而不是"是否执行"。
+> 触发 case: `~/.claude/knowledge/cases/wiki/CASE-RICH-AUDIT-DECISION-PATTERN-REVERSAL-20260611.md`
+> 反馈文件: `~/.claude/memory/feedback/feedback-rich-audit-decision-pattern-reversal.md`
+
+### 三档 auto-fix tier
+
+| Tier | 性质 | risk | requires_user_review | 例子 |
+|------|------|------|----------------------|------|
+| **1 (mechanical safe)** | 机械可逆 | low | **False** (auto-executable) | shellcheck violation / frontmatter missing field / file size > documented limit / cross-ref dangling |
+| **2 (语义安全)** | 语义判断但有客观标准 | medium | **False** (auto-executable + 30-min revert window) | skill 重命名 (Jaccard > 0.5) / 重复规则合并 / stale ref 更新 / hooks symlink stale |
+| **3 (intent-required)** | 涉及业务选择 / 价值权衡 | high OR intent type | **True** (需 user 决策) | skill 重命名 vs 删除 / 业务优先级排序 / 跨多文件改动无明确标准 / 改 framework config |
+
+### Tier 判定实现
+
+`scripts/auto_fix_proposer.py` 新增 helper:
+
+```python
+TIER3_INTENT_TYPES = frozenset({
+    "rename_skill", "delete_skill", "merge_strategy",
+    "rename_rule", "delete_rule",
+})
+
+def tier_for(risk_level, finding_type=""):
+    if finding_type in TIER3_INTENT_TYPES:
+        return 3
+    if risk_level == "high":
+        return 3
+    if risk_level == "medium":
+        return 2
+    return 1
+
+def should_require_user_review(risk_level, finding_type=""):
+    return tier_for(risk_level, finding_type) == 3
+```
+
+输出增加 `tier_counts` 字段: `{1: N, 2: M, 3: K}` 反映各 tier 数量。
+
+### 输出契约 (4 字段)
+
+```json
+{
+  "count": 136,
+  "risk_counts": {"low": 18, "high": 2, "medium": 116},
+  "tier_counts": {"1": 18, "2": 116, "3": 2},
+  "requires_user_review_count": 2
+}
+```
+
+### 反例 (仍需 user 决策 — Decision Pattern Reversal 不适用)
+
+- 跨多文件改动无明确标准 → 仍走 `behavioral-discipline.md §A` scope discipline
+- 涉及删除不可逆操作 → 仍需 user 决策
+- 改 framework config → 仍需 user 决策 (per CASE-OVER-ENGINEERED-I18N-CHANGE-20260604)
+
+### 实测验证 (2026-06-11)
+
+| 指标 | 旧模式 (2026-06-10) | 新模式 (2026-06-11) | Δ |
+|------|---------------------|---------------------|---|
+| requires_user_review_count | 141 | **2** | **-99%** |
+| Tier 1 (auto) | (混在一起) | 18 | new |
+| Tier 2 (auto + 30-min revert) | (混在一起) | 116 | new |
+| Tier 3 (user required) | 141 | **2** (only high risk) | -139 |
 
 ---
 

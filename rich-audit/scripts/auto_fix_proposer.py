@@ -27,6 +27,36 @@ from pathlib import Path
 VERSION = "1.0.0"
 ARCHIVE_PREFIX = "archive-" + datetime.now().strftime("%Y-%m-%d")
 
+# Tier 3 (intent-required): always needs user review regardless of risk
+TIER3_INTENT_TYPES = frozenset({
+    "rename_skill", "delete_skill", "merge_strategy",
+    "rename_rule", "delete_rule",
+})
+
+
+def tier_for(risk_level: str, finding_type: str = "") -> int:
+    """Determine tier from risk + finding type.
+
+    Tier 1: low risk, mechanical safe (auto-executable)
+    Tier 2: medium risk, 语义安全 (auto-executable + 30-min revert window)
+    Tier 3: high risk OR intent-required type (needs user review)
+    """
+    if finding_type in TIER3_INTENT_TYPES:
+        return 3
+    if risk_level == "high":
+        return 3
+    if risk_level == "medium":
+        return 2
+    return 1  # low or unknown
+
+
+def should_require_user_review(risk_level: str, finding_type: str = "") -> bool:
+    """Decision Pattern Reversal (2026-06-11): ONLY Tier 3 requires user review.
+
+    See CASE-RICH-AUDIT-DECISION-PATTERN-REVERSAL-20260611.
+    """
+    return tier_for(risk_level, finding_type) == 3
+
 
 def propose_dead_hook(f: dict) -> dict:
     path = f.get("path", "<unknown>")
@@ -165,6 +195,20 @@ PROPOSERS = {
 }
 
 
+
+def enrich_proposal(p: dict) -> dict:
+    """Post-process: set tier + requires_user_review based on type + risk_level.
+
+    Replaces hardcoded requires_user_review with tier-based logic.
+    Decision Pattern Reversal (2026-06-11).
+    """
+    rl = p.get("risk_level", "unknown")
+    pt = p.get("type", "")
+    p["tier"] = tier_for(rl, pt)
+    p["requires_user_review"] = should_require_user_review(rl, pt)
+    return p
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", help="findings JSON file (default: stdin)")
@@ -181,9 +225,9 @@ def main() -> int:
         ftype = f.get("type", "")
         proposer = PROPOSERS.get(ftype)
         if proposer:
-            proposals.append(proposer(f))
+            proposals.append(enrich_proposal(proposer(f)))
         else:
-            proposals.append({
+            proposals.append(enrich_proposal({
                 "type": ftype,
                 "risk_level": "unknown",
                 "requires_user_review": True,
@@ -191,12 +235,15 @@ def main() -> int:
                 "before": str(f),
                 "after": "(manual)",
                 "manual_steps": ["(no automated proposal)"],
-            })
+            }))
 
     risk_counts: dict[str, int] = {}
+    tier_counts: dict[int, int] = {1: 0, 2: 0, 3: 0}
     for p in proposals:
         rl = p.get("risk_level", "unknown")
         risk_counts[rl] = risk_counts.get(rl, 0) + 1
+        t = p.get("tier", 0)
+        tier_counts[t] = tier_counts.get(t, 0) + 1
 
     result = {
         "tool": "auto_fix_proposer.py",
@@ -204,6 +251,7 @@ def main() -> int:
         "proposals": proposals,
         "count": len(proposals),
         "risk_counts": risk_counts,
+        "tier_counts": tier_counts,
         "requires_user_review_count": sum(1 for p in proposals if p.get("requires_user_review")),
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
