@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-dead_code_detector.py - Rich-Audit v2.6.2 dead code / orphan detector
+dead_code_detector.py - Rich-Audit v2.6.13 dead code / orphan detector
 
 Detects:
   1. orphan case files (CASE-*.md in wiki/ not referenced anywhere in ~/.claude/)
@@ -11,6 +11,15 @@ Detects:
 Output: JSON to stdout. Exit 0 if clean, 1 if findings present.
 
 Usage: python3 ~/.agents/skills/rich-audit/scripts/dead_code_detector.py
+
+v2.6.13 fixes (2026-06-11, per CASE-RICH-AUDIT-DETECTION-SCHEMA-BUG-20260611):
+  - Case regex now matches lowercase letters (was [A-Z0-9_-]+ → [A-Za-z0-9_-]+).
+    Fixes 9+ false orphan_case findings (e.g. CASE-098-usage-report-verification).
+  - Hook/script command parsing now splits compound commands (&&/||/;/|) and
+    extracts ALL .py/.sh tokens, not just Path(cmd).name of the full string.
+    Fixes 17+ false dead_script findings (e.g. smart-push.sh, memory-audit.sh,
+    skills-symlink-restore.py were all reported as dead despite being referenced
+    in SessionStart compound hook commands).
 """
 import json
 import re
@@ -21,12 +30,39 @@ CLAUDE_DIR = Path.home() / ".claude"
 SKILLS_DIR = Path.home() / ".agents" / "skills"
 WIKI_DIR = CLAUDE_DIR / "knowledge" / "cases" / "wiki"
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"  # v2.6.13 fixes
+
+# v2.6.13: split compound shell commands on &&, ||, ;, | (single pipe)
+_COMPOUND_SPLIT_RE = re.compile(r"\s*(?:&&|\|\||;|\|)\s*")
+# v2.6.13: extract .py/.sh file tokens from a (sub-)command
+_SCRIPT_TOKEN_RE = re.compile(r"(?:^|[\s'\"=])([^\s'\"=|&;]+\.(?:py|sh|mjs|js|ts))\b")
+
+
+def extract_script_names(cmd: str) -> set[str]:
+    """v2.6.13: parse compound shell command, return ALL referenced script basenames.
+
+    Handles cases like:
+      "python3 ~/.claude/hooks/a.py && python3 ~/.claude/hooks/b.py"
+      "bash X.sh; bash Y.sh || true"
+      "exec --flag=~/.claude/scripts/foo.sh -v"
+    """
+    found: set[str] = set()
+    for sub in _COMPOUND_SPLIT_RE.split(cmd):
+        # Match each .py/.sh path-like token in the sub-command.
+        for match in _SCRIPT_TOKEN_RE.finditer(" " + sub):
+            token = match.group(1)
+            try:
+                found.add(Path(token).name)
+            except (ValueError, OSError):
+                continue
+    return found
 
 
 def find_referenced_cases() -> set[str]:
     referenced: set[str] = set()
-    pattern = re.compile(r"CASE-[A-Z0-9_-]+")
+    # v2.6.13: include lowercase letters in CASE pattern
+    # File names contain mixed case e.g. CASE-098-usage-report-verification-20260527.md
+    pattern = re.compile(r"CASE-[A-Za-z0-9_-]+")
     for md in CLAUDE_DIR.rglob("*.md"):
         try:
             text = md.read_text(errors="ignore")
@@ -48,24 +84,76 @@ def detect_orphan_cases() -> list[dict]:
     ]
 
 
-def detect_dead_hooks() -> list[dict]:
+def _collect_settings_referenced() -> set[str]:
+    """v2.6.13: shared helper to collect script names from settings.json hooks + statusLine."""
     settings_path = CLAUDE_DIR / "settings.json"
+    referenced: set[str] = set()
     if not settings_path.exists():
-        return []
+        return referenced
     try:
         settings = json.loads(settings_path.read_text())
     except json.JSONDecodeError:
-        return [{"type": "error", "msg": "settings.json invalid JSON"}]
-    referenced: set[str] = set()
+        return referenced
     for event_group in (settings.get("hooks") or {}).values():
         for entry in event_group or []:
             for h in (entry.get("hooks") or []):
                 cmd = h.get("command", "")
-                if "/" in cmd:
-                    referenced.add(Path(cmd).name)
+                if cmd:
+                    referenced.update(extract_script_names(cmd))
+    status = settings.get("statusLine")
+    if isinstance(status, dict) and "command" in status:
+        referenced.update(extract_script_names(status.get("command", "")))
+    return referenced
+
+
+def _collect_md_referenced_scripts() -> set[str]:
+    """v2.6.13: scan ~/.claude/**.md + ~/.agents/skills/**.md for script basenames.
+
+    Scripts referenced inside case files, SKILL.md, or README.md should NOT be
+    reported as dead. Excludes backups/ and archive-*/ subdirectories.
+    """
+    referenced: set[str] = set()
+    pattern = re.compile(r"\b([a-zA-Z][\w-]+\.(?:sh|py))\b")
+    for base in (CLAUDE_DIR, SKILLS_DIR):
+        if not base.exists():
+            continue
+        for md in base.rglob("*.md"):
+            parts = md.parts
+            # Skip backup / archive directories
+            if any(p.startswith("backups") or p.startswith("archive-") for p in parts):
+                continue
+            try:
+                text = md.read_text(errors="ignore")
+            except OSError:
+                continue
+            for m in pattern.findall(text):
+                referenced.add(m)
+    return referenced
+
+
+def _collect_script_sourced() -> set[str]:
+    """v2.6.13: scan all .sh files for sourced/invoked siblings."""
+    referenced: set[str] = set()
+    scripts_dir = CLAUDE_DIR / "scripts"
+    if not scripts_dir.exists():
+        return referenced
+    invoke_re = re.compile(r"(?:source|\.|bash|sh|python3?)\s+([^\s|&;]+\.(?:sh|py))")
+    for sh in scripts_dir.rglob("*.sh"):
+        try:
+            text = sh.read_text(errors="ignore")
+        except OSError:
+            continue
+        for m in invoke_re.findall(text):
+            referenced.add(Path(m).name)
+    return referenced
+
+
+def detect_dead_hooks() -> list[dict]:
     hooks_dir = CLAUDE_DIR / "hooks"
     if not hooks_dir.exists():
         return []
+    referenced = _collect_settings_referenced()
+    referenced |= _collect_md_referenced_scripts()
     dead = [p for p in hooks_dir.glob("*.py") if p.name not in referenced]
     return [
         {"type": "dead_hook", "path": str(p.relative_to(CLAUDE_DIR.parent))}
@@ -77,32 +165,9 @@ def detect_dead_scripts() -> list[dict]:
     scripts_dir = CLAUDE_DIR / "scripts"
     if not scripts_dir.exists():
         return []
-    settings_path = CLAUDE_DIR / "settings.json"
-    referenced: set[str] = set()
-    if settings_path.exists():
-        try:
-            settings = json.loads(settings_path.read_text())
-            hooks = settings.get("hooks") or {}
-            for entry_list in hooks.values():
-                for entry in entry_list or []:
-                    for h in (entry.get("hooks") or []):
-                        cmd = h.get("command", "")
-                        if "/" in cmd:
-                            referenced.add(Path(cmd).name)
-            status = settings.get("statusLine")
-            if isinstance(status, dict) and "command" in status:
-                referenced.add(Path(status["command"]).name)
-        except json.JSONDecodeError:
-            pass
-    # cross-script sourcing
-    for sh in scripts_dir.glob("*.sh"):
-        try:
-            text = sh.read_text(errors="ignore")
-        except OSError:
-            continue
-        for m in re.findall(r"(?:source|\.)\s+([^\s|&;]+\.sh)", text):
-            if "/" not in m:
-                referenced.add(Path(m).name)
+    referenced = _collect_settings_referenced()
+    referenced |= _collect_md_referenced_scripts()
+    referenced |= _collect_script_sourced()
     dead = [
         p for p in scripts_dir.glob("*.sh")
         if p.name not in referenced and not p.name.startswith("_")
