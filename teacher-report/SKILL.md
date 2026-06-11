@@ -1,5 +1,6 @@
 ---
 
+**v0.6.0 changelog (2026-06-11)**: H2 标题去装饰性 emoji 硬要求 (来源 13 docs × 5 H2 = 65 段统一清理, 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). 14 项 LLM 自检 (新增 Check 14: H2 标题无装饰性 emoji). 装饰性 emoji 集合: 👤📊✉📚📖🎯ℹ 等图标类; 保留 ✅❌⚠⭐🟢🟡🔴⛔🚨 等状态/信号类 (allowlist).
 **v0.4.0 changelog (2026-06-10)**: Progressive disclosure refactor (Anthropic SKILL.md 500-line best practice). 1300 → 435 lines (-67%). 3 reference files: url-validation-rules.md (277) + paper-entry-v0.3.9.md (233) + output-schema-v0.3.9.md (413). v0.3.9 paper card demoted to reference (legacy), v0.4.0 紧凑 promoted to default. 13 项 LLM 自检强化 (新增 Check 13 Wiki Subject Author Verification).
 name: teacher-report
 description: |
@@ -9,7 +10,8 @@ description: |
 
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks (title numbering, ① ②, block charts, TL;DR, 5-section, Persona footer), outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
-  **v0.4.0 (2026-06-10) 默认紧凑 + v0.3.9 完整版 fallback**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list with Chinese 括注, arXiv inline title (v0.4.0 紧凑默认) 或 arXiv + papers.cool URL (v0.3.9 完整版, ≤3 篇论文时), 13 项 LLM 自检 (12 v0.3.9 + Check 13 Wiki Subject Author Verification), verifiable claims (v0.2.9 anti-hallucination). See body §Paper Card v0.4.0 紧凑 + references/paper-entry-v0.3.9.md (legacy) + references/output-schema-v0.3.9.md (12 项自检) + §Anti-Hallucination Rules.
+  **v0.4.0 (2026-06-10) 默认紧凑 + v0.3.9 完整版 fallback**: 4-dim paper taxonomy (大领域/中方向/小任务/子技术) per line, full author list with Chinese 括注, arXiv inline title (v0.4.0 紧凑默认) 或 arXiv + papers.cool URL (v0.3.9 完整版, ≤3 篇论文时), **14 项 LLM 自检 (13 v0.4.0 + Check 14 H2 无装饰性 emoji, 2026-06-11)**, verifiable claims (v0.2.9 anti-hallucination). See body §Paper Card v0.4.0 紧凑 + references/paper-entry-v0.3.9.md (legacy) + references/output-schema-v0.3.9.md (12 项自检) + §Anti-Hallucination Rules.
+  **v0.6.0 (2026-06-11) H2 标题无装饰性 emoji 硬要求**: 5 大章节 H2 标题 (导师与课题组画像 / 申博匹配度评估 / 套磁与申请建议 / 论文产出全景 / 数据来源与说明) **禁止**使用装饰性图标 emoji (👤📊✉📚📖🎯ℹ 等); 允许状态/信号类 (✅❌⚠⭐🟢🟡🔴⛔🚨). 13 docs × 5 H2 = 65 段统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb). Check 14: H2 标题无装饰性 emoji (LLM 自检强化).
 
   **v0.5.0 (2026-06-10) 申博实操增强**: 5 h2 框架不变, 8 新 h3 字段叠加: §1.3 招生偏好 (名额/竞争/卡本科) + §1.4 培养模式 (指导/组会/放羊/实习) + §1.5 科研资源 (GPU/经费/出国) + §2.2 团队氛围 (优点/缺点/矛盾说法) + §2.3 毕业去向 (年限/就业/留校) + §3.2 申请时间节点 (套磁/材料/考核/录取). 数据源扩到 L7 申博论坛 (mysupervisor.org + 学院 PDF + 知乎/小红书/博客园), L7 字段用 [社区来源] 标签与 L1 官网区分. 详见 §v0.5.0 申博实操增强 章节.
 
@@ -185,6 +187,13 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **§2 申博匹配度评估 必须有 `<h2>2. ...</h2>` 标题**,**禁止**直接跳到 `<h3>2.1` 或 `<h4>(1)` (v0.2.3 残缺版踩过这个坑)
   - **§1 / §3 / §4 / §5 同理**必须有 `<h2>` 标题,不能缺
   - 模板生成后,LLM 必须自检:`grep -c '<h2>' content` ≥ 5
+- **🚨 H2 标题无装饰性 emoji 硬要求 (2026-06-11 v0.6.0, 违反 = skill 协议破坏)**:
+  - 5 大章节 H2 标题 (1. 导师与课题组画像 / 2. 申博匹配度评估 / 3. 套磁与申请建议 / 4. 论文产出全景 / 5. 数据来源与说明) **禁止**装饰性图标 emoji: 👤📊✉📚📖🎯ℹ 等
+  - **保留** (allowlist, 状态/信号类, 不算装饰): ✅❌⚠⭐🟢🟡🔴⛔🚨
+  - **Why**: 飞书 outline 节点树视觉一致, 避免乱图标; 与 §G audit 通讯作者 + §H 一作 inline 标记不冲突 (后者是 paper card 内部 `**...**(大老板)` 等, 不在 H2 标题)
+  - **Template 实施**: LLM 生成 H2 标题时, 一律用纯中文 "1. 导师与课题组画像" (无前缀图标); 现有 13 docs × 5 H2 = 65 段已统一清理 (申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb, 2026-06-11)
+  - **新 docx 模板生成前必跑**: `python3 ~/.agents/skills/teacher-report/scripts/check_h2_emoji.py {content}` → 0 decoration emoji 才输出
+  - **Audit mode 必跑**: Check 14 列入 14 项 LLM 自检清单 (v0.6.0 强化)
 - **🚨 论文条目 paper card 硬要求 (2026-06-08 v0.3.3 → 2026-06-10 v0.3.9 升级, 2026-06-10 v0.4.0 紧凑格式新增可选, 违反 = skill 协议破坏)**:
   - 所有论文 (§4 论文产出全景 / §2.2 论文举例 / §3 套磁信引用 任何位置) **必须**用以下 2 种 paper card 格式之一:
     - **v0.3.9 完整版** (15 行/paper, 单独标注行): 详见 `## Paper Entry Format (v0.3.9) — 硬要求` 章节
@@ -199,7 +208,7 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
   - **v0.4.0 inline 标记**: 通讯 `(通讯)`, 大老板 `**(大老板)**`, 一作/共一 `(一作: X, Y)` 全部 inline 在 author 行
   - **禁止**简化为表内 1 行 / `<p><b>{标题} (venue year) ⭐</b></p>` 紧凑格式 / 省略作者列表 / 省略 taxonomy / 用 4 列表格 / 用缩写
   - LLM 必须自检 (无论 v0.3.9 还是 v0.4.0): 每篇论文均含 4 维 taxonomy 4 行 + 完整作者列表(全作者带中文括注) + §G 通讯作者真实 byline + `发表：` 1 字段 + `arXiv：` 1 字段 (v0.4.0 嵌入 title, v0.3.9 单独行)
-  - v0.4.0 还需自检: arXiv ID 嵌入 `<h3>` title + arXiv URL 是 1-click 入口 + 13 项 v0.4.0 必跑 (12 项 v0.3.9 通用 + **Check 13: Wiki Subject Author Verification**, 详见 v0.4.0 章节 + `references/paper-card-v0.4.0.md §6`)
+  - v0.4.0 还需自检: arXiv ID 嵌入 `<h3>` title + arXiv URL 是 1-click 入口 + **14 项 v0.4.0 必跑 (13 项 v0.4.0 通用 + Check 14: H2 无装饰性 emoji, 2026-06-11)**, 详见 v0.4.0 章节 + `references/paper-card-v0.4.0.md §6`
 
 
 ---
@@ -283,7 +292,7 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
 | 数据完整性 | 100% 一致 | 100% 一致 |
 | 主动丢弃 | — | paperscool URL / URL 类型行 / 作者角色行 / abstract |
 
-### 13 项 v0.4.0 LLM 自检清单 (12 项 v0.3.9 通用 + **Check 13 Wiki Subject Author Verification**, 2026-06-10 加, 必跑)
+### 14 项 v0.6.0 LLM 自检清单 (13 项 v0.4.0 通用 + **Check 14 H2 无装饰性 emoji**, 2026-06-11 加, 必跑)
 
 | # | 检查项 | 通过条件 | 常见错误 |
 |---|--------|---------|----------|
@@ -300,6 +309,7 @@ lark-cli docs +update --api-version v2 --doc {doc_id} --command overwrite \\
 | 11 | 真实 1-click URL | `<a href="...">[arXiv X]</a>` 嵌入 title | ❌ URL 缺失 |
 | 12 | arXiv ID 真实 (v3.xxxx 格式) | placeholder 禁止 | ❌ `[待 L4/L5/L6 重抓]` |
 | **13** | **Wiki Subject Author Verification (2026-06-10 新增, 来源 邓舒敏 v0.1.0→v0.3.5 EasyEdit/WISE 误归 case)** | **wiki subject 必须在 paper author list 里** | ❌ wiki subject NOT in author list → paper 误归, 必删除 (不允许"是导师组 paper 算 wiki subject 组"借口) |
+| **14** | **H2 标题无装饰性 emoji (2026-06-11 v0.6.0 新增, 来源 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 5 H2 = 65 段清理)** | **5 大章节 H2 标题不含装饰性 emoji (👤📊✉📚📖🎯ℹ 等); 状态/信号类 (✅❌⚠⭐🟢🟡🔴⛔🚨) 允许** | ❌ "👤 1. 导师与课题组画像" / "📊 2. 申博匹配度评估" / "✉️ 3. 套磁与申请建议" / "📚 4. 论文产出全景" / "ℹ️ 5. 数据来源与说明" → 应改为 "1. 导师与课题组画像" / "2. 申博匹配度评估" 等纯中文标题 |
 
 ### v0.4.0 适用位置 (全 docx 强制, 5 章均生效)
 
@@ -410,6 +420,7 @@ lark-cli docs +update --api-version v2 --doc {DOC_ID} \
 > 完整 Output Schema + 12 项 LLM 自检清单 (404 行) 已下沉到 [`references/output-schema-v0.3.9.md`](references/output-schema-v0.3.9.md) (v0.4.0 progressive disclosure refactor, 2026-06-10)。
 >
 > **v0.4.0 增强**: 13 项自检 (新增 Check 13 Wiki Subject Author Verification, 详见 references/paper-card-v0.4.0.md §6)。每篇 paper card 必跑, 全通过才输出。
+> **v0.6.0 增强 (2026-06-11)**: 14 项自检 (新增 Check 14: H2 无装饰性 emoji, 申博 wiki P49mwGQU0iEh9CkXbCTcC418nPb 13 docs × 5 H2 = 65 段清理落地). 装饰性 emoji 集合: 👤📊✉📚📖🎯ℹ 等图标类; allowlist (✅❌⚠⭐🟢🟡🔴⛔🚨) 保留.
 
 ---
 
