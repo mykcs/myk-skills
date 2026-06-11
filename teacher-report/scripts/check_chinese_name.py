@@ -137,11 +137,18 @@ def get_typo_candidates(char: str) -> list:
 
 # -------- 单 doc 检测 --------
 def check_content(content: str, tier_data: dict) -> dict:
-    """扫描 content 找潜在中文名 typo, 与 tier_data 交叉对比."""
-    issues = []
+    """扫描 content 找潜在中文名 typo, 与 tier_data 交叉对比.
+
+    核心算法 (v0.10.1 enhanced):
+    1. 提取所有 2-3 字中文名
+    2. 对 HIGH 集合中每个名字, 计算 1-字符替换的所有"接近字符串" (同音/形近)
+    3. 扫描 content 找这些"接近字符串"出现 → 真 typo (because HIGH name is expected)
+    4. 对所有提取的中文名, 标 unverified + char_risks for reference
+    """
     high_zh_set = set()
     high_zh_to_en = defaultdict(list)
     low_zh_set = set()
+    high_zh_to_src = {}
 
     if tier_data:
         for k, v in tier_data.items():
@@ -151,6 +158,7 @@ def check_content(content: str, tier_data: dict) -> dict:
             if v.get('tier') == 'HIGH':
                 high_zh_set.add(zh)
                 high_zh_to_en[zh].append(k)
+                high_zh_to_src[zh] = v.get('source', '')
             else:
                 low_zh_set.add(zh)
 
@@ -161,21 +169,45 @@ def check_content(content: str, tier_data: dict) -> dict:
         if 2 <= len(n) <= 3:
             name_counter[n] += 1
 
-    # 2) 对每个名字, 检查是否在 HIGH 集合 (期望出现) 或 不在 (潜在缺失)
-    # 3) 对每个名字, 检查字符是否在 TYPO_PAIRS 候选中
+    # 2) 对每个 HIGH name, 生成所有 1-char typo 候选 (同音/形近)
+    high_typo_candidates = defaultdict(list)  # typo_string -> [(correct_name, char_idx, wrong_char, correct_char, kind)]
+    for correct_name in high_zh_set:
+        for i, c in enumerate(correct_name):
+            for cand, kind, orig in get_typo_candidates(c):
+                if not cand:
+                    continue
+                typo_str = correct_name[:i] + cand + correct_name[i+1:]
+                high_typo_candidates[typo_str].append({
+                    'correct': correct_name,
+                    'wrong_char': cand,
+                    'correct_char': c,
+                    'char_idx': i,
+                    'kind': kind,
+                })
 
-    # 我们做两件事:
-    # A) 列出 content 中所有 2-3 字中文, 看是否在 HIGH 集合 - 不在的话标 'unverified'
-    # B) 列出 HIGH 集合中, content 中出现但有 typo 风险的字符
+    # 3) 找 content 中真 typo (1-字符替换命中 high_typo_candidates)
+    real_typos = []
+    for name, cnt in name_counter.items():
+        if name in high_typo_candidates:
+            for hit in high_typo_candidates[name]:
+                real_typos.append({
+                    'typo': name,
+                    'correct': hit['correct'],
+                    'wrong_char': hit['wrong_char'],
+                    'correct_char': hit['correct_char'],
+                    'char_idx': hit['char_idx'],
+                    'kind': hit['kind'],
+                    'count': cnt,
+                    'source': high_zh_to_src.get(hit['correct'], ''),
+                })
 
+    # 4) unverified names (不属 HIGH/LOW 字典, 仅参考)
     unverified = []
     for name, cnt in sorted(name_counter.items(), key=lambda x: -x[1]):
-        if name in high_zh_set:
-            continue  # HIGH-CONF match
-        if name in low_zh_set:
-            continue  # LOW-CONF match (acceptable)
-        # 不在字典
-        # 检查字符是否在 typo 候选
+        if name in high_zh_set or name in low_zh_set:
+            continue
+        if name in high_typo_candidates:
+            continue  # 已在 real_typos, 不重复列
         char_risks = []
         for c in name:
             cands = get_typo_candidates(c)
@@ -188,6 +220,7 @@ def check_content(content: str, tier_data: dict) -> dict:
         })
 
     return {
+        'real_typos': real_typos,
         'unverified_names': unverified,
         'high_zh_in_content': sorted(high_zh_set & set(name_counter.keys())),
         'low_zh_in_content': sorted(low_zh_set & set(name_counter.keys())),
@@ -223,29 +256,38 @@ def main():
 
 
 def print_and_return(result):
-    print(f'# Chinese name typo check (v0.10.0)')
+    print(f'# Chinese name typo check (v0.10.1)')
     print()
     print(f'Unique 2-3 字 names in content: {result["total_unique_names"]}')
     print(f'HIGH-CONF names found: {len(result["high_zh_in_content"])}')
     print(f'LOW-CONF names found: {len(result["low_zh_in_content"])}')
+    print(f'Real typos (1-char edit from HIGH-CONF): {len(result["real_typos"])}')
     print(f'Unverified names (not in tier dict): {len(result["unverified_names"])}')
     print()
 
+    if result['real_typos']:
+        print('## ❌ REAL TYPOS (1-char edit from HIGH-CONF):')
+        for t in result['real_typos']:
+            print(f'  ❌ {t["typo"]} (×{t["count"]}) → {t["correct"]} '
+                  f'[{t["kind"]}, char[{t["char_idx"]}] {t["wrong_char"]}→{t["correct_char"]}]')
+            print(f'      source: {t["source"]}')
+        print()
+
     if result['unverified_names']:
-        print('## Unverified names (top 20 by frequency):')
-        sorted_unv = sorted(result['unverified_names'], key=lambda x: -x['count'])[:20]
+        print('## Unverified names (top 10 by frequency, info only):')
+        sorted_unv = sorted(result['unverified_names'], key=lambda x: -x['count'])[:10]
         for u in sorted_unv:
             risk_marker = f' ⚠ chars at risk: {u["char_risks"]}' if u['char_risks'] else ''
             print(f'  {u["name"]:<8} × {u["count"]:<3}{risk_marker}')
         print()
         print('NOTE: These names are NOT in name-dictionary-tier-20260610.json.')
-        print('They could be: (a) author names from papers not yet in dict, (b) typos of HIGH/LOW entries.')
-        print('For HIGH-CONF teacher names (e.g. 邓舒敏, 魏颖), ALWAYS verify against L1-L4 sources.')
-    else:
+        print('They could be: (a) paper coauthors not yet in dict, (b) LOW-CONF guess.')
+        print('For HIGH-CONF teacher names (e.g. 邓淑敏, 魏颖), ALWAYS verify against L1-L4 sources.')
+
+    if not result['real_typos'] and not result['unverified_names']:
         print('✅ All detected names are in tier dict (HIGH or LOW).')
 
-    has_issues = any(u['char_risks'] for u in result['unverified_names'])
-    return 1 if has_issues else 0
+    return 1 if result['real_typos'] else 0
 
 
 # -------- wiki scan --------
@@ -270,9 +312,9 @@ def wiki_scan(tier_data: dict) -> int:
     wiki = json.loads(wiki_path.read_text(encoding='utf-8'))
     nodes = wiki.get('data', {}).get('nodes', [])
 
-    print(f'# Chinese name typo wiki scan ({len(nodes)} docs)\n')
+    print(f'# Chinese name typo wiki scan ({len(nodes)} docs, v0.10.1)\n')
 
-    all_issues = []
+    all_real_typos = []
     for n in nodes:
         title = n.get('title', '')
         obj = n.get('obj_token', '')
@@ -282,37 +324,21 @@ def wiki_scan(tier_data: dict) -> int:
             continue
         r = check_content(content, tier_data)
 
-        # 1) 提取 title 中文名, 检查是否在 HIGH
-        title_zh = re.search(r'[一-鿿]{2,3}', title)
-        title_zh_name = title_zh.group() if title_zh else ''
-
-        high_in_doc = r['high_zh_in_content']
-        # 2) 找 HIGH 中字符风险
-        high_issues = []
-        for hzh in high_in_doc:
-            for c in hzh:
-                cands = get_typo_candidates(c)
-                if cands:
-                    high_issues.append((hzh, c, cands))
-
-        # 3) 标 题 字符 风险
-        title_char_risks = []
-        if title_zh_name:
-            for c in title_zh_name:
-                cands = get_typo_candidates(c)
-                if cands:
-                    title_char_risks.append((c, cands))
-
         print(f'## {title}')
-        print(f'  HIGH names in doc: {high_in_doc}')
-        if high_issues:
-            print(f'  ⚠ HIGH names with risky chars: {high_issues}')
-            all_issues.append({'title': title, 'obj': obj, 'high_issues': high_issues})
-        if title_char_risks:
-            print(f'  ⚠ Title chars at risk: {title_char_risks}')
-            all_issues.append({'title': title, 'obj': obj, 'title_char_risks': title_char_risks})
-        if not (high_issues or title_char_risks):
-            print(f'  ✓ clean')
+        print(f'  HIGH names in doc: {r["high_zh_in_content"]}')
+        print(f'  LOW names in doc: {r["low_zh_in_content"]}')
+        if r['real_typos']:
+            print(f'  ❌ REAL TYPOS:')
+            for t in r['real_typos']:
+                print(f'      ❌ {t["typo"]} (×{t["count"]}) → {t["correct"]} '
+                      f'[{t["kind"]}, char[{t["char_idx"]}] {t["wrong_char"]}→{t["correct_char"]}]')
+                print(f'         source: {t["source"]}')
+            all_real_typos.append({'title': title, 'obj': obj, 'typos': r['real_typos']})
+        else:
+            print(f'  ✓ no real typos')
+        if r['unverified_names']:
+            unv_top = sorted(r['unverified_names'], key=lambda x: -x['count'])[:5]
+            print(f'  ℹ unverified (top 5): {[u["name"] for u in unv_top]}')
         print()
 
     # Save report
@@ -321,10 +347,12 @@ def wiki_scan(tier_data: dict) -> int:
     out.write_text(json.dumps({
         'scanned_at': ts,
         'doc_count': len(nodes),
-        'all_issues': all_issues,
+        'docs_with_typos': len(all_real_typos),
+        'all_real_typos': all_real_typos,
     }, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(f'\nReport: {out}')
-    return 1 if all_issues else 0
+    print(f'\n=== Summary: {len(all_real_typos)} docs have real typos ===')
+    print(f'Report: {out}')
+    return 1 if all_real_typos else 0
 
 
 if __name__ == '__main__':

@@ -2673,5 +2673,25 @@
     "zh": "杨寒",
     "tier": "LOW",
     "source": "best-guess-from-paper-coauthor"
+  },
+  "Deng, Shumin": {
+    "zh": "邓淑敏",
+    "tier": "HIGH",
+    "source": "linkedin-slug-shumin-deng-邓淑敏-2a1b26142 (verified 2026-06-11 by user feedback)"
+  },
+  "Shumin Deng": {
+    "zh": "邓淑敏",
+    "tier": "HIGH",
+    "source": "linkedin-slug-shumin-deng-邓淑敏-2a1b26142 (verified 2026-06-11 by user feedback)"
+  },
+  "Wei, Ying": {
+    "zh": "魏颖",
+    "tier": "HIGH",
+    "source": "wiki-title-ZJU-魏颖-(Ying-Wei)"
+  },
+  "Ying Wei": {
+    "zh": "魏颖",
+    "tier": "HIGH",
+    "source": "wiki-title-ZJU-魏颖-(Ying-Wei)"
   }
 }
