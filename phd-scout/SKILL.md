@@ -137,6 +137,70 @@ description: |
 | 主页 | 主页、url、link、website | `homepage` |
 | 备注 | 备注、notes、note | `notes` |
 
+## 飞书 wiki 节点命名规范（v1, 2026-06-11）
+
+> **所有调研老师在飞书 wiki 中创建/重命名节点时，必须遵守此规范。** 来源：2026-06-11 14:30 与用户确认 + ZJU AI 学院官方教师名录（ai.zju.edu.cn 师资队伍 - 人工智能理论与系统研究所）校核。
+
+### 节点 title 格式
+
+**「姓名 学院」**（例：「吴飞 人工智能学院」、「张圣宇 计算机科学与技术学院」）。
+
+- **禁止**旧格式「浙江大学 X (English Name)」（如「浙江大学 吴飞 (Fei Wu)」）
+- **禁止**简写（如「吴飞 AI」、「吴飞 人工智能」）
+- 学院名必须是**完整标准名**（「人工智能学院」/「计算机科学与技术学院」/「软件学院」等）
+
+### 学院归属（13 位 ZJU 老师校核后）
+
+| 老师 | 学院 | 老师 | 学院 |
+|------|------|------|------|
+| 吴飞 | 人工智能学院 | 张圣宇 | 计算机科学与技术学院 |
+| 况琨 | 人工智能学院 | 沈春华 | 计算机科学与技术学院 |
+| 肖俊 | 人工智能学院 | 周晓巍 | 计算机科学与技术学院 |
+| 赵洲 | 人工智能学院 | 刘忠鑫 | 计算机科学与技术学院 |
+| 郑小林 | 人工智能学院 | | |
+| 邓舒敏 | 人工智能学院 | | |
+| 魏颖 | 人工智能学院 | | |
+| 汤斯亮 | 人工智能学院 | | |
+| 刘泽民 | 人工智能学院 | | |
+
+> **注**：汤斯亮、魏颖、刘忠鑫 3 位归属最初被 claudecode 误判（基于 DBLP/学校招聘广告等二手源），**已由用户纠正**。ZJU AI 学院官方教师名录是 ground truth 校核源。**任何未来新增老师，请用 `person.zju.edu.cn/{pinyin}` 或 ai.zju.edu.cn/cs.zju.edu.cn 官方源核实学院归属**。
+
+### school 字段硬编码（bitable record / queue JSONL）
+
+- **必须**用"学院"完整名称（如"人工智能学院"、"计算机科学与技术学院"）
+- **不用**"系"简写（"计算机系"已废弃）
+- queue/zju_ai_queue.jsonl 等输入数据**必须**用此格式
+
+### 创建 wiki 节点的标准流程
+
+```bash
+# 1. 用 lark-cli 创建新节点
+lark-cli wiki +node-create \
+  --parent-node-token "<主页面 node_token>" \
+  --title "姓名 学院"  # 严格按"姓名 学院"格式
+
+# 2. 写入 docx 内容
+lark-cli docs +update --api-version v2 \
+  --doc "<新 obj_token>" \
+  --command overwrite \
+  --content @<local.xml>
+
+# 3. 在主页面"飞书 wiki 全文"等链接中用新 URL
+```
+
+### 修改现有节点 title（重要：飞书 API 限制）
+
+飞书 OpenAPI **不提供 wiki nodes.update 方法**（lark-cli v1.0.50 验证 PATCH/PUT 都 404）。要修改节点 title 只能：
+1. **删除旧节点** + 重建（URL/node_token 会变）— 高风险
+2. 仅修改 docx 内部 `<title>` 标签（`docs +update --command str_replace`）— 飞书 UI 仍显示旧 node title
+
+**推荐**：新增调研节点时直接用新格式；旧节点需要重命名时走"删+重建"流程。
+
+### 灾难教训（2026-06-11）
+
+1. **keyword-fetch-then-overwrite 灾难** — 用 `--scope keyword` fetch 拿到 287 字节截断内容，overwrite 把主页面破坏。**overwrite 前必须用默认 scope (整篇) fetch，且长度 > 1KB 才安全**。
+2. **飞书 create 后鬼影节点 race condition** — 13 次 create 之后，list 缓存/异步机制产生 13 个**空白同名鬼影节点**（obj_token 新建但从未写入内容，`obj_edit_time == obj_create_time`）。**清理脚本**：`find_ghosts.py` 按 content < 5KB 判定 + `+node-delete` 全部删除。
+
 ## kimi-webbridge 抓取 ZJU 老师
 
 **ZJU 个人主页 URL 模式**：
