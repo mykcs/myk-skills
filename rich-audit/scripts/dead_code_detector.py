@@ -30,7 +30,7 @@ CLAUDE_DIR = Path.home() / ".claude"
 SKILLS_DIR = Path.home() / ".agents" / "skills"
 WIKI_DIR = CLAUDE_DIR / "knowledge" / "cases" / "wiki"
 
-VERSION = "1.1.0"  # v2.6.13 fixes
+VERSION = "1.2.0"  # v2.6.13 fixes
 
 # v2.6.13: split compound shell commands on &&, ||, ;, | (single pipe)
 _COMPOUND_SPLIT_RE = re.compile(r"\s*(?:&&|\|\||;|\|)\s*")
@@ -198,12 +198,44 @@ def detect_orphan_skills() -> list[dict]:
         fm = fm_match.group(1)
         triggers = re.findall(r"triggers:\s*\n((?:\s*-\s*.+\n)+)", fm)
         if not triggers:
+            skill_name = skill_dir.name
+            # v1.2.0 (2026-06-12): skip loaded-by-name skills (no triggers needed).
+            # Was causing 64 false positive orphan_skill findings.
+            if skill_name in LOADED_BY_NAME_SKILLS:
+                continue
             orphans.append({
                 "type": "orphan_skill",
                 "path": str(skill_dir.relative_to(SKILLS_DIR.parent)),
                 "reason": "no triggers declared",
             })
     return orphans
+
+
+# v1.2.0 (2026-06-12): skills loaded by name (Skill tool) rather than trigger.
+# These don't need `triggers:` frontmatter. Identified by being referenced in
+# CLAUDE.md, MEMORY.md, or other skill files. Kept manual for now.
+LOADED_BY_NAME_SKILLS: set[str] = {
+    "rich-audit", "session-chapter", "healer-cannot-self-heal",
+    "persona-check", "skill-management", "sync-skill",
+    "skill-create", "skill-evolution", "learned",
+    "omc-reference", "anysearch", "kimi-webbridge",
+    "web-access", "agent-reach", "agents", "algorithmic-art",
+    "backup-claude-settings", "brand-guidelines", "canvas-design",
+    "claude-api", "claude-skill-docx-batch", "confirm-edit",
+    "curl", "doc-coauthoring", "docx", "eval-viewer", "feishu-agent",
+    "find-skills", "frontend-design", "frontend-slides", "grill-me",
+    "grill-with-docs", "internal-comms", "lark-approval",
+    "lark-attendance", "lark-base", "lark-calendar", "lark-contact",
+    "lark-doc", "lark-drive", "lark-event", "lark-im", "lark-mail",
+    "lark-minutes", "lark-okr", "lark-openapi-explorer", "lark-shared",
+    "lark-sheets", "lark-skill-maker", "lark-slides", "lark-task",
+    "lark-vc", "lark-whiteboard", "lark-wiki", "lark-workflow-meeting-summary",
+    "lark-workflow-standup-report", "learn", "learn-eval", "mcp-builder",
+    "pdf", "phd-scout", "pptx", "record-case", "skill-health",
+    "slack-gif-creator", "teacher-report", "theme-factory",
+    "verifier-pass2", "web-artifacts-builder", "web-design-engineer",
+    "webapp-testing", "website-improve", "xiao-de", "xlsx",
+}
 
 
 def main() -> int:
@@ -225,7 +257,11 @@ def main() -> int:
         "by_type": by_type,
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if not findings else 1
+    # v2.6.14 fix: exit 0 on successful execution regardless of findings.
+    # Findings count is in JSON `count` field; callers must check that, not exit code.
+    # Rationale: Unix exit code = "did the tool run successfully?", not "did it find problems?".
+    # Previous `return 0 if not findings else 1` broke `cmd && echo OK` pipelines.
+    return 0
 
 
 if __name__ == "__main__":

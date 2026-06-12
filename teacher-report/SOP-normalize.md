@@ -178,7 +178,7 @@ arXiv `ti:"..."` 是 literal match。若表格标题有 OCR/转写错字（如 "
 
 ### 5.5 飞书 doc 解析局限
 
-`parse_papers_from_xml()` 用 regex 解析 §4 表格。如果文档结构有 h3/h4 嵌套异常 (e.g. 误用 h4 当 h3)，可能漏抽。验证: `python3 -c "import normalize_v0.3.0 as N; ..."` 后看 extracted count 是否 = 表格行数 - header rows。
+`parse_papers_from_xml()` 用 regex 解析 §4 表格。如果文档结构有 h3/h4 嵌套异常 (e.g. 误用 h4 当 h3)，可能漏抽。验证: `python3 -c "import normalize as N; ..."` 后看 extracted count 是否 = 表格行数 - header rows。
 
 ## 6. 重跑安全 (idempotency)
 

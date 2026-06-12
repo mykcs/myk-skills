@@ -1,9 +1,75 @@
-# teacher-report Paper Entry Format v0.3.9 (完整版, v0.4.0+ 沉到 reference)
+# teacher-report Paper Entry Format v0.11.0 (完整版, 替代 v0.3.9, 2026-06-11 升级)
 
-> **来源**: 从 SKILL.md v0.3.9 (2026-06-10) 拆分（v0.4.0 progressive disclosure refactor, 2026-06-10）。
-> **目的**: 15 行/paper 完整版 paper card 规范, 适用于论文 ≤ 3 篇场景。
-> **加载时机**: SKILL.md 顶层 pointer 引用本文件时 / 套磁信 1-2 篇深度引用 / 单篇 deep-dive 写作。
-> **v0.4.0 替代**: 论文 ≥ 10 篇应改用 v0.4.0 紧凑版 (7 行/paper, 53% 篇幅节省, 详见 references/paper-card.md)。
+> **来源**: v0.11.0 paper card 升级 (2026-06-11 grill-with-docs session, 12 decisions). 案例: `~/.claude/knowledge/cases/wiki/CASE-PAPER-CARD-V110-FULL-STATUS-ARXIV-20260611.md` (待写).
+> **目的**: ~10 行/paper 完整版 paper card 规范, 适用于论文 ≤ 3 篇场景. v0.11.0 替代 v0.3.9 完整版 (历史 reference, 见 §v0.3.9 历史模板). v0.4.0 紧凑版保留, 不被 v0.11.0 替代 (见 references/paper-card.md).
+> **加载时机**: SKILL.md 顶层 pointer 引用本文件时 / 套磁信 1-2 篇深度引用 / 单篇 deep-dive 写作.
+> **v0.4.0 共存**: 论文 ≥ 10 篇仍用 v0.4.0 紧凑版 (7 行/paper, 53% 篇幅节省, 详见 references/paper-card.md).
+> **v0.3.9 替代**: v0.11.0 完整版替代 v0.3.9 完整版, 加 3 新字段 (status / arXiv 可空 / paper URL), 加 5 新 LLM 自检 (Check 18-22). 详细迁移见 §v0.11.0 迁移指南 v0.3.9 → v0.11.0 段.
+
+---
+
+## Paper Entry Format (v0.11.0, 2026-06-11) — 硬要求
+
+> **v0.3.x → v0.4.0 → v0.11.0 升级**:
+> - **v0.3.x 痛点** (2026-06-10 之前): ① 没法快速核对 author 完整性和通讯作者标注 ② 没法给 Fei Wu 显式高亮 ③ 没法直接跳到 arXiv 全文 ④ 论文在 4 级研究 hierarchy 中的位置不可见
+> - **v0.3.1**: 4 维 taxonomy 表格
+> - **v0.3.2 hotfix**: 4 维 taxonomy 改为 4 行独立 `<p>` 块
+> - **v0.3.3 hotfix**: ① 作者列表 verbatim ② 标注行单独成行 ③ Fei Wu 显式标 `（吴飞）`
+> - **v0.3.9 hotfix**: ① 全作者中文括注 ② 标注行 inline + 中文括注
+> - **v0.4.0 升级** (2026-06-10): 7 行紧凑版, arXiv 嵌入 title, 通讯/大老板 inline 标记
+> - **v0.11.0 升级** (2026-06-11): 4 字段 (status / arXiv 状态 / paper URL / 编号样式) + 8 enum status + 7 paper URL 优先级 + 5 新自检 (Check 18-22)
+
+### Paper Card v0.11.0 模板 (~10 行/paper, 完整版, 论文 ≤ 3 篇)
+
+```
+1. {论文完整标题 (verbatim, 不可改字/改序/省字)}
+{AUTHOR_LIST_WITH_INLINE_MARKERS_CHINESE_PARENS}    ← e.g. **Ying Wei（魏颖）**（大老板）（通讯）
+{venue} {year} ({role})    ← e.g. ICML 2026 (Oral) / EMNLP 2024 Findings (Findings) / arXiv preprint (Preprint)
+{venue} {year} {status_enum_8values}    ← v0.11.0 新 (独立新行, 8 值 enum: 被拒/在投/R&R/已收/Camera Ready/已发表/Preprint/撤稿)
+arXiv：{url_or_暂无}    ← v0.11.0 新 (独立行, arXiv 可空, "暂无" 是合法状态值)
+paper：{url_openreview_or_arxiv_or_doi_or_proceedings}    ← v0.11.0 新 (统一 1-click 入口, 7 种 URL 优先级)
+大领域：{大领域}
+中方向：{中方向}
+小任务：{小任务}
+子技术：{子技术}
+```
+
+### 8 enum status 严格定义 (v0.11.0 新)
+
+| 值 | 含义 | 触发场景 | 必配 paper URL 类型 |
+|----|------|---------|------------------|
+| **被拒** | rejected by venue | 投稿被 reject, 没接收 | OpenReview (decision = reject) |
+| **在投** | under review | 投稿在审稿中, 没决策 | OpenReview (decision pending) |
+| **R&R** | revise & resubmit | 审稿人要求修后再投, 不是接受 | OpenReview (decision = R&R) |
+| **已收** | accepted, not yet presented | 已 accept, 但未 camera-ready, 未 index | OpenReview 或 proceedings |
+| **Camera Ready** | accepted + camera-ready submitted | camera-ready 已提交, 等会议 | proceedings 或 journal |
+| **已发表** | published / presented / indexed | 会议已开 / 期刊已 index | proceedings / journal / DOI |
+| **Preprint** | arXiv-only, not submitted anywhere | 仅 arXiv, 没投任何 venue | arXiv abs |
+| **撤稿** | withdrawn / retracted | 主动撤稿或被撤稿 | OpenReview (decision = withdraw) |
+
+> **严禁** free text (e.g. `unknown` / `pending` / `submitted` / `[待补]` / `未发表`) — Check 18 auto-reject.
+
+### 7 paper URL 优先级 (v0.11.0 新)
+
+1. **OpenReview forum** `https://openreview.net/forum?id={forum_id}` — 被拒/在投/R&R 状态**强制**此 URL
+2. **arXiv abs** `https://arxiv.org/abs/{id}` — Preprint 状态必此 URL
+3. **DOI** `https://doi.org/{doi}` — 期刊论文 (无 OpenReview 时)
+4. **papers.cool** `https://papers.cool/arxiv/{id}` — 备用
+5. **会议 proceedings** (e.g. `proceedings.neurips.cc/paper/.../hash/...`) — Camera Ready / 已发表
+6. **期刊页** — 期刊论文
+7. **主页 PDF** `https://{faculty}.github.io/papers/{slug}.pdf` — 最后 fallback
+
+### 22 项 LLM 自检 (v0.10.0 + v0.11.0 增量)
+
+v0.10.0 已 17 项 (Check 1-17). v0.11.0 加 5 项 (Check 18-22):
+
+- **Check 18 (status enum)**: paper card 的 status 行必 ∈ 8 enum, free text auto-reject
+- **Check 19 (paper URL 合法类型)**: `paper：` 行必 ∈ 7 URL 模板之一
+- **Check 20 (arXiv/paper 一致性)**: `arXiv：暂无` ↔ `paper：非空` 必同时成立
+- **Check 21 (status/paper URL 联动)**: 被拒/在投/R&R 状态 → paper URL 必为 OpenReview
+- **Check 22 (paper card 编号样式)**: 编号 `1.` `2.` `3.` 纯文本前缀, 非 hyperlink
+
+详细 Check 1-17 见 references/output-schema.md + references/paper-card.md. 任何 ❌ 必修正后才能写入 docx.
 
 ---
 

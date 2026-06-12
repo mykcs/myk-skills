@@ -255,7 +255,8 @@ def main() -> int:
         "requires_user_review_count": sum(1 for p in proposals if p.get("requires_user_review")),
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if not proposals else 1
+    # v2.6.14 fix: exit 0 on successful execution. See dead_code_detector.py for rationale.
+    return 0
 
 
 if __name__ == "__main__":

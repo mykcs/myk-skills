@@ -6,7 +6,7 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.12"
+  version: "2.6.18"
   author: mykcs
   category: self-evolution
   triggers:
@@ -214,21 +214,24 @@ User: "rich审计" / "进化"
 
 **Layer 3 进化层约束**：每次 `rich审计` 都必须执行外部扫描（禁止以"分数已经很高"为由跳过 WebSearch / Context7）。
 
-**Tri-Search Protocol v2.6 (2026-06-10 升级, 替换旧 3-tool cascade)**:
+**Force-All-Search Protocol v2.9 (2026-06-12 升级, 输出契约 per-tool 显式披露; 加 exa 为第 5 工具; 替换旧 Tri-Search v2.6)**:
 
-4-tool **parallel fan-out** → merge + compare → 冲突再查 (≤2 层递归) → 输出契约
+5-tool **parallel fan-out** → merge + compare → 冲突再查 (≤2 层递归) → 输出契约
 
 | Phase | 工具 | 角色 |
 |-------|------|------|
-| **A. Parallel Fan-out** | `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` | 4 路独立采信, 同 query |
+| **A. Parallel Fan-out** | `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` ∥ `exa` (`mcp__exa__web_search_exa` + `mcp__exa__web_fetch_exa`) | 5 路独立采信, 同 query (exa = combo search+fetch) |
 | **B. Merge + Compare** | (内部) | 共识 (高 confidence) / 冲突 (需溯源) |
 | **C. Conflict Resolve** | Phase A 递归, ≤2 层 | 冲突项再查; 仍不收敛 → 报告"未收敛"降级人工 |
 
-**输出契约 (3 字段必填)**: 工具 / 搜索内容 / 结论
+**输出契约 (per-tool 显式披露, v2.9)**: 每个工具独立 1 段 (工具 / 搜索内容 / 结论 / 状态) + 共识 / 冲突 / 缺失工具分段; 5 工具**必须**全部披露, 缺/降级也要写 1 段 (状态字段标 ⚠️/❌), 不能只给合并结论. 完整模板见 [`references/force-all-search-protocol.md`](references/force-all-search-protocol.md).
 
-**Why 4 tools**: 三角测量 = (a) redundancy (1 tool 挂掉不影响) + (b) depth (kimi-webbridge 抓单源抓不到) + (c) cross-validation (anysearch 验证 minimax) + (d) direct fetch (WebFetch 读 top URL 全文). 比 3-tool cascade 多了 WebFetch 抓 URL 全文这一层, 防"搜到 URL 但没读全文"假性验证.
+**Why 5 tools**: 5 维并行 = (a) redundancy (1 tool 挂掉不影响) + (b) depth (kimi-webbridge 抓单源抓不到) + (c) cross-validation (anysearch 验证 minimax) + (d) direct fetch (WebFetch 读 top URL 全文) + **(e) algorithm/index diversity (exa 跟 MiniMax/anysearch 不重叠, 兜底独立算法/索引)**. 比 4-tool 多了 exa 这一维, 防"搜到但算法单一"假性多样.
 
-**降级**: 任一工具不可用时 (e.g. kimi-webbridge 502), 用同源工具替代, 报告标注"降级". 完整协议见 [`references/tri-search-protocol.md`](references/tri-search-protocol.md).
+**降级 (两层)**:
+- **Layer 1 (已注册但暂不可用)**: HTTP 4xx/5xx / rate limit / timeout → 用同源工具替代, 报告标注"⚠️ <tool> <code> → <fallback>"; exa 是 combo 工具, 整体降级
+- **Layer 2 (未注册 / MCP server 缺席)**: **fail-fast** — 拒绝执行 Force-All-Search, 报告"❌ BLOCKED: 缺失 N 个工具". 唯一例外: 用户显式说"接受降级"
+- 完整协议 (含 5-tool 必需清单 + 检测方法) 见 [`references/force-all-search-protocol.md`](references/force-all-search-protocol.md)
 
 ---
 ## 双模扫描范围
@@ -463,7 +466,7 @@ def should_require_user_review(risk_level, finding_type=""):
 4. Layer 3 产出进化报告，包含外部知识对比与搜索证据
 5. 安全机械修复自动应用，无需用户干预
 6. 计算修复前后健康评分（0-100）和进化度评分（0-100）
-7. **永不休眠：无论健康度多少，Layer 3 必须执行 Tri-Search Protocol v2.6 (4-tool parallel fan-out: `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` → merge+compare → 冲突再查 ≤2 层) + 1 次 Context7 查询。输出契约 (3 字段必填): 工具 / 搜索内容 / 结论。**
+7. **永不休眠：无论健康度多少，Layer 3 必须执行 Force-All-Search Protocol v2.9 (5-tool parallel fan-out: `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` ∥ `exa` (`web_search_exa` + `web_fetch_exa`) → merge+compare → 冲突再查 ≤2 层) + 1 次 Context7 查询。输出契约 (per-tool 显式披露, 5 段必填): 工具 / 搜索内容 / 结论 / 状态 (每工具 1 段) + 共识/冲突/缺失工具 (Phase B/C 段)。** 若任一 5-tool 必需工具未注册 (Layer 2 fail-fast), 禁止静默降级到 <5-tool 跑 Force-All-Search; 必须报告"❌ BLOCKED: 缺失 <tool_name>" + 阻止 Layer 3 继续.
 8. **进化报告必须包含"本次搜索发现的新知识"段落，即使结论为"无新进展"，也必须附搜索证据**
 
 ## Verification Gates (报告完成前强制检查)

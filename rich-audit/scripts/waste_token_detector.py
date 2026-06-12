@@ -20,8 +20,12 @@ from pathlib import Path
 
 CLAUDE_DIR = Path.home() / ".claude"
 SKILLS_DIR = Path.home() / ".agents" / "skills"
-VERSION = "1.0.0"
-WARN_TOKENS = 1500
+VERSION = "1.0.1"
+# v1.0.1 (2026-06-12): per official Claude Code docs, SKILL.md body < 500 lines
+# (≈ 3000 tokens for prose markdown). Was 1500 (over-strict by 50%).
+# For skills still > 3000 tokens, recommend progressive disclosure (move detail
+# sections to references/ subfolder).
+WARN_TOKENS = 3000
 STALE_DAYS = 30
 
 HOT_PATHS = [
@@ -128,7 +132,8 @@ def main() -> int:
         "total_hot_path_tokens": total_hot,
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if not findings else 1
+    # v2.6.14 fix: exit 0 on successful execution. See dead_code_detector.py for rationale.
+    return 0
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 # Commands → Skills Migration Detection (v2.6.1, 2026-06-10)
 
+> ⚠️ [历史快照 2026-06-10] Tri-Search Protocol v2.6 已于 2026-06-12 重命名为 Force-All-Search Protocol v2.7; 本文档保留历史命名作为 audit trail.
 > 来源: 4-tool Tri-Search 2026-06-10 找到的提升方向
 > 触发: `code.claude.com/docs/en/skills` 明确说 "Custom commands have been merged into skills"
 

@@ -1,5 +1,6 @@
 # Wasted Context Tokens Detection (v2.6.10, 2026-06-10)
 
+> ⚠️ [历史快照 2026-06-10] Tri-Search Protocol v2.6 已于 2026-06-12 重命名为 Force-All-Search Protocol v2.7; 本文档保留历史命名作为 audit trail.
 > 来源: 4-tool Tri-Search 2026-06-10 找到的 v2.6.1 候选 C
 > 对标: jarodtaylor gist "dead weight, conflicts, stale rules, wasted context tokens"
 > 检测: `scripts/waste_token_detector.py`
