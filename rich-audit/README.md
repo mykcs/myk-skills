@@ -33,6 +33,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 
 | 版本 | 日期 | 关键变更 |
 |------|------|---------|
+| **v2.6.17** | **2026-06-12** | **加 exa 为第 5 工具** (combo `mcp__exa__web_search_exa` + `mcp__exa__web_fetch_exa`, 算法/索引独立); Force-All-Search 升级 v2.7 → v2.8 (5-tool parallel fan-out) |
 | **v2.6.16** | **2026-06-12** | **Tri-Search → Force-All-Search Protocol 重命名** (数字 tri=3 误导实际 4-tool); 拆降级矩阵为 Layer 1 (已注册暂不可用) / Layer 2 (未注册 fail-fast); 全局规则 `behavioral-process-trisearch.md` → `behavioral-process-forceallsearch.md` |
 | v2.6.15 | 2026-06-10 | README 引用 Makefile (一键操作) |
 | v2.6.14 | 2026-06-10 | 根目录 `Makefile` (test/lint/audit/modernize/propose-fix) |
@@ -46,7 +47,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 | v2.6.3 | 2026-06-10 | lint_runner (shellcheck + py_compile) |
 | v2.6.2 | 2026-06-10 | dead-code + commands-to-skills 升级为可执行 Python 脚本 |
 | v2.6.1 | 2026-06-10 | dead-code-orphan + commands-to-skills-migration detection docs |
-| v2.6.0 | 2026-06-10 | [历史: 已改 Force-All-Search v2.6.16, 2026-06-12] Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
+| v2.6.0 | 2026-06-10 | [历史: 已改 Force-All-Search v2.6.17 5-tool, 2026-06-12] Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
 | v2.5.0 | (历史) | 3-tool cascade + 8 维加权模型 |
 
 ## 架构
@@ -82,17 +83,19 @@ SKILL.md (主入口)
     └── __pycache__/                   (gitignore)
 ```
 
-## 协议 (v2.6)
+## 协议 (v2.8, 5-tool)
 
 | Phase | 行为 | 工具 |
 |-------|------|------|
-| A. Parallel Fan-out | 4 工具**并行**同 query | `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` |
+| A. Parallel Fan-out | 5 工具**并行**同 query | `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` ∥ `exa` (`web_search_exa` + `web_fetch_exa`) |
 | B. Merge + Compare | 共识 (≥3 源) / 冲突 | 内部 |
 | C. Conflict Resolve | Phase A 递归 ≤2 层 | 同 A |
 
 **输出契约 (3 字段必填)**: 工具 / 搜索内容 / 结论
 
-**降级**: 任一工具不可用 → 同源替代, 报告标注.
+**降级 (两层)**:
+- Layer 1 (已注册但暂不可用): 同源替代, 报告标注
+- Layer 2 (未注册 / MCP server 缺席): **fail-fast**, 报告"❌ BLOCKED: 缺失 N 个工具"; 唯一例外: 用户显式说"接受降级"
 
 完整协议见 `references/force-all-search-protocol.md` (v2.7, 2026-06-12 重命名自 Tri-Search v2.6), 全局化在 `~/.claude/rules/behavioral-process-forceallsearch.md`.
 
