@@ -1,5 +1,5 @@
 ---
-name: teacher-report-v0.5.0-h3-mapping
+name: teacher-report-h3-mapping
 description: |
   teacher-report v0.5.0 申博实操增强 (2026-06-10 新增). 8 新 h3 字段映射 (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点) + L7 论坛数据源使用规则 + 反幻觉协议. main SKILL.md 仅保留概述, 详细表下沉到本文件.
 ---

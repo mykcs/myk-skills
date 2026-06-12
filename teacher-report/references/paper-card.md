@@ -1,5 +1,5 @@
 ---
-name: paper-card-v0.4.0
+name: paper-card
 description: 紧凑 paper card v0.4.0 — 7 line/paper, h3 heading, 通讯/大老板 inline 标记, arXiv 嵌入 title, 一作/共一 行末标记
 metadata:
   type: spec
