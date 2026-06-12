@@ -271,6 +271,35 @@ User: "rich审计" / "进化"
 
 ---
 
+## ⚠️ Workflow Synthesizer Truncation 反模式 (2026-06-12 hardened)
+
+任何 rich-audit-style workflow 在 final-report 装配阶段, **禁止** 用 `JSON.stringify(multiAgentResults).slice(0, N)` 截断多 agent 输出. 截断会让装配器产生 "tool missing" / "无 disclosure block" 类**幻觉**.
+
+**反例**: `wf_80569fec-62b` (CASE-RICH-AUDIT-WORKFLOW-SYNTHESIZER-TRUNCATION-20260612):
+- 5 个 FAS tool segments (总 ~40KB) 序列化后被 `.slice(0, 8000)` 截到只剩前 1-2 个完整披露
+- 装配器报 "3/5 tools missing disclosure" → 触发 Layer 2 fail-fast 假警报
+- 实际 5 个 jsonl 全部 `stop=end_turn` + 都有 StructuredOutput ✅
+
+**正确做法 (任选)**:
+1. **File swap**: `Bash` 写入 `/tmp/rich-audit-<run-id>-<phase>.json`, 装配器 prompt 引用文件路径 + 让它 Read 完整
+2. **Pre-summarize**: 每个 agent segment 在传给装配器前压到 ≤500 字符
+3. **Truncation aware**: 显式告诉装配器 `"slice 了到 N 字节, full size 是 M, 缺失的看 /tmp/xxx.json"`
+
+**诊断协议** (装配器报 "tool missing" 时):
+```bash
+# 第一步: 不要相信装配器, 先看 transcript
+for jsonl in $WF_DIR/agent-*.jsonl; do
+  stop=$(tail -1 "$jsonl" | python3 -c "import json,sys; print(json.loads(sys.stdin.read()).get('message',{}).get('stop_reason','?'))")
+  has_so=$(grep -c "StructuredOutput" "$jsonl")
+  echo "$jsonl: stop=$stop StructuredOutput=$has_so"
+done
+# 若全部 stop=end_turn + StructuredOutput≥1 → 100% 装配器 truncation bug, 不要修 L3 协议
+```
+
+**Force-All-Search Skills 验证**: kimi-webbridge / anysearch 在 workflow subagent 上下文**完全可用** (通过 Skill tool). 不需要 fallback 到 direct MCP. 但 anysearch 自己会 fallback (这是它内部容错, 与 Skill 加载无关).
+
+---
+
 ## 自动修复行为
 
 > 完整 19 行已下沉到 [`references/auto-fix.md`](references/auto-fix.md)。本节保留摘要。
