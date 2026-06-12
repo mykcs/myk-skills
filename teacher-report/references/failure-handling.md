@@ -9,8 +9,8 @@ description: |
 | Failure | What to do |
 |---------|------------|
 | L1-L4 all return nothing | Stop, tell the user "信息黑洞 — 五级抓取都失败, 建议手动提供主页 URL 或姓名 + 单位"。**Do not fabricate.** |
-| L1 成功 + L2/L3/L4 部分失败 (半失败): L2 抓到的近 3 年论文 < 5 篇, 或 venue 验证不全 | 🟡 中。报告顶部 ⚠️ callout 必须显式标 "**数据稀疏 — 套磁信引文可能不准确**", **禁止** 在套磁信里引用 L2 没验证过的论文。 |
-| L1 成功 + 近 3 年署名论文 ≥ 30 篇, 但**本人一作 / 共一论文 = 0** | 🟡 中。典型 "通讯/末位 PI 模式", 实际带生者高度疑为青年教师。报告中必须显式标红 + 套磁信必须追问 1v1 带生安排。 |
+| L1 成功 + L2/L3/L4 部分失败 (半失败): L2 抓到的近 3 年论文 < 5 篇, 或 venue 验证不全 | 🟡 中。报告顶部 ⚠️ callout 必须显式标 "**数据稀疏 — 套磁信引文可能不准确**", **禁止** 在套磁信里引用 L2 没验证过的论文。 (v0.12.0: 套磁信独立写, 不在 docx h2 章节里, 但数据稀疏警告仍适用) |
+| L1 成功 + 近 3 年署名论文 ≥ 30 篇, 但**本人一作 / 共一论文 = 0** | 🟡 中。典型 "通讯/末位 PI 模式", 实际带生者高度疑为青年教师。报告中必须显式标红 + 套磁时必须追问 1v1 带生安排。 (v0.12.0) |
 | 课题组定位 "双核心 / 三核心" 硬塞给学生代笔模式 | ⛔ **禁止** (见 `report-template.md §3` 反模式段)。如果导师是末位/通讯 PI、实际带生者疑为青年教师, **必须** 用 ⚠️ callout 显式标 "实际带生者高度疑似 X, 导师时间投入 < 50%, 需邮件确认 1v1 带生安排" — 不可包装成 "X-Y 双核心" 或 "X-Y-Z 三核心" callout (那是把 "学生代笔" 美化成 "团队结构")。 |
 | User asks for many teachers at once (≥ 3 位) | **Out of scope, redirect to `phd-scout --mode batch`**。回复模板: "`teacher-report` 一次只处理一位老师 (深度报告)。如需批量调研多位老师, 请告诉我 — 我会切换到 `phd-scout --mode batch` 写 Bitable 表, 之后再对感兴趣的字段再做深度 `teacher-report`。" |
 | Personal page exists but is JS-rendered SPA | Use `playwright` MCP `browser_navigate` → `browser_snapshot` to get rendered text. Avoid `webfetch` on SPAs. |

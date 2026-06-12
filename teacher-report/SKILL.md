@@ -1,5 +1,6 @@
 ---
 
+**v0.12.0 changelog (2026-06-12)**: 去除《套磁与申请建议》section. 6 h2 → 5 h2 (去掉 §1.4. 套磁与申请建议 + 3 个 h3 子章节: 1.4.1 套磁信 / 1.4.2 申请时间节点 / 1.4.3 风险点). 新章节结构: 1.1. 自评 (user-owned v0.9.0) / 1.2. 导师与课题组画像 / 1.3. 申博匹配度评估 / 1.4. 论文产出全景 / 1.5. 数据来源与说明. 触发 case: 用户 2026-06-12 显式说明「修改 skill 模板里去掉《套磁与申请建议》然后应用到全部老师」. 现有 13 PIs wiki docx 中, 仅 2 个 doc (毛玉仁 / 高云君, v0.5.0+v0.9.0+ 模板) 含此 §1.4. 套磁 section — 这 2 个 doc 需 fix: 删 §1.4. + 后续 §1.5→§1.4 + §1.6→§1.5. 其余 13 doc (v0.9.0 之前 5-section 模板) 已无此 section, 不需 fix. Skill 模板 7 个文件同步 (SKILL.md + output-contract.md + audit-checklist.md + h3-mapping.md + user-owned.md + failure-handling.md + report-template.md). 18 → 19 项 LLM 自检 (Check 18: 5 h2 章节齐全不含套磁). 与 v0.5.0+v0.9.0 旧规则 (含 §1.4. 套磁) 冲突, 旧规则作废. 详见 `## 🚨 5 章节必含 (v0.12.0, 2026-06-12, 违反 = skill 协议破坏)` 硬要求.
 **v0.11.1 changelog (2026-06-12)**: Output Discipline 范围扩展到 docx 内部. v0.11.0 仅禁止 chat 输出 4 行元信息 preamble, 但实际 13 PIs 飞书 wiki docx 内部 12/13 都含同款 preamble callout (LLM 在生成 docx 时把元信息也写进 callout 了). v0.11.1 硬要求 LLM **不得**在 docx 内部生成 4 行元信息 callout: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...」. 元信息正确存放点: docx §1 导师画像 + §2 申博匹配度 + §4 论文全景 + §5 数据来源, **不**用紧凑 4 行 callout 形式. 现有 13 PIs docx 12/13 已 F2 块级修删除 (本报告/调研对象/招生匹配度/论文产出 4 行 preamble callout), 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)` v0.11.1 扩展 subsection.
 **v0.11.0 paper card changelog (2026-06-11)**: Paper card v0.11.0 完整版 (替代 v0.3.9 完整版, v0.4.0 紧凑版保留). 12 决策: (1) 版本定位 v0.11.0 完整版, (2) 标题 `<p>` 段落, (3) status 字段独立新行, (4) arXiv 可空 (`arXiv：暂无` 合法状态值), (5) 编号 `1.` 纯文本前缀, (6) inline 中文括号 `（大老板）（通讯）`, (7) Skill 顶层 v0.11.0 单一版本号 (去 11 文件版本号后缀), (8) status 严格 enum 8 值 (被拒/在投/R&R/已收/Camera Ready/已发表/Preprint/撤稿), (9) paper URL 7 种优先级 (OpenReview 优先 → arXiv/DOI/papers.cool/proceedings/journal/主页 PDF), (10) LLM 自检 17 → 22 (Check 18 status enum + 19 paper URL + 20 arXiv/paper 一致性 + 21 status/paper URL 联动 + 22 paper card 编号样式), (11) 强制迁移 14 wiki docx, (12) 写完整 case file. v0.11.0 paper card 与 v0.11.0 Output Discipline 独立维度, 叠加生效. 触发 case: 12 决策 grill-with-docs session 2026-06-11. 详见 `references/paper-entry.md` (v0.3.9 完整版升级) + `references/paper-card.md` (v0.4.0 紧凑版保留) + 22 项 LLM 自检 (Check 1-22). 案例文件: `~/.claude/knowledge/cases/wiki/CASE-PAPER-CARD-V110-FULL-STATUS-ARXIV-20260611.md` (待写).
 **v0.11.0 changelog (2026-06-11)**: Output Discipline 硬要求. 禁止 LLM 在 chat 输出 4 行元信息 preamble: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... — ... / 招生匹配度: 🟡/🟢/🔴 ... / 论文产出: N 篇代表论文 (year1-year2)」. 这是 LLM 在调用 lark-cli 前的「自由复述」习惯, 没有任何 prompt 模板要求, 纯属噪音. claudecode 收到 teacher-report 触发后应**直接**调 `lark-cli docs +create` (含 `--content @<xml>`) → 输出 docx URL 单行收尾, 中间不输出元信息. 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)`.
@@ -13,10 +14,11 @@ name: teacher-report
 description: |
   Generate OR audit a PhD advisor / professor intelligence dossier as a Feishu wiki doc (Docx).
 
-  **Generate**: user mentions researcher/advisor/老师/导师 and asks "调研/写一份报告/整理材料". Output: 5-section report (TL;DR / 导师画像 / 方向匹配度 / 套磁建议 / 论文全景). Triggers: "调研 XXX", "生成 XXX 老师的报告", "PhD advisor report for XXX".
+  **Generate**: user mentions researcher/advisor/老师/导师 and asks "调研/写一份报告/整理材料". Output: 4-section report (TL;DR / 导师画像 / 申博匹配度 / 论文全景). Triggers: "调研 XXX", "生成 XXX 老师的报告", "PhD advisor report for XXX".
 
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks, outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
+  **v0.12.0 (2026-06-12) 4 章节模板 (去套磁) (NEW)**: 移除 §1.4. 套磁与申请建议 + 3 h3 (套磁信 / 申请时间节点 / 风险点). 新结构 5 h2: 1.1. 自评 (user-owned v0.9.0) / 1.2. 导师与课题组画像 / 1.3. 申博匹配度评估 / 1.4. 论文产出全景 / 1.5. 数据来源与说明. 套磁信独立写, 不在 docx h2 章节里. 19 项 LLM 自检 (Check 18 新: 不含 §套磁). 触发 case: 用户 2026-06-12 显式说明「修改 skill 模板里去掉《套磁与申请建议》」. 与 v0.5.0+v0.9.0 旧规则 (含 §1.4 套磁) 冲突, 旧规则作废. 现有 13 PIs wiki docx 中, 仅 2 个 (毛玉仁/高云君) 含此 §, 需 fix.
   **v0.11.1 (2026-06-12) Output Discipline 范围扩展到 docx 内部 (NEW)**: v0.11.0 仅禁止 chat 输出 4 行 preamble, 但 LLM 在生成 docx 时**也会**把同款 4 行元信息 callout 写进 docx (本报告/调研对象/招生匹配度/论文产出 4 行). v0.11.1 硬要求 LLM 在生成 docx 时**不得**创建此 4 行 callout. 元信息正确存放点: §1 导师画像 (基本信息) + §2 申博匹配度 (招生匹配度) + §4 论文全景 (论文产出) + §5 数据来源 (L? 抓取状态). 13 PIs docx 12/13 已用 F2 块级修 (lark-cli docs +update --command block_delete) 清理.
   **v0.11.0 (2026-06-11) Paper Card v0.11.0 完整版 (NEW)**: 替代 v0.3.9 完整版 (v0.4.0 紧凑版保留). 论文 ≤ 3 篇用 v0.11.0, ≥ 10 篇用 v0.4.0. 关键字段: (a) status 独立新行 (8 enum: 被拒/在投/R&R/已收/Camera Ready/已发表/Preprint/撤稿), (b) arXiv 可空 (`arXiv：暂无` 合法), (c) `paper：` 统一 URL 行 (OpenReview 优先 → arXiv abs → DOI → papers.cool → proceedings → journal → 主页 PDF), (d) 编号 `1.` 纯文本前缀, (e) inline 中文括号 `（大老板）（通讯）`. **22 项 LLM 自检 (Check 1-22)**: Check 18 status enum + 19 paper URL 合法类型 + 20 arXiv/paper 一致性 + 21 status/paper URL 联动 (被拒/在投/R&R 状态 → paper URL 必为 OpenReview) + 22 paper card 编号样式. 强制迁移 14 wiki docx (`bin/migrate.py --all`).
   **v0.11.0 (2026-06-11) Output Discipline 硬要求 (NEW)**: 禁止 LLM 在 chat 输出 4 行元信息 preamble (本报告: vX.X.X ... / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...). LLM 应直接调 `lark-cli docs +create` → 输出 docx URL. 元信息 (招生匹配度 / 论文产出数 / L? 数据源状态) 是 docx TL;DR callout 内容, **不应在 chat 复述**.
@@ -51,17 +53,17 @@ Generate a single-advisor PhD dossier in Feishu wiki doc format. Input: a resear
 
 ## Output contract
 
-> **完整 Output contract (5 章节必含 + H2 emoji 硬要求 + paper card 硬要求 + 5 必含 sections)**已下沉到 [`references/output-contract.md`](references/output-contract.md) (~50 行, 2026-06-11 拆分).
+> **完整 Output contract (4 章节必含 + H2 emoji 硬要求 + paper card 硬要求 + 5 必含 sections)**已下沉到 [`references/output-contract.md`](references/output-contract.md) (~50 行, 2026-06-11 拆分, v0.12.0 改 4 章节).
 >
-> **TL;DR**: Primary 输出是飞书 docx URL; 5 章节 h2 顺序固定 (TL;DR / 导师画像 / 申博匹配度 / 套磁建议 / 论文全景 / 数据来源); 必含 1 TL;DR callout + 1 grid + ≥1 callout/section + `<table>` 块; H2 标题禁止装饰性 emoji (👤📊✉📚📖🎯ℹ); paper card 必须 v0.3.9 完整版 / v0.4.0 紧凑版 二选一.
+> **TL;DR (v0.12.0)**: Primary 输出是飞书 docx URL; 4 章节 h2 顺序固定 (TL;DR / 导师画像 / 申博匹配度 / 论文全景 / 数据来源 — 不含套磁); 必含 1 TL;DR callout + 1 grid + ≥1 callout/section + `<table>` 块; H2 标题禁止装饰性 emoji (👤📊✉📚📖🎯ℹ); paper card 必须 v0.11.0 完整版 / v0.4.0 紧凑版 二选一.
 
 ## Paper Entry Format (v0.3.9 完整版) — 详见 references/
 
 > 完整 15 行/paper paper card 规范 (224 行) 已下沉到 [`references/paper-entry.md`](references/paper-entry.md) (v0.4.0 progressive disclosure refactor, 2026-06-10)。
 >
-> **v0.4.0 起默认使用紧凑版 (7 行/paper, 详见 §Paper Card v0.4.0 紧凑 + references/paper-card.md)**。v0.3.9 完整版仅在论文 ≤ 3 篇 / 套磁信深度引用 / 单篇 deep-dive 时使用。
+> **v0.4.0 起默认使用紧凑版 (7 行/paper, 详见 §Paper Card v0.4.0 紧凑 + references/paper-card.md)**。v0.11.0 完整版仅在论文 ≤ 3 篇 / 套磁信深度引用 / 单篇 deep-dive 时使用 (套磁信独立写, 不在 docx h2 章节里, v0.12.0)。
 >
-> **选型指南**: 论文 ≤ 3 篇 → v0.3.9 完整版 (信息密度高) / 论文 ≥ 10 篇 → v0.4.0 紧凑版 (节省 53% 篇幅, Feishu outline 展开)。同一 doc 中可混用, 但**同一论文不能同时用两种格式**。
+> **选型指南 (v0.11.0)**: 论文 ≤ 3 篇 → v0.11.0 完整版 (信息密度高) / 论文 ≥ 10 篇 → v0.4.0 紧凑版 (节省 53% 篇幅, Feishu outline 展开)。同一 doc 中可混用, 但**同一论文不能同时用两种格式**。
 
 ---
 
@@ -98,7 +100,7 @@ Generate a single-advisor PhD dossier in Feishu wiki doc format. Input: a resear
 
 > **完整 9 类 failure 模式 + 处理动作**已下沉到 [`references/failure-handling.md`](references/failure-handling.md) (~25 行, 2026-06-11 拆分).
 >
-> **TL;DR**: L1-L4 全失败 → "信息黑洞 — 建议手动提供主页 URL", **禁止编造**. L1 成功 + L2/L3/L4 半失败 → 🟡 数据稀疏. 一作顶会论文 = 0 → 🟡 通讯/末位 PI 模式, 套磁信追问 1v1 带生. 用户同时调研 ≥3 位老师 → 切换 `phd-scout --mode batch`.
+> **TL;DR**: L1-L4 全失败 → "信息黑洞 — 建议手动提供主页 URL", **禁止编造**. L1 成功 + L2/L3/L4 半失败 → 🟡 数据稀疏. 一作顶会论文 = 0 → 🟡 通讯/末位 PI 模式, 套磁时追问 1v1 带生. 用户同时调研 ≥3 位老师 → 切换 `phd-scout --mode batch`. (v0.12.0: 套磁信独立写,不在 docx h2 章节里)
 
 
 📂 **Examples** → see [`references/examples.md`](references/examples.md) (loaded on demand)
