@@ -1,6 +1,7 @@
 ---
 
 **v0.11.1 changelog (2026-06-12)**: Output Discipline 范围扩展到 docx 内部. v0.11.0 仅禁止 chat 输出 4 行元信息 preamble, 但实际 13 PIs 飞书 wiki docx 内部 12/13 都含同款 preamble callout (LLM 在生成 docx 时把元信息也写进 callout 了). v0.11.1 硬要求 LLM **不得**在 docx 内部生成 4 行元信息 callout: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...」. 元信息正确存放点: docx §1 导师画像 + §2 申博匹配度 + §4 论文全景 + §5 数据来源, **不**用紧凑 4 行 callout 形式. 现有 13 PIs docx 12/13 已 F2 块级修删除 (本报告/调研对象/招生匹配度/论文产出 4 行 preamble callout), 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)` v0.11.1 扩展 subsection.
+**v0.11.0 paper card changelog (2026-06-11)**: Paper card v0.11.0 完整版 (替代 v0.3.9 完整版, v0.4.0 紧凑版保留). 12 决策: (1) 版本定位 v0.11.0 完整版, (2) 标题 `<p>` 段落, (3) status 字段独立新行, (4) arXiv 可空 (`arXiv：暂无` 合法状态值), (5) 编号 `1.` 纯文本前缀, (6) inline 中文括号 `（大老板）（通讯）`, (7) Skill 顶层 v0.11.0 单一版本号 (去 11 文件版本号后缀), (8) status 严格 enum 8 值 (被拒/在投/R&R/已收/Camera Ready/已发表/Preprint/撤稿), (9) paper URL 7 种优先级 (OpenReview 优先 → arXiv/DOI/papers.cool/proceedings/journal/主页 PDF), (10) LLM 自检 17 → 22 (Check 18 status enum + 19 paper URL + 20 arXiv/paper 一致性 + 21 status/paper URL 联动 + 22 paper card 编号样式), (11) 强制迁移 14 wiki docx, (12) 写完整 case file. v0.11.0 paper card 与 v0.11.0 Output Discipline 独立维度, 叠加生效. 触发 case: 12 决策 grill-with-docs session 2026-06-11. 详见 `references/paper-entry.md` (v0.3.9 完整版升级) + `references/paper-card.md` (v0.4.0 紧凑版保留) + 22 项 LLM 自检 (Check 1-22). 案例文件: `~/.claude/knowledge/cases/wiki/CASE-PAPER-CARD-V110-FULL-STATUS-ARXIV-20260611.md` (待写).
 **v0.11.0 changelog (2026-06-11)**: Output Discipline 硬要求. 禁止 LLM 在 chat 输出 4 行元信息 preamble: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... — ... / 招生匹配度: 🟡/🟢/🔴 ... / 论文产出: N 篇代表论文 (year1-year2)」. 这是 LLM 在调用 lark-cli 前的「自由复述」习惯, 没有任何 prompt 模板要求, 纯属噪音. claudecode 收到 teacher-report 触发后应**直接**调 `lark-cli docs +create` (含 `--content @<xml>`) → 输出 docx URL 单行收尾, 中间不输出元信息. 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)`.
 **v0.10.0 changelog (2026-06-11)**: 中文名字符级 typo 硬要求. Check 17: 老师姓名必须与 L1-L4 权威来源字符级匹配. 触发 case: 邓舒敏 (Shumin Deng) 文档 28 处中文名 typo 「邓**舒**敏 (shū)」→ 实际正确「邓**淑**敏 (shú)」. 同音不同义 LLM auto-generate typo, 之前 v0.2.9 反幻觉规则只校验 OpenReview/arXiv 字段正确性, 不校验中文姓名字符级. 17 项 LLM 自检 (16 v0.9.0 + Check 17 中文名字符). 同音/形近字 typo 启发式列表 (28 pairs, 含 舒/淑/青/清/振/震 等) 已写入 `scripts/check_chinese_name.py`. push wiki 前必跑 `python3 scripts/check_chinese_name.py --wiki-scan`, 返回 0 才算合规.
 **v0.9.0 changelog (2026-06-11)**: Progressive disclosure 进一步拆分 (rich-audit 触发). 595 → 168 lines (-72%). 7 新 reference files: anti-hallucination-rules.md (53) + paper-set-diff-rules.md (65) + h3-mapping.md (67) + inputs-and-mode.md (40) + output-contract.md (45) + audit-mode-output.md (35) + failure-handling.md (25). main SKILL.md 仅保留概述 + 索引 + v0.7.0/v0.8.0 硬要求引用. 触发 case: rich-audit v2.6.2+ skill_authoring_checker 检测 teacher-report/SKILL.md 超 500 行限制 (Anthropic SKILL.md 最佳实践),违反 documented guideline.
@@ -17,6 +18,7 @@ description: |
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks, outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
   **v0.11.1 (2026-06-12) Output Discipline 范围扩展到 docx 内部 (NEW)**: v0.11.0 仅禁止 chat 输出 4 行 preamble, 但 LLM 在生成 docx 时**也会**把同款 4 行元信息 callout 写进 docx (本报告/调研对象/招生匹配度/论文产出 4 行). v0.11.1 硬要求 LLM 在生成 docx 时**不得**创建此 4 行 callout. 元信息正确存放点: §1 导师画像 (基本信息) + §2 申博匹配度 (招生匹配度) + §4 论文全景 (论文产出) + §5 数据来源 (L? 抓取状态). 13 PIs docx 12/13 已用 F2 块级修 (lark-cli docs +update --command block_delete) 清理.
+  **v0.11.0 (2026-06-11) Paper Card v0.11.0 完整版 (NEW)**: 替代 v0.3.9 完整版 (v0.4.0 紧凑版保留). 论文 ≤ 3 篇用 v0.11.0, ≥ 10 篇用 v0.4.0. 关键字段: (a) status 独立新行 (8 enum: 被拒/在投/R&R/已收/Camera Ready/已发表/Preprint/撤稿), (b) arXiv 可空 (`arXiv：暂无` 合法), (c) `paper：` 统一 URL 行 (OpenReview 优先 → arXiv abs → DOI → papers.cool → proceedings → journal → 主页 PDF), (d) 编号 `1.` 纯文本前缀, (e) inline 中文括号 `（大老板）（通讯）`. **22 项 LLM 自检 (Check 1-22)**: Check 18 status enum + 19 paper URL 合法类型 + 20 arXiv/paper 一致性 + 21 status/paper URL 联动 (被拒/在投/R&R 状态 → paper URL 必为 OpenReview) + 22 paper card 编号样式. 强制迁移 14 wiki docx (`bin/migrate.py --all`).
   **v0.11.0 (2026-06-11) Output Discipline 硬要求 (NEW)**: 禁止 LLM 在 chat 输出 4 行元信息 preamble (本报告: vX.X.X ... / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...). LLM 应直接调 `lark-cli docs +create` → 输出 docx URL. 元信息 (招生匹配度 / 论文产出数 / L? 数据源状态) 是 docx TL;DR callout 内容, **不应在 chat 复述**.
   **v0.10.0 (2026-06-11) 17 项 LLM 自检 + 中文名字符级 typo 检查**: v0.8.0 编号 + v0.9.0 自评 + Check 17 中文名权威来源字符级匹配 (与 L1-L4 来源对照: faculty 主页 / ORCID / LinkedIn slug / 中文期刊署名). 触发 case: 邓舒敏 doc 28 处「邓**舒**敏 (shū)」→ 实际「邓**淑**敏 (shú)」. Check 17 落地脚本 `scripts/check_chinese_name.py` (同音/形近字启发式 + tier 字典交叉).
   **v0.8.0 (2026-06-11) 16 项 LLM 自检 + H1-H4 编号 dot 后缀 + H2 无装饰性 emoji**: v0.4.0 默认紧凑 paper card (4-dim taxonomy, full author list, arXiv inline title) + v0.5.0 申博实操 8 h3 字段 (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点) + v0.7.0/v0.8.0 编号硬要求. v0.2.9 anti-hallucination (OpenReview/arXiv 校验). See references/paper-entry.md + output-schema.md + §Anti-Hallucination Rules + §Output contract.
@@ -193,6 +195,30 @@ Generate a single-advisor PhD dossier in Feishu wiki doc format. Input: a resear
 > **TL;DR**: v0.3.9 完整版 15 行/paper 对 ≥10 篇 paper 太长, v0.4.0 紧凑版 7 行/paper 不损失关键信息, 节省 53% 篇幅.
 >
 > **选型**: 论文 ≤3 篇 → v0.3.9 完整版; 论文 ≥10 篇 → v0.4.0 紧凑版; 同一 doc 可混用但同一论文不混.
+
+## Paper Card v0.11.0 完整版 (2026-06-11 新增, 替代 v0.3.9 完整版)
+
+> **完整 12 决策 grill-with-docs 记录 + 12 行/paper 模板 + 8 enum status + 7 paper URL 优先级 + 22 项 LLM 自检 (Check 1-22)** 已下沉到 [`references/paper-entry.md`](references/paper-entry.md) (~260 行, v0.11.0 paper card 升级, 2026-06-11 改写).
+>
+> **TL;DR**: v0.3.9 完整版 15 行/paper 缺 status / arXiv 可空 / OpenReview 表达, v0.11.0 完整版 ~10 行/paper 加 4 新字段 (status / arXiv 状态 / paper URL / 编号样式), 解决 3 类历史痛点: ① 无 arXiv 的 OpenReview-only 投稿 (ICML/NeurIPS/IJCAI 在投) ② 论文状态非"已发表" (被拒/R&R/Preprint) ③ 单一 URL 入口 (v0.3.9 拆 arXiv + paperscool 2 行).
+>
+> **选型**: 论文 ≤3 篇 → **v0.11.0 完整版** (推荐); 论文 ≥10 篇 → v0.4.0 紧凑版 (保留); 同一 doc 可混用但同一论文不混.
+>
+> **v0.11.0 paper card 模板 (~10 行/paper)**:
+> ```
+> 1. {论文完整标题 (verbatim)}
+> {AUTHOR_LIST_WITH_INLINE_MARKERS_CHINESE_PARENS}
+> {venue} {year} ({role})
+> {venue_year} {status_enum_8values}     ← v0.11.0 新 (独立行)
+> arXiv：{url 或 "暂无"}                  ← v0.11.0 新 (独立行, arXiv 可空)
+> paper：{url_openreview_or_arxiv_or_doi}  ← v0.11.0 新 (统一 1-click 入口)
+> 大领域：{大领域}
+> 中方向：{中方向}
+> 小任务：{小任务}
+> 子技术：{子技术}
+> ```
+>
+> **22 项 LLM 自检 (Check 1-22)**: v0.10.0 17 项 + v0.11.0 新 5 项 (Check 18 status enum 严格 enum / 19 paper URL 7 种合法类型 / 20 arXiv/paper 一致性 / 21 status/paper URL 联动 / 22 paper card 编号样式纯文本). 详见 `references/paper-entry.md` 完整 12 行/paper 模板.
 
 ## v0.5.0 申博实操增强 (2026-06-10 新增)
 
