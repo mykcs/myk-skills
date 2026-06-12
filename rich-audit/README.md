@@ -33,6 +33,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 
 | 版本 | 日期 | 关键变更 |
 |------|------|---------|
+| **v2.6.18** | **2026-06-12** | **per-tool 显式披露** (v2.9): 输出模板从 3 字段合并 → 5 段 per-tool (工具/搜索内容/结论/状态) + 共识/冲突/缺失工具分段; audit trail + 防假性 full coverage |
 | **v2.6.17** | **2026-06-12** | **加 exa 为第 5 工具** (combo `mcp__exa__web_search_exa` + `mcp__exa__web_fetch_exa`, 算法/索引独立); Force-All-Search 升级 v2.7 → v2.8 (5-tool parallel fan-out) |
 | **v2.6.16** | **2026-06-12** | **Tri-Search → Force-All-Search Protocol 重命名** (数字 tri=3 误导实际 4-tool); 拆降级矩阵为 Layer 1 (已注册暂不可用) / Layer 2 (未注册 fail-fast); 全局规则 `behavioral-process-trisearch.md` → `behavioral-process-forceallsearch.md` |
 | v2.6.15 | 2026-06-10 | README 引用 Makefile (一键操作) |
@@ -47,7 +48,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 | v2.6.3 | 2026-06-10 | lint_runner (shellcheck + py_compile) |
 | v2.6.2 | 2026-06-10 | dead-code + commands-to-skills 升级为可执行 Python 脚本 |
 | v2.6.1 | 2026-06-10 | dead-code-orphan + commands-to-skills-migration detection docs |
-| v2.6.0 | 2026-06-10 | [历史: 已改 Force-All-Search v2.6.17 5-tool, 2026-06-12] Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
+| v2.6.0 | 2026-06-10 | [历史: 已改 Force-All-Search v2.6.18 5-tool+per-tool, 2026-06-12] Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
 | v2.5.0 | (历史) | 3-tool cascade + 8 维加权模型 |
 
 ## 架构
@@ -83,7 +84,7 @@ SKILL.md (主入口)
     └── __pycache__/                   (gitignore)
 ```
 
-## 协议 (v2.8, 5-tool)
+## 协议 (v2.9, 5-tool + per-tool 显式披露)
 
 | Phase | 行为 | 工具 |
 |-------|------|------|
@@ -91,7 +92,7 @@ SKILL.md (主入口)
 | B. Merge + Compare | 共识 (≥3 源) / 冲突 | 内部 |
 | C. Conflict Resolve | Phase A 递归 ≤2 层 | 同 A |
 
-**输出契约 (3 字段必填)**: 工具 / 搜索内容 / 结论
+**输出契约 (per-tool 显式披露, v2.9)**: 每个工具独立 1 段 (工具 / 搜索内容 / 结论 / 状态), 缺/降级也写 1 段 (标 ⚠️/❌), 最后追加 共识/冲突/缺失工具 分段. 不能只给合并结论.
 
 **降级 (两层)**:
 - Layer 1 (已注册但暂不可用): 同源替代, 报告标注

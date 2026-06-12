@@ -1,9 +1,9 @@
-# Force-All-Search Protocol v2.8 (2026-06-12)
+# Force-All-Search Protocol v2.9 (2026-06-12)
 
-> 来源: `~/.agents/skills/rich-audit/SKILL.md` v2.8 Layer 3
+> 来源: `~/.agents/skills/rich-audit/SKILL.md` v2.9 Layer 3
 > 全局化: `~/.claude/rules/behavioral-process-forceallsearch.md`
-> 输出契约: 工具 / 搜索内容 / 结论 (3 字段必填; Layer 2 fail-fast 时加 缺失工具)
-> 重命名历史: v2.6 "Tri-Search Protocol" (2026-06-10) → v2.7 "Force-All-Search Protocol" (2026-06-12) → v2.8 "5-tool with exa" (2026-06-12)
+> 输出契约: **per-tool 显式披露** (每个工具独立 1 段: 工具 / 搜索内容 / 结论 / 状态) + 共识 / 冲突 / 缺失工具分段; Layer 2 fail-fast 时必填 缺失工具
+> 重命名历史: v2.6 "Tri-Search Protocol" (2026-06-10) → v2.7 "Force-All-Search Protocol" (2026-06-12) → v2.8 "5-tool with exa" (2026-06-12) → **v2.9 "per-tool 显式披露" (2026-06-12)**
 
 ## Phase A: 5-way Parallel Fan-out
 
@@ -65,14 +65,47 @@
 
 缺任意一个 → 走 Layer 2 路径.
 
-## 输出模板
+## 输出模板 (v2.9: per-tool 显式披露)
+
+**强制要求**: 每个工具**必须**独立披露 1 段 (即使降级/未注册也要写 1 段, 标状态), 不能只给合并结论。
 
 ```
-工具: [mcp__MiniMax__web_search | kimi-webbridge | anysearch | WebFetch | exa (web_search_exa+web_fetch_exa)]
-搜索内容: [query 或 URL]
-结论: [1-2 句总结]
+工具: mcp__MiniMax__web_search
+搜索内容: <query 或 URL>
+结论: 根据 mcp__MiniMax__web_search 搜索, 找到 N 个结果: <raw result 1-2 句>
+状态: ✅ 成功 / ⚠️ 降级 (替代工具: <name>) / ❌ 失败 (<error>)
+
+工具: kimi-webbridge
+搜索内容: <query 或 URL>
+结论: 根据 kimi-webbridge 搜索, 找到 N 个结果: <raw result 1-2 句>
+状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
+
+工具: anysearch
+搜索内容: <query 或 URL>
+结论: 根据 anysearch 搜索, 找到 N 个结果: <raw result 1-2 句>
+状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
+
+工具: WebFetch
+搜索内容: <URL>
+结论: 根据 WebFetch 抓取 <URL> 全文: <raw result 1-2 句>
+状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
+
+工具: exa (mcp__exa__web_search_exa + mcp__exa__web_fetch_exa)
+搜索内容: <query 或 URL>
+结论: 根据 exa (web_search + web_fetch) 搜索, 找到 N 个结果: <raw result 1-2 句>
+状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
+
+共识 / 合并结论: <Phase B 共识 (≥3 源一致), 高 confidence>
+冲突项: <Phase B 冲突清单, [tool1, tool2, item, reason]>
+未收敛项: <Phase C 仍冲突, 报告"未收敛", 降级人工>
 缺失工具: [Layer 2 fail-fast 时必填, e.g. "kimi-webbridge, anysearch, exa (未注册)"]
 ```
+
+**Why 显式披露** (vs 旧 3 字段合并):
+- **Audit trail**: 每个工具独立可追溯, 出问题能定位是哪个工具给的错答案
+- **透明**: 不是只给"最终结论", 而是"5 个工具分别怎么说", 用户能看见推理过程
+- **降级可见**: 缺/降级工具的空白/警告一目了然, 防"假性 full coverage" (输出 ≥5 段但其中 1 段说"未注册" / "降级", 不会被合并结论遮蔽)
+- **cross-validation 真正生效**: 共识/冲突分段强制 agent 报告哪些源一致 / 哪些冲突, 不是只看 1 个 tool 的结论
 
 ## Why 5 tools (而非 1 / 3 / 4)
 
@@ -88,4 +121,5 @@
 |------|------|------|------|
 | v2.6 | 2026-06-10 | Tri-Search Protocol | 数字 tri(=3) 误导实际 4-tool |
 | v2.7 | 2026-06-12 | Force-All-Search Protocol | 反映"强制全用 + 交叉验证" 设计意图; 同步拆降级矩阵为 Layer 1/2 |
-| **v2.8** | **2026-06-12** | **Force-All-Search Protocol (5-tool)** | **加 exa 为第 5 工具** (combo web_search+web_fetch, 算法/索引独立) |
+| v2.8 | 2026-06-12 | Force-All-Search Protocol (5-tool) | 加 exa 为第 5 工具 (combo web_search+web_fetch, 算法/索引独立) |
+| **v2.9** | **2026-06-12** | **Force-All-Search Protocol (per-tool 显式披露)** | **输出模板从 3 字段合并 → 5 段 per-tool 显式披露** (工具/搜索内容/结论/状态) + 共识/冲突/缺失工具分段; audit trail + 防假性 full coverage |
