@@ -217,7 +217,8 @@ def detect_orphan_skills() -> list[dict]:
 LOADED_BY_NAME_SKILLS: set[str] = {
     "rich-audit", "session-chapter", "healer-cannot-self-heal",
     "persona-check", "skill-management", "sync-skill",
-    "skill-create", "skill-evolution", "learned",
+    "skill-create", "skill-creator", "skill-evolution", "learned",
+    "parallel-fix-explorer", "teacher-report", "agents",
     "omc-reference", "anysearch", "kimi-webbridge",
     "web-access", "agent-reach", "agents", "algorithmic-art",
     "backup-claude-settings", "brand-guidelines", "canvas-design",

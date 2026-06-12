@@ -27,6 +27,9 @@ VERSION = "1.0.1"
 # sections to references/ subfolder).
 WARN_TOKENS = 3000
 STALE_DAYS = 30
+# v1.0.1: OMC auto-injects ~1500 tokens into CLAUDE.md (<!-- OMC:START --> markers).
+# Don't flag auto-managed content; flag actual user content only.
+OMC_MANAGED_MARKERS = ["<!-- OMC:START -->", "<!-- OMC:VERSION"]
 
 HOT_PATHS = [
     CLAUDE_DIR / "rules",
@@ -45,9 +48,13 @@ def detect_hot_path_heavy() -> list[dict]:
     for p in HOT_PATHS:
         if p.is_file():
             try:
-                tokens = estimate_tokens(p.read_text(errors="ignore"))
+                text = p.read_text(errors="ignore")
             except OSError:
                 continue
+            # v1.0.1: skip OMC auto-managed content (e.g. CLAUDE.md with OMC markers)
+            if any(m in text for m in OMC_MANAGED_MARKERS):
+                continue
+            tokens = estimate_tokens(text)
             if tokens > WARN_TOKENS:
                 findings.append({
                     "type": "hot_path_heavy",
