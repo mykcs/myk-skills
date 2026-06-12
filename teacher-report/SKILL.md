@@ -1,5 +1,6 @@
 ---
 
+**v0.11.1 changelog (2026-06-12)**: Output Discipline 范围扩展到 docx 内部. v0.11.0 仅禁止 chat 输出 4 行元信息 preamble, 但实际 13 PIs 飞书 wiki docx 内部 12/13 都含同款 preamble callout (LLM 在生成 docx 时把元信息也写进 callout 了). v0.11.1 硬要求 LLM **不得**在 docx 内部生成 4 行元信息 callout: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...」. 元信息正确存放点: docx §1 导师画像 + §2 申博匹配度 + §4 论文全景 + §5 数据来源, **不**用紧凑 4 行 callout 形式. 现有 13 PIs docx 12/13 已 F2 块级修删除 (本报告/调研对象/招生匹配度/论文产出 4 行 preamble callout), 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)` v0.11.1 扩展 subsection.
 **v0.11.0 changelog (2026-06-11)**: Output Discipline 硬要求. 禁止 LLM 在 chat 输出 4 行元信息 preamble: 「本报告: vX.X.X (升级自 vY.Y.Y, L? 数据已实际抓取) / 调研对象: ... — ... / 招生匹配度: 🟡/🟢/🔴 ... / 论文产出: N 篇代表论文 (year1-year2)」. 这是 LLM 在调用 lark-cli 前的「自由复述」习惯, 没有任何 prompt 模板要求, 纯属噪音. claudecode 收到 teacher-report 触发后应**直接**调 `lark-cli docs +create` (含 `--content @<xml>`) → 输出 docx URL 单行收尾, 中间不输出元信息. 详见 `## 🚨 Output Discipline 硬要求 (v0.11.0, 2026-06-11, 违反 = skill 协议破坏)`.
 **v0.10.0 changelog (2026-06-11)**: 中文名字符级 typo 硬要求. Check 17: 老师姓名必须与 L1-L4 权威来源字符级匹配. 触发 case: 邓舒敏 (Shumin Deng) 文档 28 处中文名 typo 「邓**舒**敏 (shū)」→ 实际正确「邓**淑**敏 (shú)」. 同音不同义 LLM auto-generate typo, 之前 v0.2.9 反幻觉规则只校验 OpenReview/arXiv 字段正确性, 不校验中文姓名字符级. 17 项 LLM 自检 (16 v0.9.0 + Check 17 中文名字符). 同音/形近字 typo 启发式列表 (28 pairs, 含 舒/淑/青/清/振/震 等) 已写入 `scripts/check_chinese_name.py`. push wiki 前必跑 `python3 scripts/check_chinese_name.py --wiki-scan`, 返回 0 才算合规.
 **v0.9.0 changelog (2026-06-11)**: Progressive disclosure 进一步拆分 (rich-audit 触发). 595 → 168 lines (-72%). 7 新 reference files: anti-hallucination-rules.md (53) + paper-set-diff-rules.md (65) + h3-mapping.md (67) + inputs-and-mode.md (40) + output-contract.md (45) + audit-mode-output.md (35) + failure-handling.md (25). main SKILL.md 仅保留概述 + 索引 + v0.7.0/v0.8.0 硬要求引用. 触发 case: rich-audit v2.6.2+ skill_authoring_checker 检测 teacher-report/SKILL.md 超 500 行限制 (Anthropic SKILL.md 最佳实践),违反 documented guideline.
@@ -15,6 +16,7 @@ description: |
 
   **Audit (v0.2.8+)**: user provides EXISTING docx (URL/doc_id) + asks "审计/检查/合规/review". Runs 12 compliance checks, outputs pass/fail + fixes. Triggers: "审计一下 [URL]", "review teacher report compliance".
 
+  **v0.11.1 (2026-06-12) Output Discipline 范围扩展到 docx 内部 (NEW)**: v0.11.0 仅禁止 chat 输出 4 行 preamble, 但 LLM 在生成 docx 时**也会**把同款 4 行元信息 callout 写进 docx (本报告/调研对象/招生匹配度/论文产出 4 行). v0.11.1 硬要求 LLM 在生成 docx 时**不得**创建此 4 行 callout. 元信息正确存放点: §1 导师画像 (基本信息) + §2 申博匹配度 (招生匹配度) + §4 论文全景 (论文产出) + §5 数据来源 (L? 抓取状态). 13 PIs docx 12/13 已用 F2 块级修 (lark-cli docs +update --command block_delete) 清理.
   **v0.11.0 (2026-06-11) Output Discipline 硬要求 (NEW)**: 禁止 LLM 在 chat 输出 4 行元信息 preamble (本报告: vX.X.X ... / 调研对象: ... / 招生匹配度: 🟡 ... / 论文产出: N 篇...). LLM 应直接调 `lark-cli docs +create` → 输出 docx URL. 元信息 (招生匹配度 / 论文产出数 / L? 数据源状态) 是 docx TL;DR callout 内容, **不应在 chat 复述**.
   **v0.10.0 (2026-06-11) 17 项 LLM 自检 + 中文名字符级 typo 检查**: v0.8.0 编号 + v0.9.0 自评 + Check 17 中文名权威来源字符级匹配 (与 L1-L4 来源对照: faculty 主页 / ORCID / LinkedIn slug / 中文期刊署名). 触发 case: 邓舒敏 doc 28 处「邓**舒**敏 (shū)」→ 实际「邓**淑**敏 (shú)」. Check 17 落地脚本 `scripts/check_chinese_name.py` (同音/形近字启发式 + tier 字典交叉).
   **v0.8.0 (2026-06-11) 16 项 LLM 自检 + H1-H4 编号 dot 后缀 + H2 无装饰性 emoji**: v0.4.0 默认紧凑 paper card (4-dim taxonomy, full author list, arXiv inline title) + v0.5.0 申博实操 8 h3 字段 (招生偏好/培养模式/科研资源/团队氛围/毕业去向/申请时间节点) + v0.7.0/v0.8.0 编号硬要求. v0.2.9 anti-hallucination (OpenReview/arXiv 校验). See references/paper-entry.md + output-schema.md + §Anti-Hallucination Rules + §Output contract.
@@ -114,6 +116,33 @@ Generate a single-advisor PhD dossier in Feishu wiki doc format. Input: a resear
 **审计/重写模式豁免**: audit mode 输出的 12 项 check pass/fail + rewrite mode 的 diff summary 不受本规则约束 (那是合规性报告, 不是 docx 元信息)。
 
 **执行状态**: v0.11.0 已写入 SKILL.md + llm-prompt.md; 待后续 teacher-report session 验证 LLM 是否遵守 (case: 邓淑敏 / 吴飞 / 况琨 3 个 PIs re-run teacher-report 时检查 chat 输出)。
+
+**v0.11.1 扩展 (2026-06-12) — docx 内部 preamble callout 禁止**:
+
+**问题背景**: v0.11.0 仅禁止 LLM 在 chat 输出 4 行元信息 preamble, 但实际 13 PIs 飞书 wiki docx 内部 12/13 都含同款 4 行 preamble callout (本报告/调研对象/招生匹配度/论文产出 4 行 inline 紧凑版). LLM 在生成 docx 时**不仅**在 chat 复述, 还**直接写入** docx 内部 callout. v0.11.0 硬要求漏了 docx 内部维度.
+
+**硬要求 (扩展 v0.11.0)**:
+- LLM 在生成新 docx 时, **不得**在 docx 内部创建 4 行元信息 preamble callout:
+  - ❌ `<callout emoji="🎯">\n  <p><b>本报告</b>: v0.5.0 ...</p>\n  <p><b>调研对象</b>: ...</p>\n  <p><b>招生匹配度</b>: 🟡 ...</p>\n  <p><b>论文产出</b>: N 篇...</p>\n</callout>`
+- 元信息正确存放点 (与 v0.11.0 表格对齐):
+  - **本报告 / v0.5.0 升级声明** → 写 changelog 时已经在 SKILL.md 顶部, docx 不需复述
+  - **调研对象** → docx `<title>` 标签 + §1.1 基本信息与学术身份 h3 (不是独立 callout)
+  - **招生匹配度** → docx §2 申博匹配度评估 (含 🟢/🟡/🔴 灯号 + 文字说明) + TL;DR grid 4 列之一
+  - **论文产出** → docx §4 论文产出全景 (按年表 + paper card 列表, 精确数字) + TL;DR grid 4 列之一
+  - **L? 抓取状态** → docx §5 数据来源与说明 (L1-L7 数据源分别列, 标 [社区来源]/[L4 推断] 等标签)
+- **合法 callout 形式 (允许)**:
+  - TL;DR callout (含 TL;DR 字符串, 4 列 grid) — 允许, 这是 v0.4.0 设计
+  - §5 待补字段 callout (含 `<b>本报告未确认的字段 (影响决策)</b>`) — 允许, 这是 v0.5.0 字段汇总
+  - ❓ / 🎓 / 💡 / 💌 / 📅 等带 emoji 装饰的状态/信息 callout — 允许 (与 v0.6.0 装饰性 emoji ban 不冲突, 因为这些是状态/信息 emoji, 不是装饰)
+- **违规检测** (审计/重写时):
+  - 跑 `grep -c '<b>本报告</b>:' <docx_xml>` (注意: 排除 `<b>本报告未确认` 合法形式) > 0 → 违规
+  - 跑 `grep -c 'L7 数据已实际抓取' <docx_xml>` > 0 → 违规 (这是 preamble 专用 marker)
+  - 跑 `grep -c '<b>招生匹配度</b>: 🟡 中' <docx_xml>` > 0 → 违规 (紧凑 4 行形式)
+- **违规清理** (F2 块级修):
+  - 找含 `<b>本报告</b>` (且 not `<b>本报告未确认`) 的 callout 的 block_id
+  - `lark-cli docs +update --api-version v2 --doc <obj> --command block_delete --block-id <callout_block_id>`
+  - verify: re-fetch + grep count = 0
+- **执行状态 (2026-06-12)**: 13 PIs docx 12/13 已 F2 块级修清理 (邓淑敏 P3-pre test + 张圣宇/魏颖/吴飞/刘泽民/况琨/赵洲/沈春华/肖俊/周晓巍/郑小林/刘忠鑫 batch 11 docs), 1 PI (汤斯亮 obj=A8lN) 漏删 (per obj_token 错位 1 位 bug, 后已补删), 1 shortcut (高云君 obj=YaXo) 误删 + append 重建说明 callout. 13 PIs 全部 v0.11.1 CLEAN (0 违规 marker).
 
 ### Step 1 — Data fetching (4-level fallback)
 
