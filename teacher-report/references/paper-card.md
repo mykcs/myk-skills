@@ -5,12 +5,15 @@ metadata:
   type: spec
   project_id: teacher-report
   version: 0.4.0
-  status: draft (2026-06-10)
-  supersedes: v0.3.9 完整 paper card (强制替代)
+  status: superseded by v0.11.0 paper card 选型 — v0.4.0 紧凑版保留 (论文 ≥10 篇场景)
+  supersedes: v0.3.9 完整 paper card (强制替代) — v0.3.9 后续被 v0.11.0 完整版替代
+  see_also: references/paper-entry.md (v0.11.0 完整版, 替代 v0.3.9 完整版, 加 status / arXiv 可空 / OpenReview / 22 项 LLM 自检)
 ---
 
 # Paper Card v0.4.0 紧凑格式 (2026-06-10 新版, 替代 v0.3.9)
 
+> **v0.11.0 关系 (2026-06-11)**: v0.4.0 紧凑版**保留**, 不被 v0.11.0 替代. v0.11.0 完整版仅替代 v0.3.9 完整版. 选型: 论文 ≤3 篇 → v0.11.0 完整版 (替代 v0.3.9); 论文 ≥10 篇 → v0.4.0 紧凑版 (保留). v0.4.0 紧凑版行数与字段不变, 但 LLM 自检清单与 v0.11.0 paper card 共享 Check 14-22 (H2 emoji / 编号 dot / 深度+1 / 中文名 / status enum / paper URL / 联动 / 编号样式).
+>
 > **来源**: User 在 2026-06-10 grill-with-docs session 中提出, 经 9 轮问答定型. 详见 `~/.claude/knowledge/cases/wiki/CASE-PAPER-CARD-V040-COMPACT-20260610.md` (待归档).
 >
 > **替代关系**: v0.4.0 是 v0.3.9 的**视觉/排版**压缩版, 不是 v0.3.9 的**信息密度**升级版. 两者数据要求一致 (4 维 taxonomy / 完整作者 / 通讯作者 byline / arXiv URL), 只是排版更紧凑.
@@ -21,8 +24,9 @@ metadata:
 > - 飞书 outline 偏好 (12 h3 paper title 直接展开, 不嵌套 h4)
 >
 > **不适用场景**:
-> - 论文 ≤ 3 篇 (e.g. 套磁信 1-2 篇深度引用) → 用 v0.3.9 完整版更清晰
-> - 论文需要详细 abstract 摘要 → v0.4.0 不含 abstract 字段, 用 v0.3.9
+> - 论文 ≤ 3 篇 (e.g. 套磁信 1-2 篇深度引用) → **v0.11.0 完整版** (替代 v0.3.9 完整版, 加 status / arXiv 可空 / OpenReview)
+> - 论文需要详细 abstract 摘要 → v0.4.0 不含 abstract 字段, 用 v0.11.0 完整版
+> - 论文含 OpenReview-only / 被拒 / R&R / Preprint 状态 → v0.4.0 不支持, 用 v0.11.0 完整版 (8 enum status)
 
 ## 1. 7-line paper card 模板 (v0.4.0 fixed-template)
 
