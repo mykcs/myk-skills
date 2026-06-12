@@ -360,7 +360,37 @@ lark-cli docs +fetch --api-version v2 --doc "$DOC" \
 echo "VERIFY OK"
 ```
 
+### 11. `docs +fetch` 3380003 不可靠, 必须 `wiki +node-list` 二次确认 (2026-06-12 case 验证)
+
+**症状**: `docs +fetch --doc <token>` 返 `{"ok": false, "error": {"code": 3380003, "message": "Document page has been deleted"}}`. claudecode 误判为 cascade delete 灾难, 实际是 lark 内部 doc aliasing.
+
+**根因**: 飞书 wiki 节点可对应多个 docx token (aliased). URL 拿到的 token 跟真实存储 docx 是**两个不同 docx**. lark 通过 wiki 名称匹配做 aliasing, `docs +update` 写入和 `docs +fetch` 读出可能用不同 token. 一旦其中之一失效, 3380003 出现.
+
+**典型反例**: 删除 dashboard (`drive +delete`) 后, dashboard 树里的 docx token 返 3380003, 但申博 space 里的同名 doc (`XPwod9uB6oCU8NxUCh0c59b4nyf`) 仍完好. claudecode 误判 cascade 灾难, 用户指引后才意识到.
+
+**应对**:
+- **删除前**: `lark-cli wiki +node-list --space-id <X>` 列空间全部节点, 确认 target 是顶级 (parent_node_token = "") vs 子节点
+- **删除后**: 看到 3380003 不立刻 = 灾难. 必须 `wiki +node-list` 二次确认空间结构
+- **首选 `wiki +node-delete` 替代 `drive +delete`**: 前者明确 wiki 树层级, 有 polling 提示, 错误信息可读
+- **用 `drive +inspect --url` 拿 canonical token**: 不能凭 URL + 1 次 fetch 推断 docx token
+- **验证脚本 fallback** (v2 升级): `lark-doc-update-verify.sh` 自动 `wiki +node-list` 跨 space 搜; exit 4 = 找到了, exit 3 = 真的丢了
+
+### 12. 飞书 wiki 树 parent-children cascade 风险, dashboard 删除触发 children 失效 (2026-06-12 case 验证)
+
+**症状**: `lark-cli drive +delete --file-token <dashboard_docx> --type docx --yes` 返 `{"deleted": true, "file_token": "..."}`. 看似只删 dashboard, 实际触发 wiki 树 parent-children cascade, dashboard **子节点** 全部失效.
+
+**根因**: 飞书 wiki 是树结构, parent 节点 docx 删除 = 关联的 children wiki 节点全部失效. `drive +delete` 不提示 cascade 风险, 不区分 docx vs wiki node.
+
+**典型反例**: 用户授权删除 dashboard (申博候选调研), dashboard 树里的子节点 docx 全部返 3380003. claudecode 误报"cascading delete 灾难"给用户, 实际申博 space 顶级节点 (独立树) 未受影响, 数据 0 损失.
+
+**应对**:
+- **删除 wiki 节点前必跑 `wiki +node-list` 列 children**: `lark-cli wiki +node-list --parent-node-token <target>` 列出 target 下所有子节点
+- **首选 `wiki +node-delete` 替代 `drive +delete`**: 前者明确 wiki 树层级, polling 提示 cascade 范围; 后者直接删底层 docx, cascade 行为不透明
+- **删除前用 `--dry-run` 预览**: `lark-cli drive +delete --dry-run` 打印完整请求, 但不阻止 cascade
+- **删完立即 `wiki +node-list --space-id` 二次验证**: 空间顶级 vs 子节点 状态
+
 ## 参考
+
 
 - [`lark-doc-update-workflow.md`](style/lark-doc-update-workflow.md) — 改写增强工作流（Code-Act Loop、并行执行策略）
 - [`lark-doc-style.md`](style/lark-doc-style.md) — 文档样式指南（元素选择 + 丰富度规则 + 颜色语义）
