@@ -1,5 +1,6 @@
 # Skill Overlap Detection (v2.6.10, 2026-06-10)
 
+> ⚠️ [历史快照 2026-06-10] Tri-Search Protocol v2.6 已于 2026-06-12 重命名为 Force-All-Search Protocol v2.7; 本文档保留历史命名作为 audit trail.
 > 来源: 4-tool Tri-Search 2026-06-10 找到的 v2.6.1 候选 B
 > 对标: `github.com/scottholdren/skill-audit` (scans SKILL.md for conflicts/overlaps/redundancies)
 > 强化: 在 `commands_to_skills_migrator.py.detect_skill_overlap` 基础上加 2 类

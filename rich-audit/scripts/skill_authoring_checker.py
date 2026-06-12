@@ -8,7 +8,7 @@ Per code.claude.com/docs/en/skills (2026-06 spec):
   * description: recommended, truncated at 1,536 chars combined with when_to_use
   * allowed-tools / disallowed-tools: optional (CLI-only)
 
-Per rich-audit Layer 3 Tri-Search 2026-06-11: previous checker was overly strict — 691
+Per rich-audit Layer 3 Force-All-Search 2026-06-12 (原 Tri-Search 2026-06-11, 2026-06-12 重命名 v2.7): previous checker was overly strict — 691
 findings (621 missing_field) were near-all false positives. Loosened thresholds:
 
   1. Frontmatter completeness:

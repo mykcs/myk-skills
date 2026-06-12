@@ -1,5 +1,6 @@
 # Dead Code / Orphan Detection (v2.6.1, 2026-06-10)
 
+> ⚠️ [历史快照 2026-06-10] Tri-Search Protocol v2.6 已于 2026-06-12 重命名为 Force-All-Search Protocol v2.7; 本文档保留历史命名作为 audit trail.
 > 来源: 4-tool Tri-Search 2026-06-10 找到的提升方向
 > 互补: 跟 consistency-6d (看"对得上") 互补, 本文件看"没人在用"
 

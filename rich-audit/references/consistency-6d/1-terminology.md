@@ -1,3 +1,4 @@
+> ⚠️ [历史快照] 本报告/文档中 "Tri-Search Protocol v2.6" 已于 2026-06-12 重命名为 "Force-All-Search Protocol v2.7"; 保留原命名作为 audit trail.
 # 1. 术语一致性 (Terminology Consistency)
 
 > Consistency 父维度 20% → 子维度 1: ~3-4%

@@ -16,7 +16,7 @@
 make help         # 列出所有 target
 make test         # 跑 10 unittest
 make audit        # 跑 7 detection scripts (Layer 1)
-make modernize    # 验证 Tri-Search + 6 维 + 8 脚本存在
+make modernize    # 验证 Force-All-Search + 6 维 + 8 脚本存在
 make propose-fix  # dead_code → auto_fix_proposer (141 proposals, 待用户审)
 
 # 单跑 (不进 make)
@@ -33,6 +33,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 
 | 版本 | 日期 | 关键变更 |
 |------|------|---------|
+| **v2.6.16** | **2026-06-12** | **Tri-Search → Force-All-Search Protocol 重命名** (数字 tri=3 误导实际 4-tool); 拆降级矩阵为 Layer 1 (已注册暂不可用) / Layer 2 (未注册 fail-fast); 全局规则 `behavioral-process-trisearch.md` → `behavioral-process-forceallsearch.md` |
 | v2.6.15 | 2026-06-10 | README 引用 Makefile (一键操作) |
 | v2.6.14 | 2026-06-10 | 根目录 `Makefile` (test/lint/audit/modernize/propose-fix) |
 | v2.6.13 | 2026-06-10 | Layer 1 真跑报告 (1007 findings, 7 detection scripts) |
@@ -45,7 +46,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 | v2.6.3 | 2026-06-10 | lint_runner (shellcheck + py_compile) |
 | v2.6.2 | 2026-06-10 | dead-code + commands-to-skills 升级为可执行 Python 脚本 |
 | v2.6.1 | 2026-06-10 | dead-code-orphan + commands-to-skills-migration detection docs |
-| v2.6.0 | 2026-06-10 | Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
+| v2.6.0 | 2026-06-10 | [历史: 已改 Force-All-Search v2.6.16, 2026-06-12] Tri-Search Protocol v2.6 (4-tool parallel fan-out) + consistency 6 维 |
 | v2.5.0 | (历史) | 3-tool cascade + 8 维加权模型 |
 
 ## 架构
@@ -53,7 +54,7 @@ cd ~/.agents/skills/rich-audit && python3 -m unittest scripts.test_detection_scr
 ```
 SKILL.md (主入口)
 ├── references/
-│   ├── tri-search-protocol.md         (Phase A/B/C 协议, 49 行)
+│   ├── force-all-search-protocol.md   (Phase A/B/C 协议 + Layer 1/2 fail-fast, 49 行, v2.7 2026-06-12)
 │   ├── consistency-6d/                (6 个子模块, 34-37 行 × 6)
 │   │   ├── 1-terminology.md
 │   │   ├── 2-cross-references.md
@@ -93,7 +94,7 @@ SKILL.md (主入口)
 
 **降级**: 任一工具不可用 → 同源替代, 报告标注.
 
-完整协议见 `references/tri-search-protocol.md`, 全局化在 `~/.claude/rules/behavioral-process.md` §E.
+完整协议见 `references/force-all-search-protocol.md` (v2.7, 2026-06-12 重命名自 Tri-Search v2.6), 全局化在 `~/.claude/rules/behavioral-process-forceallsearch.md`.
 
 ## 测试
 

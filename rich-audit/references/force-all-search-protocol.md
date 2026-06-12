@@ -1,8 +1,9 @@
-# Tri-Search Protocol v2.6 (2026-06-10)
+# Force-All-Search Protocol v2.7 (2026-06-12)
 
-> 来源: `~/.agents/skills/rich-audit/SKILL.md` v2.6 Layer 3
-> 全局化: `~/.claude/rules/behavioral-process.md` §E
-> 输出契约: 工具 / 搜索内容 / 结论 (3 字段必填)
+> 来源: `~/.agents/skills/rich-audit/SKILL.md` v2.7 Layer 3
+> 全局化: `~/.claude/rules/behavioral-process-forceallsearch.md`
+> 输出契约: 工具 / 搜索内容 / 结论 (3 字段必填; Layer 2 fail-fast 时加 缺失工具)
+> 重命名历史: v2.6 "Tri-Search Protocol" (2026-06-10) → v2.7 "Force-All-Search Protocol" (2026-06-12); 数字 tri(=3) 误导, 实际是 4-tool.
 
 ## Phase A: 4-way Parallel Fan-out
 
@@ -43,7 +44,7 @@
 
 | 场景 | 行为 | 报告 |
 |------|------|------|
-| 缺 1 个工具 | **fail-fast** — 拒绝执行 Tri-Search | `❌ BLOCKED: 缺失 <tool_name> (MCP server 未注册). 请安装 MCP server 或调整 spec.` |
+| 缺 1 个工具 | **fail-fast** — 拒绝执行 Force-All-Search | `❌ BLOCKED: 缺失 <tool_name> (MCP server 未注册). 请安装 MCP server 或调整 spec.` |
 | 缺 ≥ 2 个工具 | **fail-fast** + 列出全部缺失 | `❌ BLOCKED: 缺失 N 个工具 [<tool1>, <tool2>, ...]. 4-tool 三角测量失效.` |
 
 **Why Layer 2 不降级**（设计意图 "强制全用 + 交叉验证" 的硬约束）:
@@ -76,3 +77,10 @@
 - **3 tools (旧 cascade)**: 缺 URL 全文验证层, 易"搜到但没读"
 - **4 tools (新)**: 三角测量 = redundancy + depth + cross-validation + direct fetch
 - **< 4 tools (降级)**: 失去"强制全用 + 交叉验证" 设计意图, 走 Layer 2 fail-fast
+
+## 重命名历史
+
+| 版本 | 日期 | 名称 | 备注 |
+|------|------|------|------|
+| v2.6 | 2026-06-10 | Tri-Search Protocol | 数字 tri(=3) 误导实际 4-tool |
+| **v2.7** | **2026-06-12** | **Force-All-Search Protocol** | 反映"强制全用 + 交叉验证" 设计意图; 同步拆降级矩阵为 Layer 1/2 |
