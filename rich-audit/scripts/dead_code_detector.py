@@ -225,7 +225,11 @@ def main() -> int:
         "by_type": by_type,
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if not findings else 1
+    # v2.6.14 fix: exit 0 on successful execution regardless of findings.
+    # Findings count is in JSON `count` field; callers must check that, not exit code.
+    # Rationale: Unix exit code = "did the tool run successfully?", not "did it find problems?".
+    # Previous `return 0 if not findings else 1` broke `cmd && echo OK` pipelines.
+    return 0
 
 
 if __name__ == "__main__":

@@ -57,7 +57,13 @@ def main() -> int:
         "raw_output": raw,
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if (summary_pass and proc.returncode == 0) else 1
+    # v2.6.14 fix: exit code reflects whether the wrapper ran successfully, NOT
+    # whether the audit passed. Audit verdict lives in JSON `summary_pass` field.
+    # Rationale: same Unix convention as the other 7 scripts. Callers use
+    # `summary_pass` to gate on audit results, `exit_code` to detect broken runs.
+    if proc.returncode != 0:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

@@ -107,7 +107,8 @@ def main() -> int:
         "by_type": by_type,
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if not findings else 1
+    # v2.6.14 fix: exit 0 on successful execution. See dead_code_detector.py for rationale.
+    return 0
 
 
 if __name__ == "__main__":
