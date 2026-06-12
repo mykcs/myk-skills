@@ -1,0 +1,551 @@
+# Instincts generated from https://github.com/mykcs/myk-skills
+# Generated: 2026-06-12T03:14:33.100Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: myk-skills-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, docs, fix, refactor, perf
+
+## Evidence
+
+- 14 commits analyzed
+- Detected conventional commit pattern
+- Examples: refactor(teacher-report): second-pass fix 2 stragglers (frontmatter + python import) on v0.11.0-migration post v0.11.1 rebase, docs(teacher-report): add v0.11.0 paper card changelog + description + 章节 (sub-task 1d-2)
+
+---
+id: myk-skills-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Commit Length
+
+## Action
+
+Write moderate-length commit messages (~93 characters)
+
+## Evidence
+
+- Average commit message length: 93 chars
+- Based on 14 commits
+
+---
+id: myk-skills-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Naming Files
+
+## Action
+
+Use kebab-case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: kebab-case
+
+---
+id: myk-skills-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: myk-skills-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: myk-skills-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: myk-skills-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~17x per month
+- Files: 
+
+---
+id: myk-skills-workflow-paper-card-schema-upgrade
+trigger: "when doing paper card schema upgrade"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Workflow Paper Card Schema Upgrade
+
+## Action
+
+Follow the paper-card-schema-upgrade workflow:
+1. Update SKILL.md with new changelog, description, and section headers for the new version.
+2. Rewrite or extend references/paper-card.md to include new frontmatter, relationship sections, and usage guidance.
+3. Rewrite or extend references/paper-entry.md to add new template fields, enums, and detailed instructions.
+4. Update bin/migrate.py header docstring to document new migration logic and fields.
+5. Implement or update migration logic in bin/migrate.py to handle new fields, enums, and LLM checks.
+6. Test migration script in dry-run mode and verify output.
+7. Prepare for batch migration of all relevant docx files.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: teacher-report/SKILL.md, teacher-report/references/paper-card.md, teacher-report/references/paper-entry.md
+
+---
+id: myk-skills-workflow-docx-batch-migration-with-migrate-py
+trigger: "when doing docx batch migration with migrate py"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Workflow Docx Batch Migration With Migrate Py
+
+## Action
+
+Follow the docx-batch-migration-with-migrate-py workflow:
+1. Implement or refine extract_paper_cards_from_doc logic to accurately identify paper card blocks.
+2. Integrate or update status detection heuristics and OpenReview API fallback in bin/migrate.py.
+3. Generate new DocxXML blocks for the upgraded paper card format.
+4. Optimize migration to use batch block_replace instead of multiple block_delete/block_insert calls.
+5. Run dry-run migration and audit results (migrated/skipped/failed).
+6. Execute actual migration across all docx files.
+7. Snapshot docx JSON before migration for rollback safety.
+8. Mark or skip papers with low confidence for manual review.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: teacher-report/bin/migrate.py, teacher-report/SKILL.md, teacher-report/references/paper-card.md
+
+---
+id: myk-skills-workflow-multi-script-audit-exit-code-normalization
+trigger: "when doing multi script audit exit code normalization"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Workflow Multi Script Audit Exit Code Normalization
+
+## Action
+
+Follow the multi-script-audit-exit-code-normalization workflow:
+1. Identify all scripts that report findings via exit code.
+2. Refactor each script to always exit 0 on successful execution, regardless of findings.
+3. Ensure findings are reported in structured JSON output (count, by_type, by_severity, etc.).
+4. Update wrapper scripts to propagate only true execution failures as exit 1.
+5. Test all scripts in bash pipelines to confirm correct chaining and output.
+6. Document the new convention for downstream consumers.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: rich-audit/scripts/dead_code_detector.py, rich-audit/scripts/commands_to_skills_migrator.py, rich-audit/scripts/lint_runner.py
+
+---
+id: myk-skills-workflow-protocol-rename-and-layer-update
+trigger: "when doing protocol rename and layer update"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mykcs/myk-skills
+---
+
+# Myk Skills Workflow Protocol Rename And Layer Update
+
+## Action
+
+Follow the protocol-rename-and-layer-update workflow:
+1. Rename protocol in all relevant markdown files (README, SKILL.md, references).
+2. Update reports and scripts to use new protocol name and terminology.
+3. Synchronize any taxonomy or matrix changes (e.g., downgrade matrix, layer structure).
+4. Test for consistency across all documentation and tool outputs.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: rich-audit/README.md, rich-audit/SKILL.md, rich-audit/references/force-all-search-protocol.md
+
+---
+id: myk-skills-instinct-file-naming
+trigger: "When creating a new Python file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct File Naming
+
+## Action
+
+Name the file using kebab-case (e.g., my-module.py)
+
+## Evidence
+
+- Pattern in architecture: files use kebab-case
+- NamingConventions.files = kebab-case
+
+---
+id: myk-skills-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Function Naming
+
+## Action
+
+Name the function using camelCase (e.g., processInput)
+
+## Evidence
+
+- Pattern in codeStyle: functions use camelCase
+
+---
+id: myk-skills-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase (e.g., PaperCardMigrator)
+
+## Evidence
+
+- Pattern in codeStyle: classes use PascalCase
+
+---
+id: myk-skills-instinct-constant-naming
+trigger: "When defining a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE (e.g., MAX_ATTEMPTS)
+
+## Evidence
+
+- Pattern in codeStyle: constants use SCREAMING_SNAKE_CASE
+
+---
+id: myk-skills-instinct-relative-imports
+trigger: "When importing modules within the package"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Relative Imports
+
+## Action
+
+Use relative imports (e.g., from .module import ClassName)
+
+## Evidence
+
+- codeStyle.importStyle = relative
+
+---
+id: myk-skills-instinct-named-exports
+trigger: "When exporting functions or classes from a module"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Named Exports
+
+## Action
+
+Use named exports (explicit __all__ or direct imports in __init__.py)
+
+## Evidence
+
+- codeStyle.exportStyle = named
+
+---
+id: myk-skills-instinct-test-location
+trigger: "When adding tests for a module"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Test Location
+
+## Action
+
+Place test files in a separate directory from source code
+
+## Evidence
+
+- architecture.testLocation = separate
+
+---
+id: myk-skills-instinct-feature-test-pattern
+trigger: "When implementing a new feature"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Feature Test Pattern
+
+## Action
+
+Add tests for the feature immediately after implementation
+
+## Evidence
+
+- feature-development workflow: 'Add tests for feature' follows 'Add feature implementation'
+
+---
+id: myk-skills-instinct-conventional-commits
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Conventional Commits
+
+## Action
+
+Use Conventional Commits format: <type>(<scope>): <description>
+
+## Evidence
+
+- commits.type = conventional
+- commits.examples use format like 'feat(teacher-report): ...'
+
+---
+id: myk-skills-instinct-commit-prefixes
+trigger: "When choosing a commit type"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Commit Prefixes
+
+## Action
+
+Use one of: feat, fix, docs, refactor, perf as the prefix
+
+## Evidence
+
+- commits.prefixes = [feat, docs, fix, refactor, perf]
+
+---
+id: myk-skills-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Commit Length
+
+## Action
+
+Aim for descriptive commit messages averaging around 90-100 characters
+
+## Evidence
+
+- commits.averageLength = 93
+
+---
+id: myk-skills-instinct-paper-card-schema-upgrade
+trigger: "When a new paper card format version is released or schema changes are needed"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Paper Card Schema Upgrade
+
+## Action
+
+Update SKILL.md, references, and migration scripts to support the new schema version
+
+## Evidence
+
+- Workflow: paper-card-schema-upgrade
+- Commits updating SKILL.md, references, and bin/migrate.py
+
+---
+id: myk-skills-instinct-docx-batch-migration
+trigger: "When all documentation needs to be migrated to the latest paper card schema version"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Docx Batch Migration
+
+## Action
+
+Run bin/migrate.py to batch-migrate all docx files, audit results, and mark low-confidence cases
+
+## Evidence
+
+- Workflow: docx-batch-migration-with-migrate-py
+- Commits updating bin/migrate.py and running migrations
+
+---
+id: myk-skills-instinct-audit-exit-code-normalization
+trigger: "When audit/detection scripts are updated or new scripts are added to the toolchain"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Audit Exit Code Normalization
+
+## Action
+
+Ensure scripts exit 0 on successful execution and report findings only in JSON output
+
+## Evidence
+
+- Workflow: multi-script-audit-exit-code-normalization
+- Commits refactoring exit codes and JSON output
+
+---
+id: myk-skills-instinct-protocol-rename
+trigger: "When a protocol or methodology is renamed or its structure changes"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: mykcs/myk-skills
+---
+
+# Myk Skills Instinct Protocol Rename
+
+## Action
+
+Update all references, documentation, and scripts to reflect the new protocol name and structure
+
+## Evidence
+
+- Workflow: protocol-rename-and-layer-update
+- Commits renaming protocol in markdown and scripts
+
