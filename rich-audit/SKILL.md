@@ -228,7 +228,10 @@ User: "rich审计" / "进化"
 
 **Why 4 tools**: 三角测量 = (a) redundancy (1 tool 挂掉不影响) + (b) depth (kimi-webbridge 抓单源抓不到) + (c) cross-validation (anysearch 验证 minimax) + (d) direct fetch (WebFetch 读 top URL 全文). 比 3-tool cascade 多了 WebFetch 抓 URL 全文这一层, 防"搜到 URL 但没读全文"假性验证.
 
-**降级**: 任一工具不可用时 (e.g. kimi-webbridge 502), 用同源工具替代, 报告标注"降级". 完整协议见 [`references/tri-search-protocol.md`](references/tri-search-protocol.md).
+**降级 (两层)**:
+- **Layer 1 (已注册但暂不可用)**: HTTP 4xx/5xx / rate limit / timeout → 用同源工具替代, 报告标注"⚠️ <tool> <code> → <fallback>"
+- **Layer 2 (未注册 / MCP server 缺席)**: **fail-fast** — 拒绝执行 Tri-Search, 报告"❌ BLOCKED: 缺失 N 个工具". 唯一例外: 用户显式说"接受降级"
+- 完整协议 (含 4-tool 必需清单 + 检测方法) 见 [`references/tri-search-protocol.md`](references/tri-search-protocol.md)
 
 ---
 ## 双模扫描范围
@@ -463,7 +466,7 @@ def should_require_user_review(risk_level, finding_type=""):
 4. Layer 3 产出进化报告，包含外部知识对比与搜索证据
 5. 安全机械修复自动应用，无需用户干预
 6. 计算修复前后健康评分（0-100）和进化度评分（0-100）
-7. **永不休眠：无论健康度多少，Layer 3 必须执行 Tri-Search Protocol v2.6 (4-tool parallel fan-out: `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` → merge+compare → 冲突再查 ≤2 层) + 1 次 Context7 查询。输出契约 (3 字段必填): 工具 / 搜索内容 / 结论。**
+7. **永不休眠：无论健康度多少，Layer 3 必须执行 Tri-Search Protocol v2.6 (4-tool parallel fan-out: `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` → merge+compare → 冲突再查 ≤2 层) + 1 次 Context7 查询。输出契约 (3 字段必填): 工具 / 搜索内容 / 结论。** 若任一 4-tool 必需工具未注册 (Layer 2 fail-fast), 禁止静默降级到 2-tool 跑 Tri-Search; 必须报告"❌ BLOCKED: 缺失 <tool_name>" + 阻止 Layer 3 继续.
 8. **进化报告必须包含"本次搜索发现的新知识"段落，即使结论为"无新进展"，也必须附搜索证据**
 
 ## Verification Gates (报告完成前强制检查)
