@@ -1,0 +1,54 @@
+## 权限表
+
+| 方法 | 所需 scope |
+|------|-----------|
+| `user_mailboxes.accessible_mailboxes` | `mail:user_mailbox:readonly` |
+| `user_mailboxes.profile` | `mail:user_mailbox:readonly` |
+| `user_mailboxes.search` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.drafts.cancel_scheduled_send` | `mail:user_mailbox.message:send` |
+| `user_mailbox.drafts.create` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.drafts.delete` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.drafts.get` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.drafts.list` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.drafts.send` | `mail:user_mailbox.message:send` |
+| `user_mailbox.drafts.update` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.event.subscribe` | `mail:event` |
+| `user_mailbox.event.subscription` | `mail:event` |
+| `user_mailbox.event.unsubscribe` | `mail:event` |
+| `user_mailbox.folders.create` | `mail:user_mailbox.folder:write` |
+| `user_mailbox.folders.delete` | `mail:user_mailbox.folder:write` |
+| `user_mailbox.folders.get` | `mail:user_mailbox.folder:read` |
+| `user_mailbox.folders.list` | `mail:user_mailbox.folder:read` |
+| `user_mailbox.folders.patch` | `mail:user_mailbox.folder:write` |
+| `user_mailbox.labels.create` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.labels.delete` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.labels.get` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.labels.list` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.labels.patch` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.mail_contacts.create` | `mail:user_mailbox.mail_contact:write` |
+| `user_mailbox.mail_contacts.delete` | `mail:user_mailbox.mail_contact:write` |
+| `user_mailbox.mail_contacts.list` | `mail:user_mailbox.mail_contact:read` |
+| `user_mailbox.mail_contacts.patch` | `mail:user_mailbox.mail_contact:write` |
+| `user_mailbox.message.attachments.download_url` | `mail:user_mailbox.message.body:read` |
+| `user_mailbox.messages.batch_get` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.messages.batch_modify` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.messages.batch_trash` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.messages.get` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.messages.list` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.messages.modify` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.messages.send_status` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.messages.trash` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.rules.create` | `mail:user_mailbox.rule:write` |
+| `user_mailbox.rules.delete` | `mail:user_mailbox.rule:write` |
+| `user_mailbox.rules.list` | `mail:user_mailbox.rule:read` |
+| `user_mailbox.rules.reorder` | `mail:user_mailbox.rule:write` |
+| `user_mailbox.rules.update` | `mail:user_mailbox.rule:write` |
+| `user_mailbox.settings.send_as` | `mail:user_mailbox:readonly` |
+| `user_mailbox.threads.batch_modify` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.threads.batch_trash` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.threads.get` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.threads.list` | `mail:user_mailbox.message:readonly` |
+| `user_mailbox.threads.modify` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.threads.trash` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.sent_messages.recall` | `mail:user_mailbox.message:modify` |
+| `user_mailbox.sent_messages.get_recall_detail` | `mail:user_mailbox.message:readonly` |
