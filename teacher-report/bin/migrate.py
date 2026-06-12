@@ -75,22 +75,25 @@ def fetch_docx(obj_token: str) -> dict[str, Any] | None:
 
 def detect_status_from_text(text: str) -> tuple[str, float]:
     text_lower = text.lower()
-    if any(k in text_lower for k in ("reject", "not accept", "rejected", "desk reject")):
+    if any(k in text_lower for k in ("reject", "not accept", "rejected", "desk reject", "被拒")):
         return ("被拒", 0.85)
-    if "withdraw" in text_lower or "retract" in text_lower:
+    if any(k in text_lower for k in ("withdraw", "retract", "撤稿")):
         return ("撤稿", 0.85)
-    if "revise" in text_lower and "resubmit" in text_lower:
+    if any(k in text_lower for k in ("revise", "resubmit", "R&R", "r&r")):
         return ("R&R", 0.85)
-    if "under review" in text_lower or "submitted" in text_lower:
+    if any(k in text_lower for k in ("under review", "submitted", "submission", "在投")):
         return ("在投", 0.70)
-    if "camera ready" in text_lower or "camera-ready" in text_lower:
+    if any(k in text_lower for k in ("camera ready", "camera-ready", "camera_ready")):
         return ("Camera Ready", 0.85)
-    if "accepted" in text_lower or "已收" in text:
+    # 已收 / accepted: 需先于 published 检测, 因为 accepted 论文还没 published
+    if any(k in text for k in ("已收", "accepted")) and "reject" not in text_lower:
         return ("已收", 0.80)
-    if "preprint" in text_lower:
+    if any(k in text_lower for k in ("findings", "oral", "spotlight", "long paper", "short paper")):
+        return ("已发表", 0.85)  # Findings/Oral/Spotlight 是 accepted 后发表
+    if any(k in text_lower for k in ("published", "presentation", "presented", "已发表", "已 index")):
+        return ("已发表", 0.80)
+    if any(k in text_lower for k in ("preprint", "work in progress", "wip")):
         return ("Preprint", 0.75)
-    if "published" in text_lower or "已发表" in text:
-        return ("已发表", 0.75)
     if "arXiv" in text or "arxiv" in text_lower:
         return ("Preprint", 0.60)
     return ("Preprint", 0.40)
@@ -110,23 +113,38 @@ def detect_arxiv_url_from_text(text: str) -> str | None:
 
 
 def extract_paper_cards_from_doc(doc: dict[str, Any]) -> list[dict[str, Any]]:
-    """从 docx JSON blocks 提取 paper card (按 h3 标题 + 后续 <p> 块聚合)."""
-    blocks = doc.get("data", {}).get("blocks", [])
-    cards = []
-    current_title = None
-    current_paras: list[str] = []
-    for blk in blocks:
-        bt = blk.get("block_type", "")
-        text = "".join(t.get("text", "") for t in blk.get("text", {}).get("elements", [])) if isinstance(blk.get("text"), dict) else str(blk.get("text", ""))
-        if bt in ("h3", "heading_3"):
-            if current_title:
-                cards.append({"title": current_title, "text": "\n".join(current_paras)})
-            current_title = text
-            current_paras = []
-        elif current_title and bt == "p":
-            current_paras.append(text)
-    if current_title:
-        cards.append({"title": current_title, "text": "\n".join(current_paras)})
+    """从 docx JSON 的 d['data']['document']['content'] (XML str) 提取 paper card.
+
+    lark-cli docs +fetch 返回: {ok, identity, data: {document: {content: XML_STR, document_id, revision_id}}}
+    content 是 XML 字符串, 含 <h3>标题</h3> + <p>正文</p> 序列.
+    """
+    content = doc.get("data", {}).get("document", {}).get("content", "")
+    if not content or not isinstance(content, str):
+        return []
+    # 解析 <h3>...</h3> 和 <p>...</p> 块
+    # regex: 找所有 <h3>...</h3> + 后续 <p>...</p>
+    cards: list[dict[str, Any]] = []
+    h3_pat = re.compile(r"<h3[^>]*>(.*?)</h3>", re.DOTALL)
+    # 提取所有 (h3_title, position) 然后找后续 <p>
+    h3_matches = list(h3_pat.finditer(content))
+    for i, m in enumerate(h3_matches):
+        title = re.sub(r"<[^>]+>", "", m.group(1)).strip()
+        if not title:
+            continue
+        # 过滤非 paper card h3: 跳过 "1.X.Y." 章节子段 (e.g. "1.2.1. 基本信息与学术身份")
+        # 仅保留: 含 ":" 或 "：" 视为有 venue OR 含 "arXiv" 视为 paper title
+        if re.match(r"^\d+\.\d+\.\d+\.?\s*[^:：]*$", title):
+            continue  # 章节子段: "1.2.1. xxx" 无 ":" 跳过
+        if len(title) < 10:
+            continue
+        # 找该 h3 之后到下一个 h3 或文档末尾之间的 <p> 块
+        start = m.end()
+        end = h3_matches[i + 1].start() if i + 1 < len(h3_matches) else len(content)
+        section = content[start:end]
+        paras = re.findall(r"<p[^>]*>(.*?)</p>", section, re.DOTALL)
+        para_text = "\n".join(re.sub(r"<[^>]+>", "", p).strip() for p in paras)
+        if title and para_text:
+            cards.append({"title": title, "text": para_text, "block_id": m.group(0)[:50]})
     return cards
 
 
