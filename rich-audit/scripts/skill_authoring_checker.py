@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 SKILLS_DIR = Path.home() / ".agents" / "skills"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 # Per Anthropic docs 2026-06: ALL frontmatter fields are optional.
 # Only `description` is "recommended" — promote to MED, others to LOW.
@@ -37,9 +37,20 @@ RECOMMENDED_FIELDS_MED = ["description"]            # missing = MED
 RECOMMENDED_FIELDS_LOW = ["name"]                    # missing = LOW (fallback to dir name)
 INFORMATIONAL_FIELDS = ["metadata.version", "metadata.category", "triggers", "tags",
                         "user-invocable", "license"]  # missing = LOW (informational only)
-MAX_BODY_LINES = 200
+# Per platform.claude.com best-practices: SKILL.md body < 500 lines recommended.
+# v2.6.15 (2026-06-12): aligned 200→500 (was over-strict by 60% vs official docs).
+MAX_BODY_LINES = 500
 MIN_DESC_CHARS = 20
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+")
+
+# v2.6.15 (2026-06-12): nested skill subdirectories that intentionally
+# do NOT have a top-level SKILL.md (they contain their own sub-skills).
+# Was causing 22 false positive `missing_skill_md` findings.
+NESTED_SKILL_DIRS: set[str] = {
+    "go", "core", "python", "plugins", "references", "typescript",
+    "java", "shared", "docs", "php", "cpp", "kotlin", "golang",
+    "settings", "code-review", "skills", "scripts", "utils",
+}
 
 
 def parse_frontmatter(text: str) -> dict | None:
@@ -79,7 +90,12 @@ def check_skill(skill_dir: Path) -> list[dict]:
     findings: list[dict] = []
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.exists():
-        return [{"type": "missing_skill_md", "path": str(skill_dir.relative_to(SKILLS_DIR.parent)),
+        rel = str(skill_dir.relative_to(SKILLS_DIR.parent))
+        # v2.6.15: skip nested skill subdirs (they contain sub-skills, not a SKILL.md)
+        skill_name = skill_dir.name
+        if skill_name in NESTED_SKILL_DIRS:
+            return []
+        return [{"type": "missing_skill_md", "path": rel,
                  "severity": "medium"}]
     try:
         text = skill_md.read_text(errors="ignore")
