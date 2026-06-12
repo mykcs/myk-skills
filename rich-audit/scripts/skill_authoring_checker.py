@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-skill_authoring_checker.py - Rich-Audit v2.6.14 skill authoring best practices checker
+skill_authoring_checker.py - Rich-Audit v2.6.16 skill authoring best practices checker
 
 Per code.claude.com/docs/en/skills (2026-06 spec):
   * "All fields are optional. Only description is recommended so Claude knows when to use the skill."
@@ -8,35 +8,39 @@ Per code.claude.com/docs/en/skills (2026-06 spec):
   * description: recommended, truncated at 1,536 chars combined with when_to_use
   * allowed-tools / disallowed-tools: optional (CLI-only)
 
-Per rich-audit Layer 3 Force-All-Search 2026-06-12 (原 Tri-Search 2026-06-11, 2026-06-12 重命名 v2.7): previous checker was overly strict — 691
-findings (621 missing_field) were near-all false positives. Loosened thresholds:
+Per rich-audit Layer 3 Force-All-Search 2026-06-12 + user feedback "下次也不改 直接解决"
+(CASE-RICH-AUDIT-DEEP-20260612 follow-up):
 
-  1. Frontmatter completeness:
-     - Missing `description`            → MED  (per official spec: only recommended)
-     - Missing `name`                   → LOW  (per official spec: defaults to dir name)
-     - Missing optional `metadata.*` / `triggers` / `tags` / `license` → LOW (informational)
-  2. Body length (≤ 200 lines per architecture-health threshold) → still flagged
-  3. Description quality (≥ 20 chars) → still flagged
-  4. Version semver (x.y.z) → still flagged (when version is present)
+v2.6.16 (2026-06-12) noise reduction:
+  - INFORMATIONAL_FIELDS missing findings (metadata.*, triggers, tags, license)
+    are NO LONGER emitted by default (was producing 405 LOW noise across 95 skills).
+  - Pass --include-informational to opt-in (e.g. for skill authoring review session).
+  - This reflects user-confirmed convention: optional fields are TRULY optional.
+    Reporting them as findings (even at LOW) inflated audit health score impact +
+    created "next audit will improve" theater that never materialized.
 
 Output: JSON. Exit 0 clean, 1 findings.
 
-Usage: python3 ~/.agents/skills/rich-audit/scripts/skill_authoring_checker.py
+Usage:
+  python3 ~/.agents/skills/rich-audit/scripts/skill_authoring_checker.py
+  python3 ~/.agents/skills/rich-audit/scripts/skill_authoring_checker.py --include-informational
 """
+import argparse
 import json
 import re
 import sys
 from pathlib import Path
 
 SKILLS_DIR = Path.home() / ".agents" / "skills"
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 
 # Per Anthropic docs 2026-06: ALL frontmatter fields are optional.
 # Only `description` is "recommended" — promote to MED, others to LOW.
 RECOMMENDED_FIELDS_MED = ["description"]            # missing = MED
 RECOMMENDED_FIELDS_LOW = ["name"]                    # missing = LOW (fallback to dir name)
+# v2.6.16: INFORMATIONAL_FIELDS no longer emitted by default — see docstring.
 INFORMATIONAL_FIELDS = ["metadata.version", "metadata.category", "triggers", "tags",
-                        "user-invocable", "license"]  # missing = LOW (informational only)
+                        "user-invocable", "license"]
 # Per platform.claude.com best-practices: SKILL.md body < 500 lines recommended.
 # v2.6.15 (2026-06-12): aligned 200→500 (was over-strict by 60% vs official docs).
 MAX_BODY_LINES = 500
@@ -86,7 +90,7 @@ def get_nested(d: dict, dotted_key: str):
     return cur
 
 
-def check_skill(skill_dir: Path) -> list[dict]:
+def check_skill(skill_dir: Path, include_informational: bool = False) -> list[dict]:
     findings: list[dict] = []
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.exists():
@@ -124,15 +128,17 @@ def check_skill(skill_dir: Path) -> list[dict]:
                 "field": field,
                 "severity": "low",
             })
-    # other fields are informational only — kept but LOW severity
-    for field in INFORMATIONAL_FIELDS:
-        if not get_nested(fm, field):
-            findings.append({
-                "type": "missing_frontmatter_field",
-                "path": rel,
-                "field": field,
-                "severity": "low",
-            })
+    # v2.6.16: informational fields ONLY when explicitly requested.
+    # Default audit run treats their absence as zero noise (per user feedback 2026-06-12).
+    if include_informational:
+        for field in INFORMATIONAL_FIELDS:
+            if not get_nested(fm, field):
+                findings.append({
+                    "type": "missing_frontmatter_field",
+                    "path": rel,
+                    "field": field,
+                    "severity": "low",
+                })
 
     desc = fm.get("description", "")
     if isinstance(desc, str) and len(desc.strip()) < MIN_DESC_CHARS:
@@ -169,6 +175,12 @@ def check_skill(skill_dir: Path) -> list[dict]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--include-informational", action="store_true",
+                        help="Include missing INFORMATIONAL_FIELDS (metadata.*/triggers/tags/license) as LOW findings. "
+                             "Off by default (v2.6.16): they are truly optional per Anthropic spec.")
+    args = parser.parse_args()
+
     if not SKILLS_DIR.exists():
         print(json.dumps({"error": f"skills dir not found: {SKILLS_DIR}"}))
         return 1
@@ -178,7 +190,7 @@ def main() -> int:
         if not skill_dir.is_dir():
             continue
         skills_scanned += 1
-        all_findings.extend(check_skill(skill_dir))
+        all_findings.extend(check_skill(skill_dir, include_informational=args.include_informational))
     by_type: dict[str, int] = {}
     by_severity: dict[str, int] = {}
     for f in all_findings:
@@ -190,6 +202,7 @@ def main() -> int:
         "tool": "skill_authoring_checker.py",
         "version": VERSION,
         "skills_scanned": skills_scanned,
+        "include_informational": args.include_informational,
         "findings": all_findings,
         "count": len(all_findings),
         "by_type": by_type,
