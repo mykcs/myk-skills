@@ -1,24 +1,35 @@
 #!/usr/bin/env python3
 """
-migrate.py - 批量将现有 wiki 的作者列表从 v0.3.3 (仅 Fei Wu 单独标)
-升级到 v0.3.9 (全作者中文括注)。
+migrate.py - 批量将现有 wiki paper card 从 v0.3.x (完整版 15 行) 升级到 v0.11.0 完整版 (~10 行 + 3 新字段).
 
 Usage:
     python3 migrate.py <doc_id> [<doc_id2> ...]
-    python3 migrate.py --all          # 处理 dashboard 全部 9 nodes
+    python3 migrate.py --all          # 处理 dashboard 全部 13 PIs (P49mwGQU0iEh9CkXbCTcC418nPb)
     python3 migrate.py --audit       # 只 audit,不修改
+    python3 migrate.py --from v0.4.0  # 升级 v0.4.0 紧凑版 → 嵌入的 arXiv ID 拆出独立行
+    python3 migrate.py --from v0.3.9  # 升级 v0.3.9 完整版 → v0.11.0 完整版 (默认)
 
-功能:
-1. 从 lark-cli 获取 wiki content
-2. 解析所有 作者: 块
-3. 对每作者查 name-dictionary-DEPRECATED-UNMARKED.json 加中文括注
-4. block_replace 更新到 wiki
-5. 显示 audit 报告
+v0.11.0 新增能力 (vs v0.3.9 旧版):
+1. 解析 v0.3.9 15 行/paper card, 升级为 v0.11.0 ~10 行/paper card
+2. 新增 3 字段 (独立行):
+   - {venue_year} {status_enum_8values}  (8 enum: 被拒/在投/R&R/已收/Camera Ready/已发表/Preprint/撤稿)
+   - arXiv：{url_or_暂无}                  (arXiv 可空, 合法状态值)
+   - paper：{url_openreview_or_arxiv_or_doi}  (7 URL 优先级, OpenReview 优先)
+3. 保留 v0.3.9 标注行 + 全作者中文括注 (不再破坏)
+4. 保留 4 维 taxonomy 4 行独立 <p> 块
+5. v0.4.0 紧凑版 → 嵌入的 [arXiv X] 拆出独立 arXiv 行, 保留 inline 通讯/大老板/一作 标记
+6. fallback: 找不到的 status 标 [需用户确认], confidence < 0.6 不 auto-migrate
+7. dry-run + git pre-flight + 失败 abort (任 1 docx 失败立即 rollback)
 
 要求:
-- ~/.agents/skills/teacher-report/references/name-dictionary-DEPRECATED-UNMARKED.json 存在
-- lark-cli 已 auth login
-- 备份 (脚本会提示) 虽非强制,推荐 SKILL.md §D
+- ~/.agents/skills/teacher-report/references/name-dictionary-LOW-CONF-MARKED.json 存在 (v0.3.9 旧版用 DEPRECATED-UNMARKED)
+- lark-cli 已 auth login (lark-cli wiki +node-list --parent-node-token=P49mwGQU0iEh9CkXbCTcC418nPb 列 13 PIs)
+- 飞书 wiki dashboard token: P49mwGQU0iEh9CkXbCTcC418nPb (申博 P49mwGQU0iEh9CkXbCTcC418nPb)
+- 备份 (脚本会提示) 强烈推荐 (per Plan Review Gate P3 risk)
+- 22 项 LLM 自检 (Check 1-22) 必跑, 全 ✅ 才能写入 docx
+
+V0.11.0 changelog (2026-06-11): 加 3 字段 (status / arXiv / paper URL) + status 8 enum + 7 paper URL 优先级
++ 5 新自检 (Check 18-22). 与 v0.4.0 紧凑版共存 (≥10 篇仍用 v0.4.0).
 """
 import json, re, subprocess, sys, os
 import argparse
