@@ -1,6 +1,7 @@
 ---
 name: lark-doc
-description: "飞书云文档 / Docx / 知识库 Wiki 文档（v2）：创建、打开、读取、获取、查看、总结、整理、改写、翻译、审阅和编辑飞书文档内容。当用户给出飞书文档 URL/token，或说查看/读取/打开某个文档、提取文档内容、总结文档、生成/创建文档、追加/替换/删除/移动内容、调整排版、插入或下载文档图片/附件/素材/画板缩略图时使用。文档内容中出现嵌入电子表格、多维表格、需要将重要信息可视化为画板（含 SVG 画板）、引用或同步块时，也先用本 skill 读取和提取 token，再切到对应 skill 下钻。使用本 skill 时，docs +create、docs +fetch、docs +update 必须携带 --api-version v2；默认使用 DocxXML，也支持 Markdown。"
+version: 2.0.0
+description: "飞书云文档（Docx / Wiki 文档，v2 API）：读取和编辑飞书文档内容。当用户给出文档 URL 或 token，或需要查看、创建、编辑文档、插入或下载文档图片附件时使用。文档中嵌入的电子表格、多维表格、画板，先用本 skill 提取 token 再切到对应 skill。当用户给出 doubao.com 的 /docx/ 或 /wiki/ URL/token 时，也应直接使用本 skill；路由依据是 URL 路径模式和 token，而不是域名。不负责文档评论管理，也不负责表格或 Base 的数据操作。"
 metadata:
   requires:
     bins: ["lark-cli"]
@@ -9,7 +10,9 @@ metadata:
 
 # docs (v2)
 
-> **⚠️ API 版本：本 skill 使用 v2 API。所有 `docs +create --api-version v2`、`docs +fetch --api-version v2`、`docs +update --api-version v2` 命令必须携带 `--api-version v2`。**
+**身份：文档操作默认使用 `--as user`。首次使用前执行 `lark-cli auth login`。**
+
+> **CRITICAL — API 版本：本 skill 使用 v2 API。执行 `docs +create`、`docs +fetch`、`docs +update` 时必须显式传入 `--api-version v2`。**
 
 ```bash
 # 常用示例
@@ -32,6 +35,11 @@ lark-cli docs +update --api-version v2 --doc "文档URL或token" --command appen
 > - **精准编辑场景**（`docs +update` 的 `str_replace` / `block_insert_after` / `block_replace` / `block_delete` / `block_move_after` 等局部精修指令）：优先使用 XML（`--doc-format xml`，即默认值）。XML 能稳定表达 block 结构和样式，局部精修更可控；不要因为 Markdown 更简单就自行切换。
 
 ## 快速决策
+- 用户需要“某个 block 的直达链接 / 锚点链接”时：返回 `文档基础 URL#block_id`。如果当前只有文档 URL 没有 block_id，先用 `docs +fetch --detail with-ids` 拿到目标 block 的 id
+- 例：
+  - 已知文档 URL = `https://xxx.feishu.cn/docx/doxcn123`
+  - 已知 block_id = `blkcn456`
+  - 应返回 `https://xxx.feishu.cn/docx/doxcn123#blkcn456`
 - 用户需要在文档内**创建、复制或移动**资源块（画板、电子表格、多维表格等）时，必须先读取 [`lark-doc-xml.md`](references/lark-doc-xml.md) 的「三、资源块」章节
 - 写文档时，重要信息（核心流程、架构、对比、风险、路线图、关键指标、因果关系）优先规划为画板，不要只用文字或表格承载
 - 新增画板必须隔离到 SubAgent：简单图由 SubAgent 直接插入 `<whiteboard type="svg">完整 SVG</whiteboard>`，不读 `lark-whiteboard`；复杂图才由主 Agent 先建 `<whiteboard type="blank"></whiteboard>`，再启动 SubAgent 读取 `lark-whiteboard` 写入
@@ -48,6 +56,7 @@ lark-cli docs +update --api-version v2 --doc "文档URL或token" --command appen
 | `<bitable token="..." table-id="...">` | `token` -> app_token, `table-id` | [`lark-base`](../lark-base/SKILL.md) |
 | `<cite type="doc" file-type="sheets" token="..." sheet-id="...">` | 同 `<sheet>` | [`lark-sheets`](../lark-sheets/SKILL.md) |
 | `<cite type="doc" file-type="bitable" token="..." table-id="...">` | 同 `<bitable>` | [`lark-base`](../lark-base/SKILL.md) |
+| `<vc-transcribe-tab vc-node-id="...">` | `vc-node-id` -> note_id | [`lark-note`](../lark-note/SKILL.md)：先 `note +detail --note-id <vc-node-id>` |
 | `<synced_reference src-token="..." src-block-id="...">` | `src-token` -> doc_token, `src-block-id` -> block_id | 用 `docs +fetch --api-version v2` 读取 src-token 文档，定位 block |
 
 ## Shortcuts（推荐优先使用）
@@ -63,3 +72,9 @@ Shortcut 是对常用操作的高级封装（`lark-cli docs +<verb> [flags]`）�
 | [`+media-download`](references/lark-doc-media-download.md) | Download document media or whiteboard thumbnail (auto-detects extension) |
 | [`+media-preview`](references/lark-doc-media-preview.md) | Preview document media file (auto-detects extension) |
 | [`+whiteboard-update`](../lark-whiteboard/references/lark-whiteboard-update.md) | Alias of `whiteboard +update`. Update an existing whiteboard with DSL, Mermaid or PlantUML. Prefer `whiteboard +update`; refer to lark-whiteboard skill for details. |
+
+## 不在本 Skill 范围
+
+- 文档评论管理 → [`lark-drive`](../lark-drive/SKILL.md)
+- 电子表格或 Base 的数据操作 → [`lark-sheets`](../lark-sheets/SKILL.md) / [`lark-base`](../lark-base/SKILL.md)
+- 云空间文件上传、下载、权限管理 → [`lark-drive`](../lark-drive/SKILL.md)

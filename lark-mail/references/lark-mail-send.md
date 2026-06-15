@@ -12,6 +12,8 @@
 
 ## CRITICAL — 发送工作流（必须遵循）
 
+**CRITICAL - 编辑邮件内容前 MUST 先用 Read 工具读取 [references/lark-mail-html.md](references/lark-mail-html.md)，其中包含邮件书写规范**
+
 此命令默认**只保存草稿**，不会发送邮件。需要发送时，有两种合规方式：
 
 **方式 A（推荐）** — 先创建草稿，再确认发送：
@@ -67,7 +69,8 @@ lark-cli mail +send --to alice@example.com --subject '测试' --body '<p>test</p
 |------|------|------|
 | `--to <emails>` | 是 | 收件人邮箱，多个用逗号分隔 |
 | `--subject <text>` | 是 | 邮件主题 |
-| `--body <text>` | 是 | 邮件正文。推荐使用 HTML 获得富文本排版；也支持纯文本（自动检测）。使用 `--plain-text` 可强制纯文本模式。支持 `<img src="./local.png" />` 相对路径自动解析为内嵌图片（仅支持相对路径，不支持绝对路径） |
+| `--body <text>` | 二选一 | 邮件正文。推荐使用 HTML 获得富文本排版；也支持纯文本（自动检测）。使用 `--plain-text` 可强制纯文本模式。支持 `<img src="./local.png" />` 相对路径自动解析为内嵌图片（仅支持相对路径，不支持绝对路径）。与 `--body-file` 互斥 |
+| `--body-file <path>` | 二选一 | 从文件读取邮件正文 HTML（相对路径，仅限 cwd 子树）。与 `--body` 互斥。文件大小上限 32 MB |
 | `--from <email>` | 否 | 发件人邮箱地址（EML From 头）。使用别名（send_as）发信时，设为别名地址并配合 `--mailbox` 指定所属邮箱。默认读取邮箱主地址 |
 | `--mailbox <email>` | 否 | 邮箱地址，指定草稿所属的邮箱（默认回退到 `--from`，再回退到 `me`）。当发件人（`--from`）与邮箱不同时使用。可通过 `accessible_mailboxes` 查询可用邮箱 |
 | `--cc <emails>` | 否 | 抄送邮箱，多个用逗号分隔 |
@@ -77,9 +80,22 @@ lark-cli mail +send --to alice@example.com --subject '测试' --body '<p>test</p
 | `--inline <json>` | 否 | 高级用法：手动指定内嵌图片 CID 映射。推荐直接在 `--body` 中使用 `<img src="./path" />`（自动解析）。仅在需要精确控制 CID 命名时使用此参数。格式：`'[{"cid":"mycid","file_path":"./logo.png"}]'`，在 body 中用 `<img src="cid:mycid">` 引用。不可与 `--plain-text` 同时使用 |
 | `--signature-id <id>` | 否 | 签名 ID。附加邮箱签名到正文末尾。运行 `mail +signature` 查看可用签名。不可与 `--plain-text` 同时使用 |
 | `--priority <level>` | 否 | 邮件优先级：`high`、`normal`、`low`。省略或 `normal` 时不设置优先级 |
+| `--event-summary <text>` | 否 | 日程标题。设置此参数即在邮件中嵌入日程邀请（text/calendar）。需同时设置 `--event-start` 和 `--event-end` |
+| `--event-start <time>` | 条件必填 | 日程开始时间（ISO 8601，如 `2026-04-20T14:00+08:00`） |
+| `--event-end <time>` | 条件必填 | 日程结束时间（ISO 8601） |
+| `--event-location <text>` | 否 | 日程地点 |
 | `--confirm-send` | 否 | 确认发送邮件（默认只保存草稿）。仅在用户明确确认收件人和内容后使用 |
 | `--send-time <timestamp>` | 否 | 定时发送时间，Unix 时间戳（秒）。需至少为当前时间 + 5 分钟。配合 `--confirm-send` 使用可定时发送邮件 |
+| `--request-receipt` | 否 | 请求已读回执（RFC 3798 Message Disposition Notification）。在出站 EML 里写 `Disposition-Notification-To: <sender>` 头。收件人的邮件客户端**可能**弹出提示询问是否回执、可能自动发送、也可能忽略——送达不保证 |
 | `--dry-run` | 否 | 仅打印请求，不执行 |
+
+### 日程邀请约束
+
+使用 `--event-*` 时需满足以下条件：
+
+- `--event-summary`、`--event-start`、`--event-end` 必须同时出现或同时不出现
+- 与 `--send-time` 互斥，不可同时使用（日程邀请必须立即发送，否则收件人可能在日程开始后才收到）
+- 不可与 `--bcc` 同时使用：日程参会人（ATTENDEE）仅来自 To 和 Cc，Bcc 收件人不在参会人列表中、无法 RSVP，且该组合将导致邮件发送失败。需要邀请某人参加日程请用 `--to` 或 `--cc`；如只想告知而不邀请，请单独发一封无日程的邮件
 
 ## 返回值
 

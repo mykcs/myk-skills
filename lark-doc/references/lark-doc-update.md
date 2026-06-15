@@ -2,10 +2,9 @@
 # docs +update（更新飞书云文档）
 
 > **前置条件（MUST READ）：** 生成文档内容前，必须先用 Read 工具读取以下文件，缺一不可：
-> 1. [`../lark-shared/SKILL.md`](../../lark-shared/SKILL.md) — 认证、全局参数和安全规则
-> 2. [`lark-doc-xml.md`](lark-doc-xml.md) — XML 语法规则（使用 Markdown 格式时改读 [`lark-doc-md.md`](lark-doc-md.md)）
-> 3. [`lark-doc-style.md`](style/lark-doc-style.md) — 排版指南（元素选择、丰富度规则、颜色语义）
-> 4. [`lark-doc-update-workflow.md`](style/lark-doc-update-workflow.md) — 改写增强工作流（Code-Act Loop、并行执行策略）
+> 1. [`lark-doc-xml.md`](lark-doc-xml.md) — XML 语法规则（使用 Markdown 格式时改读 [`lark-doc-md.md`](lark-doc-md.md)）
+> 2. [`lark-doc-style.md`](style/lark-doc-style.md) — 排版指南（元素选择、丰富度规则、颜色语义）
+> 3. [`lark-doc-update-workflow.md`](style/lark-doc-update-workflow.md) — 改写增强工作流（Code-Act Loop、并行执行策略）
 >
 > **未读完以上文件就生成内容会导致格式错误或样式不达标。**
 
@@ -27,7 +26,7 @@
 | `--doc-format` | 否 | 内容格式：`xml`（默认，始终优先使用）\| `markdown`（仅用户明确要求时） |
 | `--content` | 视指令 | 写入内容（`str_replace` 传空字符串可实现删除） |
 | `--pattern` | 视指令 | 匹配文本（str_replace） |
-| `--block-id` | 视指令 | 目标 block ID（block_* 操作）,-1 表示末尾 |
+| `--block-id` | 视指令 | 目标 block ID（block_* 操作），逗号分隔可批量删除，-1 表示末尾 |
 | `--src-block-ids` | 视指令 | 源 block ID（逗号分隔），用于 block_copy_insert_after / block_move_after |
 | `--revision-id` | 否 | 基准版本号，-1 = 最新（默认 `-1`） |
 
@@ -41,8 +40,8 @@
 | `block_replace` | 替换指定 block（同一 block 仅限一次） | `--block-id` `--content` |
 | `block_delete` | 删除指定 block（逗号分隔可批量） | `--block-id` |
 | `overwrite` | ⚠️ 清空文档后全文重写（可能丢失图片、评论） | `--content` |
-| `append` | 在文档末尾追加内容（等价于 `block_insert_after --block-id -1`） | `--content` |
-| `block_move_after` | 移动已有 block 到指定位置 | `--block-id` + (`--content` 或 `--src-block-ids`) |
+| `append` | ⚠️ 在文档**末尾**追加内容（等价于 `block_insert_after --block-id -1`）。**不适用于逐章填充**——逐章写入请用 `block_insert_after` 并指定对应标题的 `--block-id` | `--content` |
+| `block_move_after` | 移动已有 block 到指定位置 | `--block-id` `--src-block-ids` |
 
 ## 指令示例
 
@@ -117,8 +116,9 @@ lark-cli docs +update --api-version v2 --doc "<doc_id>" --command block_replace 
 ### block_delete — 删除指定 block
 
 ```bash
+# 删除多个块时用逗号 "," 分隔
 lark-cli docs +update --api-version v2 --doc "<doc_id>" --command block_delete \
-  --block-id "目标 block_id"
+  --block-id "block_id_1,block_id_2,block_id_3"
 ```
 
 ### overwrite — 全文覆盖
@@ -241,156 +241,7 @@ lark-cli docs +update --api-version v2 --doc "<doc_id>" --command str_replace \
   3. 这样可以保留文档中其他不相关的内容（图片、评论等）
 - **视觉丰富度**：插入或替换内容时，同样遵循 [`lark-doc-style.md`](style/lark-doc-style.md) 中的样式指南，主动使用结构化 block
 
-## 踩坑与陷阱（实战经验，2026-06 验证）
-
-> 这些是反复踩过的坑，写新流程前请先扫一遍。
-
-### 1. `--content @<filepath>` 必须用相对路径
-
-```
-# ❌ 报错：invalid file path "..." --file must be a relative path
-lark-cli docs +update --content @/Users/myk/.../foo.md
-
-# ✅ 先 cd 到目标目录，用相对路径
-cd /Users/myk/.mavis/sessions/<sid>/workspace
-lark-cli docs +update --content @./foo.md
-```
-
-**原因**：`--content @file` 形式启用了 sandbox-style path resolution，绝对路径会被拒绝。
-
-### 2. `block_replace` 同一 block 只能调用一次（静默失败）
-
-```bash
-# 第一次：ok ✓
-lark-cli docs +update ... --command block_replace --block-id "X" --content "A"
-
-# 第二次：仍返回 "ok": true 但 "result": "failed" —— 看起来成功实际没动
-lark-cli docs +update ... --command block_replace --block-id "X" --content "B"
-```
-
-**应对**：每次修改前重新 `docs +fetch` 拿最新 block_id，不要靠记忆中的旧 id。第二次修改用新 block_id（同一逻辑位置重建出来的 cell 会有新 id）。
-
-### 3. `str_replace` 在 markdown 模式不能写 XML/HTML 标签
-
-```bash
-# ❌ 标签被转义成字面量
---pattern "Genomic...</p></td><td></td>"
---content "Genomic...</p></td><td><p>2022.10</p></td>"
-# 实际写入：<p>2022.10</p> 变成 &lt;p&gt;2022.10&lt;/p&gt; 文本
-```
-
-**应对**：
-- 想插纯文本 → 直接用文本
-- 想插段落 → 改用 `block_insert_after` 走 XML 模式
-- 改表格 cell → 用 `前缀...后缀` 省略号语法绕开空 cell 匹配问题
-
-### 4. markdown 模式支持 `前缀...后缀` 省略号语法
-
-```bash
-# 跨多 cell 匹配并整体替换
-lark-cli docs +update --command str_replace --doc-format markdown \
-  --pattern '论文标题...会议/期刊' \
-  --content '论文标题</p></td><td><p>2024</p></td><td><p>会议/期刊'
-```
-
-省略号 `...` 中间内容**完全替换**为 `--content`，不会被保留。适合处理表格内连续多 cell。
-
-### 5. 飞书 H1 vs H2 vs title 的关系
-
-- Markdown 的 `# 一级标题` **会变成文档唯一 `<title>`**（不进入 body），不会出现在 `outline` 里
-- body 实际从 H2 开始
-- 飞书对 H2 里的 `1.` `2.` `3.` 等数字格式会**自动识别**为编号列表，但**仅在编辑器里实时输入时**触发；用 API str_replace 写入的 `1.` 是纯文本，不会自动激活编号 UI
-- 想真用编号功能 → 在 Feishu 编辑器里手动把光标放在标题前敲 `1. ` 触发智能编号
-
-### 6. 表格空 cell 无法用 str_replace 匹配
-
-```xml
-<td></td>  <!-- 空格也算不到字符 -->
-```
-
-**应对**：
-- 用 `前缀...后缀` 省略号语法跨越空 cell
-- 或用 `block_replace` 直接对 `<td>` 内部 `<p>` 操作（注意 1 次性限制）
-- 或 str_replace 整行内容（包括前后 cell 作锚点）
-
-### 7. 复杂结构（callout / grid）的子块用 `block_insert_after` 走 XML 模式
-
-```bash
-# 想要 callout，必须 --doc-format xml（默认），不能 markdown
-lark-cli docs +update --command block_insert_after --block-id "X" \
-  --content '<callout emoji="💡"><p>高亮框</p></callout>'
-```
-
-markdown 模式下的 `<callout>` `<grid>` 不会渲染，会被转义为字面量。
-
-### 8. `str_replace` 不识别 `<p id="...">` block id 限定符（2026-06-11 case 验证）
-
-**症状**: pattern 看起来 unique (`<p id="doxcnXYZ">旧文本</p>`) 但实际匹配了**所有** `旧文本` 实例。
-**根因**: str_replace 在 lark 序列化层做纯文本匹配，`<p id="...">` 限定符被剥除, 只比较 inner text。
-**典型反例**: 文档模板里 `❓ 待补` 出现 25+ 次，用 `<p id="X">❓ 待补</p>` 限定看似唯一, 实际触发 25 处全文替换, 1 次操作污染 23 个 block (XCkgdqmKSoSyiBxM9FYcbYLjnkb 实测)。
-**应对**:
-- 表格 cell / callout 子块 → 改用 `block_replace --block-id <id>` (API 层寻址, 不走文本匹配)
-- str_replace 只用于**全文唯一**的纯文本 (标题、版本号、url 等)
-- 改前 `grep` 计数目标字符串在文档中出现次数, > 1 即有风险
-- 改后**立即** `docs +fetch --scope section/range` 验证, 不要相信 `result: success`
-
-### 9. `block_insert_after` 多块 content 含 callout 静默吞并（2026-06-11 case 验证）
-
-**症状**: `--content '<li>...</li>...<li>...</li><callout>...</callout>'` (5 块混合) 实际只插入 4 li, callout 丢失。
-**根因**: callout 带 `emoji` / `background-color` / `border-color` 属性, 在多块 content 上下文中被静默跳过; `result: success` 仍返回, 不报错。
-**应对**:
-- callout **必须单独一次** `block_insert_after`, 与其他 block 分开调用
-- 插入后**立即** `docs +fetch --scope range` 跨过目标位置验证
-- 不要相信 `result: success` — 这只表示请求被接受, 不表示全部 block 都插入
-- 如果要插入 li + callout, 先插 li (单独 call), 再插 callout (单独 call)
-
-### 10. 验证脚本
-
-```bash
-# ~/.claude/scripts/lark-doc-update-verify.sh
-# 用法: lark-doc-update-verify.sh <doc_id> <start_block> <end_block> <expected_string>
-DOC=$1
-START=$2
-END=$3
-EXPECTED=$4
-lark-cli docs +fetch --api-version v2 --doc "$DOC" \
-  --scope range --start-block-id "$START" --end-block-id "$END" \
-  --detail with-ids | grep -q "$EXPECTED" \
-  || { echo "VERIFY FAIL: '$EXPECTED' not found in range"; exit 1; }
-echo "VERIFY OK"
-```
-
-### 11. `docs +fetch` 3380003 不可靠, 必须 `wiki +node-list` 二次确认 (2026-06-12 case 验证)
-
-**症状**: `docs +fetch --doc <token>` 返 `{"ok": false, "error": {"code": 3380003, "message": "Document page has been deleted"}}`. claudecode 误判为 cascade delete 灾难, 实际是 lark 内部 doc aliasing.
-
-**根因**: 飞书 wiki 节点可对应多个 docx token (aliased). URL 拿到的 token 跟真实存储 docx 是**两个不同 docx**. lark 通过 wiki 名称匹配做 aliasing, `docs +update` 写入和 `docs +fetch` 读出可能用不同 token. 一旦其中之一失效, 3380003 出现.
-
-**典型反例**: 删除 dashboard (`drive +delete`) 后, dashboard 树里的 docx token 返 3380003, 但申博 space 里的同名 doc (`XPwod9uB6oCU8NxUCh0c59b4nyf`) 仍完好. claudecode 误判 cascade 灾难, 用户指引后才意识到.
-
-**应对**:
-- **删除前**: `lark-cli wiki +node-list --space-id <X>` 列空间全部节点, 确认 target 是顶级 (parent_node_token = "") vs 子节点
-- **删除后**: 看到 3380003 不立刻 = 灾难. 必须 `wiki +node-list` 二次确认空间结构
-- **首选 `wiki +node-delete` 替代 `drive +delete`**: 前者明确 wiki 树层级, 有 polling 提示, 错误信息可读
-- **用 `drive +inspect --url` 拿 canonical token**: 不能凭 URL + 1 次 fetch 推断 docx token
-- **验证脚本 fallback** (v2 升级): `lark-doc-update-verify.sh` 自动 `wiki +node-list` 跨 space 搜; exit 4 = 找到了, exit 3 = 真的丢了
-
-### 12. 飞书 wiki 树 parent-children cascade 风险, dashboard 删除触发 children 失效 (2026-06-12 case 验证)
-
-**症状**: `lark-cli drive +delete --file-token <dashboard_docx> --type docx --yes` 返 `{"deleted": true, "file_token": "..."}`. 看似只删 dashboard, 实际触发 wiki 树 parent-children cascade, dashboard **子节点** 全部失效.
-
-**根因**: 飞书 wiki 是树结构, parent 节点 docx 删除 = 关联的 children wiki 节点全部失效. `drive +delete` 不提示 cascade 风险, 不区分 docx vs wiki node.
-
-**典型反例**: 用户授权删除 dashboard (申博候选调研), dashboard 树里的子节点 docx 全部返 3380003. claudecode 误报"cascading delete 灾难"给用户, 实际申博 space 顶级节点 (独立树) 未受影响, 数据 0 损失.
-
-**应对**:
-- **删除 wiki 节点前必跑 `wiki +node-list` 列 children**: `lark-cli wiki +node-list --parent-node-token <target>` 列出 target 下所有子节点
-- **首选 `wiki +node-delete` 替代 `drive +delete`**: 前者明确 wiki 树层级, polling 提示 cascade 范围; 后者直接删底层 docx, cascade 行为不透明
-- **删除前用 `--dry-run` 预览**: `lark-cli drive +delete --dry-run` 打印完整请求, 但不阻止 cascade
-- **删完立即 `wiki +node-list --space-id` 二次验证**: 空间顶级 vs 子节点 状态
-
 ## 参考
-
 
 - [`lark-doc-update-workflow.md`](style/lark-doc-update-workflow.md) — 改写增强工作流（Code-Act Loop、并行执行策略）
 - [`lark-doc-style.md`](style/lark-doc-style.md) — 文档样式指南（元素选择 + 丰富度规则 + 颜色语义）
@@ -398,4 +249,3 @@ echo "VERIFY OK"
 - [`lark-doc-fetch.md`](lark-doc-fetch.md) — 获取文档
 - [`lark-doc-create.md`](lark-doc-create.md) — 创建文档
 - [`lark-doc-media-insert.md`](lark-doc-media-insert.md) — 插入图片/文件到文档
-- [`../../lark-shared/SKILL.md`](../../lark-shared/SKILL.md) — 认证和全局参数
