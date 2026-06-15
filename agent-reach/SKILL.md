@@ -1,7 +1,7 @@
 ---
 name: agent-reach
 description: >
-  Give your AI agent eyes to see the entire internet.
+  Gives an AI agent eyes to see the entire internet.
   Search and read 17 platforms: Twitter/X, Reddit, YouTube, GitHub, Bilibili,
   XiaoHongShu, Douyin, Weibo, WeChat Articles, Xiaoyuzhou Podcast, LinkedIn,
   V2EX, Xueqiu, RSS, Exa web search, and any web page.

@@ -235,6 +235,9 @@ LOADED_BY_NAME_SKILLS: set[str] = {
     "slack-gif-creator", "teacher-report", "theme-factory",
     "verifier-pass2", "web-artifacts-builder", "web-design-engineer",
     "webapp-testing", "website-improve", "xiao-de", "xlsx",
+    # v1.2.1 (2026-06-15): additional loaded-by-name skills confirmed in repo
+    "lark-markdown", "lark-vc-agent", "skill-creator", "lark-apps",
+    "parallel-fix-explorer",
 }
 
 

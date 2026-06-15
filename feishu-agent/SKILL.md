@@ -1,7 +1,7 @@
 ---
 name: feishu-agent
 version: 1.1.0
-description: "飞书 Bitable 自然语言代理：自然语言 CRUD、URL 解析、Schema 缓存、Upsert-First 写入。处理飞书多维表格的日常增删改查时调用。当用户用自然语言描述 Bitable 操作（如「往咖啡豆表里加一条」「帮我更新 x 的价格」）时使用。"
+description: "飞书 Bitable 自然语言代理：自然语言 CRUD、URL 解析、Schema 缓存、Upsert-First 写入。处理飞书多维表格的日常增删改查时调用。当用户用自然语言描述 Bitable 操作（如「往咖啡豆表里加一条」「更新 x 的价格」）时使用。"
 metadata:
   requires:
     bins: ["lark-cli"]

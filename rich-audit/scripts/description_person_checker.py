@@ -42,6 +42,9 @@ EN_PRONOUNS_RE = re.compile(
 )
 
 # Chinese first/second person pronouns. 「我们」/「咱们」 included.
+# Note: "你" is deliberately omitted because it is a component of common
+# technical terms (e.g., "迷你图" sparkline) and produces false positives.
+# Second-person detection still covers "您/你/你们/咱/咱们".
 ZH_PRONOUNS_RE = re.compile(r"(?:我|我们|您|你|你们|咱|咱们)")
 
 # Frontmatter parser: extract description field even if multi-line (`description: |`)

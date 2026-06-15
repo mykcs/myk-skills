@@ -2,7 +2,7 @@
 name: phd-scout
 description: |
   PhD Advisor Intelligence Gatherer — 申博情报搜集系统。自动抓取清北复交浙 AI/LLM/Agent 方向导师信息，判定危险信号，写入飞书。
-  Use this skill whenever the user asks to find, scout, research, or gather information about PhD advisors or mentors in Chinese universities (清华/北大/复旦/上交/浙大), especially for AI/ML/LLM/Agent research directions. This includes requests like "帮我找清北复交浙的 Agent 方向老师", "调研某个老师的论文和学生", "更新飞书里的导师信息", "批量抓取导师数据". Explicitly trigger when user mentions 导师/老师/PI/博导 followed by university names or AI research topics.
+  Use this skill whenever the user asks to find, scout, research, or gather information about PhD advisors or mentors in Chinese universities (清华/北大/复旦/上交/浙大), especially for AI/ML/LLM/Agent research directions. This includes requests like "查找清北复交浙的 Agent 方向老师", "调研某个老师的论文和学生", "更新飞书里的导师信息", "批量抓取导师数据". Explicitly trigger when user mentions 导师/老师/PI/博导 followed by university names or AI research topics.
 兼容性: Python 3.10+, aiohttp, requests, playwright, openai
 ---
 

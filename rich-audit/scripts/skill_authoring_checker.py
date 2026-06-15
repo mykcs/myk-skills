@@ -54,6 +54,10 @@ NESTED_SKILL_DIRS: set[str] = {
     "go", "core", "python", "plugins", "references", "typescript",
     "java", "shared", "docs", "php", "cpp", "kotlin", "golang",
     "settings", "code-review", "skills", "scripts", "utils",
+    # Repo / docs / assets dirs that are not skills themselves
+    ".git", ".github", ".omc", ".claude-plugin",
+    "assets", "examples", "reference", "themes", "templates",
+    "csharp", "ruby",
 }
 
 
@@ -63,21 +67,38 @@ def parse_frontmatter(text: str) -> dict | None:
         return None
     fm: dict = {}
     current_key = None
-    for line in m.group(1).split("\n"):
-        if re.match(r"^[a-zA-Z_][a-zA-Z0-9_.]*:", line):
-            key, _, val = line.partition(":")
-            val = val.strip()
+    block_mode = False  # True when inside a '|' or '>' YAML block scalar
+    for raw_line in m.group(1).split("\n"):
+        line = raw_line.rstrip()
+        key_match = re.match(r"^([a-zA-Z_][a-zA-Z0-9_.]*):\s*(.*)$", line)
+        if key_match:
+            key, val = key_match.group(1), key_match.group(2).strip()
+            current_key = key
+            block_mode = False
             if val == "":
-                current_key = key
                 fm[key] = None
+            elif val.startswith("|") or val.startswith(">"):
+                fm[key] = ""
+                block_mode = True
             else:
-                current_key = None
-                if val.startswith("|") or val.startswith(">"):
-                    fm[key] = val
+                fm[key] = val.strip('"').strip("'")
+        elif block_mode and current_key is not None:
+            # Continue the block scalar, preserving line breaks roughly
+            fm[current_key] = (fm.get(current_key) or "") + "\n" + line
+        elif line.startswith("  ") and current_key is not None and fm.get(current_key) is None:
+            # Nested mapping under a key with no value, e.g. metadata:\n  version: ...
+            nested_match = re.match(r"^\s+([a-zA-Z_][a-zA-Z0-9_.]*):\s*(.*)$", line)
+            if nested_match:
+                nested_key, nested_val = nested_match.group(1), nested_match.group(2).strip()
+                full_key = f"{current_key}.{nested_key}"
+                if nested_val == "":
+                    fm[full_key] = None
+                elif nested_val.startswith("|") or nested_val.startswith(">"):
+                    fm[full_key] = ""
+                    block_mode = True
+                    current_key = full_key
                 else:
-                    fm[key] = val.strip('"').strip("'")
-        elif line.startswith("  ") and current_key:
-            fm[current_key] = (fm.get(current_key) or "") + "\n" + line.strip()
+                    fm[full_key] = nested_val.strip('"').strip("'")
     return fm
 
 

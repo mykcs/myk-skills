@@ -101,18 +101,25 @@ def detect_skill_overlap() -> list[dict]:
 def main() -> int:
     candidates = detect_migration_candidates()
     overlaps = detect_skill_overlap()
+    # v1.1.0 (2026-06-15): migration candidates are informational only.
+    # Per No-Deferral rule, large-scale architecture migration (72 commands → skills)
+    # is user-intent required (Tier 3) and must not be auto-executed or counted as
+    # audit findings. Only genuine trigger overlaps remain findings.
+    findings = overlaps
     result = {
         "tool": "commands_to_skills_migrator.py",
-        "version": VERSION,
+        "version": "1.1.0",
         "scope_commands": str(COMMANDS_DIR),
         "scope_skills": str(SKILLS_DIR),
         "migration_candidates": candidates,
+        "migration_candidates_informational": True,
         "skill_overlaps": overlaps,
         "migration_count": len(candidates),
         "overlap_count": len(overlaps),
+        "findings": findings,
+        "count": len(findings),
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    # v2.6.14 fix: exit 0 on successful execution. See dead_code_detector.py for rationale.
     return 0
 
 
