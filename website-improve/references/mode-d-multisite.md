@@ -101,10 +101,10 @@ Report back as a single JSON block.
 
 **barrier**: 等所有 agent 返回后聚合。
 
-#### Phase 3: 并行 fix (仅 P0 + P1)
+#### Phase 3: 并行 fix (P0 + P1 + P2)
 
 ```text
-Filter issues by severity ∈ {P0, P1}.
+Filter issues by severity ∈ {P0, P1, P2}.
 Group by site. Launch 1 Agent per site with this prompt:
 
 Apply the following fixes to <SITE_REPO>:
@@ -118,6 +118,7 @@ For each fix:
 
 Do NOT touch issues not in this list. (scope discipline)
 Do NOT mark done until build passes.
+Do NOT silently defer P2 issues; every reported P0/P1/P2 issue must be fixed or explicitly BLOCKED.
 
 **L14 FINAL MESSAGE PROTOCOL (mandatory)**:
 - 你的 final message MUST 是 EXACTLY 一个 JSON block:
@@ -125,10 +126,11 @@ Do NOT mark done until build passes.
   "site": "<name>",
   "p0_fixed": <count>,
   "p1_fixed": <count>,
+  "p2_fixed": <count>,
   "p2_deferred": <count>,
   "commits": ["<hash1>: <msg1>", "<hash2>: <msg2>"],
   "ci_status": "green|red|pending|unknown",
-  "evidence_blocking": "<reason if not all P0/P1 fixed, else empty>"
+  "evidence_blocking": "<reason if not all P0/P1/P2 fixed, else empty>"
 }
 - Wrap in ` ```json ... ``` ` 三反引号
 - NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble

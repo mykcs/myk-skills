@@ -9,10 +9,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.7.0"
+  version: "3.8.0"
   author: mykcs
   category: web-development
   changelog:
+    - 3.8.0 (2026-06-15): Mode D Phase 3 now fixes P0/P1/P2 instead of only P0/P1. Updated references/mode-d-multisite.md prompt and hard rules to enforce P2 remediation; removed "P2 out of scope" language.
     - 3.7.0 (2026-06-10): Progressive disclosure refactor (per Anthropic SKILL.md best practices). 861 → 487 行 (-43%). Skill Evolution 历史 307 行 → references/evolution-history.md; 跨站点/触类旁通/学术资产化 34 行 → references/site-improvement-protocols.md; triggers 长尾 36 行 → references/triggers.md. 满足 Anthropic 500-line hard limit + AEM 200-line reliability sweet spot.
     - 3.6.0 (2026-06-09): §33-§35 orchestrator + fix-agent 硬化. H1 ASI 防御 (Workflow 脚本 `SITES.map(...)\n({...})` ASI 解析 bug → TypeError recovery) / H2 autopush fallback (autopush 误判 staged-only deletion → direct `git push` 兜底) / H3 fix agent 二次 `git status` 验证 (避免 dangling untracked-deletion). 来自 CASE-MULTI-SITE-IMPROVE-20260609.
     - 3.5.0 (2026-06-08): L17+L18 orchestrator 硬化. Phase 0 工具预加载 (ToolSearch 治本 subagent tool loading bug) + L17 auto-fallback (agent ack → SendMessage 重发 JSON). 解决 Run 4 暴露的 L14 enforcement 2/3 success + GDKVM 0 tool uses 2 个 bug.
@@ -194,9 +195,9 @@ N
 ~/.claude/knowledge/cases/CASE-SYNC-ALL-SITES-YYYYMMDD.md
 ```
 
-**禁用的输出段** (2026-06-05 规则硬化):
+**禁用的输出段** (2026-06-05 规则硬化, 2026-06-15 更新 P2 也须修复):
 - ❌ `## Deferred items (next run)` 列表
-- ❌ `## P2 (out of scope this run)` 段落
+- ❌ `## P2 (out of scope this run)` / `## P2 (deferred)` 段落
 - ❌ `## Followup` / `## TODO next session` / `## Carried over` 任何形式
 - ❌ 案例文件"Lessons"段里出现"待做" / "建议改" / "应该审计" 的 follow-up 项
 
@@ -218,6 +219,7 @@ N
 
 - ❌ 跳过 Phase 1 验仓 → 禁止进入 Phase 2
 - ❌ Phase 3 编辑未被 issue 列表覆盖的文件 → scope creep
+- ❌ Phase 3 跳过 P2 不修复 → 新规则要求 P0/P1/P2 全部处理, 不得静默 defer
 - ❌ 任何 CI red 时声明"完成" → verification gate 违反
 - ❌ 不写 case 文件 → self-evolution 协议违反
 - ❌ 输出报告含 "Deferred items" 段 → 零容忍
@@ -230,7 +232,8 @@ N
 
 - **快速通道**: 跳过 Phase 1 直接派 agent → 改错仓 (已发生 4+ 次)
 - **silent skip**: CI red 不报"未完成"
-- **全量 auto-apply**: 把 P2 也一起 fix → scope creep
+- **选择性跳过 P2**: 将 P2 标记为 deferred/out-of-scope 而不修复 → 违反新规则
+- **全量 auto-apply（旧）**: 把 P2 也一起 fix → 已升级为正式规则，不再视为 scope creep
 - **不写 case**: 跑完不沉淀 → 下次跑同样的问题
 - **deferred theater** (2026-06-05 新增): 用"Deferred items"段把没做的事写得很整齐, 假装在管理 follow-up
 - **speculative audit** (2026-06-05 新增): audit 报"verify X" / "check Y" / "should audit Z" → 不是审计, 是 todo list
