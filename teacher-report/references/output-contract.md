@@ -4,7 +4,7 @@ description: |
   teacher-report Output contract v0.13.6 完整规范 (2026-06-17). **4 章节必含** (1.1 自评 / 1.2 导师画像 / 1.3 论文全景 / 1.4 数据来源 / 1.5 套磁准备) + H2 emoji 硬要求 + paper card 选型 + 与 report-template.md 100% 一致. main SKILL.md 仅保留概述.
 ---
 
-# teacher-report Output contract (v0.13.0)
+# teacher-report Output contract (v0.13.6)
 
 > **核心变更 (2026-06-17 v0.13.6)**: 4 章节必含 (TL;DR + 1.1 自评 / 1.2 导师画像 / 1.3 论文全景 / 1.4 数据来源 / 1.5 套磁准备清单) + 19 → 22 项 LLM 自检 (新增 Check 20 P0/P1/P2 标签 + 21 主动 WebFetch 主页 + 22 1.5 套磁清单).
 
@@ -12,7 +12,7 @@ description: |
 - **Document title**: `{学校} {老师}` (e.g. "浙江大学 魏颖")
 - **4 required sections in order** (v0.13.6): 1.1 自评 / 1.2 导师画像 / 1.3 论文全景 / 1.4 数据来源 / 1.5 套磁准备清单
 - **Visual elements required**: 1 TL;DR callout + 1 grid, ≥ 1 callout per section for non-text observations, all data tables formatted as `<table>` blocks (not markdown)
-- **套磁信** (v0.12.0 → v0.13.0): 套磁信草稿在 chat 输出, **不**写到飞书 docx h2 章节里. 飞书 docx 内**只**放 §1.6 套磁准备清单 (24h 5 件事 + 1v1 5 题 + 发信时窗 + 备份计划), 不放具体套磁信正文.
+- **套磁信** (v0.12.0 → v0.13.6): 套磁信草稿在 chat 输出, **不**写到飞书 docx h2 章节里. 飞书 docx 内**只**放 §1.5 套磁准备清单 (24h 5 件事 + 1v1 5 题 + 发信时窗 + 备份计划), 不放具体套磁信正文.
 
 ## 🚨 4 章节必含硬要求 (2026-06-17 v0.13.6, 违反 = skill 协议破坏)
 
@@ -41,7 +41,7 @@ description: |
   - 1.3.A 顶会代表作 (10 篇, oral/spotlight/BP Finalist 选, 各 1 callout 4 行 metadata)
   - 1.3.B 其他论文 (按 5-7 主题汇总, 每主题 1 callout 内部 table)
   - 1.3.C 趋势分析 (1 callout, 5 观察点)
-- **paper card 选型 (v0.13.0)**: 与 1.3.A 一致
+- **paper card 选型 (v0.13.6)**: 与 1.3.A 一致
   - **v0.11.0 完整版** (15 行/paper): 详见 `references/paper-card-v11.md`
   - **v0.4.0 紧凑版** (7 行/paper): 详见 `references/paper-card-v04.md`
 - **v0.11.0 vs v0.4.0 选型指南**:
@@ -59,7 +59,7 @@ description: |
 - **核心变更**: h3 编号从 v0.2.5 `1.1` (无 dot) 升级到 v0.7.0 `1.1.` (有 dot 后缀), 与 h2/h4 一致
 - **禁止**手动 `(1) (2) (3)` 编号 / `① ② ③` 字符 / `████████` 字符画 / 混用 4 种编号风格
 
-## 🚨 主动 WebFetch 主页硬要求 (2026-06-17 v0.13.0, 违反 = skill 协议破坏)
+## 🚨 主动 WebFetch 主页硬要求 (2026-06-17 v0.13.6, 违反 = skill 协议破坏)
 
 - **§1.2.1 基本信息与学术身份** 表格 9 行, 主页 + 邮箱 **必含**主动 WebFetch 抓取:
   - **主页 URL**: LLM 必跑 `WebFetch <person.{学校缩写}.edu.cn/{pinyin}>` + `WebSearch "{老师} {学校} 主页"`, 2 路 1 抓即填
@@ -67,17 +67,17 @@ description: |
   - **抓取失败**: 留 🟨 P1 待补 + 抓取命令提示 (e.g. "建议重试 WebFetch https://person.zju.edu.cn/yingwei"), **不**留 ❓
 - **3 路反幻觉**: WebFetch 主页 + WebSearch 同名 + boshihoujob 招聘网, 至少 2 路一致才填
 
-## 🚨 P0/P1/P2 标签硬要求 (2026-06-17 v0.13.0, 违反 = skill 协议破坏)
+## 🚨 P0/P1/P2 标签硬要求 (2026-06-17 v0.13.6, 违反 = skill 协议破坏)
 
 - **❌ 禁止单独使用 ❓ / ❌ / ❎ 占位符** (v0.5.0 旧模板行为)
 - **必含** P0/P1/P2 标签 + 优先级语义:
   - 🟥 **P0** = critical for decision (套磁必问 / 招生名额 / 实际带生者 / 团队氛围 / 矛盾说法)
   - 🟨 **P1** = important for ongoing eval (1v1 频率 / 实习政策 / 留校情况 / 行政职务 / 学术兼职)
   - 🟩 **P2** = nice-to-have (其他非关键字段)
-- **统一路径**: 所有待补字段汇总到 §1.5.3 (单一 callout). 其他章节末尾不再重复 "建议补充路径" (4 行 → 1 行 "见 §1.5.3")
-- **§1.5.3 必含**: 至少 5 条 P0 + 3 条 P1 + 1 条 P2 待补项, 每条标 [数据源] + [建议补充路径]
+- **统一路径**: 所有待补字段汇总到 §1.4.3 (单一 callout). 其他章节末尾不再重复 "建议补充路径" (4 行 → 1 行 "见 §1.4.3")
+- **§1.4.3 必含**: 至少 5 条 P0 + 3 条 P1 + 1 条 P2 待补项, 每条标 [数据源] + [建议补充路径]
 
-## 🚨 1.5 套磁准备清单硬要求 (2026-06-17 v0.13.0, 违反 = skill 协议破坏)
+## 🚨 1.5 套磁准备清单硬要求 (2026-06-17 v0.13.6, 违反 = skill 协议破坏)
 
 - **5 h2 章节**含 §1.5 套磁准备清单, **替代** v0.5.0 旧 §1.4 套磁与申请建议
 - **4 个 h3 必含**:
@@ -88,13 +88,13 @@ description: |
 - **套磁信正文禁止写到 docx** (v0.12.0 Output Discipline). 套磁信草稿在 chat 输出, docx 内**只**放 1.5 准备清单
 - **与 v0.5.0 旧 §1.4 套磁 h2 互斥**: 禁止同时存在 `<h2>1.4. 套磁与申请建议</h2>` (Check 18 自检)
 
-## 🚨 无水印硬要求 (2026-06-17 v0.13.0, 违反 = skill 协议破坏)
+## 🚨 无水印硬要求 (2026-06-17 v0.13.6, 违反 = skill 协议破坏)
 
 - **禁止** "整理人: claudecode teacher-report skill vX.X.X" 水印 (v0.5.0 旧模板残留)
 - **替换为**: 文档生成时间 + v0.13.6 套磁就绪版 + 关键变更标签 (1.3 论文 A/B/C + 1.5 套磁清单 + 主动 WebFetch 主页 + P0/P1/P2 + paper link fallback v0.13.5) + 模板源 link
-- **必含** 模板源 `<a href="https://github.com/mykcs/myk-skills/tree/main/teacher-report/references/report-template.md">teacher-report v0.13.0</a>` link
+- **必含** 模板源 `<a href="https://github.com/mykcs/myk-skills/tree/main/teacher-report/references/report-template.md">teacher-report v0.13.6</a>` link
 
-## 🚨 22 项 LLM 自检清单 (v0.13.0)
+## 🚨 22 项 LLM 自检清单 (v0.13.6)
 
 | # | 自检 | 规则 | 工具/脚本 |
 |---|------|------|-----------|
@@ -125,7 +125,7 @@ description: |
 
 **Check 20-22 v0.13.0 新增**: 22 → 22 项 (旧 19 项保留 + 新 3 项)
 
-## 完整章节必含 + 子节必含 (v0.13.0 final)
+## 完整章节必含 + 子节必含 (v0.13.6 final)
 
 - **§1.1 自评**: `<h2>` + 占位 `<p>` + `<hr/>` (3 blocks, user-owned)
 - **§1.2 导师画像**: `<h2>` + `<h3>1.2.1</h3>` 9 行 table + `<h3>1.2.2</h3>` 列表 + `<h3>1.2.3</h3>` 2 callout + `<h3>1.2.4</h3>` 2 callout + `<h3>1.2.5</h3>` 6 行 table + 2 callout
@@ -133,4 +133,4 @@ description: |
 - **§1.4 数据来源**: `<h2>` + `<h3>1.4.1</h3>` 4 li + `<h3>1.4.2</h3>` 4 li + `<h3>1.4.3</h3>` 1 大 callout (统一路径 P0/P1/P2 待补汇总)
 - **§1.5 套磁准备清单**: `<h2>` + `<h3>1.5.1</h3>` 5 li (24h 5 件事) + `<h3>1.5.2</h3>` 5 li (1v1 5 题, 必含 "覆盖 §X.Y" 标注) + `<h3>1.5.3</h3>` 1 callout (时窗 + 邮件 6 段结构) + `<h3>1.5.4</h3>` 1 callout (Plan A-E 备份计划)
 
-- **footer**: `<hr/>` + 2 `<p>` (无水印, v0.13.0 模板源 link)
+- **footer**: `<hr/>` + 2 `<p>` (无水印, v0.13.6 模板源 link)

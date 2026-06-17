@@ -1,14 +1,14 @@
 ---
 name: paper-card-formats
 description: |
-  teacher-report 论文 paper card v0.13.0 整合入口 (2026-06-17 新增). v0.4.0 紧凑 (7 行) + v0.11.0 完整 (10 行) 2 个 active 版本选型指南 + 22 项 LLM 自检 (Check 1-22) + 论文重组 (1.3.A 顶会 / 1.3.B 主题表) 选型. 替代原 paper-card-v04.md + paper-card-v11.md 2 个索引文件.
+  teacher-report 论文 paper card v0.13.6 整合入口 (2026-06-17 新增). v0.4.0 紧凑 (7 行) + v0.11.0 完整 (10 行) 2 个 active 版本选型指南 + 22 项 LLM 自检 (Check 1-22) + 论文重组 (1.3.A 顶会 / 1.3.B 主题表) 选型. 替代原 paper-card-v04.md + paper-card-v11.md 2 个索引文件.
 ---
 
-# Paper Card v0.13.0 选型 (2026-06-17 整合)
+# Paper Card v0.13.6 选型 (2026-06-17 整合)
 
 > **核心**: 2 个 active paper card 格式 (v0.4.0 紧凑 + v0.11.0 完整) + 1 套 22 项 LLM 自检清单 (Check 1-22) + 与 §1.3 论文重组 (1.3.A 顶会 / 1.3.B 主题表) 联动.
 
-## 1. 选型决策树 (v0.13.0)
+## 1. 选型决策树 (v0.13.6)
 
 ```
 论文总数 N
@@ -123,7 +123,7 @@ paper：{url_openreview_or_arxiv_or_doi}    ← v0.11.0 新: 7 优先级 URL 统
 6. **期刊页** — 期刊论文
 7. **主页 PDF** — 最后 fallback
 
-## 7. v0.13.0 选型决策表 (NEW)
+## 7. v0.13.6 选型决策表 (NEW)
 
 | 论文数 N | 主选 | 备选 | §1.3 结构 |
 |---------|------|------|----------|

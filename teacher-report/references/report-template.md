@@ -4,7 +4,7 @@ description: |
   飞书 docx v0.13.6 单一权威模板 (2026-06-17 重写). 4 章节必含 (1.1 自评 / 1.2 导师画像 / 1.3 论文全景 / 1.4 数据来源 / 1.5 套磁清单) + 1.3 A/B/C 论文重组 + P0/P1/P2 标签 + 主动 WebFetch 主页. 替代 v0.5.0 旧模板 (含 §1.4 套磁). 触发: 解决 output-contract.md 与原 report-template.md 互相矛盾问题.
 ---
 
-# teacher-report 飞书 docx v0.13.0 模板
+# teacher-report 飞书 docx v0.13.6 模板
 
 > **核心变更 (v0.13.6, 2026-06-17)**: 4 章节必含 (TL;DR + 1.1/1.2/1.3/1.4/1.5) + 1.3 A 顶会 10 / 1.3 B 主题表 / 1.3 C 趋势 + 1.4.3 P0/P1/P2 待补 + 1.5 套磁清单 + 主动 WebFetch 主页 + 无装饰 emoji + 长编号 h2 `1.X.` + 无水印.
 
@@ -457,7 +457,7 @@ description: |
     </tr>
   </tbody>
 </table>
-<p><b>飞书 docx 全文</b>: <a href="{report_url}">{学校} {老师} (v0.13.0 套磁就绪版)</a></p>
+<p><b>飞书 docx 全文</b>: <a href="{report_url}">{学校} {老师} (v0.13.6 套磁就绪版)</a></p>
 <p><b>核心建议</b>: {1 行: 直接套磁 / 改推替代导师 / 暂缓}</p>
 ```
 
