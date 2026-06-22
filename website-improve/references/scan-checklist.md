@@ -410,6 +410,25 @@ npm audit --audit-level=moderate
 # 通过标准：0 critical / high severity
 ```
 
+#### §4.6.0 (v3.9.0) Registry override — 绕过 npmmirror 404
+
+⚠️ **旧版直接跑 `npm audit` 在 npmmirror 等 mirror 上会返回 NOT_IMPLEMENTED** (Round 2 audit content2html 案例), 看起来"audit unavailable" 实则 mirror 不支持. 用 registry override:
+
+```bash
+# 标准审计命令 (避开 mirror 404)
+npm audit --registry=https://registry.npmjs.org/
+
+# 临时切换 registry + 装包
+npm install <pkg> --registry=https://registry.npmjs.org/
+
+# 持久切换 (写入 .npmrc)
+npm config set registry https://registry.npmjs.org/
+```
+
+**Why**: 中国大陆 npm 镜像 (`registry.npmmirror.com`) 不支持 `/security/advisories/bulk` endpoint. Mirror 装包 OK 但 audit FAIL. 审计必须用上游 registry.
+
+**Lesson (CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622)**: katex 0.16.20 CVE (GHSA-cg87-wmx4-v546) 在 Round 1 audit 中被遗漏因为 npmmirror audit 404. Round 2 用 registry override 才找到.
+
 #### §4.6.1 已知限制 — yaml-language-server 中危（dev-only）
 
 > 适用场景：`@astrojs/check` 传递依赖 `volar-service-yaml → yaml-language-server` 引入 5 个 medium Severity 漏洞。
@@ -612,6 +631,37 @@ fi
 5. 验证: `npm run build` 后 `dist/en/404/index.html` + `dist/zh/404/index.html` 都生成
 
 **参考实现**：mykcs Run 3 commit `2e5db38` (`feat(i18n): add bilingual 404 page for /en/404/ and /zh/404/`)
+
+### §5.3.1 (v3.9.0) Deployed 404 behavior check — CRITICAL
+
+⚠️ **§5.3 旧版只检查 source 文件存在**, Round 2 audit (CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622) 暴露盲区: `[lang]/404.astro` 存在但 GH Pages 只用 `/404.html` static fallback. 用户访问 `/nonexistent/` 看到 ugly GH Pages default, 不是 content2html 自定义.
+
+**必跑检查** (除 §5.3 之外):
+```bash
+# 1. 测试真实 deployed 404 行为
+URL="${URL:-https://mykcs.github.io/content2html/}"
+HTTP=$(curl -s -o /tmp/test-404.html -w "%{http_code}" "$URL/nonexistent-path/")
+if [ "$HTTP" = "404" ]; then
+  # 2. 验证 content 是项目自定义 (不是 GH Pages 默认)
+  if grep -q "404|页面未找到|Page Not Found" /tmp/test-404.html && \
+     grep -q "content2html|项目|project" /tmp/test-404.html; then
+    echo "404_OK (custom content)"
+  else
+    echo "404_DEFAULT (P1 issue: GH Pages default 404, missing public/404.html static fallback)"
+  fi
+else
+  echo "404_HTTP_$HTTP (P1: HTTP $HTTP instead of 404)"
+fi
+```
+
+**修法** (Astro + GH Pages):
+- 创建 `public/404.html` static fallback (matching zh content, include English link)
+- 或用 Astro `src/pages/404.astro` (root level) + Accept-Language delegation
+
+**关键 lessons (v3.9.0)**:
+- ⚠️ source 存在 ≠ deployed behavior
+- ⚠️ GH Pages 不识别 Astro `[lang]/404.astro`, 只识别 `public/404.html` 或 `src/pages/404.astro` (root)
+- ⚠️ 动态 `[lang]` route 在 GH Pages 上返回 HTTP 200 (client-side `Astro.response.status = 404` 不影响 server response)
 
 ---
 

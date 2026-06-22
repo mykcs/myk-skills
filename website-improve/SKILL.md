@@ -1,3 +1,4 @@
+// ALLOW_PROTECTED: v3.9.0 multi-round audit protocol upgrade (per content2html Round 2 lessons)
 ---
 name: website-improve
 description: |
@@ -9,10 +10,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.8.0"
+  version: "3.9.0"
   author: mykcs
   category: web-development
   changelog:
+    - 3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622.
     - 3.8.0 (2026-06-15): Mode D Phase 3 now fixes P0/P1/P2 instead of only P0/P1. Updated references/mode-d-multisite.md prompt and hard rules to enforce P2 remediation; removed "P2 out of scope" language.
     - 3.7.0 (2026-06-10): Progressive disclosure refactor (per Anthropic SKILL.md best practices). 861 → 487 行 (-43%). Skill Evolution 历史 307 行 → references/evolution-history.md; 跨站点/触类旁通/学术资产化 34 行 → references/site-improvement-protocols.md; triggers 长尾 36 行 → references/triggers.md. 满足 Anthropic 500-line hard limit + AEM 200-line reliability sweet spot.
     - 3.6.0 (2026-06-09): §33-§35 orchestrator + fix-agent 硬化. H1 ASI 防御 (Workflow 脚本 `SITES.map(...)\n({...})` ASI 解析 bug → TypeError recovery) / H2 autopush fallback (autopush 误判 staged-only deletion → direct `git push` 兜底) / H3 fix agent 二次 `git status` 验证 (避免 dangling untracked-deletion). 来自 CASE-MULTI-SITE-IMPROVE-20260609.
@@ -61,6 +63,7 @@ metadata:
     - modernization
     - deployment
     - checklist
+    - multi-round
 user-invocable: true
 disable-model-invocation: false
 ---
@@ -96,7 +99,7 @@ disable-model-invocation: false
 - `website-improve`
 - `改进网站` / `优化网站` / `audit website`
 - `project page` / `项目页`
-- `create astro site` / `deploy astro`
+- `create astro` / `deploy astro`
 
 ---
 
@@ -106,8 +109,8 @@ disable-model-invocation: false
 |------|---------|---------|-----------------|
 | **A. 检查+提升** | 默认（所有"改进/审计/优化/检查"类请求） | 30min+ | `scan-checklist.md` + `astro-modernization-checklist.md` + `site-audit-checklist.md` + `academic-project-checklist.md`(条件) |
 | **B. Astro 建站** | `create astro` / `deploy astro` / `build static blog` 等 | 视 scope | `astro-build-guide.md` + `astro-modernization-checklist.md` + `deployment-platforms.md` + `markdown-deep-dive.md` |
-| **C. 项目页创建** | `project page` / `项目页` | 20-40min | `project-page-template.astro` + `academic-project-checklist.md` |
-| **D. Multi-Site 编排** | `sync all sites` / `fan-out` / `deploy all` / `audit all` / `multi-site` / "同时在 N 个站点上部署 N 个 agent" | 10-20 min wall-clock (= slowest site) | (无额外 reference; 调用 Mode A per site) |
+| **C. 项目页创建** | `project page` / `项目页` | 20-40 min | `project-page-template.astro` + `academic-project-checklist.md` |
+| **D. Multi-Site 编排** | `sync all sites` / `fan-out N sites` / `deploy all` / `audit all` / "同时在 N 个站点上部署 N 个 agent" | 10-20 min wall-clock (= slowest site) | (无额外 reference; 调用 Mode A per site) |
 
 ### 意图路由（入口判断）
 
@@ -128,8 +131,24 @@ disable-model-invocation: false
   └─ 未发现 → 通用网站审计（+ site-audit-checklist.md）
 ```
 
----
+### ⚠️ §A.5 Multi-Round Audit Protocol (v3.9.0, 强制)
 
+> **单 audit run 不能保证找全所有 bug**. Round 1+Round 2 案例 (CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622) 证明: Round 1 修了 canonical/og:image → Round 2 发现 hreflang x-default regression + CVE + i18n + 404. 每次 audit 必跑 4 sub-provisions:
+
+1. **Re-evaluate deferred items** — Round 1 deferred ≠ 关掉. Round 2 必重新评估 (用更新的工具 + 视角).
+2. **Deployed behavior check** — 不是 source grep. 必 `curl <deployed-url>/...` 测真实行为. e.g. 404 page 必须 `curl /nonexistent-path/` 验证 HTTP 404 + content, 不只 `test -f src/pages/[lang]/404.astro`.
+3. **CVE registry override** — `npm audit --registry=https://registry.npmjs.org/` 绕过 npmmirror 404. 否则 dev-only 中危会被遗漏.
+4. **Snapshot diff** — 每次 audit 写 `/tmp/audit-<site>-<date>.md`, diff vs 上次. 立刻看到: 新增 finding (regression) / 已修 finding (progress) / 长期存在 (stale deferred, 重新评估).
+
+**触发式决策**:
+- IF user 触发 audit, 必先 `ls -1t /tmp/audit-<site>-*.md 2>/dev/null | head -1` 找上次 snapshot
+- IF 上次存在 → 跑 audit + diff vs 上次 → 输出 regression report
+- IF 上次不存在 → 跑 audit + 写 snapshot (无 diff)
+- IF 用户说 "再检查一遍" → 必走 snapshot diff 流程, 不允许"manual 重跑全部 agent"
+
+**Bonus test (v3.9.0)**: `diff -u <last-snapshot> <new-snapshot>` 在响应中显示 (用户可见). Empty diff = 项目干净.
+
+---
 
 📂 **模式 A: 检查+提升流程** → see [`references/mode-a.md`](references/mode-a.md) (loaded on demand)
 
@@ -151,6 +170,7 @@ disable-model-invocation: false
 10. **GitHub Actions Node.js 弃用**：遇到 Node 20 deprecated 警告 → 按 `scan-checklist.md §10` 矩阵升级 action 版本
 11. **DESIGN.md 与代码同步**：修改了 CSS 类名/颜色/组件行为时，必须检查 DESIGN.md 是否需要同步更新
 12. **Evidence-based audit**：审计发现必须基于实际 grep / curl / diff / build 输出。禁止 "verify X" 推测（仅列待查项不算 finding）。Stale finding 比 missing finding 更危险 — 会触发不必要的 commit + CI 浪费。Pattern: Phase 2 audit agent 必须跑 actual verification command；Phase 3 fix agent 必须先 verify 是 real 才 commit。Reference: 2026-06-04 sync-all-sites Run 2 GDKVM 教训（audit 列 8 个 "verify X"，fix agent 全 grep 验证后 0 commit）
+13. **Multi-Round Audit (v3.9.0, 强制)**: 每次 audit 必跑 §A.5 Protocol 4 sub-provisions (snapshot diff / deferred re-eval / deployed curl / registry override). 单 audit run 不能保证找全 bug. Reference: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622.
 
 ---
 
@@ -172,7 +192,7 @@ disable-model-invocation: false
 
 **加载**: `project-page-template.astro` + `academic-project-checklist.md`
 
-为论文创建双语项目展示页（如 `/osa/`、`/gdkvm/`）。
+为论文创建双语项目展示页（如 `/osa/`、`gdkvm/`）。
 
 **Stack**: Astro 6.x + Tailwind CSS v4 + `@fontsource/*` + `oklch()` 色彩
 **URL 结构**: `/<project>/` → redirect → `/<project>/en/` + `/<project>/zh/`
@@ -258,7 +278,7 @@ N
 - 不处理"某站点需要不同的 base branch" (默认 main)
 - 不处理"某站点有手动 hold" (用户需在调用前告知)
 - 5+ sites 时 wall-clock 优势递减 (token cost linear 但 context overflow 风险)
-- L14 enforcement 仅在 orchestrator 评分前生效, 旁路 agent (不用本协议) 不受约束
+- L14 enforcement 仅在 orchestrator 评分前生效, 旁路 agent (不用本协议) 不受 L14 约束
 
 ---
 
