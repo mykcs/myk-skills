@@ -1,6 +1,6 @@
 ---
 name: persona-check
-description: Self-audit claudecode's prose drafts for first/second-person pronoun violations before posting. Wraps `~/.claude/scripts/pronoun-audit.sh` and surfaces the result. Triggers: "check persona", "audit draft", "self-check", "pronoun audit", "persona check", "审一下 / 自检 / 看看有没有违反".
+description: "Self-audit claudecode's prose drafts for first/second-person pronoun violations before posting. Wraps `~/.claude/scripts/pronoun-audit.sh` and surfaces the result. Triggers: \"check persona\", \"audit draft\", \"self-check\", \"pronoun audit\", \"persona check\", \"审一下 / 自检 / 看看有没有违反\"."
 ---
 
 # persona-check

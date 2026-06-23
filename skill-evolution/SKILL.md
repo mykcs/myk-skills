@@ -6,7 +6,7 @@ metadata:
   version: 1.0.0
   author: myk
   source: insights-friction-2026-06-03
-  schedule: weekly (cron: 0 9 * * 0)
+  schedule: "weekly (cron: 0 9 * * 0)"
 ---
 
 # /skill-evolution — Skill 自演化引擎

@@ -9,10 +9,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.10.0"
+  version: "3.11.0"
   author: mykcs
   category: web-development
   changelog:
+    - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
     - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
     - "3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622."
     - "3.8.0 (2026-06-15): Mode D Phase 3 now fixes P0/P1/P2 instead of only P0/P1. Updated references/mode-d-multisite.md prompt and hard rules to enforce P2 remediation; removed 'P2 out of scope' language."

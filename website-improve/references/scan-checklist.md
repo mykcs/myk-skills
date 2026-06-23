@@ -841,6 +841,7 @@ find dist/ -name "*.js" -exec ls -lh {} \; | sort -k5 -rh | head -10
 - [ ] `public/` 下无手写 HTML 重定向文件（用 `_redirects` 统一处理）
 - [ ] `_redirects` 使用标准格式：`/source/*  /target/:splat  301`
 - [ ] **i18n switch URL 不与 redirect 冲突**
+- [ ] **bare URL 不与 i18n prefix URL serve 重复内容**（见 §9.3）
 
 ### §9.1 i18n Switch URL 验证（CRITICAL for CV/i18n sites）
 
@@ -910,6 +911,90 @@ fi
 find public -name "*.html" -not -path "public/_astro/*" | while read f; do
   grep -q "http-equiv.*refresh\|window.location" "$f" && echo "REDIRECT_FILE: $f"
 done
+```
+
+### §9.3 Bare-vs-Prefixed Route Collision Detection (v3.11.0, CRITICAL)
+
+> **触发 (2026-06-23, CASE-OSA-DUPLICATE-SLIDES-URL)**: OSA 站点 `/osa/slides/` 和 `/osa/en/slides/` 都返回 200, 但前者 serve raw slide content (无 Astro chrome), 后者 serve wrapped 路由页. 同一内容在 3 个 URL (slides / en/slides / zh/slides) 都返回, 搜索引擎 index 重复, 用户体验混乱. 根因: `build-slides-html.mjs` 写 raw iframe asset 到 `public/slides/`, 该文件作为 static asset 优先级 > i18n route.
+
+**Common collision patterns**（任一命中即 P0）:
+
+| 模式 | 示例 | 根因 |
+|------|------|------|
+| `public/<name>/` 与 `[lang]/<name>.astro` 同名 | `public/slides/` + `[lang]/slides.astro` | static asset 优先级 > Astro 路由 |
+| `public/<name>.html` 与 `[lang]/<name>.astro` | `public/about.html` + `[lang]/about.astro` | 同上 |
+| `prefixDefaultLocale: true` 但 `[lang]/<route>.astro` 也存在 → bare URL 来自 `[lang]/<route>` 的 default locale | `/slides/` (from `[lang]/slides.astro` en) + `/en/slides/` | Astro 默认行为 |
+
+**Detection**（必须跑）:
+
+```bash
+# 1. 列出所有 i18n routes (从 src/pages/[lang]/*.astro)
+i18n_routes=$(find src/pages/\[lang\] -name "*.astro" 2>/dev/null | xargs -I {} basename {} .astro | sort -u)
+
+# 2. 列出所有 public/ 子目录 (excluding _astro)
+public_subdirs=$(find public -mindepth 1 -maxdepth 2 -type d -not -path "public/_astro/*" -not -path "public/*/_*" 2>/dev/null | xargs -I {} basename {} | sort -u)
+
+# 3. 列出所有 public/*.html
+public_html=$(find public -maxdepth 1 -name "*.html" 2>/dev/null | xargs -I {} basename {} .html | sort -u)
+
+# 4. Collision check
+for route in $i18n_routes; do
+  if echo "$public_subdirs" | grep -q "^${route}$"; then
+    echo "COLLISION: public/${route}/ exists alongside src/pages/[lang]/${route}.astro"
+  fi
+  if echo "$public_html" | grep -q "^${route}$"; then
+    echo "COLLISION: public/${route}.html exists alongside src/pages/[lang]/${route}.astro"
+  fi
+done
+```
+
+**为什么 prefixDefaultLocale 模式特别危险**:
+
+当 `[lang]/slides.astro` 存在 + `prefixDefaultLocale: true`:
+- Astro 同时 build `/en/slides/` 和 `/zh/slides/` (来自 `[lang]/slides.astro` getStaticPaths)
+- **如果 `public/slides/index.html` 也存在**, Astro 把 `/slides/` serve 为 raw content (无 Astro chrome, 无 hreflang)
+- 结果: 3 URLs (slides / en/slides / zh/slides) 全部 200, 各自 serve 不同内容, 但底层数据有大量重复
+
+**检测 raw content URL 是否被 serve**:
+
+```bash
+# 检查 dist 中 /<route>/ 是否跟 /<route>-raw/ / <route>.html 重复
+for route in $i18n_routes; do
+  if [ -f "dist/${route}/index.html" ] && [ ! -f "src/pages/${route}.astro" ]; then
+    # dist 里有 /<route>/ 但 src 没有独立路由 → 来自 public/ 静态文件
+    size=$(stat -f%z "dist/${route}/index.html")
+    if [ "$size" -lt 5000 ]; then
+      echo "LIKELY_REDIRECTOR: dist/${route}/index.html ($size bytes) - check if meta-refresh or just raw asset"
+      head -c 200 "dist/${route}/index.html" | grep -q "http-equiv.*refresh" && echo "  ✓ Is meta-refresh redirector" || echo "  ✗ NOT a redirector - raw content served at /${route}/"
+    else
+      echo "RAW_ASSET: dist/${route}/index.html ($size bytes) - served as static file, not Astro route"
+    fi
+  fi
+done
+```
+
+**Fix 模式 (按优先级)**:
+
+1. **Best: Move raw asset to non-conflicting path** — `public/<route>-raw/` 或 `public/_<route>.html`, iframe src 同步改, 加 `<route>.astro` redirector
+2. **Alternative: Convert raw asset to Astro route** — 把 `public/<route>/` 内容塞到 `src/pages/[lang]/<route>.astro`, 不写 public (但 i18n collision 风险, 仅在 [lang]/ 单一时用)
+3. **Last resort: Make `public/<route>/index.html` a meta-refresh redirector** — 跟 `index.astro` 同模式, 但要 iframe 指向不冲突的 raw asset path (否则 iframe 跳 redirector 死循环)
+
+**Acceptance**:
+
+- 任意 `[lang]/<route>.astro` 不与 `public/<route>[/index.html]` 同时 serve 用户可见内容
+- 同一份内容最多 1 个 canonical URL (通常 `/en/<route>/` 或 `/<route>/`, 不能 2 个都 serve)
+- 搜索引擎只能 index wrapper page (有 hreflang + canonical), 不能 index raw asset
+
+```bash
+# 验证：i18n routes + public/ 不重叠
+fail=0
+for route in $i18n_routes; do
+  if [ -f "dist/${route}/index.html" ] && [ ! -f "src/pages/${route}.astro" ]; then
+    fail=1
+    echo "FAIL: /${route}/ serves public/ asset, not Astro route"
+  fi
+done
+[ "$fail" -eq 0 ] && echo "PASS: no route collision" || exit 1
 ```
 
 ---
