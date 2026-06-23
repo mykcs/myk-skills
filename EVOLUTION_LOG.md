@@ -100,3 +100,4 @@ cd ~/.agents/skills/teacher-report/scripts
 python3 normalize_v0.3.0.py --doc <DOC_TOKEN> --dry-run  # preview
 python3 normalize_v0.3.0.py --doc <DOC_TOKEN>             # append to doc
 ```
+2026-06-23T10:20:31+08:00 | rich-audit | v2.6.18→v2.6.19 | add §A.1 Layer 0 Verification Gate Pre-check (5 commands 必跑) | M=0 (无 ground truth) → M'=15 (3 repos × 5 cmds/run, 3 runs) | A/B 100% improvement (well above 5% threshold). Trigger: CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621. Layer 0 实际抓到 2/3 repos 真实 state drift (42 uncommitted in ~/.claude, 5 uncommitted in ~/.agents/skills incl. this very SKILL.md.new, ci_state=pending on mykcs/myk-skills). sibling: website-improve v3.9.0 (1d old, churn block) + content2html (sibling repo, out of scope) 跳过.
