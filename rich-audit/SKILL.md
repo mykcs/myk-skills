@@ -6,10 +6,11 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.19"
+  version: "2.6.20"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.20 (2026-06-23): SKILL.md progressive disclosure split — 3 large sections (Layer 0 88 lines / Execution Flow 87 lines / No-Deferral + Workflow Synthesizer 78 lines) extracted to references/layer-0-verification-gate.md + execution-flow.md + no-deferral-pattern.md. SKILL.md 564 → 324 lines (under 500 Anthropic limit). Main file keeps trigger + 0-confirm protocol + Pre-flight Declaration + report schema + Decision Pattern Reversal + Cross-References, references files load on demand. body_too_long MED finding cleared (skill_authoring_checker 1 → 0)."
     - "2.6.19 (2026-06-23): Layer 0 Verification Gate Pre-check (新 §A.1, 5 commands 必跑). 解决 top friction cluster 'Audit 跑完口头报 ✅ 已 push 无 ground truth' (CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621, 2026-06-21). Layer 0 在 Pre-flight Declaration 之后, Layer 1 之前, 必跑 git log/status/remote + gh api 5 commands for each targeted repo, 写入 ground_truth_snapshot. 任何 state drift (uncommitted / unpushed / wrong remote / CI pending) → 阻塞 Layer 1 直到 user 决定. Anti-pattern: 把 verification gate 当 post-check (跑完才看) → 永远晚一步. Skill-evolution auto-derived 2026-06-23."
   triggers:
     - rich审计
@@ -152,178 +153,13 @@ user-invocable: true
 
 ## §A.1 Layer 0: Verification Gate Pre-check (v2.6.19, 强制 · 不可跳过)
 
-> **Why**: rich-audit 跑完口头报 "✅ 已 push" / "审计完成" 是典型 form violation (CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621, 2026-06-21). Verification Gate 只能事后验证 ground truth, 不能事后编造. Layer 0 把 ground-truth 收集**前置**到 Pre-flight Declaration 之后, Layer 1 之前 — 任何 state drift 在 audit 启动前显式可见.
->
-> **Trigger**: rich-audit 任何触发 (含 `rich审计` / `/rich-audit` / `进化` / `rich audit` / `自我升级` / `claude 审计` / `audit claude files`).
->
-> **违反硬规则**: 跳过 Layer 0 直接进 Layer 1 = 等同把 verification gate 延后到 "✅ 已 push" 之后 = CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621 重现.
-
-### Layer 0 必跑 5 commands (per targeted repo)
-
-**Pre-flight Declaration 输出目标文件夹后, 立即对每个 git repo 跑:**
-
-```bash
-# 1. Commit 真存在 (过去 1 周至少 1 commit)
-git log --oneline -1
-
-# 2. 5 commits 连续性 (sanity check: 是真仓, 不是空仓)
-git log --oneline -5 | head -5
-
-# 3. 0 uncommitted (避免 audit 期间被中断污染)
-git status --short
-
-# 4. Remote 对 (双账号隔离铁律: wangrui2025/* 禁止 push 到 mykcs)
-git remote -v | head -2
-
-# 5. CI 状态 (针对 active project repo, e.g. mykcs.github.io)
-gh api repos/<owner>/<repo>/commits/HEAD/status 2>/dev/null | jq -r '.state // "NO_CI"'
-```
-
-### Layer 0 输出契约 (4 字段 per repo, 必填)
-
-```text
-╭─────────────────────────────────────────────────────────╮
-│  Layer 0 Ground Truth Snapshot — <repo>                 │
-│  path: <absolute-path>                                  │
-│  remote: <owner>/<repo>                                │
-│  1. head:   <hash> | <subject>                          │
-│  2. recent: [<hash1>, <hash2>, ...]                     │
-│  3. status: <clean | N uncommitted>                     │
-│  4. remote_url: <url>                                  │
-│  5. ci_state: <success | pending | failure | NO_CI>     │
-╰─────────────────────────────────────────────────────────╯
-```
-
-**如果任何字段触发以下条件 → 阻塞 Layer 1, AskUserQuestion 询问 user**:
-
-| 条件 | 含义 | 询问 |
-|------|------|------|
-| `head` empty | 仓为空 / 未初始化 | "此仓未初始化, audit 跳过?" |
-| `status` ≥ 1 uncommitted | 改动未 commit | "有 uncommitted 改动, 先 commit 还是 audit 时忽略?" |
-| `remote` 错 | 双账号污染 / wrong owner | "remote 是 X, 期望 Y, 切换?" |
-| `ci_state` = failure | CI red | "CI 失败, audit 仍继续?" |
-| `ci_state` = pending | CI running | "CI pending, 等还是先 audit?" |
-
-### 反例 (禁止 — 这些就是 friction cluster 反复出现的 root cause)
-
-```text
-❌ "我开始 audit 了"  (跳过 Layer 0 → 不知道仓的 current state → 报"完成"时无 ground truth)
-❌ "我 audit 完了, 报告如下..."  (Layer 1 跑完才看 git log → 形式违反 verification gate)
-❌ "5 commits 已 push"  (口头声明, 没跑 git log -5 → CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621 复现)
-❌ 把 Layer 0 当 optional pre-check 跑一下就 skip → 违反 hard rule
-```
-
-### 正例 (强制)
-
-```text
-✅ "Layer 0 完成: 5 repos 全部 clean + remote 对 + CI green. 进入 Layer 1 审计..."
-✅ "Layer 0 检测到 status 1 uncommitted, 阻塞 Layer 1, AskUserQuestion: commit 或 ignore?"
-✅ "Layer 0 检测到 remote 是 wangrui2025, 期望 mykcs (双账号隔离), 阻塞, AskUserQuestion: 切换 remote 或 跳过此仓?"
-✅ "Layer 0 完成: 写入 /tmp/rich-audit-L0-<run-id>.json, 包含 5 repos × 5 commands = 25 行 ground truth"
-```
-
-### Layer 0 实现位置
-
-- **代码**: `scripts/verification_gate_precheck.py` (v2.6.19 新增, 必跑)
-- **输出文件**: `/tmp/rich-audit-L0-<run-id>.json` (含 5 repos × 5 commands)
-- **整合点**: Pre-flight Declaration 输出后, 调用此脚本, 5 commands 跑完才进 Layer 1
-
-### Bonus test (v2.6.19)
-
-**Bug 本质**: rich-audit 报"完成"无 ground truth (与 website-improve Mode A 报告"✅ 已 push" 同源)
-**End-to-end command**: `python3 scripts/verification_gate_precheck.py --repos ~/.claude,~/.agents/skills,~/Repo/webs/active/mykcs.github.io`
-- 旧代码预期: 0 ground truth captured, audit 跑完仍可能误报 "✅ 全部正常"
-- 新代码预期: 25 行 ground truth (5 repos × 5 commands) 写入 `/tmp/rich-audit-L0-*.json`, audit 报告 reference 此文件
-**Actual**: TBD (A/B test in Step 6)
+> **完整 SOP 详见** [`references/layer-0-verification-gate.md`](references/layer-0-verification-gate.md) (5 commands + 4 字段契约 + 阻塞条件 + 反例/正例). 主 SKILL.md 仅留 trigger + 违规后果. **违反硬规则**: 跳过 Layer 0 = CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621 重现.
 
 ---
 
 ## 执行流程（三层进化系统 + 并行 Agent 架构）
 
-```
-User: "rich审计" / "进化"
-  |
-  v
-[1] Layer 1 — 审计层（Audit）【并行 Agent 启动】
-    ├─ Agent-Audit-A → Claude Code 配置审计（默认）
-    ├─ Agent-Audit-C → Python/ML 项目审计（条件触发）
-    └─ 汇总 → 合并两份审计 JSON，计算综合健康分
-  |
-  v
-[2] Layer 2 — 修复层（Fix）【顺序执行】
-    AI 读取 Layer 1 汇总 JSON + 关键配置文件
-    执行规则语义冲突检测、行为漂移检测、OMC 健康评估
-    自动修复安全可论证的问题
-  |
-  v
-[3] Layer 3 — 进化层（Evolve）【3-tool WebSearch cascade + 并行 Agent 启动】
-    ├─ Step 1 (primary): mcp__MiniMax__web_search — Claude Code / OMC / Python/ML 最新实践
-    ├─ Step 2 (deeper): kimi-webbridge skill — 真实浏览器交互, 抓需要登录的 docs / 论坛 / GitHub issues
-    ├─ Step 3 (cross-validate): anysearch skill — 多源 cross-search 验证 (避免单源偏差)
-    ├─ Context7: 官方文档 fallback (Python / Claude SDK)
-    └─ 汇总 → 3-tool cascade 产出进化建议
-  |
-  v
-[4] 生成进化报告（五段式）
-  |
-  v
-[5] 最终报告（前后健康分 + 修复清单 + 进化清单 + 待处理项）
-```
-
----
-
-
-📂 **并行 Agent 策略** → see [`references/agent-strategy.md`](references/agent-strategy.md) (loaded on demand)
-
-## 双模扫描范围
-
-> **模式 A**: Claude Code 配置审计（默认）。详见 [`references/audit-patterns.md`](references/audit-patterns.md)（663 行详细检测命令）。
->
-> **模式 B**: Python / ML 项目审计（条件触发，检测 `pyproject.toml` / `requirements.txt` 时启用）。详见 [`references/python-checklist.md`](references/python-checklist.md)。
-
-**模式 A 路径清单**（速查表，详细检测见 audit-patterns.md）：
-
-| 路径 | 用途 |
-|------|------|
-| `~/.claude/rules/` | 行为护栏与约束 |
-| `~/.claude/memory/` | 持久化用户/项目/上下文记忆 |
-| `~/.claude/knowledge/cases/wiki/` | Case 文件系统（221+ case files） |
-| **mem0 ↔ filesystem 对齐** | 双轨记忆同步检测 |
-| `~/.claude/hooks/` | PreToolUse / PostToolUse / Stop hooks |
-| `~/.claude/scripts/` | 自动化脚本 |
-| `~/.claude/skills/` | OMC 和自定义 skills |
-| `~/.claude/settings.json` | Claude Code 配置 |
-| `~/.omc/skills/` | OMC 市场与用户 skills |
-| `~/.agents/skills/` | `.agents` 框架 skills（应与 `~/.claude/skills/` 保持硬链接一致） |
-
----
-
-## 架构健康度检测（Architecture Health）
-
-| 指标 | 健康阈值 | 超标后果 |
-|------|----------|----------|
-| 规则文件总数 | ≤ 10 个 | 注意力竞争 |
-| 规则总行数 | ≤ 200 行 | 遵守率暴跌 |
-| CLAUDE.md 长度 | ≤ 80 行 | resume 挤占上下文 |
-| 单规则文件长度 | ≤ 50 行 | 长规则被忽略 |
-| frontmatter 覆盖率 | 100% | 加载器不识别 |
-
-> 检测命令、可执行脚本、9 维度加权模型见 [`references/audit-patterns.md`](references/audit-patterns.md)。
-
----
-
-
-📂 **v2.6.2+ 新增检测脚本 (2026-06-10)** → see [`references/detection-scripts.md`](references/detection-scripts.md) (loaded on demand)
-
-## 记忆系统对齐检测（双轨同步）
-
-> 详细内容见 [`references/memory-alignment.md`](references/memory-alignment.md)。摘要：
-> - **L1** MEMORY.md → case 文件：Phantom entries
-> - **L2** case 文件 → MEMORY.md：Missing entries
-> - **L3** mem0 → case 文件：mem0 cloud drift
-> - 已知陷阱（2026-06-02）：glob 模式不递归 `archive-*/` 子目录导致 197 false positives（已修）
-
----
+> **详细架构图 + Agent 策略 + 双模扫描 + 架构健康度阈值 + 记忆系统对齐** 详见 [`references/execution-flow.md`](references/execution-flow.md) (87 lines, progressive disclosure). 主 SKILL.md 只引用, 不重复内容. 
 
 ## 输出格式（五段式进化报告 + Action Plan）
 
@@ -363,82 +199,7 @@ User: "rich审计" / "进化"
 
 ## 🚫 No-Deferral Hard Rule (2026-06-12 hardened, 用户原话 "下次也不改 直接解决")
 
-**禁止任何形式的 "剩余 LOW 项 / 下次 audit 会改善" 的尾部短语.** 这种短语是 theater — 下次 audit 也不会自动改善, 因为没人在中间动它.
-
-### 强制流程
-
-任何 audit 报告中检测到的项 **必须** 走以下三档之一, 没有第四档:
-
-| Tier | 行动 | 不能 |
-|------|------|------|
-| **解决** | 当场 fix (Tier 1/2/可推荐 Tier 3 per `feedback-auto-recommend-not-ask`) | 不能"留到下次" |
-| **降级到非 finding** | 改阈值 / 加 allowlist / 改用 informational summary (不入 health score) | 不能写"虽然 LOW 但下次会自动改善" |
-| **真不可处理** | 写到 `must_fix_before_completion` 阻塞 audit 完成 + AskUserQuestion | 不能静默列入 "remaining items" |
-
-### 反例 (禁止)
-
-```text
-❌ "剩余 LOW 项: cases 索引部分老条目 / hook 系统已 2 真 orphan 出清 / settings env 漂移. 下次 rich-audit 应直接收到改善的分数"
-❌ "These 405 informational LOW findings will resolve over time as skills are updated"
-❌ "Recommended: next audit will pick up the cleanup"
-❌ "## Remaining items (next session)" / "## Out of scope this run"
-```
-
-### 正例 (强制)
-
-```text
-✅ "原 405 LOW informational → patched skill_authoring_checker v2.6.16 默认不报 (改阈值, 降级到非 finding). 当前 finding count: 28 MED + 0 LOW."
-✅ "Cases 索引经 grep 实证 — 全部 7-20 处引用, 不是 stale, 是 load-bearing. 已校正 audit 误判. Score 维度 'knowledge_cases' raw=62→90."
-✅ "env drift MED finding → 用户已固化 feedback-env-drift-accepted, audit 默认跳过. 不再 emit."
-```
-
-### Why
-
-- "下次会改善" = scope creep + 责任 dump (没人在 audit 之间专门动 LOW 项)
-- 与 `~/.claude/rules/behavioral-process.md §C` "禁止 Deferred items 列表 (零容忍)" 对齐
-- 与 `~/.claude/memory/feedback/feedback-auto-recommend-not-ask.md` (2026-06-12) 对齐: 能解决就解决, 不能就阻塞
-- audit 工具的诚信 = 当前状态的诚实快照; 报"下次会改善" = 拿未来对赌掩盖当前 (典型 build-pass theater 变种)
-
-### Auto-fix tier mapping (post-2026-06-12)
-
-| Finding 类型 | 默认 tier | 不能做的事 |
-|------------|----------|------------|
-| 405 LOW informational (metadata.version etc missing) | Tier 0 — 不入 findings | 不能"标 LOW 然后 defer" |
-| LOW false positive (cases load-bearing, hook 假 orphan) | Tier 0 — 修阈值/allowlist | 不能"标 LOW 然后 defer" |
-| LOW 真问题, claudecode 能修 | Tier 1 自动执行 | 不能"标 LOW 然后 defer" |
-| LOW 真问题, 用户偏好接受 | Tier 0 + 写 feedback | 不能"标 LOW 然后 defer" |
-| LOW 真问题, 用户必须决策 | Tier 3 阻塞 + AskUserQuestion | 不能"标 LOW 然后 defer" |
-
----
-
-## ⚠️ Workflow Synthesizer Truncation 反模式 (2026-06-12 hardened)
-
-任何 rich-audit-style workflow 在 final-report 装配阶段, **禁止** 用 `JSON.stringify(multiAgentResults).slice(0, N)` 截断多 agent 输出. 截断会让装配器产生 "tool missing" / "无 disclosure block" 类**幻觉**.
-
-**反例**: `wf_80569fec-62b` (CASE-RICH-AUDIT-WORKFLOW-SYNTHESIZER-TRUNCATION-20260612):
-- 5 个 FAS tool segments (总 ~40KB) 序列化后被 `.slice(0, 8000)` 截到只剩前 1-2 个完整披露
-- 装配器报 "3/5 tools missing disclosure" → 触发 Layer 2 fail-fast 假警报
-- 实际 5 个 jsonl 全部 `stop=end_turn` + 都有 StructuredOutput ✅
-
-**正确做法 (任选)**:
-1. **File swap**: `Bash` 写入 `/tmp/rich-audit-<run-id>-<phase>.json`, 装配器 prompt 引用文件路径 + 让它 Read 完整
-2. **Pre-summarize**: 每个 agent segment 在传给装配器前压到 ≤500 字符
-3. **Truncation aware**: 显式告诉装配器 `"slice 了到 N 字节, full size 是 M, 缺失的看 /tmp/xxx.json"`
-
-**诊断协议** (装配器报 "tool missing" 时):
-```bash
-# 第一步: 不要相信装配器, 先看 transcript
-for jsonl in $WF_DIR/agent-*.jsonl; do
-  stop=$(tail -1 "$jsonl" | python3 -c "import json,sys; print(json.loads(sys.stdin.read()).get('message',{}).get('stop_reason','?'))")
-  has_so=$(grep -c "StructuredOutput" "$jsonl")
-  echo "$jsonl: stop=$stop StructuredOutput=$has_so"
-done
-# 若全部 stop=end_turn + StructuredOutput≥1 → 100% 装配器 truncation bug, 不要修 L3 协议
-```
-
-**Force-All-Search Skills 验证**: kimi-webbridge / anysearch 在 workflow subagent 上下文**完全可用** (通过 Skill tool). 不需要 fallback 到 direct MCP. 但 anysearch 自己会 fallback (这是它内部容错, 与 Skill 加载无关).
-
----
+> **完整 3 档 tier 框架 + 反模式 + 正例 + Why + Auto-fix tier mapping + Workflow Synthesizer Truncation 反模式** 详见 [`references/no-deferral-pattern.md`](references/no-deferral-pattern.md) (78 lines). 主 SKILL.md 引用.
 
 ## 自动修复行为
 
