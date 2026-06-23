@@ -1,4 +1,3 @@
-// ALLOW_PROTECTED: v3.9.0 multi-round audit protocol upgrade (per content2html Round 2 lessons)
 ---
 name: website-improve
 description: |
@@ -10,15 +9,16 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
 license: MIT
 metadata:
-  version: "3.9.0"
+  version: "3.10.0"
   author: mykcs
   category: web-development
   changelog:
-    - 3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622.
-    - 3.8.0 (2026-06-15): Mode D Phase 3 now fixes P0/P1/P2 instead of only P0/P1. Updated references/mode-d-multisite.md prompt and hard rules to enforce P2 remediation; removed "P2 out of scope" language.
-    - 3.7.0 (2026-06-10): Progressive disclosure refactor (per Anthropic SKILL.md best practices). 861 → 487 行 (-43%). Skill Evolution 历史 307 行 → references/evolution-history.md; 跨站点/触类旁通/学术资产化 34 行 → references/site-improvement-protocols.md; triggers 长尾 36 行 → references/triggers.md. 满足 Anthropic 500-line hard limit + AEM 200-line reliability sweet spot.
-    - 3.6.0 (2026-06-09): §33-§35 orchestrator + fix-agent 硬化. H1 ASI 防御 (Workflow 脚本 `SITES.map(...)\n({...})` ASI 解析 bug → TypeError recovery) / H2 autopush fallback (autopush 误判 staged-only deletion → direct `git push` 兜底) / H3 fix agent 二次 `git status` 验证 (避免 dangling untracked-deletion). 来自 CASE-MULTI-SITE-IMPROVE-20260609.
-    - 3.5.0 (2026-06-08): L17+L18 orchestrator 硬化. Phase 0 工具预加载 (ToolSearch 治本 subagent tool loading bug) + L17 auto-fallback (agent ack → SendMessage 重发 JSON). 解决 Run 4 暴露的 L14 enforcement 2/3 success + GDKVM 0 tool uses 2 个 bug.
+    - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
+    - "3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622."
+    - "3.8.0 (2026-06-15): Mode D Phase 3 now fixes P0/P1/P2 instead of only P0/P1. Updated references/mode-d-multisite.md prompt and hard rules to enforce P2 remediation; removed 'P2 out of scope' language."
+    - "3.7.0 (2026-06-10): Progressive disclosure refactor (per Anthropic SKILL.md best practices). 861 → 487 行 (-43%). Skill Evolution 历史 307 行 → references/evolution-history.md; 跨站点/触类旁通/学术资产化 34 行 → references/site-improvement-protocols.md; triggers 长尾 36 行 → references/triggers.md. 满足 Anthropic 500-line hard limit + AEM 200-line reliability sweet spot."
+    - "3.6.0 (2026-06-09): §33-§35 orchestrator + fix-agent 硬化. H1 ASI 防御 (Workflow 脚本 `SITES.map(...)\n({...})` ASI 解析 bug → TypeError recovery) / H2 autopush fallback (autopush 误判 staged-only deletion → direct `git push` 兜底) / H3 fix agent 二次 `git status` 验证 (避免 dangling untracked-deletion). 来自 CASE-MULTI-SITE-IMPROVE-20260609."
+    - "3.5.0 (2026-06-08): L17+L18 orchestrator 硬化. Phase 0 工具预加载 (ToolSearch 治本 subagent tool loading bug) + L17 auto-fallback (agent ack → SendMessage 重发 JSON). 解决 Run 4 暴露的 L14 enforcement 2/3 success + GDKVM 0 tool uses 2 个 bug."
     - 3.4.0 (2026-06-08): 吞并 sync-all-sites as Mode D (multi-site 编排). 4-phase 协议 + L14 + 4-section output contract. sync-all-sites 目录删除.
     - 3.3.0 (2026-06-03): 自进化协议 + 反模式硬化 (§30-§32)
     - 3.2.0 (2026-06-03): 3 站 Mode A 跨站 bug 模式 (§23-§29)
@@ -147,6 +147,73 @@ disable-model-invocation: false
 - IF 用户说 "再检查一遍" → 必走 snapshot diff 流程, 不允许"manual 重跑全部 agent"
 
 **Bonus test (v3.9.0)**: `diff -u <last-snapshot> <new-snapshot>` 在响应中显示 (用户可见). Empty diff = 项目干净.
+
+### §A.6 Verifier Self-Test Protocol (v3.10.0, 强制)
+
+> **Verifier 没 self-test = false-positive / false-negative 双风险**. content2html v3.9.0 verifier 用 absolute 5KB threshold → 6-page paper (2606.18246) 每页 ~2.4KB at 50dpi → 全 false-positive "blank page" 警报. 改 relative threshold (`<avg × 0.5`) 解决.
+
+**Hard rule**: 任何 E2E verifier 必含 **2-sample test**:
+1. **PASS sample**: known-good state → verifier 报 PASS
+2. **FAIL sample**: known-bad state (e.g. 注入 trailing blank, 改 CSS 制造 overflow) → verifier 报 FAIL
+
+**Trigger 模式**:
+- IF verifier 改动后没跑 self-test → 必跑 2-sample (PASS sample first, then FAIL sample)
+- IF 2-sample 任意一个 fail → revert verifier 改动, 重写
+- IF 2-sample 都 PASS → ship verifier
+
+**Real examples (content2html)**:
+```javascript
+// PASS sample: known-good 13-page paper
+SLIDE_COUNT=13 node scripts/verify-print-e2e.mjs
+// expected: ✅ PASS, noBlank=true
+
+// PASS sample 2: known-good 16-page paper  
+SLIDE_COUNT=16 node scripts/verify-print-e2e.mjs
+// expected: ✅ PASS, noBlank=true (relative threshold, not absolute)
+
+// FAIL sample: artificially inject trailing blank page
+echo "extra blank" >> dist/index.html
+SLIDE_COUNT=16 node scripts/verify-print-e2e.mjs
+// expected: ❌ FAIL, noBlank=false
+```
+
+### §A.7 Template Consistency Check (v3.10.0, 强制)
+
+> **Template drift = silent regression**. content2html 2606.18246 R5 之前只有 4 slides (plain headings, no Swiss editorial signature) vs 2603.12109 16 slides (full template: top-accent + accent-bar + kicker + takeaway-item + info-corner). Template 不一致 → 视觉混乱.
+
+**Hard rule**: 当多页面 share 同一 template (e.g. paper slides × N papers) → 必跑 `check-template-consistency.sh` 在每次 commit 后.
+
+**Trigger 模式**:
+- IF N pages share template (e.g. paper-slide × papers collection) → 必 verify:
+  - 同一组 template elements (top-accent + meta-page + accent-bar + kicker + h2 count + takeaway-item count)
+  - 同一组 helpers (extractBullets / cleanHeading / slide structure)
+  - 同一 visual signature (font sizes, spacing, info-corner)
+
+**Real examples (content2html)**:
+```bash
+# scripts/check-template-consistency.sh
+# 验证 paper slide.astro 在所有 N papers 有相同 template structure:
+# 1. grep "slide-top-accent" count: should be N (slides)
+# 2. grep "slide-info-corner" count: should be N papers
+# 3. grep "kicker" count: should be similar across files
+# 4. grep "takeaway-item" count: should be similar (depends on content)
+# 5. JSX structure: same slide-page attrs (top-accent, meta-bar, accent-bar order)
+```
+
+**Diff output** (per file):
+```
+src/pages/zh/paper/2603.12109/slide.astro:
+  slide-top-accent: 16 ✓
+  slide-info-corner: 1
+  kicker: 16
+  takeaway-item: 39
+
+src/pages/zh/paper/2606.18246/slide.astro:
+  slide-top-accent: 6 ✓
+  slide-info-corner: 1
+  kicker: 5
+  takeaway-item: 0
+```
 
 ---
 
