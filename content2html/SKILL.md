@@ -12,11 +12,12 @@ license: MIT
 metadata:
   type: skill
   category: content-generation
-  version: 1.0.0
+  version: 1.1.0
   author: mykcs
   created: 2026-06-17
-  updated: 2026-06-22
+  updated: 2026-06-23
   changelog:
+    - "1.1.0 (2026-06-23): paper-slide-template v3.3 沉淀 — 重要公式卡片 + key_formulas schema (per-paper, section_index 关联) + KaTeX 集成 (`ignoredTags` 显式排除 `code`) + `.slide-page { overflow: hidden }` 兜底. 5 步接入流程 + 5 个跨项目硬规则. 已接入 2603.12109 (4 公式 / Q3.1-3.4) + 2606.18246 (1 公式 / Q2 method). 完整演化记录见 related_cases CASE-PAPER-SLIDE-TEMPLATE-EVOLUTION-20260623."
     - "1.0.0 (2026-06-22): 完整 SKILL.md（v1.0 之前只有 case file 设计记录 + 4 产物 paper/progress HTML 模板）。合并 9 轮 grill-with-docs 决策 + 6 轮 print 修复 (4-layer root cause + print.css 模板抽取) + 9/9 Astro 回归 + Tailwind v4 directive 升级 + CSS var 命名规则 (per CASE-CONTENT2HTML-CSS-VAR-NAMING-COLLISION-20260622)."
   related_adrs:
     - "~/.claude/docs/adr/0001-claudecode-self-citation-anti-pattern.md"
@@ -30,6 +31,7 @@ metadata:
     - "~/.claude/knowledge/cases/wiki/CASE-SKILL-CONTENT2HTML-IMPLEMENT-20260617.md"
     - "~/.claude/knowledge/cases/wiki/CASE-CONTENT2HTML-PRINT-PAGE-COUNT-DVR-20260622.md"
     - "~/.claude/knowledge/cases/wiki/CASE-CONTENT2HTML-CSS-VAR-NAMING-COLLISION-20260622.md"
+    - "~/.claude/knowledge/cases/wiki/CASE-PAPER-SLIDE-TEMPLATE-EVOLUTION-20260623.md"
   source_repo: "github.com/mykcs/content2html (独立 Astro project)"
   triggers:
     - /content2html
@@ -225,6 +227,35 @@ SLIDE_COUNT=N URL=http://localhost:4321/content2html/{lang}/paper/{arxiv-id}/sli
 1. screen CSS 加 `.frame-img.r-3x4 { aspect-ratio: 3/4; max-height: 56vh; }`
 2. print.css §5 append `.slide-page .frame-img.r-3x4` 到现有 frame-img 规则列表
 3. 跑 verifier
+
+### 6.6 加 paper slide 公式 (paper-slide-template v3.3, 2026-06-23)
+
+> **适用**: 用户报告 "Q3 缺公式" / "公式不显示" / "想让 AS/BT/L̃ 等核心公式突出显示".
+> 完整 SOP 见 [`docs/paper-slide-template.md`](https://github.com/mykcs/content2html/blob/main/docs/paper-slide-template.md).
+> 5 轮反馈闭环演化见 case `CASE-PAPER-SLIDE-TEMPLATE-EVOLUTION-20260623`.
+
+**5 步接入流程** (适用任何 paper):
+
+1. 写 `src/content/papers/{arxiv-id}.json` (基础字段: title / authors / sections / key_takeaways)
+2. 选 1-5 个核心公式 (paper body 里识别): 如 `z_t^Q ∈ {−1, 0, +1}`, `Ψ_t ∈ [0, 1]`, `L̃(ω; τ) := ...`
+3. paper JSON 加 `key_formulas` 数组, shape: `{ section_index, label, formula (LaTeX), context }`
+4. slide.astro 改用 `<PaperSlideSection>` 替换手动 section (1 formula 1 slide 原则)
+5. build + Playwright 验证 (公式渲染 = 0 errors, slide 不溢出)
+
+**关键陷阱** (踩过的 5 个硬规则):
+
+1. **KaTeX `ignoredTags` option 名**: 必须 `ignoredTags: [...].exclude("code")`, 不是 `ignoredElements`
+2. **`.slide-page { overflow: hidden }` 必须**: clamp 兜底
+3. **链式 dict replace**: placeholder 2-pass, 否则链执行链 bug
+4. **1 formula 1 slide**: display mode (1.8rem) + body 全文 + 1 行 context
+5. **worktree `git reset --hard` 不 checkout 文件**: 需 `git checkout HEAD -- .` 强制 checkout
+
+**已接入 papers**:
+
+| ArXiv ID | key_formulas | 公式数 | commit |
+|----------|-------------|--------|--------|
+| 2603.12109 | 4 (Q3.1-3.4 AS/BT/L̃/Ã_t) | 4 | 2035fd6 |
+| 2606.18246 | 1 (Q2 method width fn) | 1 | 2035fd6 |
 
 ## 7. 验证 checklist (commit 前必跑)
 
