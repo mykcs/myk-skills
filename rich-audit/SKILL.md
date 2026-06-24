@@ -6,10 +6,11 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.20"
+  version: "2.6.21"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.21 (2026-06-24): 5-tool Force-All-Search §F.1.1/§F.1.2 降级矩阵 v-bump. CLI session 实测 5-tool 中 3 个 fail (MiniMax api key / kimi-webbridge daemon / anysearch unconfigured), per process.md §F.1.2 自动降级到 exa + WebFetch 双工具 parallel. Run 3 (2026-06-24-200904) 实证: weighted 84.7 raw → 100.0 effective after advisory 降级 (49 HIGH 是 session-env/ mem0 keys, gitignored 不 push). 同步 Layer 3 §F.1 引用 process.md §F.1.1/§F.1.2, 避免 sub-skill loader 跟 process.md drift."
     - "2.6.20 (2026-06-23): SKILL.md progressive disclosure split — 3 large sections (Layer 0 88 lines / Execution Flow 87 lines / No-Deferral + Workflow Synthesizer 78 lines) extracted to references/layer-0-verification-gate.md + execution-flow.md + no-deferral-pattern.md. SKILL.md 564 → 324 lines (under 500 Anthropic limit). Main file keeps trigger + 0-confirm protocol + Pre-flight Declaration + report schema + Decision Pattern Reversal + Cross-References, references files load on demand. body_too_long MED finding cleared (skill_authoring_checker 1 → 0)."
     - "2.6.19 (2026-06-23): Layer 0 Verification Gate Pre-check (新 §A.1, 5 commands 必跑). 解决 top friction cluster 'Audit 跑完口头报 ✅ 已 push 无 ground truth' (CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621, 2026-06-21). Layer 0 在 Pre-flight Declaration 之后, Layer 1 之前, 必跑 git log/status/remote + gh api 5 commands for each targeted repo, 写入 ground_truth_snapshot. 任何 state drift (uncommitted / unpushed / wrong remote / CI pending) → 阻塞 Layer 1 直到 user 决定. Anti-pattern: 把 verification gate 当 post-check (跑完才看) → 永远晚一步. Skill-evolution auto-derived 2026-06-23."
   triggers:
