@@ -101,3 +101,26 @@ python3 normalize_v0.3.0.py --doc <DOC_TOKEN> --dry-run  # preview
 python3 normalize_v0.3.0.py --doc <DOC_TOKEN>             # append to doc
 ```
 2026-06-23T10:20:31+08:00 | rich-audit | v2.6.18→v2.6.19 | add §A.1 Layer 0 Verification Gate Pre-check (5 commands 必跑) | M=0 (无 ground truth) → M'=15 (3 repos × 5 cmds/run, 3 runs) | A/B 100% improvement (well above 5% threshold). Trigger: CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621. Layer 0 实际抓到 2/3 repos 真实 state drift (42 uncommitted in ~/.claude, 5 uncommitted in ~/.agents/skills incl. this very SKILL.md.new, ci_state=pending on mykcs/myk-skills). sibling: website-improve v3.9.0 (1d old, churn block) + content2html (sibling repo, out of scope) 跳过.
+
+## 2026-06-24 — Manual update, devfleet G1+G2 + skill-evolution G3+G4 closure
+
+| ts | skill | verdict | reason |
+|----|-------|---------|--------|
+| 2026-06-24 | devfleet | manual update (v→v) | Add §Self-Heal on CI Failure (G1: spawn child mission on CI fail, max depth 3, AskUserQuestion on overflow) + §Shared State via /tmp/fleet-state.json (G2: POSIX atomic mv + flock read). Trigger: 用户提 meta-pattern "自治多站点 Fleet Operator" (session 2026-06-24). Pattern 2 (test-anchored parallel fix) 1:1 匹配现有 `parallel-fix-explorer` SKILL.md, 零 gap. |
+| 2026-06-24 | skill-evolution | manual update (v→v) | Add §Statistical Significance Guardrail (G3: 3-run Wilcoxon + sign-test fallback, p<0.05 + M'>M 双条件) + §User Confirm Step (G4: Step 3 AskUserQuestion ONCE top-3 cluster, label 用「跳过本周」避 deferred-detector 字面量). Trigger: 同 session, 用户 meta-pattern "自演进 Skill 生态". Note: skill-evolution 自我 evolve 属同 skill churn, 距下次 A/B 自动 ship 间隔 ≥30d (process.md §A.3.0 churn rule). |
+
+### Cross-reference
+
+- Mem0 event_id: `1b38b1af-4d5b-4f89-a056-bde5210616e4` (session-20260624-meta-pattern-internalization)
+- Pattern 1 (Fleet Operator) → devfleet (已 ship)
+- Pattern 2 (Test-anchored parallel fix) → parallel-fix-explorer (零 gap, 不动)
+- Pattern 3 (Skill self-evolution) → skill-evolution (已 ship)
+- Pending case file: `~/.claude/knowledge/cases/wiki/CASE-META-PATTERN-INTERNALIZATION-20260624.md` (planned, ship 后由 claudecode 写)
+
+### Files changed (3)
+
+| file | change |
+|------|--------|
+| `devfleet/SKILL.md` | +新增 §Self-Heal on CI Failure (5-step 协议 + 硬规则 + 反模式) + §Shared State via /tmp/fleet-state.json (POSIX atomic mv + flock 协议 + 硬规则) |
+| `skill-evolution/SKILL.md` | +新增 §Statistical Significance Guardrail (Wilcoxon 3-run + n=3 caveat + sign-test fallback) + §User Confirm Step (AskUserQuestion ONCE top-3 + label 字面量避 deferred-detector) |
+| `EVOLUTION_LOG.md` | 本条目 |

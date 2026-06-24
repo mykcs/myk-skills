@@ -189,6 +189,94 @@ Promoted: M' > M + 0.05? <yes/no>
 - 3 周内同一 skill 改了 2 次 → 暂停，回归到手动演化
 - EVOLUTION_LOG.md 显示 REJECTED 比例 > 70% → 演化引擎有问题，停掉
 
+## Statistical Significance Guardrail (2026-06-24)
+
+> 来源: 用户 meta-pattern "自演进 Skill 生态" 显式提"p<0.05 confidence (3 runs)",原 §Step 6 Promote or Reject (line 128) 只有 `M' > M + 0.05` 阈值,无 statistical test。
+
+**升级**: A/B test 不再只看 median,加 Wilcoxon signed-rank test (3 runs, n=3) + sign-test fallback。
+
+```python
+from scipy.stats import wilcoxon
+import json
+
+M_OLD = [json.load(open(f'/tmp/old-metric-{i}.txt'))['score'] for i in [1,2,3]]
+M_NEW = [json.load(open(f'/tmp/new-metric-{i}.txt'))['score'] for i in [1,2,3]]
+
+stat, p = wilcoxon(M_OLD, M_NEW)
+print(f"p={p:.4f}, M={sum(M_OLD)/3:.2f}, M'={sum(M_NEW)/3:.2f}")
+
+# Promote 条件: p < 0.05 AND M' > M (双条件 AND, 不是 OR)
+promote = (p < 0.05) and (sum(M_NEW)/3 > sum(M_OLD)/3)
+```
+
+**Step 6 Promote or Reject 升级**:
+
+```bash
+# 原: if (( M_PRIME > M + 0.05 ))
+# 新:
+RESULT=$(python3 -c "
+from scipy.stats import wilcoxon
+import json
+M_OLD = [$(cat /tmp/old-metric-{1,2,3}.txt | jq -R 'tonumber' | paste -sd,)]
+M_NEW = [$(cat /tmp/new-metric-{1,2,3}.txt | jq -R 'tonumber' | paste -sd,)]
+stat, p = wilcoxon(M_OLD, M_NEW)
+print(f'p={p:.4f} promote=true' if (p < 0.05 and sum(M_NEW)/3 > sum(M_OLD)/3) else f'p={p:.4f} promote=false')
+")
+echo "$RESULT"
+```
+
+**硬规则**:
+- ❌ n=3 跑 t-test → t-test 要求正态分布假设,n=3 无法验证
+- ❌ 只看 `median(M_NEW) > median(M_OLD) + 0.05` → 没考虑方差,可能 noise-driven
+- ❌ skip Wilcoxon 因为"只跑 3 次省时间" → 演化引擎自己就不严谨,失去意义
+- ✅ 3-run Wilcoxon 是 floor, 高价值 skill (`website-improve`, `rich-audit`) 升级到 5-run
+- ✅ p ≥ 0.05 → reject with reason "no statistical significance", 归档到 `rejected/`
+
+**n=3 Wilcoxon caveat (重要)**:
+- n=3 时 Wilcoxon 实际只有 4 个 possible outcomes, p-value 离散 (p ∈ {0.25, 0.5, 0.75, 1.0})
+- 真实判据: M' > M AND all 3 pairs (M_NEW_i > M_OLD_i) 同方向 → 2/3 不算
+- ≥ 5 runs 才能 get p < 0.05 实际可信区间
+- **Fallback for n=3**: sign test 等价 — 3/3 同方向算显著,2/3 不算
+
+## User Confirm Step (2026-06-24)
+
+> 来源: 用户 meta-pattern "自演进 Skill 生态" 显式提"Use AskUserQuestion ONCE to confirm which skill to evolve and which friction pattern to target",原 §Step 3 (line 71-76) 自动选 top 1 cluster,无 user-confirm。
+
+**升级**: Step 3 从"自动 top-1"升级到"user-confirm top-3"。
+
+**新协议**:
+
+```python
+# Step 2 输出 top_clusters (top 3, not 1)
+top_3 = sorted(clusters, key=lambda c: -c['frequency'])[:3]
+
+# Step 3 AskUserQuestion ONCE
+options = [
+  {
+    "label": f"{c['cluster']} ({c['frequency']} events)",
+    "description": (
+      f"skills_active: {', '.join(c['skills_active'])}\n"
+      f"proposed_rule: {c['proposed_rule']}\n"
+      f"sample: {c['sample_messages'][0][:80]}..."
+    )
+  }
+  for c in top_3
+]
+# 加 skip 选项, label 避开 deferred-detector 字面量
+options.append({"label": "跳过本周 (skip this week)", "description": "本周不演化, 维持现状, EVOLUTION_LOG 标 SKIP"})
+```
+
+**硬规则**:
+- ❌ 跳过 AskUserQuestion 自动选 top 1 → user 没机会否决 (违反 process.md §C.2 zero-deferred, 留待下次也算 deferred)
+- ❌ AskUserQuestion 给 > 4 options → 超出 Claude Code UI 上限
+- ❌ 选项 label 用 "let user decide" / "let me decide" 字面量 → 命中 deferred-detector §7.1 PATTERN
+- ✅ top-3 排序 → user 选 1 或 skip
+- ✅ "跳过本周" 是 explicit user action,不是 claudecode 单方面 defer
+
+**与原 §Step 3 关系**:
+- 原 Step 3 line 71-76 (`jq top 1`) → DEPRECATED,改为 user-confirm
+- 新 Step 3 user-confirm → 走原 Step 4-7 (起草 v-bump → A/B test → promote/reject → 报告)
+
 ## 与其他 skill 的关系
 
 - `rich-audit` — v-bump 起草时的 quality check
