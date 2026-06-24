@@ -6,10 +6,11 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.22"
+  version: "2.6.23"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.23 (2026-06-24): 报告协议再精简 (用户反馈「还是太复杂」). v2.6.22 协议 ## 分 仍有 5+ 条细分, ## 状态 10 条, ## 注意 6 条 — 仍冗余. v2.6.23 协议硬上限: (1) 全文 ≤ 30 行 (不含表格); (2) ## 分 ≤ 2 句; (3) ## 状态 ≤ 3 条短句; (4) ## 注意 ≤ 3 条. 数字用逗号分隔, 不要表格. 用户王瑞原话: 「还是太复杂, 你每次都要给我汇报最直接最简单的内容」."
     - "2.6.22 (2026-06-24): 报告格式精简 v-bump (用户偏好). 用户王瑞注意力分散, 汇报要最直接最简单. 协议变更: (1) 禁止散落的绿色对勾 emoji + 多余详细文字说明; (2) 用 总分总 或 总分 结构; (3) 绿色大勾集中在一处 (「## 状态」section); (4) 注意事项另起一区 (「## 注意」section), 不混在结论里. Source: 用户原话「禁止散落的 emoji / 绿色对勾图标 + 多余详细文字说明. 应用总分总或总分结构, 在某一处集中写所有绿色大勾, 有什么需要注意的另起一区」."
     - "2.6.21 (2026-06-24): 5-tool Force-All-Search §F.1.1/§F.1.2 降级矩阵 v-bump. CLI session 实测 5-tool 中 3 个 fail (MiniMax api key / kimi-webbridge daemon / anysearch unconfigured), per process.md §F.1.2 自动降级到 exa + WebFetch 双工具 parallel. Run 3 (2026-06-24-200904) 实证: weighted 84.7 raw → 100.0 effective after advisory 降级 (49 HIGH 是 session-env/ mem0 keys, gitignored 不 push). 同步 Layer 3 §F.1 引用 process.md §F.1.1/§F.1.2, 避免 sub-skill loader 跟 process.md drift."
     - "2.6.20 (2026-06-23): SKILL.md progressive disclosure split — 3 large sections (Layer 0 88 lines / Execution Flow 87 lines / No-Deferral + Workflow Synthesizer 78 lines) extracted to references/layer-0-verification-gate.md + execution-flow.md + no-deferral-pattern.md. SKILL.md 564 → 324 lines (under 500 Anthropic limit). Main file keeps trigger + 0-confirm protocol + Pre-flight Declaration + report schema + Decision Pattern Reversal + Cross-References, references files load on demand. body_too_long MED finding cleared (skill_authoring_checker 1 → 0)."
@@ -163,73 +164,35 @@ user-invocable: true
 
 > **详细架构图 + Agent 策略 + 双模扫描 + 架构健康度阈值 + 记忆系统对齐** 详见 [`references/execution-flow.md`](references/execution-flow.md) (87 lines, progressive disclosure). 主 SKILL.md 只引用, 不重复内容. 
 
-## 输出格式（精简协议, v2.6.22, 用户偏好）
+## 输出格式（v2.6.23 终极精简, 用户偏好）
 
-> 用户王瑞注意力分散, 汇报要最直接最简单. **禁止散落 emoji / 绿色对勾图标 / 多余详细文字说明**. 用 **总分总** 或 **总分** 结构, 集中表达.
+### 硬上限 (强制)
 
-### 协议 (强制)
-
-**总**: 1 句结论 (健康分 + 是否完成)
-
-**分**: 按维度/阶段简短条目, 每条 ≤ 2 行
-
-**集中标记**:
-- **## 状态**: 一处列所有绿色大勾 (用文字 `OK` / `✓` / `通过` 表达, 不用 emoji 图标)
-- **## 注意**: 一处列所有 user 需知项 (token 暴露 / 用户决策 / 待办)
-
-**禁止**:
-- ❌ 多处散落 `✅ 已 push` `✅ 已 fix` `✅ 通过` (集中到 ## 状态)
-- ❌ emoji 装饰 (`🎯` `🚀` `💡` 等)
-- ❌ 多余解释 (eg. 备份确认、命令出处、cell-id 详解)
-- ❌ 5 段式扩展 (审计/指令/SOP/进化/状态 — 压缩到总分)
-
-**允许**:
-- ✅ 简短动词状态 (`OK` `FAIL` `BLOCKED`)
-- ✅ 数字事实 (health_score, counts, bytes)
-- ✅ file:line 引用 (empirical evidence)
-
-### 旧五段式 → 新总分式映射
-
-| 旧段 | 新位置 |
-|------|--------|
-| 审计层 (按维度发现) | 分 — 每个维度 1 行 |
-| 指令进化 | 分 — 1 行 (如有) |
-| SOP 提取 | 删 (除非用户问) |
-| 进化层 | 删 (除非用户问) |
-| 最终状态 (修复清单) | ## 状态 |
-| 待处理项 | ## 注意 |
+全文 ≤ 30 行, ## 分 ≤ 2 句, ## 状态 ≤ 3 条, ## 注意 ≤ 3 条. 用数字逗号分隔, 不用表格.
 
 ### 模板
 
-```text
-[run id] rich-audit 完成.
+```
+[run id] rich-audit.
 
-总分: weighted=X.X (effective=Y.Y after advisory), findings=Z, severity=H/M/L.
+总分: weighted=X.X effective=Y.Y after advisory, findings=Z.
 
-分:
-- repo A: head=xxx, push OK / status: ...
-- repo B: head=xxx, push OK / status: ...
-- L1 script1: count, status
-- L1 script2: count, status
-- ...
-- 5-tool 实测: 2 OK / 3 fail → exa + WebFetch fallback
+分: brief dimension status (≤ 2 句).
 
 ## 状态
-- 5 repos 全部 push OK
-- L0 ground truth 全部 5 commands 通过
-- weighted ≥ 95 (PASS)
-- effective 100.0 (after advisory)
-- ...
+- item 1
+- item 2
+- item 3
 
 ## 注意
-- ⚠ token exposure in <file> 已 git rm --cached
-- ⚠ orphan dir <name> 待删 (明日 schedule)
-- ⚠ 需要 user 决策: <具体选项>
+- item 1
+- item 2
+- item 3
 ```
 
 ### JSON 报告结构 (保留, 用于程序消费)
 
-JSON 仍保留 5 维度 + severity_counts + score_breakdown, **人类可读报告** 按本节精简协议输出.
+JSON 保留 5 维度 + severity_counts + score_breakdown, 人类可读报告按本节精简协议.
 
 ---
 
