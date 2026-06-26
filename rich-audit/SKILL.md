@@ -10,6 +10,7 @@ metadata:
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.27 (2026-06-26): 自动 merge PR 协议固化 (跟 CLAUDE.local.md §11 + process.md §C.3.1 同步). 触发: user 原话 'user 同意 claudecode 自动 merge PR #3 也可以写到 skill 里' (PR #2 跟 PR #3 都已自动 merge 验证成功). 新增 hard rule: PR merge 步骤全自动 (gh pr merge --squash --delete-branch) + post-merge fast-forward 本地 main + 清理 worktree. 沿用 smart-push 协议 (CLAUDE.local.md §7). 例外: 涉及双账号污染 / 安全 / config 字段改动 仍走 soul v2 双向保险必问."
     - "2.6.26 (2026-06-26): 修改前必报路径协议 + Git worktree + PR 协议 (跟 CLAUDE.local.md §11 同步). 触发: user 原话 '修改 skill 时...要显式说出具体文件' + '积极利用 PR/worktree' + '我也不太懂 PR 怎么用'. 4 字段清单 (路径/类型/量/PR 判断) → user OK 才动手. worktree 路径 ~/.claude/.worktrees/<YYYY-MM-DD>-<topic>/, branch 命名 feat/<topic> (kebab-case). 单文件 micro edit (< 50 行 / 不改 rules/) 维持 smart-push 直 push main."
     - "2.6.24 (2026-06-25): 双模式报告协议. 用户后续嫌 v2.6.23 太简略 → 加 详细模式 (verbose) 触发. 协议: (1) 默认仍是 v2.6.23 精简 (≤ 30 行); (2) 用户说 "详细" / "verbose" / "展开" / "完整报告" → 切到详细模式 (无硬上限, 含维度表 + 修复清单 + Bonus Test). 触发词: rich-audit 末尾跟 verbose OR 用户回复 "详细". Source: 用户原话「不要这么简略」."
     - "2.6.23 (2026-06-24): 报告协议再精简 (用户反馈「还是太复杂」). v2.6.22 协议 ## 分 仍有 5+ 条细分, ## 状态 10 条, ## 注意 6 条 — 仍冗余. v2.6.23 协议硬上限: (1) 全文 ≤ 30 行 (不含表格); (2) ## 分 ≤ 2 句; (3) ## 状态 ≤ 3 条短句; (4) ## 注意 ≤ 3 条. 数字用逗号分隔, 不要表格. 用户王瑞原话: 「还是太复杂, 你每次都要给我汇报最直接最简单的内容」."
