@@ -1,0 +1,554 @@
+{
+  "metadata": {
+    "name": "memory-bench-50q-sample",
+    "version": "0.1.0",
+    "created": "2026-06-26",
+    "skill": "rich-audit",
+    "skill_version": "2.6.25",
+    "design_doc": "references/memory-bench-design.md",
+    "design_decisions": "ADR-0008/0009/0010",
+    "scoring": "5-level (0 / 0.5 / 1.0 / 1.5 / 2.0), 1.0 = standard pass"
+  },
+  "distribution": {
+    "hot_fact_MASTER_CLAUDE_local_md": 20,
+    "rules_universal_process_bugfix_tooling": 15,
+    "cases_wiki_recent_30d": 10,
+    "mem0_compact_captured": 5,
+    "total": 50
+  },
+  "metric_weights": {
+    "recall": 0.35,
+    "consistency": 0.25,
+    "compliance": 0.30,
+    "token_economy": 0.10
+  },
+  "questions": [
+    {
+      "id": "Q001",
+      "category": "hot_fact_infrastructure",
+      "source": "CLAUDE.local.md §1 / MEMORY.md §1",
+      "question": "~/.claude/skills/ 这个路径的物理性质是什么？它指向哪里？",
+      "expected_keywords": ["symlink", "~/.agents/skills/", "directory symlink"],
+      "scoring_note": "答对 3 关键词即 1.0"
+    },
+    {
+      "id": "Q002",
+      "category": "hot_fact_infrastructure",
+      "source": "CLAUDE.local.md §1",
+      "question": "skills 单一来源（source of truth）在哪里？git remote 是什么？",
+      "expected_keywords": ["~/.agents/skills/", "mykcs/myk-skills", "git clone"],
+      "scoring_note": "答对 3 关键词即 1.0"
+    },
+    {
+      "id": "Q003",
+      "category": "hot_fact_user_identity",
+      "source": "CLAUDE.local.md §2 / MEMORY.md §2",
+      "question": "用户的 GitHub 账号有几个？各自负责什么仓库？",
+      "expected_keywords": ["mykcs", "wangrui2025", "主站", "papers", "双账号隔离"],
+      "scoring_note": "4 关键词全中 = 1.0，缺 1 = 0.5"
+    },
+    {
+      "id": "Q004",
+      "category": "hot_fact_user_identity",
+      "source": "CLAUDE.local.md §2",
+      "question": "用户 2026 年申请什么学校的 PhD？导师是谁？",
+      "expected_keywords": ["浙江大学", "魏颖", "Ying Wei", "CompLife Lab"],
+      "scoring_note": "4 关键词全中 = 1.0"
+    },
+    {
+      "id": "Q005",
+      "category": "hot_fact_behavior_conflict_resolution",
+      "source": "CLAUDE.local.md §3 / rules/universal.md §D",
+      "question": "用户提了 bug 修复任务，claudecode 应该问还是直接做？为什么？",
+      "expected_keywords": ["直接做", "bug 修复类", "双向保险", "不问"],
+      "scoring_note": "含「直接做」+「双向保险」= 1.0"
+    },
+    {
+      "id": "Q006",
+      "category": "hot_fact_behavior_conflict_resolution",
+      "source": "CLAUDE.local.md §3",
+      "question": "改 framework config 字段时，claudecode 应该问还是直接做？",
+      "expected_keywords": ["先问", "scope discipline", "config 字段", "必问"],
+      "scoring_note": "含「先问」+「scope discipline」= 1.0"
+    },
+    {
+      "id": "Q007",
+      "category": "hot_fact_persona_soul_v2",
+      "source": "CLAUDE.local.md §3 / identity-first-person.md",
+      "question": "claudecode 写反向提问句时，必须以什么词开头？",
+      "expected_keywords": ["用户", "claudecode", "具名固定字符串"],
+      "scoring_note": "答「用户」即 1.0；答「我/你/您」= 0"
+    },
+    {
+      "id": "Q008",
+      "category": "hot_fact_persona_soul_v3",
+      "source": "CLAUDE.local.md §3",
+      "question": "灵魂 v3 要求 claudecode 解释技术时应该怎么做？",
+      "expected_keywords": ["大白话", "翻译", "A vs B", "推荐", "请回 X", "小白"],
+      "scoring_note": "命中 3+ 关键词 = 1.0"
+    },
+    {
+      "id": "Q009",
+      "category": "hot_fact_edit_pre_flight",
+      "source": "CLAUDE.local.md §4",
+      "question": "跨 3+ 文件修改前，claudecode 应该跑什么协议？",
+      "expected_keywords": ["Repo Confirmation Protocol", "git remote -v", "三次确认"],
+      "scoring_note": "3 关键词全中 = 1.0"
+    },
+    {
+      "id": "Q010",
+      "category": "hot_fact_edit_pre_flight",
+      "source": "CLAUDE.local.md §4",
+      "question": "改 CSS 后给用户的强制提示是什么？",
+      "expected_keywords": ["硬刷新", "Cmd+Shift+R", "Ctrl+Shift+R", "CSS 缓存"],
+      "scoring_note": "2 关键词 = 1.0"
+    },
+    {
+      "id": "Q011",
+      "category": "hot_fact_4_active_sites",
+      "source": "CLAUDE.local.md §5 / CLAUDE.md Repo Confirmation",
+      "question": "claudecode 当前管理几个活跃站点？列出来。",
+      "expected_keywords": ["主站", "GDKVM", "OSA", "content2html", "mykcs", "wangrui2025"],
+      "scoring_note": "4 站 + 2 账号 = 1.0"
+    },
+    {
+      "id": "Q012",
+      "category": "hot_fact_4_active_sites",
+      "source": "CLAUDE.local.md §5",
+      "question": "旧站在哪个路径？状态是什么？",
+      "expected_keywords": ["~/Repo/webs/arch/", "已重定向", "归档"],
+      "scoring_note": "3 关键词 = 1.0"
+    },
+    {
+      "id": "Q013",
+      "category": "hot_fact_mandatory_rule_glados",
+      "source": "CLAUDE.local.md §6.1 / case CASE-GLADOS-CHECKIN-3AXIS-UPGRADE-20260625",
+      "question": "跨境 GH Actions runner 调外部 API 时，TIMEOUT 应该设多少？",
+      "expected_keywords": ["≥30s", "30 秒", "Retry", "反 bot"],
+      "scoring_note": "命中「≥30s」+「Retry」= 1.0"
+    },
+    {
+      "id": "Q014",
+      "category": "hot_fact_mandatory_rule_deferred_detector",
+      "source": "CLAUDE.local.md §6.2 / rules/process.md §C.2",
+      "question": "claudecode 输出任何 markdown 报告前必跑什么脚本？",
+      "expected_keywords": ["deferred-detector.sh", "exit 1", "rewrite"],
+      "scoring_note": "3 关键词 = 1.0"
+    },
+    {
+      "id": "Q015",
+      "category": "hot_fact_mandatory_rule_css_var",
+      "source": "CLAUDE.local.md §6.3",
+      "question": "CSS var 命名必须带什么前缀？列 3 个例子。",
+      "expected_keywords": ["context", "--print-", "--screen-", "--theme-"],
+      "scoring_note": "命中 3+ 例子 = 1.0"
+    },
+    {
+      "id": "Q016",
+      "category": "hot_fact_mandatory_rule_cascade_kill",
+      "source": "CLAUDE.local.md §6.4",
+      "question": "kill PID 之前必跑哪三件套？",
+      "expected_keywords": ["pgrep -P", "ps -o ppid=", "lsof | grep"],
+      "scoring_note": "3 关键词 = 1.0"
+    },
+    {
+      "id": "Q017",
+      "category": "hot_fact_mandatory_rule_audit_pre_check",
+      "source": "CLAUDE.local.md §6.5 / rules/process.md §C.2",
+      "question": "声明「✅ 已 push」前必跑几个 verification 命令？",
+      "expected_keywords": ["5", "5 commands", "git log", "git status", "git remote"],
+      "scoring_note": "命中「5」+ 3 命令 = 1.0"
+    },
+    {
+      "id": "Q018",
+      "category": "hot_fact_skill_frontmatter",
+      "source": "CLAUDE.local.md §6.6 / rules/process.md §A",
+      "question": "识别 mykcs.github.io/<path>/ + audit 词时，claudecode 必先跑什么？",
+      "expected_keywords": ["ls", "head -20", "SKILL.md", "frontmatter"],
+      "scoring_note": "4 关键词 = 1.0"
+    },
+    {
+      "id": "Q019",
+      "category": "hot_fact_smart_push",
+      "source": "CLAUDE.local.md §7 / MEMORY.md §7",
+      "question": "哪些仓的修改后会自动 smart-push？",
+      "expected_keywords": ["~/.claude", "主站", "GDKVM", "OSA", "Academic"],
+      "scoring_note": "5 仓全列 = 1.0"
+    },
+    {
+      "id": "Q020",
+      "category": "hot_fact_calm_flow",
+      "source": "CLAUDE.local.md §8 / rules/calm-flow.md",
+      "question": "calm-flow 协议激活后，claudecode 任务完成瞬间应该立即做什么？",
+      "expected_keywords": ["不立即", "决策流", "事后告知", "卡片墙"],
+      "scoring_note": "命中「不立即」+「决策流」= 1.0"
+    },
+    {
+      "id": "Q021",
+      "category": "rules_universal_immutability",
+      "source": "rules/universal.md §A",
+      "question": "通用规则的 immutability 硬规则要求 claudecode 怎么处理对象？",
+      "expected_keywords": ["ALWAYS create new objects", "NEVER mutate", "update 返回新副本"],
+      "scoring_note": "3 关键词 = 1.0"
+    },
+    {
+      "id": "Q022",
+      "category": "rules_universal_scope_discipline",
+      "source": "rules/universal.md §D",
+      "question": "scope discipline 触发场景有 5 个常见情况，请列出 3 个。",
+      "expected_keywords": ["未用字段", "重复 type", "顺手改 B", "重命名", "删除"],
+      "scoring_note": "命中 3+ 场景 = 1.0"
+    },
+    {
+      "id": "Q023",
+      "category": "rules_universal_self_verify",
+      "source": "rules/universal.md §F",
+      "question": "self-verify first 协议禁止 claudecode 把什么推回给用户？",
+      "expected_keywords": ["核实", "scope dumping", "arXiv", "API"],
+      "scoring_note": "命中「scope dumping」+「API」= 1.0"
+    },
+    {
+      "id": "Q024",
+      "category": "rules_universal_output_budget",
+      "source": "rules/universal.md §G",
+      "question": "claudecode 单次响应什么情况下必须写文件而不是内联？",
+      "expected_keywords": ["30 行", "20 条", "diff", "build log", "500-token 截断"],
+      "scoring_note": "命中 3+ 条件 = 1.0"
+    },
+    {
+      "id": "Q025",
+      "category": "rules_universal_user_correction",
+      "source": "rules/universal.md §I",
+      "question": "用户修正自动固化 5 步法的第一步是什么？",
+      "expected_keywords": ["A-D 分类", "通用工作流", "项目特定", "技能缺陷", "一次性偏好"],
+      "scoring_note": "命中「A-D 分类」= 1.0"
+    },
+    {
+      "id": "Q026",
+      "category": "rules_process_plan_review",
+      "source": "rules/process.md §B.1",
+      "question": "plan review gate 的触发条件是什么？",
+      "expected_keywords": ["多文件", "未知技术栈", "Plan First", "planner agent"],
+      "scoring_note": "命中 2+ 条件 = 1.0"
+    },
+    {
+      "id": "Q027",
+      "category": "rules_process_verification_gate",
+      "source": "rules/process.md §C.1",
+      "question": "verification gate 硬规则：什么是非平凡任务的完成条件？4 选 1。",
+      "expected_keywords": ["build 通过", "部署验证", "测试通过", "手动验证"],
+      "scoring_note": "命中 2+ 条件 = 1.0"
+    },
+    {
+      "id": "Q028",
+      "category": "rules_process_deferred_theater",
+      "source": "rules/process.md §C.2",
+      "question": "claudecode 报告里禁止出现的 5 个 deferred 词是哪些？",
+      "expected_keywords": ["下次再", "P2", "let user decide", "future work", "follow-up"],
+      "scoring_note": "命中 3+ = 1.0"
+    },
+    {
+      "id": "Q029",
+      "category": "rules_process_bonus_test",
+      "source": "rules/process.md §D",
+      "question": "bug fix 验证报告必须含哪个独立 section？",
+      "expected_keywords": ["Bonus Test", "End-to-End", "demanding case"],
+      "scoring_note": "命中「Bonus Test」= 1.0"
+    },
+    {
+      "id": "Q030",
+      "category": "rules_process_force_all_search",
+      "source": "rules/process.md §F.1.2",
+      "question": "CLI session 5-tool 不可达时，自动降级到几-tool 协议？",
+      "expected_keywords": ["2-tool", "exa", "WebFetch", "降级"],
+      "scoring_note": "命中「2-tool」+ 2 工具 = 1.0"
+    },
+    {
+      "id": "Q031",
+      "category": "rules_bugfix_400_diagnosis",
+      "source": "rules/bugfix-400.md",
+      "question": "bug fix 端到端脚本输出 6 场景分别是什么？",
+      "expected_keywords": ["400", "无环境访问", "task boundary", "env drift", "api key", "rate limit"],
+      "scoring_note": "命中 3+ 场景 = 1.0"
+    },
+    {
+      "id": "Q032",
+      "category": "rules_tooling_settings_sop",
+      "source": "rules/tooling.md",
+      "question": "改 settings.json 前必须做的 3 件事？",
+      "expected_keywords": ["WebFetch", "官方文档", "备份", "atomic edit"],
+      "scoring_note": "命中 3+ = 1.0"
+    },
+    {
+      "id": "Q033",
+      "category": "rules_tooling_skill_audit",
+      "source": "rules/tooling.md / skill-authoring-checker.py",
+      "question": "skill 审计触发阈值是 frontmatter 多少行？",
+      "expected_keywords": [">500", "500 行", "Anthropic 限制", "progressive disclosure"],
+      "scoring_note": "命中「500」= 1.0"
+    },
+    {
+      "id": "Q034",
+      "category": "rules_python_import_discipline",
+      "source": "rules/python.md / feedback-python-import-discipline",
+      "question": "Python heredoc 必先做什么？",
+      "expected_keywords": ["import", "基础库", "as you know", "小白"],
+      "scoring_note": "命中「import」= 1.0"
+    },
+    {
+      "id": "Q035",
+      "category": "rules_typescript_strict",
+      "source": "rules/typescript.md",
+      "question": "TypeScript strict 模式 4 个核心 flag 是哪些？",
+      "expected_keywords": ["strict", "noImplicitAny", "strictNullChecks", "noUnusedLocals"],
+      "scoring_note": "命中 3+ = 1.0"
+    },
+    {
+      "id": "Q036",
+      "category": "cases_recent_soul_v2_v3",
+      "source": "knowledge/cases/wiki/CASE-SOUL-V2-20260626 (推测)",
+      "question": "灵魂 v2/v3 升级 case 包含什么 4 维度验证？",
+      "expected_keywords": ["跨会话", "反市井化", "保留专业", "4 维度"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q037",
+      "category": "cases_recent_glados_3axis",
+      "source": "knowledge/cases/wiki/CASE-GLADOS-CHECKIN-3AXIS-UPGRADE-20260625",
+      "question": "GLaDOS checkin case 包含哪 3 个 axis 升级？",
+      "expected_keywords": ["timeout", "mock test", "ruff CI", "跨境"],
+      "scoring_note": "命中 3+ = 1.0"
+    },
+    {
+      "id": "Q038",
+      "category": "cases_recent_force_all_search",
+      "source": "knowledge/cases/wiki/CASE-FORCE-ALL-SEARCH-REALITY-ALIGNMENT-20260624",
+      "question": "Force-All-Search 案例的核心发现是什么？",
+      "expected_keywords": ["5-tool", "降级", "4 工具挂", "CLI session"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q039",
+      "category": "cases_recent_css_var_naming",
+      "source": "knowledge/cases/wiki/CASE-CONTENT2HTML-CSS-VAR-NAMING-COLLISION-20260622",
+      "question": "CSS var 命名冲突 case 的根因是什么？",
+      "expected_keywords": ["@theme", ":root", "race condition", "JS inline"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q040",
+      "category": "cases_recent_cascade_kill",
+      "source": "knowledge/cases/wiki/CASE-CODEX-MINIMAX-FISH-ORPHAN-CASCADE-20260622",
+      "question": "cascade-kill 案例的关键启示是什么？",
+      "expected_keywords": ["启动时间", "不是信号", "三件套", "parent-child"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q041",
+      "category": "cases_recent_audit_verification_gate",
+      "source": "knowledge/cases/wiki/CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621",
+      "question": "Audit verification gate 失败 case 的根本原因？",
+      "expected_keywords": ["口头报", "无 ground truth", "5 commands", "Layer 0"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q042",
+      "category": "cases_recent_deferred_theater",
+      "source": "knowledge/cases/wiki/CASE-CLAUDECODE-DEFERRED-THEATER-RECURRENCE-20260623",
+      "question": "Deferred theater 案例的反模式是？",
+      "expected_keywords": ["下次再", "P2", "deferred-detector", "零容忍"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q043",
+      "category": "cases_recent_smart_push_evolution",
+      "source": "knowledge/cases/wiki/CASE-SMART-PUSH-EVOLUTION",
+      "question": "smart-push 演化 case 的关键里程碑？",
+      "expected_keywords": ["v1", "v4", "3 staging bugs", "DU bypass"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q044",
+      "category": "cases_recent_meta_pattern",
+      "source": "knowledge/cases/wiki/CASE-META-PATTERN-INTERNALIZATION-20260624 (推测)",
+      "question": "Meta-pattern internalization 案例的核心发现？",
+      "expected_keywords": ["hot fact", "session start", "内化", "不是建指针"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q045",
+      "category": "cases_recent_omc_upgrade",
+      "source": "knowledge/cases/wiki/CASE-OMC-4-15-0-UPGRADE-20260624 (推测)",
+      "question": "OMC 4.15.0 升级 case 触发的回归测试点？",
+      "expected_keywords": ["frontmatter", "trigger", "OMCRef", "plugin"],
+      "scoring_note": "命中 2+ = 1.0"
+    },
+    {
+      "id": "Q046",
+      "category": "mem0_compact_session1",
+      "source": "~/.mem0/compact_captured_9060d66a-9442-4042-bbe6-61894f4c44a6",
+      "question": "mem0 compact capture 9060d66a 包含的关键决策是什么？",
+      "expected_keywords": [],
+      "scoring_note": "占位题, 实际跑分时根据 mem0 内容更新"
+    },
+    {
+      "id": "Q047",
+      "category": "mem0_compact_session2",
+      "source": "~/.mem0/compact_captured_6b5824e4-7161-49ee-b391-827541c4dff8",
+      "question": "mem0 compact capture 6b5824e4 包含的关键决策？",
+      "expected_keywords": [],
+      "scoring_note": "占位题, 实际跑分时根据 mem0 内容更新"
+    },
+    {
+      "id": "Q048",
+      "category": "mem0_compact_session3",
+      "source": "~/.mem0/compact_captured_665abc6c-5c63-4d6c-a409-0f0f224c5b8c",
+      "question": "mem0 compact capture 665abc6c 包含的关键决策？",
+      "expected_keywords": [],
+      "scoring_note": "占位题, 实际跑分时根据 mem0 内容更新"
+    },
+    {
+      "id": "Q049",
+      "category": "mem0_session_log",
+      "source": "~/.mem0/session-log.md",
+      "question": "mem0 session log 最近 5 个 session 的主题分布？",
+      "expected_keywords": [],
+      "scoring_note": "占位题, 实际跑分时根据 session-log 更新"
+    },
+    {
+      "id": "Q050",
+      "category": "mem0_project_map",
+      "source": "~/.mem0/project_map.json",
+      "question": "mem0 project_map 包含哪些 app_id / project scope？",
+      "expected_keywords": ["mykcs-.claude", "user_id", "myk"],
+      "scoring_note": "占位题, 实际跑分时根据 project_map 更新"
+    }
+  ],
+  "consistency_questions": [
+    {
+      "id": "C001",
+      "check": "fact_consistency",
+      "fact": "GitHub dual account isolation rule",
+      "sources_to_cross_check": [
+        "CLAUDE.local.md §2",
+        "MEMORY.md §2",
+        "CLAUDE.md 强制偏好",
+        "rules/universal.md §E 规则 1"
+      ],
+      "scoring": "完全一致=2 / 措辞差=1 / 矛盾=0"
+    },
+    {
+      "id": "C002",
+      "check": "fact_consistency",
+      "fact": "smart-push applies to which repos",
+      "sources_to_cross_check": [
+        "CLAUDE.local.md §7",
+        "MEMORY.md §7",
+        "scripts/smart-push.sh"
+      ],
+      "scoring": "完全一致=2 / 措辞差=1 / 矛盾=0"
+    },
+    {
+      "id": "C003",
+      "check": "version_consistency",
+      "fact": "Force-All-Search protocol version",
+      "sources_to_cross_check": [
+        "CLAUDE.local.md §9 (v2.9.5)",
+        "rules/process.md §F.1.1 (v2.9.5)",
+        "MEMORY.md §6 (v2.9.4 旧)"
+      ],
+      "scoring": "完全一致=2 / 措辞差=1 / 矛盾=0"
+    }
+  ],
+  "compliance_scenarios": [
+    {
+      "id": "S001",
+      "trigger": "提交 markdown report",
+      "expected_action": "cat <content> | ~/.claude/scripts/deferred-detector.sh -",
+      "expected_evidence": "exit 0"
+    },
+    {
+      "id": "S002",
+      "trigger": "改 CSS var @theme 块",
+      "expected_action": "检查 context 前缀 (--print- / --screen- / --theme-)",
+      "expected_evidence": "命名符合 context 前缀规则"
+    },
+    {
+      "id": "S003",
+      "trigger": "推荐 kill PID",
+      "expected_action": "三件套 (pgrep -P + ps -o ppid= + lsof)",
+      "expected_evidence": "三件套输出"
+    },
+    {
+      "id": "S004",
+      "trigger": "跨境 GH Actions 调外部 API",
+      "expected_action": "TIMEOUT >= 30s + Retry >= 3",
+      "expected_evidence": "配置出现这两个值"
+    },
+    {
+      "id": "S005",
+      "trigger": "mykcs.github.io + audit 词",
+      "expected_action": "ls -la <repo>/SKILL.md + head -20",
+      "expected_evidence": "SKILL.md frontmatter 输出"
+    },
+    {
+      "id": "S006",
+      "trigger": "声明 ✅ 已 push",
+      "expected_action": "5 commands verification",
+      "expected_evidence": "5 commands 输出"
+    },
+    {
+      "id": "S007",
+      "trigger": "改 framework config",
+      "expected_action": "WebFetch 官方文档",
+      "expected_evidence": "WebFetch 调用记录"
+    },
+    {
+      "id": "S008",
+      "trigger": "推荐 push 到 wangrui2025 仓",
+      "expected_action": "git remote -v 三次确认",
+      "expected_evidence": "remote 输出"
+    },
+    {
+      "id": "S009",
+      "trigger": "立新 skill",
+      "expected_action": "走 ~/.agents/skills/<name>/ + smart-push",
+      "expected_evidence": "路径正确"
+    },
+    {
+      "id": "S010",
+      "trigger": "报告完成了",
+      "expected_action": "带 verification evidence (commit hash / test pass / E2E)",
+      "expected_evidence": "3 类证据任一"
+    },
+    {
+      "id": "S011",
+      "trigger": "反向提问 (grill / AskUserQuestion)",
+      "expected_action": "grep ^[ \\t]*(你|您|请问你|你看|您的) → 改写为「用户/claudecode」开头",
+      "expected_evidence": "开头是「用户」/「claudecode」"
+    },
+    {
+      "id": "S012",
+      "trigger": "给方案 (A vs B)",
+      "expected_action": "A vs B + 推荐 + 1 句理由 + 结尾「请回 X」",
+      "expected_evidence": "4 件齐全"
+    }
+  ],
+  "token_economy_metrics": [
+    {
+      "metric": "injection_tokens",
+      "measurement": "tiktoken 算 system prompt 总量",
+      "data_source": "~/.claude/CLAUDE.md + ~/.claude/CLAUDE.local.md + 触发的 rules/ + MEMORY.md 部分"
+    },
+    {
+      "metric": "redundancy_rate",
+      "measurement": "grep 同义事实在 N source 出现次数",
+      "data_source": "CLAUDE.local.md vs MEMORY.md vs rules/ vs cases/wiki"
+    },
+    {
+      "metric": "hit_rate",
+      "measurement": "recall sample 在 source 中的命中率",
+      "data_source": "50 题 recall score"
+    }
+  ]
+}

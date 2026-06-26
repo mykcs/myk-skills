@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-memory_audit_runner.py - Rich-Audit v2.6.5 memory-audit.sh wrapper
+memory_audit_runner.py - Rich-Audit Layer 1 memory-audit.sh wrapper
 
 Runs ~/.claude/scripts/memory-audit.sh, captures output, returns JSON.
 
@@ -8,6 +8,11 @@ Output: JSON {tool, version, exit_code, result_line, summary_pass,
             missing_files_count, raw_output}
 
 Usage: python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py
+
+v2.0.0 (2026-06-26): 版本号 bump, 跟 rich-audit 主线 v2.6.25 对齐.
+  不改主逻辑, 维持 8 个 caller 兼容. 配合新增 memory_bench_runner.py
+  (77 题 Layer 1 recall + consistency + compliance + token) 构成
+  memory-bench 双脚本体系. 详细设计见 references/memory-bench-design.md.
 """
 import json
 import re
@@ -16,7 +21,7 @@ import sys
 from pathlib import Path
 
 MEMORY_AUDIT_SCRIPT = Path.home() / ".claude" / "scripts" / "memory-audit.sh"
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 
 
 def main() -> int:
