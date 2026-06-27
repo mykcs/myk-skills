@@ -1,8 +1,8 @@
 # Layer A.2: 多仓 PR + CI 健康扫描 (v2.6.31, 2026-06-27)
 
-> **范围**: 跨 mykcs + wangrui2025 双账号, 扫所有 `gh pr list --author @me --state open` 的 PR, 跑 4 commands verify + 修复 CI FAILURE / diverged + auto-merge ready PR.
+> **范围**: 扫 rich-audit skill §预声明 line 134-137 列的 **2 个 GitHub 仓** — `mykcs/.claude` (= `~/.claude/` 主审计范围) + `mykcs/myk-skills` (= `~/.agents/skills/` 关联范围 1). 不扫 author=me 所有 PR, 不扫双账号 mykcs+wangrui2025, 不扫 mem0/条件范围 (那些不是 GitHub 仓).
 > **触发**: rich-audit 触发时（v2.6.30 5 升级固化的 'bug 立即修' 协议自动包含本 Layer）
-> **完整 SOP**: 4 commands verification + §C.2 CI 修复 + §C.3 diverged 修复 + §C.4 auto-merge + §C.5 报告 schema + §C.6 反模式
+> **完整 SOP**: §C.1 4 commands verification + §C.2 CI FAILURE 修复 + §C.3 diverged 修复 + §C.4 READY PR auto-merge + §C.5 报告 schema + §C.6 反模式 + §C.7 完整流程图
 
 ## 为什么需要本 Layer (背景)
 
@@ -23,7 +23,19 @@ rich-audit v2.6.19 引入 Layer 0 verification gate (commit 前 5 commands pre-c
 
 每个 PR 创建后**必须**跑这 4 个 verify, 全部 PASS 才算 PR 就绪:
 
+### 范围来源 (重要)
+
+只扫 rich-audit §预声明 line 134-137 列的 2 个 GitHub 仓:
+
 ```bash
+# rich-audit 范围 (跟 §预声明 同步)
+REPOS=(
+  "mykcs/.claude"          # 主审计范围 = ~/.claude/
+  "mykcs/myk-skills"        # 关联范围 1 = ~/.agents/skills/
+)
+```
+
+### 4 commands (per PR)
 # 1. PR state
 gh api repos/<owner>/<repo>/pulls/<num> --jq '{state, draft, mergeable, mergeable_state}'
 
@@ -245,7 +257,10 @@ Layer 0: git/gh state pre-check (5 commands)
 Layer 1-3 (审计 + 修复 + 进化)
     ↓
 Layer A.2 (本文件) — 多仓 PR + CI 健康扫描
-    ├─ 扫 gh pr list --author @me --state open
+    ├─ 扫 2 个仓 (rich-audit §预声明 line 134-137):
+    │   ├─ mykcs/.claude (= ~/.claude/)
+    │   └─ mykcs/myk-skills (= ~/.agents/skills/)
+    ├─ 对每个仓用 gh pr list --state open 拿 PR list
     ├─ 对每个 PR 跑 §C.1 4 commands
     ├─ 分类: READY / DIVERGED / CI-FAILURE / MERGE-CONFLICT
     ├─ 修复 (§C.2 / §C.3) 或 auto-merge (§C.4)
