@@ -44,10 +44,14 @@
 - `add mermaid diagrams to astro` — Mermaid 集成
 - `configure astro i18n` — i18n 配置
 
-### Mode D — Multi-Site 详细 (3 个)
+### Mode D — Multi-Site 详细 (v4.0.0: 3 → 7 个, +4)
 - `fan out` — fan-out 同义词（无连字符）
 - `parallel sites` — 并行多站点
 - `并行部署` — 中文 fan-out
+- `parallel full audit` — **v4.0.0 新增**: 并行全量 audit
+- `全量 fan-out` — **v4.0.0 新增**: 中文全量 fan-out
+- `4-site sweep` — **v4.0.0 新增**: 4 站同时 sweep (default scope)
+- `full sweep` — **v4.0.0 新增**: 4 sub-mode 全跑 (A+B+C+D)
 
 ---
 
@@ -57,13 +61,14 @@
 - 必查, 触发后立即加载 SKILL.md 全文
 - 涵盖 4 大模式入口
 
-**references/triggers.md 长尾触发器** (24 个):
+**references/triggers.md 长尾触发器** (v4.0.0: 24 → 28 个):
 - 必查 SKILL.md frontmatter 之后, 再 grep 本文件
-- 命中后按关键词类别路由到对应模式
-- 不命中 → 兜底走 Mode A（默认）
+- 命中后按关键词类别路由到对应 sub-mode (v4.0.0: 不是 1 个 mode, 是 sub-mode sweep 阶段)
+- 不命中 → 兜底走 Sub-mode A (默认必跑)
 
 ---
 
 ## Changelog
 
+- **v4.0.0** (2026-06-27): 长尾触发器 24 → 28 (+4). 新增 `parallel full audit` / `全量 fan-out` / `4-site sweep` / `full sweep` 4 个 v4 sweep 触发词. Mode D 列表从 3 → 7.
 - **v3.7.0** (2026-06-10): 从 SKILL.md frontmatter 拆出 24 个长尾触发器。原 frontmatter 触发器 60+ 个 → 24 个 (核心) + 24 个 (本文件)。

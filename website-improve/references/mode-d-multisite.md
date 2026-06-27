@@ -14,9 +14,10 @@
 # 直接说触发词即可
 "sync all sites" / "fan-out 3 sites" / "audit all" / "deploy all" / "multi-site"
 "同时在 N 个站点部署 N 个 agent" / "并行 audit" / "3 个独立审计会话变成一次协调操作"
+"并行全量 audit" / "全量 fan-out" / "4-site sweep" / "full sweep" (v4.0.0 新增 — 触发全 sweep)
 ```
 
-默认 scope: `mykcs, GDKVM, OSA` (3 个 active Astro 站). User 可 override scope 指定 sites.
+**v4.0.0 default scope**: 4 active sites = `mykcs, GDKVM, OSA, content2html` (v3.x 默认 3 站, content2html 是 2026-06-23 新加的 skill 独立站, 升级到 default). User 可 override scope 指定 sites (e.g. "只跑 mykcs+OSA" / "scope: content2html").
 
 ### 4 阶段协议
 

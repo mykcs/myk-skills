@@ -2,6 +2,10 @@
 
 **核心理念**：先检查（发现错误），后提升（现代化改进）。禁止混为一谈。
 
+**v4.0.0 默认行为** (架构重构): mode A 不再是 "user 选 1 个 mode", 而是 **sub-mode A 在 v4 sweep 中默认必跑**。任何 website intent 触发后, mode A 必跑, 然后根据 sites count / Astro 检测 / 触发词决定后续 sub-mode (B/C/D) 是否跑。
+
+**v4.0.0 强化**: Sub-mode A 必跑 `§A.5 Multi-Round Audit Protocol` (snapshot diff vs last audit, 强制). 这是 v3.9.0 的 sub-provision #4, v4.0.0 升级为必跑项 (per "全 sweep" 原则, 增量 audit 不再存在).
+
 ```
 阶段 1 — 并行检查（Check）【发现所有错误】
   ├─ Agent-Check-Build     → 构建错误、类型错误、CI 失败、弃用警告
