@@ -50,7 +50,42 @@ echo "=== 本 session AskUserQuestion count ==="
 
 发现新反模式后, **必须**先跑 5-tool Force-All-Search (per process.md §F.1 + §F.1.2 降级矩阵), **得出结论后再 Edit SKILL.md 加新段**.
 
-### §F.2.0 必跑前置: 5-tool parallel fan-out 兜底 (v2.6.35 NEW)
+### §F.2.0 必跑前置: 5-tool parallel fan-out 兜底 (v2.6.35 NEW, v2.6.37 修 happy-coder remote mode)
+
+**⚠️ v2.6.37 修复 (CASE-RICH-AUDIT-FANOUT-HAPPY-CODER-STUCK-20260627)**: fan-out 跑在 happy-coder remote mode (PID 9561) 时, 工具列表跟 desktop session 隔离, 调 `mcp__exa__web_search_exa` 这种 sub-agent 看不见的工具会**死循环 retry 1h+** (agent 没 max-turns 上限 + no timeout), 最后被 harness GC 掉但 task ID 丢失 → TaskStop 找不到.
+
+**硬规则 — fan-out 跑前必跑 self-probe** (3 步, <5s):
+
+```bash
+# Step 1: 检测是否在 happy-coder remote mode
+if pgrep -lf "happy-coder" | grep -q "remote"; then
+  echo "⚠️ happy-coder remote mode detected → 走 main loop 兜底, 不 spawn sub-agent"
+  echo "理由: remote 跟 desktop 工具列表隔离, fan-out sub-agent 会死循环 retry 不存在的工具"
+  # 改用 main loop 直接跑 (WebFetch + MiniMax + anysearch + mindstudio 4 源替代)
+  exit 0  # 跳过 sub-agent fan-out
+fi
+
+# Step 2: 验证 5-tool 实际可见
+for tool in "mcp__MiniMax__web_search" "mcp__anysearch__web_search" "WebFetch" "mcp__exa__web_search_exa" "kimi-webbridge"; do
+  command -v "$tool" 2>/dev/null >/dev/null && echo "✅ $tool" || echo "⚠️ $tool MISSING"
+done
+
+# Step 3: 工具全缺 → 走 main loop + 跳过 sub-agent (避免 spawn 一个必死 task)
+```
+
+**降级策略 (按可见工具数)**:
+
+| 可见工具数 | 行为 |
+|----------|------|
+| 5/5 | spawn sub-agent 跑完整 fan-out |
+| 3-4/5 | spawn sub-agent 但 skip 缺席工具 (per process.md §F.1.2) |
+| 0-2/5 | **不走 sub-agent**, main loop 跑 WebFetch + anysearch 2-tool 兜底 |
+| happy-coder remote 命中 | **不走 sub-agent**, main loop 跑 4 源 (WebFetch + MiniMax + anysearch + mindstudio fallback) |
+
+**反模式 (claudecode 必避)**:
+- ❌ happy-coder remote 模式下 spawn fan-out sub-agent → 1h+ 死循环后被 GC (本 case 反例)
+- ❌ 跳过 self-probe 直接 spawn → 同上
+- ❌ 缺席工具 retry 而不是 fallback → 跟 process.md §F.1.2 fail-fast (Layer 2) 兼容, 不强制 spawn 必死 task
 
 ```bash
 # 必跑 (跟 process.md §F.1 + references/force-all-search-protocol.md §F.1.2 同步)
