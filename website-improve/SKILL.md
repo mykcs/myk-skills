@@ -2,7 +2,7 @@
 name: website-improve
 description: |
   一站式网站改进 skill (v4.0.0 — 4 sub-mode sweep, BREAKING).
-  - **v4.0.1 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build.
+  - **v4.0.2 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build. v4.0.2 加 L21 Pre-flight Declaration Protocol (每次跑前必输 7 段).
   - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
   - **Sub-mode B (Astro build)**: Astro 项目自动跑 — 含 build pipeline / Tailwind v4 / deploy platform
   - **Sub-mode C (Project page)**: 触发词 / DESIGN.md 检测命中时跑 — 含项目模板 / 学术资产
@@ -10,11 +10,12 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
 license: MIT
 metadata:
-  version: "4.0.1"
+  version: "4.0.2"
   author: mykcs
   category: web-development
   changelog:
-    - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
+    - "4.0.2 (2026-06-27): §L21 Pre-flight Declaration Protocol (强制). 每次 website-improve run 启动时必输出 7 段 pre-flight declaration (审计目标 / 目标文件夹 / Sub-mode sweep 计划 / 预期耗时 / 完成标准 / 风险自检 / 决策流锚点). 跟 §L19 (4 站 CI 全绿) + §L20 (fix-validate-build) 联动. Source: user 2026-06-27 原话 '修改网页提升 skill, 每次跑之前都要这样预声明一次' — 把 rich-audit pre-flight declaration 模式内化进 website-improve. 同时替换原有 3 要素启动声明 → 5 要素 + 预声明模板."
+- "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
     - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
     - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
     - "3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622."
@@ -81,24 +82,93 @@ disable-model-invocation: false
 
 > **副作用声明**：本 skill 会修改代码、执行构建、并自动 `smart-autopush.sh` 提交。请勿在不确定时自动触发。
 
-### 启动声明（强制）
+### 启动声明 — Pre-flight Declaration (§L21, v4.0.2 强制)
 
-**skill 运行开始时，大声声明以下三要素，作为复查确认：**
+> **强制**: 每次 website-improve run 启动时, claudecode **必**先输出 7 段 pre-flight declaration, 等用户确认 OK 后才进 Phase 1. 这是 5 要素启动声明的强化版 (源自 rich-audit pre-flight protocol, 内化自 2026-06-27).
+>
+> **禁止**: 不输 pre-flight 就直接跑 = 违反 §L21, 同违反 §L19 (4 站 CI 全绿硬规则).
+
+**7 段模板** (claudecode 启动时复制 + 填充, 末尾明确"请用户回 OK / 改 X / 跳过"):
+
+```
+═══════════════════════════════════════════════════════════
+🚀 website-improve v4.0.2 启动 — Pre-flight Declaration
+═══════════════════════════════════════════════════════════
+
+📌 审计目标 (What I will audit):
+  ├─ [Sub-mode A — Check + Improve, 默认必跑]
+  │   ├─ SEO: hreflang / canonical / sitemap / OG / Twitter
+  │   ├─ a11y: aria / lang / skip-to-content / focus-visible
+  │   ├─ i18n: en ↔ zh 同步, 多 locale hreflang 覆盖
+  │   ├─ Build: dist 产物 + Astro 9 项回归 + Tailwind v4 pin
+  │   ├─ CI: npm audit --registry override + multi-site-checks
+  │   └─ Security: set:html surface / CSP / external link rel
+  ├─ [Sub-mode B — Astro Build, Astro 项目自动跑]
+  │   └─ build pipeline / Tailwind v4 / deploy platform
+  ├─ [Sub-mode C — Project Page, 触发词 / DESIGN.md 检测命中]
+  │   └─ 学术项目页 / 模板 / 资产
+  └─ [Sub-mode D — Multi-site Fan-out, sites ≥ 2 或触发词命中]
+      ├─ 默认 4 站: mykcs.github.io / GDKVM / OSA / content2html
+      ├─ **§L19 4 站 CI 全绿硬规则** (任一 red → BLOCKED on <site>)
+      └─ wall-clock = slowest site
+
+📂 目标文件夹 (Target folders):
+  ├─ 主审计范围: <~/Repo/webs/active/<site>/>  (single-site 模式)
+  │              或 4 sites loop (multi-site D 模式)
+  ├─ 关联范围 1: <~/.agents/skills/website-improve/>  (skill 源)
+  ├─ 关联范围 2: <~/.claude/rules/process.md §C.3.7>  (4 站 CI 硬规则位)
+  └─ 联动 skill:  <~/.claude/CLAUDE.local.md §15 + MEMORY.md §12>  (auto-recall)
+
+⏱️ 预期耗时: 30-60 min (single-site) / 45-65 min (4-site sweep, parallel)
+
+🎯 完成标准 (Definition of Done):
+  ├─ 1. Sub-mode A+B+C+D sweep 全跑 (或按 user override 跳过)
+  ├─ 2. P0/P1/P2 全修或显式 BLOCKED (无 silent defer, §C.2 零容忍)
+  ├─ 3. **§L19 4 站 CI 全绿** (`gh run list` × 4 全 success)
+  ├─ 4. **§L20 fix-validate-build** (改 package.json 后 `npm install` + `npm run build`)
+  ├─ 5. 5 commands verification (commit / push / CI / owner / case file)
+  └─ 6. 报告输出前 deferred-detector exit 0
+
+🚨 风险自检 (Risk self-check):
+  ├─ 双账号隔离: mykcs/* vs wangrui2025/* — push 前 `git remote -v` 三次确认
+  ├─ owner 隔离: mykcs/mykcs.github.io vs wangrui2025/GDKVM vs wangrui2025/osa vs mykcs/content2html
+  ├─ 不可逆操作: rm / reset --hard / push --force → AskUserQuestion 必问
+  └─ 物理不可达: CI runner 跨境反 bot 风控 → 诚实告知 user
+
+📝 决策流锚点 (Decision-stream anchor):
+  └─ ~/.claude/decision-stream/<session-id>.md (calm-flow §4 schema)
+      每次自决必追加 (auto-decide / must-ask / risk / reversible)
+
+═══════════════════════════════════════════════════════════
+              预声明结束 — 等用户回 OK / 改 X / 跳过
+═══════════════════════════════════════════════════════════
+```
+
+**核心 5 要素** (从 v3.x 沿用, 现在是 pre-flight 的子集):
 
 ```
 🎯 修改目标：<具体要改什么>
 📁 本地位置：<~/Repo/... 或实际路径>
 🔗 GitHub 仓库：<owner/repo 名>
+📊 影响范围：<单 sub-mode / 全 sweep / user override scope>
+🎚️ 完成标准：<auto-pass / user-define>
 ```
 
-**示例**：
-```
-🎯 修改目标：首页研究背景区块样式
-📁 本地位置：~/Repo/webs/mykcs.github.io/astro/
-🔗 GitHub 仓库：mykcs/mykcs.github.io
-```
+**user 回复**: "OK" → 进 Phase 1 / "改 X" → 改 pre-flight / "跳过" → 跳过 pre-flight (违反 §L21, 留 case 记录).
 
-> 作用：让用户确认这是正确的目标路径，防止改错仓库/文件。
+**反模式 (claudecode 必避)**:
+- ❌ 不输 pre-flight 直接跑 → 违反 §L21
+- ❌ pre-flight 漏 4 站 CI 段 → 违反 §L19 联动
+- ❌ pre-flight 漏 risk self-check → 违反 owner 隔离铁律
+- ❌ pre-flight 完不"等 user 回" → 违反启动门控
+- ❌ pre-flight 抄模板不填充具体 site → 反模式, 必填具体 paths + commit hashes
+
+**联动**:
+- **§L19** (4 站 CI 全绿硬规则) → pre-flight "完成标准 #3" 必须包含
+- **§L20** (fix-validate-build 防 lockfile 漂移) → pre-flight "完成标准 #4" 必须包含
+- **process.md §C.3.7** (主硬规则位) → pre-flight "关联范围 2" 引用
+- **CLAUDE.local.md §15 + MEMORY.md §12** → auto-recall 入口
+- **§C.2 deferred items 零容忍** → pre-flight "完成标准 #2" 体现
 
 ---
 
@@ -366,6 +436,7 @@ echo "exit=$?"  # 必须 0
    - 诊断：`gh run view <run-id> --log-failed`
    - **§L19 4 站全绿硬规则 (v4.0.1)**: 4 active sites (mykcs/GDKVM/OSA/content2html) 任一站 CI red → 禁止声明 done, 必走 BLOCKED + fix 路径. 详见 §L19.
    - **§L20 Fix-Validate-Build (v4.0.1)**: 改 `package.json` 后必跑 `npm install` 重 lockfile + `npm run build` 验证. 详见 §L20.
+   - **§L21 Pre-flight Declaration (v4.0.2)**: 每次 run 启动时必输 7 段 pre-flight declaration, 等用户回 OK 才进 Phase 1. 详见 §L21.
 10. **GitHub Actions Node.js 弃用**：遇到 Node 20 deprecated 警告 → 按 `scan-checklist.md §10` 矩阵升级 action 版本
 11. **DESIGN.md 与代码同步**：修改了 CSS 类名/颜色/组件行为时，必须检查 DESIGN.md 是否需要同步更新
 12. **Evidence-based audit**：审计发现必须基于实际 grep / curl / diff / build 输出。禁止 "verify X" 推测（仅列待查项不算 finding）。Stale finding 比 missing finding 更危险 — 会触发不必要的 commit + CI 浪费。Pattern: Phase 2 audit agent 必须跑 actual verification command；Phase 3 fix agent 必须先 verify 是 real 才 commit。Reference: 2026-06-04 sync-all-sites Run 2 GDKVM 教训（audit 列 8 个 "verify X"，fix agent 全 grep 验证后 0 commit）

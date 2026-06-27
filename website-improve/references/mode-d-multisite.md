@@ -25,6 +25,21 @@
 
 > **Run 4 发现**: GDKVM agent 0 tool uses. 错误信息: "SubagentStart hook did not provide working tools to begin audit. Deferred tool schemas (WebFetch, WebSearch, etc.) require ToolSearch loading before use." mykcs + OSA 同时跑 66 + 44 tool uses, 正常. 根因: General-purpose subagent tool provisioning 偶尔失败 (SubagentStart hook 漏 inject 某些 tool schema).
 
+#### Phase 0.5: Pre-flight Declaration 检查 (§L21, v4.0.2 强制)
+
+> **新增强制**: 每次 multi-site fan-out 启动时, orchestrator 必先输出 pre-flight declaration (per SKILL.md §L21 模板), 等用户回 OK 才进 Phase 1 验仓.
+
+**Multi-site D 模式专属段 (在通用 7 段模板基础上必填)**:
+- **默认 4 站**: mykcs/mykcs.github.io + wangrui2025/GDKVM + wangrui2025/osa + mykcs/content2html
+- **wall-clock**: slowest site (历史 Run 5 ~50 min for 4 sites)
+- **§L19 4 站 CI 全绿**: 任一 red → BLOCKED on <site>, 禁止声明 done
+- **owner 隔离铁律**: mykcs/* vs wangrui2025/* push 前必 `git remote -v` 三次确认 (4+ 次历史污染教训)
+
+**反模式 (claudecode 必避)**:
+- ❌ 跳过 pre-flight 直接进 Phase 1 → 违反 §L21
+- ❌ pre-flight 漏 4 站 CI 段 → 违反 §L19 联动
+- ❌ pre-flight 完不等 user 回 "OK" → 违反启动门控
+
 **强制流程** (orchestrator 在 Phase 1 之前必须跑):
 
 ```bash
