@@ -46,9 +46,43 @@ echo "=== 本 session AskUserQuestion count ==="
 
 ---
 
-## §F.2 反模式沉淀 (新增到 SKILL.md)
+## §F.2 反模式沉淀 (新增到 SKILL.md, **v2.6.35 强化: 必先跑 5-tool fan-out**)
 
-发现新反模式后, **必须**加到 rich-audit SKILL.md:
+发现新反模式后, **必须**先跑 5-tool Force-All-Search (per process.md §F.1 + §F.1.2 降级矩阵), **得出结论后再 Edit SKILL.md 加新段**.
+
+### §F.2.0 必跑前置: 5-tool parallel fan-out 兜底 (v2.6.35 NEW)
+
+```bash
+# 必跑 (跟 process.md §F.1 + references/force-all-search-protocol.md §F.1.2 同步)
+echo "=== 5-tool fan-out (per §F.2.0 强制前置) ==="
+
+# 1. MiniMax 中文语义搜索
+mcp__MiniMax__web_search "Claude Code skill self-evolution anti-pattern $TOPIC"
+
+# 2. kimi-webbridge Scholar 搜索
+# (CLI session 不可达时降级 exa Scholar, per process.md §F.1.2)
+echo "  - kimi-webbridge: ❌ CLI 不可达, 降级到 exa Scholar"
+
+# 3. anysearch fallback
+mcp__anysearch__web_search "Claude Code SKILL.md self-evolution best practices"
+
+# 4. WebFetch 直接抓 (官方 doc / Anthropic blog)
+WebFetch https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview "skill self-evolution best practices"
+
+# 5. exa combo (search + fetch)
+mcp__exa__web_search_exa "Claude Code skill maintenance evolution"
+mcp__exa__web_fetch_exa <high-value URL>
+
+# 输出契约 (per process.md §F.2: per-tool 1 段, 4 字段: 工具/搜索内容/结论/状态)
+# 然后 Phase B: merge + compare 共识/冲突
+# 然后 Phase C: 冲突再查 ≤2 层, 仍不收敛 → 报告 "未收敛" 降级人工
+```
+
+**为什么强制**: claudecode 凭记忆/训练数据写 SOP 容易 drift, 5-tool fan-out 提供 4 源三角验证 (Claude Code 官方 docs + self-improving-agent 论文 + engineering playbook + configuration stack 案例). **避免 v2.6.33 那种"claudecode 反复问 user" 反模式凭记忆想当然沉淀**.
+
+### §F.2.1 Edit SKILL.md (5-tool fan-out 后)
+
+5-tool 跑完 + 共识/冲突报告出来后, **才**动笔 Edit:
 
 ```bash
 # 1. Edit SKILL.md 加反模式段 (用 Edit 工具, 跟 §A.3 平行)

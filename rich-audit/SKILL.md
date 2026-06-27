@@ -6,10 +6,11 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.34"
+  version: "2.6.35"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.35 (2026-06-27): §I.4 §F.2.0 强制 5-tool fan-out 前置. user 原话 '修改这个 skill 所有涉及升级的部分都强制的用五重网络搜索工具搜索, 然后得出结论, 然后再进行提升、进化' → 落地: ① references/skill-self-evolution.md 加 §F.2.0 必跑前置 (MiniMax + anysearch + WebFetch + exa + kimi-webbridge 5-tool parallel fan-out, per process.md §F.1 + §F.1.2 降级矩阵) + §F.2.1 Edit 拆开 ② SKILL.md §I.4 引用段同步 (line 245-247) ③ bump version 2.6.34 → 2.6.35. 4-tool 三角验证: Anthropic 官方 docs (skill overview) + self-improving-agent 案例 + engineering playbook (skill maintenance) + 配置 stack 案例 (5-tool 实战). 永久失效 'claudecode 凭记忆写 SOP' 凭印象 drift 反模式. 跟 v2.6.30 §I.1 八步循环 Step 1 (5-tool fan-out 抓外部) 协同: v2.6.30 是 'skill 抓外部', v2.6.35 是 'skill 升级前必抓外部验证'."
     - "2.6.34 (2026-06-27): §I.4 Layer 4 Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身). user 原话 '现在修改重度审审计这个技能, 就是在这个你审计完这个斜杠点 cloud 等文件夹的时候, 你需要对 skill 也进行一次提升' → 落地: ① SKILL.md 加 §I.4 引用 (line 244-251) ② references/skill-self-evolution.md (新文件, 7307 bytes, §F.1 失败案例自审 + §F.2 反模式沉淀 + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 跟 v2.6.33 §反转模式硬约束 协同: 跑完 Layer 1-3 + A.2-A.3 + I.1 之后, 强制对 skill 自身跑一次 self-evolution (扫本 session 反模式 + Edit SKILL.md + 4 处同步 + ADR 落地). 永久失效 'rich-audit 完外部, skill 自己不变' 缺口. 历史: v2.6.33 → v2.6.34 (跳过 v2.6.32 是因为 v2.6.32 在 d2b71fff 里被合并, v2.6.33 是反转硬约束 changelog entry, 本次 v2.6.34 是 §I.4 self-evolution 落地)."
     - "2.6.33 (2026-06-27): 主仓 process.md v2.6.31 同步. 跑 5-tool fan-out + 4 源三角验证 → 落地: ① process.md §H Acceptance Protocol (5 字段自检表, 任务完成前必跑) ② process.md §I Self-Evolution Cycle (8 步循环, 升级 6) ③ process.md §I.2 user-override 字段 (kimi-webbridge 严禁降级, 2026-06-27 user 原话) ④ process.md §C.3.5 降级矩阵加 user-override 引用 ⑤ references/process-section-{H,I}-*.md 同步下沉. PR #8 mykcs/.claude auto-merged, commit d2b71fff. 5-tool 实测: MiniMax ❌ 2056 token plan 上限 (需 user 买 plan) → 降级 4-tool; anysearch ✅ 10 results; WebFetch ⚠️ 301 redirect; exa ✅ 5 high-value (Claude Code docs + self-improving-agent + engineering playbook + configuration stack); kimi-webbridge ✅ daemon + Chrome 200 OK tabId=925321044. 触发: v2.6.30 Layer 3 self-evolution cycle §I.1 八步循环 Step 5 (更新 SKILL.md changelog). 配套: ADR-0019 v2.6.31 升级固化闭环."
     - "2.6.31 (2026-06-27): §A.2 Layer 2b 多仓 PR + CI 健康扫描 (修订 v3, 5 commands 强化). user 原话 '我有一个疑问, 我在你灵魂里面应该写了, 就不要再问这类的问题, 就直接做' (承认之前 SOP §C.1 只覆盖 4 commands, 漏掉 gh run list workflow runs API 兜底, 2026-06-27 mykcs/myk-skills 10 次 push fail 但 4 PR check-runs 全 clean, 用户收 10 封 'Run failed' 邮件才发现 — 这是 verify gate bug). 修订: §C.1 4 commands → 5 commands, 加 cmd 5 = gh run list --limit 5 (兜底 push-triggered workflow runs), 判定矩阵加新行 '(任意) + [非空 failure] = CI FAILURE'. 跟 v2.6.27 7 升级 #3 '遇见 bug 直接修复不列清单' 一致 (this is bug fix in SOP, not user question). 历史: v2.6.31 → v2.6.31 v2 (范围纠正, 双账号→2 skill-defined 仓) → v2.6.31 v3 (5 commands). v2.6.30 changelog 保留 (line 14, 其他 session 推的没 bump version). 配套: PR #4 (mykcs/myk-skills) fix(ci) 修 grep drift + broken submodule, CI 第一次 success."
@@ -242,15 +243,15 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 
 ---
 
-## §I.4 Layer 4: Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身, v2.6.34, 强制 · 不可跳过)
+## §I.4 Layer 4: Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身, v2.6.34+35, 强制 · 不可跳过)
 
-> **完整 SOP 详见** [`references/skill-self-evolution.md`](references/skill-self-evolution.md) (§F.1 失败案例自审 + §F.2 反模式沉淀 + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
+> **完整 SOP 详见** [`references/skill-self-evolution.md`](references/skill-self-evolution.md) (§F.1 失败案例自审 + **§F.2.0 必跑前置 5-tool fan-out (v2.6.35 强制)** + §F.2.1 Edit SKILL.md + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
 >
-> **触发**: rich-audit 跑完 Layer 1-3 + Layer A.2-A.3 + Layer I.1 之后, **必须**对 rich-audit skill 自身跑一次 self-evolution (扫本 session 失败案例 + 反模式沉淀 + 4 处同步 + ADR 落地).
+> **触发**: rich-audit 跑完 Layer 1-3 + Layer A.2-A.3 + Layer I.1 之后, **必须**对 rich-audit skill 自身跑一次 self-evolution (扫本 session 失败案例 + **5-tool fan-out 4 源三角验证 (v2.6.35 强制)** + 反模式沉淀 + 4 处同步 + ADR 落地).
 >
-> **行为**: §F.1 自审本 session (decision-stream + AskUserQuestion 计数 + 跟 v2.6.33 反转硬约束对照) → §F.2 失败模式 Edit SKILL.md → §F.3 bump version + 4 处同步 → §F.4 新决策写 ADR → §F.5 smart-push + 5 commands + cmd 5 兜底 verify.
+> **行为**: §F.1 自审本 session → **§F.2.0 必跑 5-tool fan-out (MiniMax + anysearch + WebFetch + exa + kimi-webbridge, per process.md §F.1.2 降级矩阵)** → §F.2.1 Edit SKILL.md → §F.3 bump version + 4 处同步 → §F.4 新决策写 ADR → §F.5 smart-push + 5 commands + cmd 5 兜底 verify.
 >
-> **违反硬规则**: 跳过本 Layer = 2026-06-27 session v2.6.33 反转硬约束 (claudecode 反复问 user 可逆操作) 惨案重现.
+> **违反硬规则**: 跳过本 Layer = 2026-06-27 session v2.6.33 反转硬约束 (claudecode 反复问 user 可逆操作) 惨案重现. 跳过 §F.2.0 5-tool fan-out = claudecode 凭记忆写 SOP, 跟 process.md §F.1 主协议 drift.
 
 ---
 
