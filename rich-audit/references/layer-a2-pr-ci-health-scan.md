@@ -19,9 +19,9 @@ rich-audit v2.6.19 引入 Layer 0 verification gate (commit 前 5 commands pre-c
 
 ---
 
-## §C.1 4 commands verification (per PR, post-creation)
+## §C.1 5 commands verification (per PR + per repo, post-creation)
 
-每个 PR 创建后**必须**跑这 4 个 verify, 全部 PASS 才算 PR 就绪:
+每个 PR 创建后**必须**跑这 5 个 verify, 全部 PASS 才算 PR 就绪:
 
 ### 范围来源 (重要)
 
@@ -35,11 +35,12 @@ REPOS=(
 )
 ```
 
-### 4 commands (per PR)
+### 5 commands (per PR)
 # 1. PR state
 gh api repos/<owner>/<repo>/pulls/<num> --jq '{state, draft, mergeable, mergeable_state}'
 
-# 2. GitHub Actions checks (排除 Cursor IDE bot 干扰)
+# 2. GitHub Actions checks (PR head commit, 排除 Cursor IDE bot 干扰)
+#    ⚠️ 注意: check-runs API 不一定覆盖所有 workflows, 见 command 5 兜底
 gh api repos/<owner>/<repo>/commits/<sha>/check-runs | jq '[.check_runs[] | select(.app.name != "Cursor" and .app.name != "Cursor Application") | {name, conclusion: (.conclusion // .status), app: .app.name}]'
 
 # 3. Local worktree clean
@@ -47,17 +48,29 @@ git -C <worktree_dir> status --short   # 期望空
 
 # 4. Commit exists locally
 git -C <worktree_dir> log -1 --format="%h %s"   # 期望非空 + sha 跟 PR head 一致
+
+# 5. ⚠️ 必跑 (v2.6.31 v3 强化): 仓最近 CI workflow runs 兜底 verify
+#    原因: check-runs API 不一定覆盖所有 workflows (e.g. push 触发的 workflow).
+#    PR 创建前的 main push 可能已经 fail 但 check-runs 不报.
+#    真实案例: 2026-06-27 mykcs/myk-skills rich-audit-ci 10 次 push fail,
+#    但 PR check-runs 全 clean → 用户收 10 封 CI failed 邮件才发现.
+gh run list --repo <owner>/<repo> --limit 5 --json databaseId,conclusion,name,event,headBranch,createdAt | jq '[.[] | select(.conclusion == "failure") | {id: .databaseId, name, branch: .headBranch, failed_at: .createdAt}]'
+# 期望: [] (空数组, 无 failure runs)
+# 若非空 → §C.2 走 CI FAILURE 修复 (按 run databaseId 看具体 log)
 ```
 
 **判定矩阵**:
 
-| mergeable | mergeable_state | GH Actions | 判定 |
-|-----------|----------------|------------|------|
-| true | clean | success (or empty) | ✅ **READY** — 可 auto-merge (§C.4) |
-| true | clean | (无 GA 配置) | ✅ **READY** — 仓无 CI, PR clean 即 OK |
-| null | unknown | (任意) | ⚠️ **DIVERGED** — 走 §C.3 修复 SOP |
-| true | unstable / blocked / dirty | failure | 🚨 **CI FAILURE** — 走 §C.2 修复 SOP |
-| false | blocked | (任意) | 🚨 **MERGE CONFLICT** — 走 §C.3 rebase/merge |
+| mergeable | mergeable_state | GH Actions (cmd 2) | gh run list (cmd 5) | 判定 |
+|-----------|----------------|--------------------|--------------------|------|
+| true | clean | success (or empty) | [] (无失败) | ✅ **READY** — 可 auto-merge (§C.4) |
+| true | clean | (无 GA 配置) | [] (无失败) | ✅ **READY** — 仓无 CI, PR clean 即 OK |
+| null | unknown | (任意) | [] | ⚠️ **DIVERGED** — 走 §C.3 修复 SOP |
+| true | unstable / blocked / dirty | failure | (含失败) | 🚨 **CI FAILURE** — 走 §C.2 修复 SOP |
+| (任意) | (任意) | (任意) | [非空: 有失败 run] | 🚨 **CI FAILURE** — 走 §C.2 (即使 PR check-runs 显示 success, gh run list 仍可能 fail) |
+| false | blocked | (任意) | (任意) | 🚨 **MERGE CONFLICT** — 走 §C.3 rebase/merge |
+
+**v2.6.31 v3 强化**: cmd 5 (gh run list) 是 cmd 2 (check-runs API) 的**兜底**, 防止 PR check-runs clean 但 push-triggered workflow fail 的盲点. 案例: 2026-06-27 mykcs/myk-skills rich-audit-ci.yml 10 次 push fail, 4 PR check-runs 全 clean, 用户收 10 封 "Run failed" 邮件才发现.
 
 ---
 

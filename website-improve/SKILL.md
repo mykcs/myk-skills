@@ -1,18 +1,20 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill。覆盖 4 大场景：
-  - Mode A: 检查+提升 (默认, 所有"改进/审计/优化/检查/upgrade/modernize/重构/cleanup"类请求)
-  - Mode B: Astro 建站 ("create astro" / "deploy astro" / "build static blog")
-  - Mode C: 项目页创建 ("project page" / "项目页")
-  - Mode D: Multi-Site 编排 (2026-06-08 吞并 sync-all-sites; "sync all sites" / "fan-out N sites" / "deploy all" / "audit all" / "multi-site")
-  这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill。
+  一站式网站改进 skill (v4.0.0 — 4 sub-mode sweep, BREAKING).
+  - **v4.0.0 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html).
+  - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
+  - **Sub-mode B (Astro build)**: Astro 项目自动跑 — 含 build pipeline / Tailwind v4 / deploy platform
+  - **Sub-mode C (Project page)**: 触发词 / DESIGN.md 检测命中时跑 — 含项目模板 / 学术资产
+  - **Sub-mode D (Multi-site fan-out)**: sites ≥ 2 或触发词命中时跑 — wall-clock = slowest site
+  这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
 license: MIT
 metadata:
-  version: "3.11.0"
+  version: "4.0.0"
   author: mykcs
   category: web-development
   changelog:
+    - "4.0.0 (2026-06-27): **架构重构 — 4 sub-mode sweep (BREAKING)**. Before v4.0.0: 4 mode 平级 (Mode A/B/C/D 4-选-1, user 必须选). After v4.0.0: 1 个 user intent → 内部 sweep 全 4 sub-mode (Check + Improve + Astro build + Project page + Multi-site), sub-mode 是 **阶段** 不是选项. 触发后默认行为 = 全跑, 内部 trigger 决定跳过哪个. 4-site default scope (mykcs+GDKVM+OSA+content2html). Source: user 2026-06-27 feedback '我不期望选一个 mode, 期望 4 个都融合一起跑'. Migration: existing Mode D-only calls still work via 'sync all sites' / 'fan-out'; new 'parallel full audit' / '全量 fan-out' / '4-site sweep' 直接进 v4 sweep."
     - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
     - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
     - "3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622."
@@ -24,7 +26,7 @@ metadata:
     - 3.3.0 (2026-06-03): 自进化协议 + 反模式硬化 (§30-§32)
     - 3.2.0 (2026-06-03): 3 站 Mode A 跨站 bug 模式 (§23-§29)
   triggers:
-    # 核心入口 (8 个, 必查)
+    # 核心入口 (8 个, 必查) — v4.0.0: 任意 website intent 触发全 sweep
     - website-improve
     - 改进网站
     - 优化网站
@@ -33,18 +35,22 @@ metadata:
     - site health
     - project page
     - 项目页
-    # Astro 模式 (4 个)
+    # Astro 模式 (4 个) — v4.0.0: Astro 项目自动 sweep B sub-mode
     - create astro site
     - deploy astro to firebase
     - build static blog
     - astro markdown setup
-    # Multi-Site 模式 (6 个)
+    # Multi-Site 模式 (10 个, v4.0.0 扩展 +4) — sites count ≥ 2 自动 sweep D sub-mode
     - sync all sites
     - fan-out
     - deploy all
     - audit all
     - multi-site
     - 多站点
+    - parallel full audit   # v4.0.0 新增: 并行全量 audit
+    - 全量 fan-out          # v4.0.0 新增: 全量 fan-out
+    - 4-site sweep          # v4.0.0 新增: 4 站同时 sweep
+    - full sweep            # v4.0.0 新增: 全模式 sweep
     # 改进/重构 (6 个)
     - upgrade
     - 重构
@@ -52,7 +58,7 @@ metadata:
     - 反模式扫描
     - build fix
     - fix build
-    # 完整列表见 references/triggers.md (24 个长尾触发器, v3.7.0 拆分)
+    # 完整列表见 references/triggers.md (24 个长尾触发器, v3.7.0 拆分, v4.0.0 加 4)
   tags:
     - audit
     - improve
@@ -104,7 +110,61 @@ disable-model-invocation: false
 
 ---
 
-## 模式与路由
+## v4.0.0 架构 (BREAKING) — 1 个 Intent → 全 Sub-Mode Sweep
+
+> **v4.0.0 核心变化** (2026-06-27): Before = 4 mode 平级 (user 必须选 1 个). After = **1 个 user intent 触发全 sub-mode sweep**, sub-mode 是阶段不是选项. 触发后默认行为 = 全跑, 内部 trigger 决定跳过哪个 sub-mode. 未来 user 不需要选 mode, 不会问 "用 Mode A 还是 Mode D".
+>
+> **Migration**: existing calls (`sync all sites` / `fan-out N` / `Mode A` 词) 仍 work — 触发后进对应 sub-mode 的主路径, 其他 sub-mode 也跑. `并行全量 audit` / `全量 fan-out` / `4-site sweep` / `full sweep` 直接进 v4 全 sweep (默认 4 站).
+>
+> **Default scope** (v4.0.0): 4 active sites = mykcs.github.io / GDKVM / OSA / content2html. User 可 override (e.g. "只跑 mykcs+OSA").
+
+### Sub-Mode Sweep 顺序 (内部自动)
+
+| 顺序 | Sub-Mode | 触发条件 | 跳过条件 | 加载 Reference |
+|------|----------|---------|---------|---------------|
+| 1 | **A. Check + Improve** | 默认必跑 (任何 website intent) | 几乎不跳 (除非显式 "只跑 build") | `scan-checklist.md` + `astro-modernization-checklist.md` + `site-audit-checklist.md` + `academic-project-checklist.md`(条件) |
+| 2 | **B. Astro Build** | 项目是 Astro / 含 `astro.config.mjs` | 非 Astro 项目跳过 | `astro-build-guide.md` + `astro-modernization-checklist.md` + `deployment-platforms.md` |
+| 3 | **C. Project Page** | 触发词 "project page" / "项目页" **或** 检测到 DESIGN.md / Poster/Slides 组件 | 都不是跳过 | `project-page-template.astro` + `academic-project-checklist.md` |
+| 4 | **D. Multi-Site Fan-out** | sites count ≥ 2 **或** 触发表项命中 (`sync all sites` / `fan-out` / `parallel full audit` / `full sweep` 等) | 1 site 时跳过 | (per-site 调 Sub-mode A) |
+
+### 意图路由（v4.0.0 — 1 行触发，4 sub-mode 自动 sweep）
+
+```
+用户输入 (任意 website intent)
+  │
+  └─→ 1. 跑 Sub-mode A (Check + Improve, 默认)
+      │
+      └─→ 2. IF Astro 项目 → 跑 Sub-mode B (Build)
+          │
+          └─→ 3. IF "project page" 词 / DESIGN.md 检测 → 跑 Sub-mode C
+              │
+              └─→ 4. IF sites count ≥ 2 / multi-site 触发表项 → 跑 Sub-mode D (per-site A+B+C sweep)
+```
+
+### Mode A 子路由（运行时检测 — 不变）
+
+```
+检测项目类型
+  ├─ 发现 DESIGN.md 或 Poster/Slides 组件 → 学术项目页审计（+ academic-project-checklist.md）
+  └─ 未发现 → 通用网站审计（+ site-audit-checklist.md）
+```
+
+### v3.x → v4.0.0 Migration Table
+
+| v3.x 调用 | v4.0.0 行为 |
+|-----------|------------|
+| "audit mykcs" (single site) | Sweep A only |
+| "sync all sites" / "fan-out 3 sites" | Sweep A + D (per-site A sweep) |
+| "create astro site" | Sweep A + B |
+| "project page" / "项目页" | Sweep A + C |
+| "并行全量 audit" / "4-site sweep" / "full sweep" (v4.0.0 新增) | Sweep A + B + C + D 全跑, default 4 sites |
+| "我不需要 Mode D" (user feedback 2026-06-27) | **不存在此用法** — v4.0.0 不再选 mode, 全跑 |
+| (v3.x "只跑 Mode A") | 不存在此用法 — v4.0.0 默认 Sweep A, 跳过 B/C/D 是自动判定 |
+
+### v3.11.0 旧 4-Mode 表（保留为历史 reference, v5+ 移除）
+
+<details>
+<summary>点击展开 v3.11.0 旧表 (deprecated since 4.0.0)</summary>
 
 | 模式 | 触发条件 | 预计耗时 | 加载的 Reference |
 |------|---------|---------|-----------------|
@@ -113,7 +173,7 @@ disable-model-invocation: false
 | **C. 项目页创建** | `project page` / `项目页` | 20-40 min | `project-page-template.astro` + `academic-project-checklist.md` |
 | **D. Multi-Site 编排** | `sync all sites` / `fan-out N sites` / `deploy all` / `audit all` / "同时在 N 个站点上部署 N 个 agent" | 10-20 min wall-clock (= slowest site) | (无额外 reference; 调用 Mode A per site) |
 
-### 意图路由（入口判断）
+旧意图路由（4-选-1 OR 表，已废弃）：
 
 ```
 用户输入
@@ -124,13 +184,7 @@ disable-model-invocation: false
   └─ 其他 → 模式 A（默认）
 ```
 
-### 模式 A 子路由（运行时检测）
-
-```
-检测项目类型
-  ├─ 发现 DESIGN.md 或 Poster/Slides 组件 → 学术项目页审计（+ academic-project-checklist.md）
-  └─ 未发现 → 通用网站审计（+ site-audit-checklist.md）
-```
+</details>
 
 ### ⚠️ §A.5 Multi-Round Audit Protocol (v3.9.0, 强制)
 
