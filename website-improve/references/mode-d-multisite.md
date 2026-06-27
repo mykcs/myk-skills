@@ -141,7 +141,7 @@ Do NOT silently defer P2 issues; every reported P0/P1/P2 issue must be fixed or 
 
 **barrier**: 所有 agent 返回后聚合。
 
-#### Phase 4: CI gate + case 记录
+#### Phase 4: CI gate + case 记录 (L19 4 站全绿硬规则, v4.0.1)
 
 ```bash
 # Wait for all CI runs to settle
@@ -150,6 +150,10 @@ for site in $SITES; do
   gh run list --repo <OWNER>/<REPO> --limit 3 --json status,conclusion,name
 done
 ```
+
+**§L19 4 站全绿硬规则 (v4.0.1, 强制)**: 4 active sites (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done. 任一 red → **BLOCKED on `<site>`, 禁止声明完成**. 详见 SKILL.md §L19.
+
+**§L20 Fix-Validate-Build (v4.0.1, 强制)**: 改 `package.json` / `package-lock.json` 后必跑 `npm install` + `npm run build` 验证, 防 lockfile 漂移 → CI red. 详见 SKILL.md §L20.
 
 **Case file** (强制):
 ```bash

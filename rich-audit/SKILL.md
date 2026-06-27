@@ -241,6 +241,18 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 
 ---
 
+## §I.4 Layer 4: Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身, v2.6.34, 强制 · 不可跳过)
+
+> **完整 SOP 详见** [`references/skill-self-evolution.md`](references/skill-self-evolution.md) (§F.1 失败案例自审 + §F.2 反模式沉淀 + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
+>
+> **触发**: rich-audit 跑完 Layer 1-3 + Layer A.2-A.3 + Layer I.1 之后, **必须**对 rich-audit skill 自身跑一次 self-evolution (扫本 session 失败案例 + 反模式沉淀 + 4 处同步 + ADR 落地).
+>
+> **行为**: §F.1 自审本 session (decision-stream + AskUserQuestion 计数 + 跟 v2.6.33 反转硬约束对照) → §F.2 失败模式 Edit SKILL.md → §F.3 bump version + 4 处同步 → §F.4 新决策写 ADR → §F.5 smart-push + 5 commands + cmd 5 兜底 verify.
+>
+> **违反硬规则**: 跳过本 Layer = 2026-06-27 session v2.6.33 反转硬约束 (claudecode 反复问 user 可逆操作) 惨案重现.
+
+---
+
 ## 执行流程（三层进化系统 + 并行 Agent 架构）
 
 > **详细架构图 + Agent 策略 + 双模扫描 + 架构健康度阈值 + 记忆系统对齐** 详见 [`references/execution-flow.md`](references/execution-flow.md) (87 lines, progressive disclosure). 主 SKILL.md 只引用, 不重复内容. 

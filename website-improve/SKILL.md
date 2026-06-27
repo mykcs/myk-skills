@@ -2,7 +2,7 @@
 name: website-improve
 description: |
   一站式网站改进 skill (v4.0.0 — 4 sub-mode sweep, BREAKING).
-  - **v4.0.0 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html).
+  - **v4.0.1 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build.
   - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
   - **Sub-mode B (Astro build)**: Astro 项目自动跑 — 含 build pipeline / Tailwind v4 / deploy platform
   - **Sub-mode C (Project page)**: 触发词 / DESIGN.md 检测命中时跑 — 含项目模板 / 学术资产
@@ -10,11 +10,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
 license: MIT
 metadata:
-  version: "4.0.0"
+  version: "4.0.1"
   author: mykcs
   category: web-development
   changelog:
-    - "4.0.0 (2026-06-27): **架构重构 — 4 sub-mode sweep (BREAKING)**. Before v4.0.0: 4 mode 平级 (Mode A/B/C/D 4-选-1, user 必须选). After v4.0.0: 1 个 user intent → 内部 sweep 全 4 sub-mode (Check + Improve + Astro build + Project page + Multi-site), sub-mode 是 **阶段** 不是选项. 触发后默认行为 = 全跑, 内部 trigger 决定跳过哪个. 4-site default scope (mykcs+GDKVM+OSA+content2html). Source: user 2026-06-27 feedback '我不期望选一个 mode, 期望 4 个都融合一起跑'. Migration: existing Mode D-only calls still work via 'sync all sites' / 'fan-out'; new 'parallel full audit' / '全量 fan-out' / '4-site sweep' 直接进 v4 sweep."
+    - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
     - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
     - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
     - "3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622."
@@ -270,6 +270,81 @@ src/pages/zh/paper/2606.18246/slide.astro:
   takeaway-item: 0
 ```
 
+### ⚠️ §L19 4-Site CI 全绿硬规则 (v4.0.1, 强制, 适用所有 sub-mode)
+
+> **Source**: user 2026-06-27 原话 "把这个四站全绿, 或者是你, 就是只要你提升网页的站, 都都要保持这个运行成功". CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 验证 v4.0.0 4 站 fan-out 可达 CI 全绿.
+
+**硬规则 (Hard Rule)**: 任何 website-improve run (单 sub-mode 或 v4 sweep) 涉及 **4 active sites = mykcs.github.io / GDKVM / OSA / content2html** 中任一站 → **4 站 CI 必须全部 `conclusion: success` 才算 done**.
+
+**判定**:
+- ✅ Run 4/4 CI green → done
+- ❌ 任一站 CI red/pending → **BLOCKED on `<site>: <reason>`**, 禁止声明 "完成"
+- ❌ 任一站 CI red 但 fix 不可行 (e.g. 物理不可达) → **BLOCKED on user decision**, 必须 `AskUserQuestion` 给选项 (回滚 / 接受 red / 重试)
+
+**强制流程** (Phase 4 末段 + 任何 fix 之后):
+```bash
+# 4 站 CI 5 commands verification (per site)
+for owner_repo in "mykcs/mykcs.github.io" "wangrui2025/GDKVM" "wangrui2025/osa" "mykcs/content2html"; do
+  gh run list --repo "$owner_repo" --limit 1 --json conclusion,status,name,headSha
+done
+
+# 4/4 success → 输出 "✅ 4 站 CI 全绿", 写 case file + decision-stream
+# < 4 success → 输出 "❌ BLOCKED on <site> CI red", 走 fix 路径或 AskUserQuestion
+```
+
+**触发判断**:
+- ✅ 单 sub-mode A sweep 4 站 → 触发
+- ✅ Multi-site D fan-out → 触发
+- ✅ 任何 Phase 3 fix 后 → 触发 (per-site CI verify, 至少修过的站必须 green)
+- ✅ 跨项目改动 (e.g. 改 shared script 被 4 站共用) → 触发
+- ❌ 单 sub-mode A 跑 1 站 + user override scope (e.g. "只跑 mykcs") → 不触发 (4 站全绿不适用)
+
+**owner 隔离 (双账号铁律)**:
+- mykcs/* → mykcs/GitHub token
+- wangrui2025/* → wangrui2025/GitHub token
+- 跑前必 `git remote -v` 三次确认, 避免 push 错 owner (历史污染 4+ 次)
+
+**反模式 (claudecode 历史反复踩)**:
+- ❌ 报 "完成" 但 1+ 站 CI red / pending → 违反 §C verification gate
+- ❌ "CI 大概会过" / "应该 OK" → 违反 §H acceptance protocol
+- ❌ 不跑 gh run list 直接声明 done → 违反 CLAUDE.local.md §5.2 5 commands verification
+- ❌ "我只跑 X 站, 其他站不用管" → 违反 v4.0.0 default 4-site scope
+
+### ⚠️ §L20 Fix-Validate-Build 防 Lockfile 漂移 (v4.0.1, 强制, 适用 Phase 3 fix agent)
+
+> **Source**: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM fix agent 改 `package.json` exact pin (`^4.1.18` → `4.1.18`) 但**未跑 `npm install` 重生成 `package-lock.json`** → CI `npm ci` 拒绝 (lockfile 含 `tailwindcss@4.3.0` caret 解析, 与 package.json 4.1.18 exact pin 冲突) → CI red → 二次 commit `72294b3` 修复. 根因: fix agent 改 package.json 后口头报 "已 fix", 未跑 build verify.
+
+**硬规则 (Hard Rule)**: 任何 Phase 3 fix agent 修改 `package.json` 或 `package-lock.json` 后 → **必跑 `npm install` (重生成 lockfile) + `npm run build` (验证 build pass)** → 才算 commit 完成. 禁止口头报 "改完" 无 verify.
+
+**强制流程** (Phase 3 fix agent 末段):
+```bash
+# Step 1: 改完 package.json 后, 必重生成 lockfile
+npm install
+# 或 --save-exact (如果改 pin):
+npm install --save-exact <pkg>@<version>
+
+# Step 2: 验证 build pass (本地)
+npm run build
+echo "exit=$?"  # 必须 0
+
+# Step 3: 验证 build pass (本地跑 ci 关键步骤, 模拟)
+npm ci        # 模拟 CI 用 lockfile 安装
+npm run build
+echo "exit=$?"  # 必须 0
+```
+
+**触发判断**:
+- ✅ 改 package.json (dependencies / devDependencies / scripts / version pin) → 必跑
+- ✅ 改 package-lock.json 直接 → 必跑 `npm ci` 验证一致性
+- ❌ 只改 source code (.astro / .ts / .mjs / .css) → 不强制 (但建议 build smoke test)
+
+**反模式**:
+- ❌ 改 package.json exact pin 但不跑 `npm install` → 假 fix, lockfile 漂移
+- ❌ 改完口头报 "已 fix" 无 build 验证 → §C.5 false-positive 风险
+- ❌ 信任 agent 自报 "我跑了 build" → 必自己跑, 不可信报告
+
+**联动**: §C.5 5 步 false-positive 诊断协议 — 改某项后 E2E fail, revert 后仍 fail, 怀疑 lockfile 漂移时, 优先跑 `npm install --save-exact` 重 lockfile.
+
 ---
 
 📂 **模式 A: 检查+提升流程** → see [`references/mode-a.md`](references/mode-a.md) (loaded on demand)
@@ -289,6 +364,8 @@ src/pages/zh/paper/2606.18246/slide.astro:
 9. **CI 门禁**：push 后必须检查 GitHub Actions 状态。run fail → 修复 → 重新 push → 确认 `conclusion: success`
    - 检查：`gh run list --repo=<owner>/<repo> --limit=1 --json conclusion,status,headSha`
    - 诊断：`gh run view <run-id> --log-failed`
+   - **§L19 4 站全绿硬规则 (v4.0.1)**: 4 active sites (mykcs/GDKVM/OSA/content2html) 任一站 CI red → 禁止声明 done, 必走 BLOCKED + fix 路径. 详见 §L19.
+   - **§L20 Fix-Validate-Build (v4.0.1)**: 改 `package.json` 后必跑 `npm install` 重 lockfile + `npm run build` 验证. 详见 §L20.
 10. **GitHub Actions Node.js 弃用**：遇到 Node 20 deprecated 警告 → 按 `scan-checklist.md §10` 矩阵升级 action 版本
 11. **DESIGN.md 与代码同步**：修改了 CSS 类名/颜色/组件行为时，必须检查 DESIGN.md 是否需要同步更新
 12. **Evidence-based audit**：审计发现必须基于实际 grep / curl / diff / build 输出。禁止 "verify X" 推测（仅列待查项不算 finding）。Stale finding 比 missing finding 更危险 — 会触发不必要的 commit + CI 浪费。Pattern: Phase 2 audit agent 必须跑 actual verification command；Phase 3 fix agent 必须先 verify 是 real 才 commit。Reference: 2026-06-04 sync-all-sites Run 2 GDKVM 教训（audit 列 8 个 "verify X"，fix agent 全 grep 验证后 0 commit）
@@ -326,9 +403,10 @@ src/pages/zh/paper/2606.18246/slide.astro:
 📂 **模式 D: Multi-Site 编排 (2026-06-08 吞并自 sync-all-sites v1.1.0)** → see [`references/mode-d-multisite.md`](references/mode-d-multisite.md) (loaded on demand)
 
 ## Sites
-- mykcs: score=98, fixes=3, ci=green ✅
-- GDKVM: score=87, fixes=12, ci=green ✅
-- OSA:   score=92, fixes=5, ci=green ✅
+- mykcs.github.io: score=98, fixes=0 (Round 2 P1/P2 已 ship), ci=green ✅
+- GDKVM: score=~96, fixes=2 (Round 3 P1 + P2), ci=green ✅ (commit 72294b3)
+- OSA:   score=98, fixes=0 (Round 2 P1/P2 已 ship), ci=green ✅
+- content2html: score=82→90 (Round 7), fixes=5 (1 P0 + 3 P1 + 1 P2), ci=green ✅ (commit cb80fec)
 
 ## Total commits
 N
