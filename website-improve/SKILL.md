@@ -2,7 +2,7 @@
 name: website-improve
 description: |
   一站式网站改进 skill (v4.0.0 — 4 sub-mode sweep, BREAKING).
-  - **v4.0.2 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build. v4.0.2 加 L21 Pre-flight Declaration Protocol (每次跑前必输 7 段).
+  - **v4.0.3 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build. v4.0.2 加 L21 Pre-flight Declaration Protocol (每次跑前必输 7 段). v4.0.3 加 L21 反转通道 (user 显式反转 → claudecode 不等 OK 直接执行).
   - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
   - **Sub-mode B (Astro build)**: Astro 项目自动跑 — 含 build pipeline / Tailwind v4 / deploy platform
   - **Sub-mode C (Project page)**: 触发词 / DESIGN.md 检测命中时跑 — 含项目模板 / 学术资产
@@ -10,11 +10,12 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
 license: MIT
 metadata:
-  version: "4.0.2"
+  version: "4.0.3"
   author: mykcs
   category: web-development
   changelog:
-    - "4.0.2 (2026-06-27): §L21 Pre-flight Declaration Protocol (强制). 每次 website-improve run 启动时必输出 7 段 pre-flight declaration (审计目标 / 目标文件夹 / Sub-mode sweep 计划 / 预期耗时 / 完成标准 / 风险自检 / 决策流锚点). 跟 §L19 (4 站 CI 全绿) + §L20 (fix-validate-build) 联动. Source: user 2026-06-27 原话 '修改网页提升 skill, 每次跑之前都要这样预声明一次' — 把 rich-audit pre-flight declaration 模式内化进 website-improve. 同时替换原有 3 要素启动声明 → 5 要素 + 预声明模板."
+    - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
+- "4.0.2 (2026-06-27): §L21 Pre-flight Declaration Protocol (强制). 每次 website-improve run 启动时必输出 7 段 pre-flight declaration (审计目标 / 目标文件夹 / Sub-mode sweep 计划 / 预期耗时 / 完成标准 / 风险自检 / 决策流锚点). 跟 §L19 (4 站 CI 全绿) + §L20 (fix-validate-build) 联动. Source: user 2026-06-27 原话 '修改网页提升 skill, 每次跑之前都要这样预声明一次' — 把 rich-audit pre-flight declaration 模式内化进 website-improve. 同时替换原有 3 要素启动声明 → 5 要素 + 预声明模板."
 - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
     - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
     - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
@@ -155,6 +156,38 @@ disable-model-invocation: false
 ```
 
 **user 回复**: "OK" → 进 Phase 1 / "改 X" → 改 pre-flight / "跳过" → 跳过 pre-flight (违反 §L21, 留 case 记录).
+
+### §L21 反转通道 (v4.0.3, user 显式触发)
+
+> **触发关键词**: user 显式说"不需要再问我 OK/改/跳过, 就直接执行" / "直接修" / "快问我" (跟灵魂 v3 + CLAUDE.local.md §12 反转硬约束 #8 一脉相承).
+>
+> **行为反转**: 收到反转关键词后, claudecode 仍必输 §L21 pre-flight declaration (跟默认一致, 7 段全填), 但**不再等 user 回 OK** — 直接进 Phase 1, 后续每步自决 + decision-stream 追加.
+>
+> **可逆**: user 显式说"恢复 pre-flight 等 OK" / "回到等待模式" → 反转回默认.
+
+**反转状态下决策流 schema** (calm-flow §4):
+```yaml
+- ts: 2026-06-27T18:30:00+08:00
+  type: auto-decide
+  content: "user 显式反转 §L21, claudecode 不等 OK 直接进 Phase 1"
+  decision: "execute per pre-flight already declared"
+  impact: "跳过 user OK gate, 后续决策全自决 + decision-stream 记录"
+  reversible: true  # user 显式说"恢复"即可回默认
+  risk: medium
+  reason: "user 原话 '不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发"
+```
+
+**反模式 (反转状态下 claudecode 必避)**:
+- ❌ 反转后仍问 "OK 吗" → 违反反转协议, 跟 user 显式意图冲突
+- ❌ 反转后跳过 pre-flight declaration → 违反 §L21 主条款, 反转 ≠ 跳过
+- ❌ 反转后写"等 user 决策" → 违反 calm-flow §6 + §C.6 no-stuck
+- ✅ 反转后: pre-flight 仍输 → 直接进 Phase 1 → 每步 auto-decide + 5 commands verify
+
+**联动**:
+- **CLAUDE.local.md §12 反转硬约束 #8** (主位, 跨 skill 通用)
+- **MEMORY.md HOT FACTS §10** 反转模式 8 类自决
+- **rich-audit calm-flow-reverse-mode.md** 同步协议
+- 反转 = 跟 §L21 默认行为合并, 跟 §C.3.6 no-stuck 协议兼容
 
 **反模式 (claudecode 必避)**:
 - ❌ 不输 pre-flight 直接跑 → 违反 §L21
