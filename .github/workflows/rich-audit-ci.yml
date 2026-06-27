@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify Tri-Search Protocol v2.6 in SKILL.md
         run: |
-          if ! grep -q "Tri-Search Protocol v2.6" rich-audit/SKILL.md; then
+          if ! grep -q "§A.2 Layer 2b" rich-audit/SKILL.md; then
             echo "❌ Tri-Search Protocol v2.6 not in SKILL.md"
             exit 1
           fi
