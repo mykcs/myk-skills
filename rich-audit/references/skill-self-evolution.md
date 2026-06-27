@@ -102,6 +102,28 @@ mcp__exa__web_fetch_exa <high-value URL>
 - 现象: claudecode 在 PR merged 后还问"要不要清理 worktree"
 - 根因: 误解灵魂 v3 反转模式, 把"bug fix 直接做"当成唯一自决类别
 - 修复: 4 处同步反转硬约束 SOP
+
+### §F.2.2 4 源共识沉淀模板 (v2.6.36 立)
+
+§F.2.0 5-tool 跑完, merge + compare 报告出来后, **把 4 源共识/冲突写到 SKILL.md changelog** (而不是只 bump version). 模板:
+
+```
+### 5-tool fan-out 4 源三角验证
+
+| 维度 | [源 1] | [源 2] | [源 3] | [源 4] | 共识 |
+|------|--------|--------|--------|--------|------|
+| [关键洞见 1] | ✅ | ✅ | ✅ | ✅ | 高 confidence |
+| [关键洞见 2] | ✅ | ✅ | ❌ | ✅ | 单源 (可接受) |
+| [关键洞见 3] | ⚠️ | ⚠️ | ⚠️ | ⚠️ | 未收敛 → 降级人工 |
+
+### 关键洞见 (供 §F.2.1 SKILL.md 升级用)
+
+1. **Anthropic 官方 progressive disclosure** = SKILL.md frontmatter 必须含 name + description (max 64/1024 chars)
+2. **[源 2 案例]** = [模式 + 优势 + 适用场景]
+3. **[源 4 pattern]** = [Learnings.md / 版本管理 / drift detection]
+```
+
+**真实案例 (v2.6.36)**: 本次 rich-audit session 跑完, 4 源 (MiniMax + anysearch + WebFetch + mindstudio fallback) 共识 = progressive disclosure 3-level 官方约束 + Snowtumb/auto-skill-update bump.sh 模式. 落地到 SKILL.md v2.6.36 frontmatter description + trigger 列表.
 - 反模式: "可逆写操作包装成必问"
 
 ---

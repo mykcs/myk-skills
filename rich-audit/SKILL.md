@@ -3,13 +3,15 @@ name: rich-audit
 description: |
   三层进化系统：审计（发现问题）→ 修复（解决问题）→ 进化（主动获取外部先进知识并应用）。
   双模审计：Claude Code 配置审计 + Python/ML 项目审计。
-  触发词：rich审计, /rich-audit, 进化
+  触发词：rich审计, /rich-audit, 进化, 重度审计, deep audit
+  范围：~/.claude/ + ~/.agents/skills/ + mem0 双轨同步检测。
 license: MIT
 metadata:
-  version: "2.6.35"
+  version: "2.6.36"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.36 (2026-06-27): Layer I.4 self-evolution v-bump (5-tool fan-out 4 源三角验证触发). 落地: ① description 字段扩 '重度审计/deep audit' trigger + progressive disclosure 3-level (Anthropic 官方约束, metadata <100 token / SKILL.md <5k / 资源 as needed) ② frontmatter max 64 chars / description max 1024 chars 校验 (per docs.claude.com/en/docs/agents-and-tools/agent-skills/overview, 当前 rich-audit name 10 chars / description 187 chars ✅ within limits) ③ 5-tool fan-out 4 源共识: [MiniMax 中文社区] Skill 2026 = 自我升级 + Dreaming + Outcomes / [anysearch] Snowtumb/claude-auto-skill-update = 4-agent pipeline + bump.sh / [WebFetch 官方] progressive disclosure 3-level + name/desc max chars / [mindstudio fallback] Learnings.md 4 phases. 永久失效 'frontmatter 不标准' 反模式 (跟 Anthropic 官方 SKILL.md spec drift). 配套: §F.2.0 fan-out 报告沉淀到 references/skill-self-evolution.md §F.2.2 (新加)."
     - "2.6.35 (2026-06-27): §I.4 §F.2.0 强制 5-tool fan-out 前置. user 原话 '修改这个 skill 所有涉及升级的部分都强制的用五重网络搜索工具搜索, 然后得出结论, 然后再进行提升、进化' → 落地: ① references/skill-self-evolution.md 加 §F.2.0 必跑前置 (MiniMax + anysearch + WebFetch + exa + kimi-webbridge 5-tool parallel fan-out, per process.md §F.1 + §F.1.2 降级矩阵) + §F.2.1 Edit 拆开 ② SKILL.md §I.4 引用段同步 (line 245-247) ③ bump version 2.6.34 → 2.6.35. 4-tool 三角验证: Anthropic 官方 docs (skill overview) + self-improving-agent 案例 + engineering playbook (skill maintenance) + 配置 stack 案例 (5-tool 实战). 永久失效 'claudecode 凭记忆写 SOP' 凭印象 drift 反模式. 跟 v2.6.30 §I.1 八步循环 Step 1 (5-tool fan-out 抓外部) 协同: v2.6.30 是 'skill 抓外部', v2.6.35 是 'skill 升级前必抓外部验证'."
     - "2.6.34 (2026-06-27): §I.4 Layer 4 Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身). user 原话 '现在修改重度审审计这个技能, 就是在这个你审计完这个斜杠点 cloud 等文件夹的时候, 你需要对 skill 也进行一次提升' → 落地: ① SKILL.md 加 §I.4 引用 (line 244-251) ② references/skill-self-evolution.md (新文件, 7307 bytes, §F.1 失败案例自审 + §F.2 反模式沉淀 + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 跟 v2.6.33 §反转模式硬约束 协同: 跑完 Layer 1-3 + A.2-A.3 + I.1 之后, 强制对 skill 自身跑一次 self-evolution (扫本 session 反模式 + Edit SKILL.md + 4 处同步 + ADR 落地). 永久失效 'rich-audit 完外部, skill 自己不变' 缺口. 历史: v2.6.33 → v2.6.34 (跳过 v2.6.32 是因为 v2.6.32 在 d2b71fff 里被合并, v2.6.33 是反转硬约束 changelog entry, 本次 v2.6.34 是 §I.4 self-evolution 落地)."
     - "2.6.33 (2026-06-27): 主仓 process.md v2.6.31 同步. 跑 5-tool fan-out + 4 源三角验证 → 落地: ① process.md §H Acceptance Protocol (5 字段自检表, 任务完成前必跑) ② process.md §I Self-Evolution Cycle (8 步循环, 升级 6) ③ process.md §I.2 user-override 字段 (kimi-webbridge 严禁降级, 2026-06-27 user 原话) ④ process.md §C.3.5 降级矩阵加 user-override 引用 ⑤ references/process-section-{H,I}-*.md 同步下沉. PR #8 mykcs/.claude auto-merged, commit d2b71fff. 5-tool 实测: MiniMax ❌ 2056 token plan 上限 (需 user 买 plan) → 降级 4-tool; anysearch ✅ 10 results; WebFetch ⚠️ 301 redirect; exa ✅ 5 high-value (Claude Code docs + self-improving-agent + engineering playbook + configuration stack); kimi-webbridge ✅ daemon + Chrome 200 OK tabId=925321044. 触发: v2.6.30 Layer 3 self-evolution cycle §I.1 八步循环 Step 5 (更新 SKILL.md changelog). 配套: ADR-0019 v2.6.31 升级固化闭环."
