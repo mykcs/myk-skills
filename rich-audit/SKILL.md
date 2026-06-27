@@ -170,6 +170,54 @@ user-invocable: true
 
 ---
 
+## ⚡ 反转模式硬约束 (v2.6.33, 2026-06-27, 反-failure 永久修复)
+
+> **完整 SOP 详见** [`references/calm-flow-reverse-mode.md`](references/calm-flow-reverse-mode.md) (自决 vs 必问 决策表 + 8 类必问 + 8 类自决 + 失败案例 + 硬规则清单). 主 SKILL.md 仅留硬规则摘要.
+
+### 核心硬规则 (claudecode 必背)
+
+**触发条件**: `~/.claude/CLAUDE.local.md` 顶部含 `default_mode: calm-flow` 时 (默认开启).
+
+**8 类**自决** (claudecode 直接做, 不问, 事后告知即可):
+
+1. PR 创建后修 diverged (merge origin/main, §C.3 SOP)
+2. READY PR auto-merge (4 条件满足时, §11.1 + §C.4 SOP)
+3. post-merge fast-forward 本地 main
+4. worktree 清理 (PR 已 merged + branch deleted)
+5. cmd 5 兜底 verify (gh run list, 不只 check-runs API)
+6. CI fail 走 §D.1-§D.3 修复 (grep drift / broken submodule / test failed)
+7. 改 skill / 加 layer (单文件 + < 50 行 + 不改 rules/ → smart-push 直 push main)
+8. 任何"修复类"操作 (regen manifest / merge main / 5 步诊断)
+
+**8 类**必问** (soul v2 双向保险例外保留):
+
+1. 不可逆破坏性操作 (rm / reset --hard / push --force / 删除数据库表)
+2. 跨多文件改动无明确标准 (涉及 framework config / 双账号污染 / settings.json 字段)
+3. 用户偏好 (snake vs camel / 命名 / 风格)
+4. 路线选择 (接下来做 X 还是 Y)
+5. soul v2 双向保险例外 (双账号 / 安全 / settings.json / 凭据 / 不可逆操作)
+6. PR 改 framework config (rich-audit/SKILL.md frontmatter 改动 涉及 trigger 增删)
+7. 涉及新 skill 目录创建
+8. 用户**显式说**"立刻决策 / 快问我 / 先问后做" (反转通道)
+
+### 反模式 (违反硬规则 = 重演 2026-06-27 事故)
+
+- ❌ "等用户决策 / 下次再修 / 留给用户判断" = 违反灵魂 v3
+- ❌ "列修改清单 + 等 OK 才动手" 误解 §11 — §11 是"列清单供 user 知情", 不是"blocking gate"
+- ❌ "READY PR 要不要 merge 啊?" = 4 条件已满足就该 auto-merge
+- ❌ "要不要清理 worktree?" = PR merged 后 worktree 是 dead weight, 直接删
+- ❌ "要不要 fast-forward 本地 main?" = 已 merge 就该 ff
+
+### Why
+
+user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的, 你都可以自己做的. 为什么你又要再问我一遍呢?" 触发本硬约束固化.
+
+---
+
+## §A.2 Layer 2b: 多仓 PR + CI 健康扫描 (v2.6.31, 强制 · 不可跳过)
+
+---
+
 ## §A.2 Layer 2b: 多仓 PR + CI 健康扫描 (v2.6.31, 强制 · 不可跳过)
 
 > **完整 SOP 详见** [`references/layer-a2-pr-ci-health-scan.md`](references/layer-a2-pr-ci-health-scan.md) (§C.1 5 commands verification + §C.2 CI FAILURE 修复 + §C.3 Diverged PR 修复 + §C.4 READY PR auto-merge + §C.5 报告 schema + §C.6 反模式 + §C.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
