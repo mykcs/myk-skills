@@ -6,12 +6,12 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.31"
+  version: "2.6.32"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.32 (2026-06-27): §A.3 Layer 3b CI 检查修复协议. user 原话 '把这个检查修复纳入到重度审计这个 skill 里' (指 2026-06-27 myk-skills rich-audit-ci.yml 10 次 push fail 修复流程, 不指 README 公开提示). 触发: Layer A.2 cmd 5 (gh run list) 检出 CI failure → 自动诊断 + 修复. 行为: §D.1 5 步 false-positive 诊断 → §D.2 ci-workflow-grep-drift 修复 (workflow grep 'Tri-Search Protocol v2.6' 改成 '§A.2 Layer 2b') + §D.3 submodule-broken 修复 ('git rm --cached .worktrees/...' + rmdir) + §D.4 实战命令模板 + §D.5 反模式 + §D.6 流程图. 新建 references/layer-a3-ci-check-repair.md (~150 lines). SKILL.md 加 §A.3 引用 (~10 lines). 历史: v2.6.32 跳过 v2.6.31 (因为 2.6.31 已发布在 v2/v2.3, 本次是独立新 layer). 配套: PR #4 (mykcs/myk-skills) 已 merge ad2f380, fix grep drift + broken submodule, CI 第一次 success, 验证 Layer A.2 + A.3 闭环 (cmd 5 兜底 verify: failures = [])."
     - "2.6.31 (2026-06-27): §A.2 Layer 2b 多仓 PR + CI 健康扫描 (修订 v3, 5 commands 强化). user 原话 '我有一个疑问, 我在你灵魂里面应该写了, 就不要再问这类的问题, 就直接做' (承认之前 SOP §C.1 只覆盖 4 commands, 漏掉 gh run list workflow runs API 兜底, 2026-06-27 mykcs/myk-skills 10 次 push fail 但 4 PR check-runs 全 clean, 用户收 10 封 'Run failed' 邮件才发现 — 这是 verify gate bug). 修订: §C.1 4 commands → 5 commands, 加 cmd 5 = gh run list --limit 5 (兜底 push-triggered workflow runs), 判定矩阵加新行 '(任意) + [非空 failure] = CI FAILURE'. 跟 v2.6.27 7 升级 #3 '遇见 bug 直接修复不列清单' 一致 (this is bug fix in SOP, not user question). 历史: v2.6.31 → v2.6.31 v2 (范围纠正, 双账号→2 skill-defined 仓) → v2.6.31 v3 (5 commands). v2.6.30 changelog 保留 (line 14, 其他 session 推的没 bump version). 配套: PR #4 (mykcs/myk-skills) fix(ci) 修 grep drift + broken submodule, CI 第一次 success."
-    - "2.6.30 (2026-06-27): 重度审计灵魂再升级 — 5 升级固化 (user 2026-06-27 反转指令). 1) 触发关键词全自决 — '重度审计' 一说 skill 里提到的所有东西全触发, 不再问. 2) 不再问拆分/部分/暂不. 3) 遇见 bug 直接修复不列清单. 4) 强制 5 重搜索 (process.md §F.1 + §F.1.2 降级矩阵) — 5-tool fan-out (MiniMax / anysearch / WebFetch / exa / kimi-webbridge). 5) Layer 4 升级扩展到 Cloud 架构 (GitHub Actions CI/CD + GitHub Pages 部署 + 双账号隔离 + kimi-webbridge daemon). 6) self-evolution 协议 — 跑完 5-tool 搜索后自动 internalize 8+ 外部资源 + 自动更新 SKILL.md changelog. 7) no-stuck 协议 — 任何任务失败时自动降级或 fallback, 不留 '下次再' / '需要用户决策'. 新增 hard rule: '重度审计' 触发 = 上述 7 条全部生效 + 5-tool 搜索强制 + bug 立即修 + 进化自动 + 不卡."
     - "2.6.29 (2026-06-27): trigger 扩列. 触发: user 原话 '执行重度审计 = ~/.claude + ~/.agents'. 加 '重度审计' / '执行重度审计' / 'deep audit' 三个 trigger alias + 同步 §触发方式 段. 默认仍跑完整三层 (Layer 1+2+3), 不变 depth. 跟 CLAUDE.local.md §11.1 自动 merge PR 协议独立, 这次单文件 micro edit 走 smart-push 直 push main."
     - "2.6.28 (2026-06-27): memory-bench Layer 1 强制触发 (跟 ADR-0016 + CLAUDE.local.md §11.2 + process.md §C.3.3 同步). 触发: user 原话 '我的这个记忆的 benchmark 设计也归到这个中度审计里, 都是第一层里面, 所以它都是要做的'. memory-bench 不是独立 skill, 而是 rich-audit Layer 1 必跑 sub-task (跟 file size audit / cross-source dup audit / case library audit 并列). 预计 wall clock ~3h (仅 baseline 50 题 + 12 compliance + 15 consistency, 不含 SOTA ×4 + ablation 5 删). rich-audit 触发立即跑, 不再 '下 session 触发'."
     - "2.6.27 (2026-06-26): 自动 merge PR 协议固化 (跟 CLAUDE.local.md §11 + process.md §C.3.1 同步). 触发: user 原话 'user 同意 claudecode 自动 merge PR #3 也可以写到 skill 里' (PR #2 跟 PR #3 都已自动 merge 验证成功). 新增 hard rule: PR merge 步骤全自动 (gh pr merge --squash --delete-branch) + post-merge fast-forward 本地 main + 清理 worktree. 沿用 smart-push 协议 (CLAUDE.local.md §7). 例外: 涉及双账号污染 / 安全 / config 字段改动 仍走 soul v2 双向保险必问."
@@ -172,12 +172,24 @@ user-invocable: true
 
 ## §A.2 Layer 2b: 多仓 PR + CI 健康扫描 (v2.6.31, 强制 · 不可跳过)
 
-> **完整 SOP 详见** [`references/layer-a2-pr-ci-health-scan.md`](references/layer-a2-pr-ci-health-scan.md) (§C.1 4 commands verification + §C.2 CI FAILURE 修复 + §C.3 Diverged PR 修复 + §C.4 READY PR auto-merge + §C.5 报告 schema + §C.6 反模式 + §C.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
+> **完整 SOP 详见** [`references/layer-a2-pr-ci-health-scan.md`](references/layer-a2-pr-ci-health-scan.md) (§C.1 5 commands verification + §C.2 CI FAILURE 修复 + §C.3 Diverged PR 修复 + §C.4 READY PR auto-merge + §C.5 报告 schema + §C.6 反模式 + §C.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
 >
 > **触发**: rich-audit 触发时, 扫 rich-audit skill 范围包含的 2 个 GitHub 仓 (per SKILL.md §预声明 line 134-137): `mykcs/.claude` (主审计范围 = `~/.claude/`) + `mykcs/myk-skills` (关联范围 1 = `~/.agents/skills/`). 不扫 author=me 所有 PR, 不扫双账号, 不扫 mem0/条件范围 (那些不是 GitHub 仓).
 > **行为**: 看 + 修 (CI FAILURE / diverged) + auto-merge ready PR (CLAUDE.local.md §11.1 协议). 不动 soul v2 双向保险例外 (双账号污染 / 安全 / settings.json / 凭据 / 不可逆操作).
 >
 > **违反硬规则**: 跳过本 Layer = 重演 2026-06-27 README 公开提示批量 PR 的 2 个事故 — (a) academic validate FAILURE 没跑 4 commands 就说 ✅, (b) myk-skills PR mergeable=null 没 merge origin/main 就说 clean.
+
+---
+
+## §A.3 Layer 3b: CI 检查修复协议 (v2.6.32, 强制 · 不可跳过)
+
+> **完整 SOP 详见** [`references/layer-a3-ci-check-repair.md`](references/layer-a3-ci-check-repair.md) (§D.1 5 步 false-positive 诊断 + §D.2 ci-workflow-grep-drift 修复 + §D.3 submodule-broken 修复 + §D.4 实战命令模板 + §D.5 反模式 + §D.6 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
+>
+> **触发**: Layer A.2 cmd 5 (gh run list) 检出 CI failure run → 自动走本 Layer 诊断 + 修复.
+>
+> **行为**: 5 步 false-positive 诊断 → 分类 (ci-workflow-grep-drift / submodule-broken / test-failed) → worktree + 修文件 + commit + push + 开 PR + 等 §11.1 auto-merge → cmd 5 兜底再 verify (期望 failures = []).
+>
+> **违反硬规则**: 跳过本 Layer = 2026-06-27 myk-skills 10 次 push fail 但 4 PR check-runs 全 clean 惨案重现.
 
 ---
 
