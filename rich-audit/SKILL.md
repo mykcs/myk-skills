@@ -6,10 +6,11 @@ description: |
   触发词：rich审计, /rich-audit, 进化
 license: MIT
 metadata:
-  version: "2.6.29"
+  version: "2.6.31"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.31 (2026-06-27): §A.2 Layer 4 CI Verify + Repair 验证门固化. 触发: user 原话 '把这个关于 CI 还有各种 Refill 还有 PR 的这种检查, 也一起合并到 Skill 重度设计里'. 新建 references/layer-4-ci-verify-repair.md (~250 lines), 涵盖 4 commands verification + §B.2 CI FAILURE 修复 (academic validate-manifest 案例: README size drift → regen manifest) + §B.3 Diverged PR 修复 (myk-skills #3 案例: 2 commits behind → merge origin/main) + §B.4 worktree cleanup + §B.5 反模式. SKILL.md 加 §A.2 引用 (~10 lines). 跟 v2.6.30 Layer 4 Cloud 架构概念对齐 — v2.6.30 声明 Layer 4, v2.6.31 交付 SOP. 范围扩: mykcs/myk-skills 仓 (默认已在 §预声明 line 121, 不需新加) + 4 PR 全 clean (myk-skills #3 + academic #1 + content2html #1 + 5-Day_Generative_AI_Intensive #1)."
     - "2.6.30 (2026-06-27): 重度审计灵魂再升级 — 5 升级固化 (user 2026-06-27 反转指令). 1) 触发关键词全自决 — '重度审计' 一说 skill 里提到的所有东西全触发, 不再问. 2) 不再问拆分/部分/暂不. 3) 遇见 bug 直接修复不列清单. 4) 强制 5 重搜索 (process.md §F.1 + §F.1.2 降级矩阵) — 5-tool fan-out (MiniMax / anysearch / WebFetch / exa / kimi-webbridge). 5) Layer 4 升级扩展到 Cloud 架构 (GitHub Actions CI/CD + GitHub Pages 部署 + 双账号隔离 + kimi-webbridge daemon). 6) self-evolution 协议 — 跑完 5-tool 搜索后自动 internalize 8+ 外部资源 + 自动更新 SKILL.md changelog. 7) no-stuck 协议 — 任何任务失败时自动降级或 fallback, 不留 '下次再' / '需要用户决策'. 新增 hard rule: '重度审计' 触发 = 上述 7 条全部生效 + 5-tool 搜索强制 + bug 立即修 + 进化自动 + 不卡."
     - "2.6.29 (2026-06-27): trigger 扩列. 触发: user 原话 '执行重度审计 = ~/.claude + ~/.agents'. 加 '重度审计' / '执行重度审计' / 'deep audit' 三个 trigger alias + 同步 §触发方式 段. 默认仍跑完整三层 (Layer 1+2+3), 不变 depth. 跟 CLAUDE.local.md §11.1 自动 merge PR 协议独立, 这次单文件 micro edit 走 smart-push 直 push main."
     - "2.6.28 (2026-06-27): memory-bench Layer 1 强制触发 (跟 ADR-0016 + CLAUDE.local.md §11.2 + process.md §C.3.3 同步). 触发: user 原话 '我的这个记忆的 benchmark 设计也归到这个中度审计里, 都是第一层里面, 所以它都是要做的'. memory-bench 不是独立 skill, 而是 rich-audit Layer 1 必跑 sub-task (跟 file size audit / cross-source dup audit / case library audit 并列). 预计 wall clock ~3h (仅 baseline 50 题 + 12 compliance + 15 consistency, 不含 SOTA ×4 + ablation 5 删). rich-audit 触发立即跑, 不再 '下 session 触发'."
@@ -166,6 +167,17 @@ user-invocable: true
 ## §A.1 Layer 0: Verification Gate Pre-check (v2.6.19, 强制 · 不可跳过)
 
 > **完整 SOP 详见** [`references/layer-0-verification-gate.md`](references/layer-0-verification-gate.md) (5 commands + 4 字段契约 + 阻塞条件 + 反例/正例). 主 SKILL.md 仅留 trigger + 违规后果. **违反硬规则**: 跳过 Layer 0 = CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL-20260621 重现.
+
+---
+
+## §A.2 Layer 4: CI Verify + Repair 验证门 (v2.6.31, 强制 · 不可跳过)
+
+> **完整 SOP 详见** [`references/layer-4-ci-verify-repair.md`](references/layer-4-ci-verify-repair.md) (4 commands verification + §B.2 CI FAILURE 修复 + §B.3 Diverged PR 修复 + §B.4 worktree cleanup + §B.5 反模式). 主 SKILL.md 仅留 trigger + 违规后果.
+>
+> **触发**: PR 创建后到 merge 前, 跨 PR 期间任何 origin/main 推进后.
+> **范围**: GitHub Actions + 跨仓 PR 工作树状态 + asset size drift 修复.
+>
+> **违反硬规则**: 跳过 Layer 4 = 重演 2026-06-27 README 公开提示批量 PR 的 2 个事故 — (a) academic validate FAILURE 没跑 4 commands 就说 ✅, (b) myk-skills PR mergeable=null 没 merge origin/main 就说 clean.
 
 ---
 
