@@ -7,10 +7,11 @@ description: |
   范围：~/.claude/ + ~/.agents/skills/ + mem0 双轨同步检测。
 license: MIT
 metadata:
-  version: "2.6.36"
+  version: "2.6.37"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.37 (2026-06-27): §A.1.5 Layer 1c 内容质量审查 (CLAUDE.md / rules/ scope 检测). user 原话 '为什么我看了我的 claude.md 文件里面全是关于怎么去做这个网页的东西? 这个它应该是包含我的个人使用习惯或者怎么样的...修改这个重度审计这个功能, 就是要, 不仅要看我的 claude.md 文件的行数是否符合规范, 同时它里面的内容也要保证恰当、合适、高效、有用' → 落地: ① SKILL.md 加 §A.1.5 引用 (line 219-227) ② references/layer-1c-content-quality.md (新文件, §1.1 scope 边界检测 6 维度 + §1.2 内容质量 4 维度评分恰当/合适/高效/有用 + §1.3 严重度分级 Tier 1-3 + §1.4 修复建议模板 + §1.5 反模式) ③ 跟 Layer 0 (行数) 互补: 本 Layer 是 scope + 内容质量. 永久失效 '只查行数不看 scope/内容' 反模式. 真实案例: mykcs.github.io/CLAUDE.md 224 行全是 Astro / Tailwind / KaTeX 等项目专用, 全局不该塞, 触发 Layer 1c CRITICAL → AskUserQuestion 拆分方案."
     - "2.6.36 (2026-06-27): Layer I.4 self-evolution v-bump (5-tool fan-out 4 源三角验证触发). 落地: ① description 字段扩 '重度审计/deep audit' trigger + progressive disclosure 3-level (Anthropic 官方约束, metadata <100 token / SKILL.md <5k / 资源 as needed) ② frontmatter max 64 chars / description max 1024 chars 校验 (per docs.claude.com/en/docs/agents-and-tools/agent-skills/overview, 当前 rich-audit name 10 chars / description 187 chars ✅ within limits) ③ 5-tool fan-out 4 源共识: [MiniMax 中文社区] Skill 2026 = 自我升级 + Dreaming + Outcomes / [anysearch] Snowtumb/claude-auto-skill-update = 4-agent pipeline + bump.sh / [WebFetch 官方] progressive disclosure 3-level + name/desc max chars / [mindstudio fallback] Learnings.md 4 phases. 永久失效 'frontmatter 不标准' 反模式 (跟 Anthropic 官方 SKILL.md spec drift). 配套: §F.2.0 fan-out 报告沉淀到 references/skill-self-evolution.md §F.2.2 (新加)."
     - "2.6.35 (2026-06-27): §I.4 §F.2.0 强制 5-tool fan-out 前置. user 原话 '修改这个 skill 所有涉及升级的部分都强制的用五重网络搜索工具搜索, 然后得出结论, 然后再进行提升、进化' → 落地: ① references/skill-self-evolution.md 加 §F.2.0 必跑前置 (MiniMax + anysearch + WebFetch + exa + kimi-webbridge 5-tool parallel fan-out, per process.md §F.1 + §F.1.2 降级矩阵) + §F.2.1 Edit 拆开 ② SKILL.md §I.4 引用段同步 (line 245-247) ③ bump version 2.6.34 → 2.6.35. 4-tool 三角验证: Anthropic 官方 docs (skill overview) + self-improving-agent 案例 + engineering playbook (skill maintenance) + 配置 stack 案例 (5-tool 实战). 永久失效 'claudecode 凭记忆写 SOP' 凭印象 drift 反模式. 跟 v2.6.30 §I.1 八步循环 Step 1 (5-tool fan-out 抓外部) 协同: v2.6.30 是 'skill 抓外部', v2.6.35 是 'skill 升级前必抓外部验证'."
     - "2.6.34 (2026-06-27): §I.4 Layer 4 Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身). user 原话 '现在修改重度审审计这个技能, 就是在这个你审计完这个斜杠点 cloud 等文件夹的时候, 你需要对 skill 也进行一次提升' → 落地: ① SKILL.md 加 §I.4 引用 (line 244-251) ② references/skill-self-evolution.md (新文件, 7307 bytes, §F.1 失败案例自审 + §F.2 反模式沉淀 + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 跟 v2.6.33 §反转模式硬约束 协同: 跑完 Layer 1-3 + A.2-A.3 + I.1 之后, 强制对 skill 自身跑一次 self-evolution (扫本 session 反模式 + Edit SKILL.md + 4 处同步 + ADR 落地). 永久失效 'rich-audit 完外部, skill 自己不变' 缺口. 历史: v2.6.33 → v2.6.34 (跳过 v2.6.32 是因为 v2.6.32 在 d2b71fff 里被合并, v2.6.33 是反转硬约束 changelog entry, 本次 v2.6.34 是 §I.4 self-evolution 落地)."
@@ -215,6 +216,18 @@ user-invocable: true
 ### Why
 
 user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的, 你都可以自己做的. 为什么你又要再问我一遍呢?" 触发本硬约束固化.
+
+---
+
+## §A.1.5 Layer 1c: 内容质量审查 (CLAUDE.md / rules/ scope 检测, v2.6.37, 强制 · 不可跳过)
+
+> **完整 SOP 详见** [`references/layer-1c-content-quality.md`](references/layer-1c-content-quality.md) (§1.1 scope 边界检测 6 维度 + §1.2 内容质量 4 维度评分 + §1.3 严重度分级 + §1.4 修复建议模板 + §1.5 反模式). 主 SKILL.md 仅留 trigger + 违规后果.
+>
+> **触发**: rich-audit Layer 1 文件结构扫描时, **自动加跑** 内容审查, 不仅看行数 (Layer 1 默认), 还看"是否恰当、合适、高效、有用" (per user 2026-06-27 原话 "里面的内容也要保证恰当、合适、高效、有用").
+>
+> **行为**: §1.1 6 维度 scope 漂移检测 → §1.2 4 维度评分 (恰当 0.4 + 合适 0.2 + 高效 0.2 + 有用 0.2) → §1.3 严重度分级 (CRITICAL = Tier 3 user 必问, HIGH = Tier 2 auto + 30-min revert, MEDIUM = Tier 2 auto-suggest, LOW = Tier 1 auto) → §1.4 修复建议模板输出.
+>
+> **违反硬规则**: 跳过本 Layer = user 反馈 "claudecode 只看行数不看内容, 全局 CLAUDE.md 全是网页内容" 重现 (2026-06-27 session).
 
 ---
 
