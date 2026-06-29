@@ -1,7 +1,8 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill (v4.0.4 — Round 10-11 硬化).
+  一站式网站改进 skill (v4.0.5 — Round 15 沉淀 + §L26 CI 全绿验收标准).
+  - **v4.0.5 架构**: 加 §L26 "CI 全绿" 验收标准 (5 字段自检表: path / commit / push / CI / owner 隔离). 跟 process.md §H Acceptance Protocol + §L19 4 站 CI gate + §L25 deployed-layer verify 全部同步. 触发: user 2026-06-29 原话 "把《CI 全绿》这个标准加入 skill 里面".
   - **v4.0.4 架构**: Round 10-11 验证后加固. 新增 §L22 Subagent Tool Provisioning (Phase 0 ToolSearch 必跑 + 治本 subagent stall). §L23 Orchestrator Recovery SOP (subagent stalled 时检测已 commit 文件 + manual `git push` + rebase fallback). §L24 Stall Heartbeat Check (每 5min 检测 subagent transcript mtime, 静默 >10min trigger recovery). §L25 Deployed-Layer Verify Protocol (Round 11 发现 2 个 P0/P1 regression: mysite security.txt + content2html _headers — 文件存在但 GH Pages user/org site 不 serve; 必须 curl live URL 验证, 不只 source grep).
   - **v4.0.3 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build. v4.0.2 加 L21 Pre-flight Declaration Protocol (每次跑前必输 7 段). v4.0.3 加 L21 反转通道 (user 显式反转 → claudecode 不等 OK 直接执行).
   - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
@@ -11,10 +12,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
 license: MIT
 metadata:
-  version: "4.0.4"
+  version: "4.0.5"
   author: mykcs
   category: web-development
   changelog:
+    - "4.0.5 (2026-06-29): §L26 CI 全绿 验收标准. user 显式要求 '把《CI 全绿》这个标准加入 skill 里面'. 5 字段自检表 (path / commit / push / CI / owner 隔离 + 验收证据) + 4 站 CI 验证模板 + 4 个 edge cases (red/pending/物理不可达) + Round 15 验证案例. 跟 process.md §H Acceptance Protocol + §L19 4 站 CI gate + §L25 deployed-layer verify 全部同步. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10-15 完整 6 轮 timeline + user 2026-06-29 原话触发."
     - "4.0.4 (2026-06-29): §L22-L25 治本 Round 10-11 暴露的 4 类问题. (1) §L22 Subagent Tool Provisioning — Phase 0 ToolSearch 必跑 + 治本 subagent stall (Issue #60237 frontmatter tools 静默 drop + Issue #49150 Task 无 timeout). (2) §L23 Orchestrator Recovery SOP — subagent 报 stalled 时, 检测磁盘已 commit 文件 + manual `git push` + rebase fallback (work product on disk 范式 per Issue #49150 #3). (3) §L24 Stall Heartbeat Check — 每 5min 检测 subagent transcript mtime, 静默 >10min 自动 trigger recovery (Issue #49150 #2 heartbeat protocol). (4) §L25 Deployed-Layer Verify Protocol — Round 11 发现 2 个 P0/P1 deployed-layer regression: mysite security.txt on disk but 404 served (Astro .well-known handler intercept) + content2html _headers not served (GH Pages user/org site 不支持, 仅 Project Pages 支持). 必 curl live URL 验证, 不只 source grep. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10 + Round 11."
     - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
 - "4.0.2 (2026-06-27): §L21 Pre-flight Declaration Protocol (强制). 每次 website-improve run 启动时必输出 7 段 pre-flight declaration (审计目标 / 目标文件夹 / Sub-mode sweep 计划 / 预期耗时 / 完成标准 / 风险自检 / 决策流锚点). 跟 §L19 (4 站 CI 全绿) + §L20 (fix-validate-build) 联动. Source: user 2026-06-27 原话 '修改网页提升 skill, 每次跑之前都要这样预声明一次' — 把 rich-audit pre-flight declaration 模式内化进 website-improve. 同时替换原有 3 要素启动声明 → 5 要素 + 预声明模板."
@@ -605,6 +607,68 @@ done
 - ❌ 信任 "官方 docs 说支持 _headers" 不分 user vs project pages → GH Pages 分两类, 行为不同
 
 **联动**: §A.5 sub-provision #2 deployed behavior check, §L19 (4 站 CI gate), §L23 (orchestrator recovery).
+
+### ⚠️ §L26 "CI 全绿" 验收标准 (v4.0.5, user 显式要求 2026-06-29, 跟 process.md §H Acceptance Protocol 同步)
+
+> **触发**: user 2026-06-29 原话 "把《CI 全绿》这个标准加入 skill 里面". "CI 全绿" 是 website-improve run 的最终验收标准 — 不只是 4 站 CI 状态, 是 5 字段自检表全过.
+>
+> **跟 §L19 区别**: §L19 是 "4 站 CI 必 success" (硬规则, 否决 done 声明); §L26 是 "CI 全绿 = 5 字段自检全过" (验收协议, 给完成报告模板). §L19 是门, §L26 是收尾.
+
+**验收标准** ("CI 全绿" 5 字段自检表, 任何 website-improve run 末段必跑):
+
+| # | 字段 | 验收标准 | 验证命令 |
+|---|------|---------|---------|
+| 1 | **path** | 4 站文件绝对路径已输出 | `ls -d ~/Claude/Projects/webs/{mysite,gdkvm,osa,content2html}` |
+| 2 | **commit** | `git log -1` 4 站都有新 commit (or 显式标 "no fix needed" + 上次 commit hash) | `for s in mysite gdkvm osa content2html; do git -C ~/Claude/Projects/webs/$s log -1 --format='%h %s'; done` |
+| 3 | **push** | `git log @{u}..HEAD` 4 站全空 | `for s in mysite gdkvm osa content2html; do git -C ~/Claude/Projects/webs/$s rev-list --left-right --count @{u}...HEAD; done` |
+| 4 | **CI** | `gh run list` 4 站 conclusion=success | `for r in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/content2html; do gh run list --repo $r --limit 1 --json conclusion,headSha; done` |
+| 5 | **owner 隔离 + 验收证据** | 4 站 owner 正确 (mykcs/* vs wangrui2025/* 不交叉) + 1+ 行可执行命令证据 (build/test/curl/grep) | `git -C ~/Claude/Projects/webs/$s remote get-url origin` + live curl evidence |
+
+**4 站 CI 验证模板** (per §C.3.7 硬规则, 必跑):
+```bash
+echo "=== Round 15 example 4 站 CI 验证 ==="
+for owner_repo in "mykcs/mykcs.github.io" "wangrui2025/GDKVM" "wangrui2025/osa" "mykcs/content2html"; do
+  c=$(gh run list --repo "$owner_repo" --limit 1 --json conclusion,headSha,name --jq '.[0] | "\(.conclusion) | \(.headSha[:7]) | \(.name)"' 2>/dev/null)
+  echo "$owner_repo: $c"
+done
+# expected: 4 行全 "success | <sha> | <workflow>"
+```
+
+**Edge cases** (per §C.3.7 判定矩阵):
+
+| 4 站 CI 状态 | 判定 | 后续动作 |
+|-------------|------|---------|
+| ✅ 4/4 success | **CI 全绿 ✅** | 写 case file + decision-stream + 5 字段自检 PASS |
+| ❌ 1+ red | **BLOCKED on `<site> CI red: <reason>`** | 走 §D fix 路径 (auto retry) 或 AskUserQuestion (回滚 / 接受 / 重试) |
+| 🟡 1+ pending | **BLOCKED on `<site> CI pending`** | 等 CI 跑完 (max 10 min, 用 `ScheduleWakeup` 重新调度) |
+| 🔒 1+ 物理不可达 | **BLOCKED on `<site> 物理不可达: <reason>`** | 诚实告知 user + AskUserQuestion 重新定义 goal |
+
+**Round 15 验证案例** (2026-06-29, 5 字段全过 example):
+```
+| 字段 | 验证 |
+|---|---|
+| path | ~/Claude/Projects/webs/{mysite,gdkvm,osa,content2html} ✅ |
+| commit | ba48c24 / e238c6d / 9163395 / 580b623 ✅ |
+| push | 4/4 unpushed 0/0 ✅ |
+| CI | 4/4 success ✅ |
+| owner | mykcs/* (mysite+content2html) + wangrui2025/* (gdkvm+osa) ✅ 0 污染 |
+| live verify | 4/4 curl 200 ✅ |
+→ "✅ CI 全绿" (5/5 字段)
+```
+
+**反模式** (claudecode 必避):
+- ❌ "4 站 CI success = CI 全绿" → 不完整, 缺 4 字段 (path/commit/push/owner)
+- ❌ 用 emoji ✅ 替代 5 字段自检表 → 违反 §H 5 字段硬规则
+- ❌ "差不多完成了" / "应该 OK" → 违反 §C.1 verification gate
+- ❌ 跳过 owner 隔离 verify → 违反双账号铁律 (4+ 次历史污染)
+- ❌ 跳过 live curl verify → 违反 §L25 deployed-layer 协议
+
+**联动**:
+- **§L19** 4 站 CI 全绿硬规则 (门, 否决 done 声明)
+- **§L25** Deployed-Layer Verify Protocol (curl 验证)
+- **process.md §H** Acceptance Protocol (5 字段自检表, 同源)
+- **CLAUDE.local.md §15** 4 站 CI 全绿 hot recall
+- **Round 10-15 完整 6 轮 timeline** (case file `~/.claude/knowledge/cases/CASE-MULTI-SITE-FULL-AUDIT-V4-20260627.md`)
 
 ---
 
