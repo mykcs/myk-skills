@@ -2,6 +2,18 @@
 
 > 从实际运行中提取的检测模式，每个模式都附有**检测命令**，供 AI 在审计时直接运行。
 
+## Contents (TOC, v2.6.45 立, 跟 Anthropic 官方 "reference files >100 lines 需 TOC" 协同)
+
+- [Config & Rules](#config--rules) — line 5 (插件目录失效 / CLAUDE.md 过长 / SKILL.md 不在路径)
+- [Cases & Memory](#cases--memory) — line 397
+- [OMC & Ecosystem](#omc--ecosystem) — line 419
+- [False Positive 修复模式](#false-positive-修复模式) — line 435
+- [GitHub Actions 依赖版本检查](#github-actions-依赖版本检查) — line 503
+- [Python / ML 项目审计](#python--ml-项目审计) — line 560
+- [Meta-Audit](#meta-audit) — line 650
+
+---
+
 ## Config & Rules
 
 ### 插件目录失效检测（Plugin Directory Missing）
