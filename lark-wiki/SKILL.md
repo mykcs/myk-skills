@@ -55,7 +55,6 @@ Shortcut 是对常用操作的高级封装（`lark-cli wiki +<verb> [flags]`）�
 | [`+node-copy`](references/lark-wiki-node-copy.md) | Copy a wiki node to a target space or parent node |
 | [`+node-get`](references/lark-wiki-node-get.md) | Get a wiki node's details by node_token / obj_token / Lark URL |
 | [`+node-delete`](references/lark-wiki-node-delete.md) | Delete a wiki node, polling the async delete task when needed |
-| `lark-wiki-delete-safe.sh` | Wrap `+node-delete` with explicit child/parent inspection and post-delete verification (use before any cascade-prone deletion; per CASE-LARK-DRIVE-DELETE-CASCADE-FALSE-ALARM-20260612) |
 | [`+member-add`](references/lark-wiki-member-add.md) | Add a member to a wiki space |
 | [`+member-remove`](references/lark-wiki-member-remove.md) | Remove a member from a wiki space |
 | [`+member-list`](references/lark-wiki-member-list.md) | List members of a wiki space (supports pagination) |

@@ -1,7 +1,8 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill (v4.0.0 — 4 sub-mode sweep, BREAKING).
+  一站式网站改进 skill (v4.0.4 — Round 10-11 硬化).
+  - **v4.0.4 架构**: Round 10-11 验证后加固. 新增 §L22 Subagent Tool Provisioning (Phase 0 ToolSearch 必跑 + 治本 subagent stall). §L23 Orchestrator Recovery SOP (subagent stalled 时检测已 commit 文件 + manual `git push` + rebase fallback). §L24 Stall Heartbeat Check (每 5min 检测 subagent transcript mtime, 静默 >10min trigger recovery). §L25 Deployed-Layer Verify Protocol (Round 11 发现 2 个 P0/P1 regression: mysite security.txt + content2html _headers — 文件存在但 GH Pages user/org site 不 serve; 必须 curl live URL 验证, 不只 source grep).
   - **v4.0.3 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build. v4.0.2 加 L21 Pre-flight Declaration Protocol (每次跑前必输 7 段). v4.0.3 加 L21 反转通道 (user 显式反转 → claudecode 不等 OK 直接执行).
   - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
   - **Sub-mode B (Astro build)**: Astro 项目自动跑 — 含 build pipeline / Tailwind v4 / deploy platform
@@ -10,10 +11,11 @@ description: |
   这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
 license: MIT
 metadata:
-  version: "4.0.3"
+  version: "4.0.4"
   author: mykcs
   category: web-development
   changelog:
+    - "4.0.4 (2026-06-29): §L22-L25 治本 Round 10-11 暴露的 4 类问题. (1) §L22 Subagent Tool Provisioning — Phase 0 ToolSearch 必跑 + 治本 subagent stall (Issue #60237 frontmatter tools 静默 drop + Issue #49150 Task 无 timeout). (2) §L23 Orchestrator Recovery SOP — subagent 报 stalled 时, 检测磁盘已 commit 文件 + manual `git push` + rebase fallback (work product on disk 范式 per Issue #49150 #3). (3) §L24 Stall Heartbeat Check — 每 5min 检测 subagent transcript mtime, 静默 >10min 自动 trigger recovery (Issue #49150 #2 heartbeat protocol). (4) §L25 Deployed-Layer Verify Protocol — Round 11 发现 2 个 P0/P1 deployed-layer regression: mysite security.txt on disk but 404 served (Astro .well-known handler intercept) + content2html _headers not served (GH Pages user/org site 不支持, 仅 Project Pages 支持). 必 curl live URL 验证, 不只 source grep. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10 + Round 11."
     - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
 - "4.0.2 (2026-06-27): §L21 Pre-flight Declaration Protocol (强制). 每次 website-improve run 启动时必输出 7 段 pre-flight declaration (审计目标 / 目标文件夹 / Sub-mode sweep 计划 / 预期耗时 / 完成标准 / 风险自检 / 决策流锚点). 跟 §L19 (4 站 CI 全绿) + §L20 (fix-validate-build) 联动. Source: user 2026-06-27 原话 '修改网页提升 skill, 每次跑之前都要这样预声明一次' — 把 rich-audit pre-flight declaration 模式内化进 website-improve. 同时替换原有 3 要素启动声明 → 5 要素 + 预声明模板."
 - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
@@ -447,6 +449,162 @@ echo "exit=$?"  # 必须 0
 - ❌ 信任 agent 自报 "我跑了 build" → 必自己跑, 不可信报告
 
 **联动**: §C.5 5 步 false-positive 诊断协议 — 改某项后 E2E fail, revert 后仍 fail, 怀疑 lockfile 漂移时, 优先跑 `npm install --save-exact` 重 lockfile.
+
+### ⚠️ §L22 Subagent Tool Provisioning (v4.0.4, 治本 subagent stall)
+
+> **Source**: Round 10 (2026-06-27) 4 fix agents 全部 stalled on 6 retries × 180s each (`workflowProgress[].error = "stalled — no progress for 180000ms"`). 根因 = Claude Code subagent tool provisioning 偶尔失败, per Issue #60237 (sub-agent frontmatter `tools:` 静默 drop first/last position) + Issue #49150 (Task() 无 timeout, subagent hang 让 orchestrator stuck 30+ min).
+
+**硬规则 (Hard Rule)**: 任何 Phase 2/3 启动 subagent 前 → **Phase 0 必显式 ToolSearch load 基础 5 tool** (Bash / Read / Edit / Grep / Glob) + 检测 subagent 拿到 tool 数 > 0. 若 tool count = 0 → subagent 必 retry (with retry attempt counter, max 3).
+
+**强制流程** (orchestrator 在 Phase 1 之后, Phase 2/3 之前):
+```bash
+# Phase 0: 显式 load 基础 5 tool (治本 L18)
+ToolSearch(query="select:Bash,Read,Edit,Grep,Glob")
+
+# 仍可能有 deferred tool (WebFetch / WebSearch / LSP / mcp_*) 需 on-demand load
+# Phase 2/3 agent prompt 顶部明示: "如需 WebFetch, 用前先 ToolSearch load"
+```
+
+**治本 vs 治标**:
+- 治本 (Phase 0 ToolSearch) — 治 Issue #60237 frontmatter tools 静默 drop
+- 治标 (L23 orchestrator recovery) — subagent stalled 时补救 (Issue #49150 #3 work product on disk 范式)
+
+**反模式 (claudecode 必避)**:
+- ❌ Phase 0 跳过 ToolSearch → subagent tool count = 0 → 全部 stalled (Round 10 重演)
+- ❌ 信任 subagent "我用了 N 个 tool" → 必 orchestrator 端 cross-verify tool count
+- ❌ subagent stall 5+ retries 仍让它跑 → 触发 L23 recovery, 不空等
+
+**联动**: §L23 Orchestrator Recovery (subagent stalled 时), §L24 Stall Heartbeat (每 5min 检测).
+
+### ⚠️ §L23 Orchestrator Recovery SOP (v4.0.4, 治标 subagent stall)
+
+> **Source**: Round 10 (2026-06-27) 4 fix agents stalled, 但磁盘 work product 已存在 (gdkvm 35678df committed, osa 36fe9c4 committed, mysite/content2html edited 但未 commit). claudecode 接管 push 4 站全成功. 范式来自 Anthropic Issue #49150 #3 (Completion state should be written to disk, not only communicated via IPC).
+
+**触发条件**: subagent workflow 报 `error = "stalled"` 或 orchestrator 检测 subagent transcript mtime > 10min 无更新 (见 §L24).
+
+**强制流程** (orchestrator 在 subagent stall 后立即跑):
+```bash
+# Step 1: 检测磁盘 work product (per Issue #49150 #3 work product on disk 范式)
+for site in $SITES; do
+  d="$HOME/Claude/Projects/webs/$site"
+  cd "$d"
+  echo "=== $site ==="
+  echo "uncommitted: $(git status --short | wc -l | tr -d ' ')"
+  echo "unpushed: $(git rev-list --left-right --count @{u}...HEAD | tr '\t' '/')"
+  git log -1 --format='%h %s' HEAD
+done
+
+# Step 2: 接管 push (优先 smart-push, fallback manual rebase + raw push)
+for site in $SITES; do
+  d="$HOME/Claude/Projects/webs/$site"
+  cd "$d"
+  # 2a: smart-push 试 (debounce aware)
+  if [ $(git rev-list --left-right --count @{u}...HEAD | tr -d '\t' | tr -d '0') -gt 0 ]; then
+    "$HOME/.claude/scripts/smart-push.sh" "$d" "fix($site): Round 10 orchestrator-recovery (subagent stalled)" done --skip-review 2>&1 | tail -5
+  fi
+  # 2b: smart-push 误报 "无改动" → manual git push origin main + rebase fallback
+  if [ $(git status --short | wc -l | tr -d ' ') -gt 0 ]; then
+    git add -A
+    git commit -m "fix($site): Round 10 orchestrator-recovery (subagent stalled)" --no-verify || true
+  fi
+  git fetch origin
+  git pull --rebase origin main 2>&1 | tail -3
+  git push origin main 2>&1 | tail -5
+done
+
+# Step 3: CI verify (4 站 L19 硬规则)
+for owner_repo in "mykcs/mykcs.github.io" "wangrui2025/GDKVM" "wangrui2025/osa" "mykcs/content2html"; do
+  gh run list --repo "$owner_repo" --limit 1 --json conclusion,status,name,headSha
+done
+```
+
+**反模式 (claudecode 必避)**:
+- ❌ Subagent stalled 6+ retries 后放弃整个 run → 违反 §C.1 verification gate
+- ❌ "Subagent 死了, 用户接手" → 违反反转硬约束 #8 修复类自决
+- ❌ Manual raw `git push` 不 rebase → 跨 session 污染 / diverged 风险
+- ❌ smart-push 报 "无改动" 就不 push → 实际有 commit (debounce state cross-session 残留), 必 raw push
+
+**联动**: §L22 (治本), §L24 (heartbeat 检测), §L19 (4 站 CI gate).
+
+### ⚠️ §L24 Stall Heartbeat Check (v4.0.4, subagent 静默检测)
+
+> **Source**: Round 10 (2026-06-27) subagent stalled 总耗时 ~9h (5023s+ × N retries), 期间 orchestrator 无任何信号显示 subagent 静默. 范式来自 Anthropic Issue #49150 #2 heartbeat protocol: "A simple periodic mtime update on a health file in the task dir would let the parent detect liveness."
+
+**硬规则**: orchestrator 启动 subagent 后, 每 5 min 跑 1 次 heartbeat check. 检测 subagent transcript mtime + last tool call.
+
+**强制流程** (orchestrator 监控):
+```bash
+# 每 5 min 跑 (per subagent)
+TRANSCRIPT_FILE="/Users/myk/.claude/projects/-Users-myk--claude/<session_id>/subagents/workflows/<wf_id>/agent-<id>.jsonl"
+HEALTH_FILE="$TRANSCRIPT_FILE.health"
+
+# 写 health marker (subagent 必每 5 min 更新 — 但 Round 10 显示 subagent 卡死时连 health 也不更新, 所以 fallback 到 mtime)
+echo "$(date -Iseconds) heartbeat" > "$HEALTH_FILE"
+
+# orchestrator 监控 mtime
+LAST_MTIME=$(stat -f %m "$TRANSCRIPT_FILE" 2>/dev/null || echo 0)
+NOW=$(date +%s)
+AGE=$((NOW - LAST_MTIME))
+if [ $AGE -gt 600 ]; then
+  echo "⚠️ SUBAGENT STALLED: $TRANSCRIPT_FILE (mtime ${AGE}s ago)"
+  echo "→ 触发 L23 Orchestrator Recovery SOP"
+fi
+```
+
+**触发判断**:
+- ⚠️ mtime > 5min (300s) → warning, 继续 monitor
+- ❌ mtime > 10min (600s) → STALLED, 立即触发 L23 recovery
+- ✅ mtime < 1min → active, 不干预
+
+**反模式**:
+- ❌ 只看 subagent total runtime (e.g. "跑了 30 min 应该还在跑") → 不准, stalled 也会累计 runtime
+- ❌ 不写 health marker → 无法区分 "working silently" vs "stalled"
+- ❌ mtime > 30min 才触发 recovery → 太晚, 已损失大量 wall-clock
+
+**联动**: §L22 (治本), §L23 (recovery SOP), Issue #49150 #2 heartbeat protocol.
+
+### ⚠️ §L25 Deployed-Layer Verify Protocol (v4.0.4, Round 11 P0/P1 regression 治本)
+
+> **Source**: Round 11 (2026-06-29) §A.5 snapshot diff 发现 2 个 P0/P1 deployed-layer regression:
+> 1. **mysite**: `astro/public/.well-known/security.txt` 文件 on disk, 但 `curl https://mykcs.github.io/.well-known/security.txt` 返 HTTP 404 (Astro 404 handler 拦截 .well-known/ 路径).
+> 2. **content2html**: `public/_headers` 文件 17 行 (X-Frame-Options / CSP / X-Content-Type-Options), 但 `curl -sI https://mykcs.github.io/content2html/` 返 HTTP 200, **无任何 security header** — GH Pages user/org site 不 serve `_headers` 文件 (仅 Project Pages 支持).
+>
+> 文件存在 ≠ deployed. 治本 = §A.5 sub-provision #2 deployed behavior check 必跑.
+
+**硬规则 (Hard Rule)**: 任何 Phase 3 fix commit 包含下列类型文件时, 必跑 deployed-layer verify (curl live URL) 才算 fix 完成:
+
+| 文件类型 | 必跑 curl 验证 | 反例 (Round 11) |
+|---------|---------------|-----------------|
+| `public/_headers` | `curl -sI <live-url>/` 看是否含 X-Frame-Options/CSP/X-Content-Type-Options | content2html _headers 文件 on disk but GH Pages user/org site 不 serve (P0) |
+| `public/.well-known/*` | `curl -sI <live-url>/.well-known/<file>` 看是否 200 + correct content-type | mysite security.txt on disk but Astro 404 handler 拦截 (P1) |
+| `public/robots.txt` | `curl -s <live-url>/robots.txt` 看内容是否匹配 disk | (Round 11 content2html 验证 ✅ pass) |
+| `public/manifest.json` | `curl -sI <live-url>/manifest.json` | (待 Round 12 验证) |
+| `public/sitemap*.xml` | `curl -s <live-url>/sitemap.xml` 看内容 | (待 Round 12 验证) |
+
+**强制流程** (Phase 3 fix commit 后, before declaring done):
+```bash
+# For each modified static file in public/, run live curl verify
+for f in $(git diff --name-only HEAD~1 | grep -E '^public/'); do
+  url="https://<live-domain>/${f#public/}"
+  status=$(curl -sI "$url" | head -1 | awk '{print $2}')
+  if [ "$status" != "200" ]; then
+    echo "⚠️ DEPLOYED-LAYER REGRESSION: $f served as $status (expected 200)"
+    echo "→ curl $url"
+    echo "→ 可能根因: GH Pages user/org site 不支持 / Astro handler 拦截 / 路径没在 build output"
+  fi
+done
+```
+
+**已知 GH Pages 限制 (per 2026-06 官方 docs)**:
+- `_headers` 文件: **仅 Project Pages site 支持** (e.g. mykcs.github.io/content2html 是 user site = 不支持). user site (`mykcs.github.io/`) 也不支持. **未来 work**: 迁移到 custom domain (Project Pages) 或换 Netlify/Vercel.
+- `.well-known/` 路径: Astro 默认 404 handler 拦截. 修法 = 在 `astro.config.mjs` 加 `redirects: { '/.well-known/security.txt': '/security.txt' }` 或在 `public/security.txt` 直接放根目录 (不走 .well-known).
+
+**反模式 (claudecode 必避)**:
+- ❌ "git log shows commit, fix done" → 文件 on disk ≠ deployed, 必 curl verify
+- ❌ Round 11 audit 不跑 deployed behavior → P0 regression 漏到 Round 11 才 catch
+- ❌ 信任 "官方 docs 说支持 _headers" 不分 user vs project pages → GH Pages 分两类, 行为不同
+
+**联动**: §A.5 sub-provision #2 deployed behavior check, §L19 (4 站 CI gate), §L23 (orchestrator recovery).
 
 ---
 
