@@ -7,10 +7,11 @@ description: |
   范围：~/.claude/ + ~/.agents/skills/ + mem0 双轨同步检测。
 license: MIT
 metadata:
-  version: "2.6.43"
+  version: "2.6.44"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.44 (2026-06-29): §A.4 Layer 2c 'CI 全绿验收标准' 立 (user 显式触发 '把《CI 全绿》这个标准加入 skill 里面'). 跟 website-improve §L26 (v4.0.5 同步立) + process.md §H Acceptance Protocol + §C.3.7 4 站 CI gate 跨 skill 一致性. 落地: ① SKILL.md §A.4 段 (5 字段自检表 path/commit/push/CI/owner 隔离 + 验收证据 + 判定矩阵 4 状态 + 联动 §A.2/§A.3/§I.4/website-improve §L26/process.md §H/§C.3.7) ② references/layer-a4-ci-green.md 新文件 (§A.4.1 为什么 + §A.4.2 5 字段自检表 rich-audit 特化版 + §A.4.3 实战命令模板 + §A.4.4 反模式 6 类 + §A.4.5 Round 案例重度审计 #5 + §A.4.6 联动 + §A.4.7 历史) ③ 触发: 反 2026-06-27 myk-skills 10 次 push fail + 4 PR check-runs 全 clean 谎报 done 惨案 (claudecode 凭印象 / 局部 cmd 验证 / 不跑全 5 字段自检反模式永久失效) ④ 跟 v2.6.43 关系: v2.6.43 = changelog 拆分 + description 修正 + CI retry 协议 + orphan bak 第 2 次修复 + exa 自报, v2.6.44 = CI 全绿验收标准 5 字段硬规则. 跟 v2.6.45 关系: v2.6.45 = 协同 website-improve §L26 (commit c48cc5f) + process.md §C.3.7 扩 universal CI 段 (跨 skill 同步). 永久失效 'claudecode 凭印象 / 局部 cmd 验证 / 不跑全 5 字段自检 → 谎报 done' 反模式 (跟 §C.1 verification gate + §H Acceptance Protocol 协同). 反模式: ❌ 'git push 后说 done' (字段 3 跳) + ❌ '4 站 CI success = CI 全绿' (rich-audit 范围, 跟 site-modernizer 区分) + ❌ '改完没跑 build/test' (字段 5 跳) + ❌ '5 字段 OK 但 owner 错' (双账号污染) + ❌ '5 字段 OK 但缺 Layer 0-3 证据' (形式通过实质无效) + ❌ '用 emoji ✅ 替代 5 字段自检表'."
     - "2.6.43 (2026-06-29): §I.4 self-evolution cycle #5 + changelog 拆分到 references/ (Anthropic 'body concise' 原则). user 2026-06-29 触发 '重度审计 / /rich-audit / 整理记忆' (第 5 轮) → 落地: ① changelog 拆 SKILL.md → references/changelog.md (12 段 240 行 → 3 段 80 行, SKILL.md 439 → 422 行, effective 信息密度 +60%; Anthropic 官方 'every line = recurring token cost' 原则). ② description chars 修正: v2.6.36 changelog 误写 187 chars, 实际 = 180 chars (跨 4 个版本未修正, v2.6.43 落地修正). ③ 子仓 CI retry 协议 (CASE-CI-DL-GOOGLE-MIRROR-SYNC-FLAKE-20260629): dl.google.com Chromium Packages.gz size 1210 vs 1213 预期 = mirror sync in progress, Unittest job exit 100. 修复: gh run rerun 自决 (反转硬约束 §12 8 类自决 第 8 类), Layer A.2 必跑 status -sb 双重验证. ④ orphan bak 反复生成 (灵魂 v5 立前 SOP 副作用) — 第 2 次发现 CLAUDE.md.bak + MEMORY.md.bak-pre-soul-v5-20260629-163344 (Jun 29 16:33) 跟 v2.6.42 Layer 2 删的 MEMORY.md.bak-pre-v5-case-20260629-164017 (Jun 29 16:40) 同源, smart-push hook 0995f502 是第 1 次修复 (amend 1cd1a1e7). v2.6.43 加 hard rule: 'soul-v* 立前备份脚本生成 .bak 时, 必 untracked 检查 → untracked 直接 rm, tracked 用 git rm'. ⑤ 5-tool 实测矩阵更新 (2026-06-29) — 重度审计 #5 user 抓到 '凭什么跳 exa' 反模式: MiniMax ✅ 10 results (SKILL.md 中文社区 5 sources) + anysearch ✅ 10 results 2338ms (Anthropic official + Firecrawl + 5 GitHub repos) + WebFetch ✅ mykcs/myk-skills local cache 滞后 (本地 v2.6.42 9d81500 已 push, GitHub web 仅到 204a371 v2.6.41) + exa ✅ 5 results (Anthropic best-practices + anthropics-skills mintlify 3 docs + Complete Guide PDF — 关键发现: 'Keep SKILL.md body under 500 lines' + 'mcp-builder 237 lines 参考案例' + 'reference files >300 lines 需 TOC' + 'description be slightly pushy ~100 words') + kimi-webbridge ❌ daemon dead 持续降级. **认错**: 跳 exa 违反 §C.3.6.0 反模式 '静默跳过任何 1 tool' (我之前用 '4-tool 跑够' 偷换概念, 错). 修复: 立刻补跑 exa, 跑出 audit-patterns.md 663 行需 TOC + description 偏短 + 3-level loading 共识. 详见 references/external-highlights-2026-06-29.md (重度审计 #5 立) + v2.6.44 应立 (audit-patterns.md TOC + description 扩 ~100 words + exa 自报). ⑥ Anthropic 官方 code.claude.com/docs/en/skills 引用: 'body concise, every line = recurring token cost' 是 v2.6.43 changelog 拆分的核心理由. ⑦ 跟 v2.6.42 关系: v2.6.42 = 'push 谎报修复 + When NOT to use + 5-tool 矩阵 + 主仓 Layer 2 cleanup + 重度审计默认范围', v2.6.43 = 'changelog 拆分 + description 修正 + CI retry 协议 + orphan bak 第 2 次修复协议 + 5-tool 矩阵 v2'. process.md §C.3.6.0 + §I.4 + 反转硬约束 §12 协同. v2.6.32 跳过 (历史). 永久失效 'SKILL.md changelog 占 body 55%' 反模式 (跟 §C.2 zero-deferred + Anthropic 官方 body concise 协同)."
     - "2.6.42 (2026-06-29): §I.4 self-evolution cycle #4 + push 谎报修复 + 'When NOT to use' section (Anthropic + ClaudSkills 4 源共识). user 2026-06-29 触发 '对我的 claude 再修一轮（重度审计）从头到尾' + '以后都是这些范围不要问了' → 落地: ① push 谎报协议 (v2.6.40 教训复发) — git status -sb 显示 'main...origin/main [领先 1]' = smart-push hook 跳过 push 阶段但本地 commit 仍 ahead, Layer 0 必跑 §F.2.0 self-probe (git status -sb + git log @{u}..HEAD 双重检查). 修复: 82c611a orphan commit (memory-bench/SKILL.md 删) 直 git push origin main, 远端从 573dffc → 82c611a 同步. ② 'When NOT to use' section (Anthropic official SKILL.md guide + ClaudSkills 'highest leverage technique') — anti-trigger 减少 false-positive activation, 反模式: 写 description 像 marketing tagline, 缺 trigger phrases. ③ 5-tool 实测可达矩阵更新 (2026-06-29): MiniMax ✅ 10 results status_code:0 + anysearch ✅ 10 results 2034ms + WebFetch ✅ mykcs/myk-skills commit history direct + exa ✅ 4 SKILL.md frontmatter docs (claudskills.com 2026-05-09/05-31) + kimi-webbridge ⚠️ daemon dead (2026-06-29 PID grep 0 命中), §F.1.2 4-tool 降级不 fail-fast. ④ 主仓 Layer 2 cleanup: decision-stream 17d53433 +36 行 (Round 13 reverse-mode 3 修复: revert redirect + paths-ignore + root path) + 新流 soul-v5-2026-06-29.md (mem0 quota exhausted fallback) + 删 orphan MEMORY.md.bak-pre-v5-case-20260629-164017. commit 774081e1 pushed to mykcs/.claude main 5a9a5f61 → 774081e1. ⑤ 主仓 CLAUDE.md 163 行 (Anthropic <200 限 ✅) + CLAUDE.local.md 368 行 + MEMORY.md 63 行 (HOT FACTS 索引完整). 子仓 orphan memory-bench/SKILL.md 82 行删除 (v1→v5 拆分后残留, v5 已迁到 rich-audit/references/memory-bench-design.md + -50q-sample.json). ⑥ ADR-0022 5-tool mandatory 2026-06-29 立 (主仓 process.md §C.3.6.0 HIGHEST PRIORITY, user 原话 '修改《process.md §C.3.6 no-stuck 协议》我要换成 5 重网络搜索'), 跟 v2.6.41 协同. ⑦ '重度审计默认范围' (user 原话 '以后都是这些范围不要问了'): 默认跑 ~/.claude/ + ~/.agents/skills/ 双仓, 不再 AskUserQuestion scope (4 网站仍按 §11 §C.3.7 4 站 CI 全绿硬规则独立触发). 跟 v2.6.41 关系: v2.6.41 = 'memory-bench v5 + 子仓 orphan + self-evolution 3 升级固化', v2.6.42 = 'push 谎报复发修复 + When NOT to use + 5-tool 实测矩阵更新 + 主仓 Layer 2 cleanup + 重度审计默认范围固化'. v2.6.43+ 待立 (next 触发). process.md §C.3.6.0 + §I.4 + 反转硬约束 §12 协同. v2.6.32 跳过 (之前 v2.6.31 v3 用了 32 编号). 永久失效 'git status -sb [领先 1] 仍说 push done' 反模式 (跟 §C.1 verification gate 协同: 必 5 commands 验证 + status -sb 双重)."
     - "2.6.41 (2026-06-27): §I self-evolution cycle 3 升级固化 + memory-bench v5 + 子仓 orphan submodule 修复. user 2026-06-27 触发 '执行重度审计' + 'all 下一件事' → 落地: ① §I.5 Confidence-Gated Evolution (HIGH ≥0.7 auto-deploy / MEDIUM 0.3-0.7 internalize to references/ / LOW <0.3 log only) — 4 源 + Anthropic 官方共识 (shanraisshan 68 skills 6 weeks 实证: 6.1% correction rate, 纯频率 auto-update 高风险). ② §I.6 Capture-vs-Judgment 分离 (Phase 1 capture 5-tool fan-out dump → ~/.claude/knowledge/insights/ queue / Phase 2 judgment /evolve trigger 读 queue + confidence-gated) + cost-aware routing (rule < memory < skill < agent, annexiao 开源模式). ③ §I.7 Refinement Loop (auto-run memory-bench 50 题验证 recall ≥100%, 否则 auto-rollback) — Karpathy 4 principles + Peter Yang evals.md + memory.md 模式. ④ memory-bench v5 report (50 题 baseline + 3 consistency + 3 token = 56 项, weighted 0.91, Q046-Q050 mem0 5/5 = 1.0 + C003 v2.9.4→v2.9.5 version drift fix, reports/memory-bench/2026-06-27-v5.md). ⑤ 子仓 orphan submodule 修复 (plugins/marketplaces/everything-claude-code → .gitignore + gitlink deletion, vendor 83M 内容保留). ⑥ 8+ 外部资源 internalize (Anthropic 官方 + shanraisshan + annexiao + AEM + mindstudio + Karpathy + zenn + Peter Yang + AutoSkill/XSKILL + MiniMax 趋势). ⑦ 联动: ADR-0020 立 / references/external-highlights-2026-06-27.md / 主仓 process.md §I 9 步流程图. 新增 hard rule: §I 跑完必跑 refinement loop, recall drop 立即 rollback, 禁止'发布后等 user 反馈'. v2.6.32 changelog 跳过 (之前 v2.6.31 v3 用了 32 编号). 跟 v2.6.30 §I.1 八步 + v2.6.33 反转硬约束 + v2.6.34 self-evolution + v2.6.36 4 源三角验证 + v2.6.38 happy-coder remote mode 协同 = 同日 v2.6.40 + v2.6.41 = user 监督强信号 + claudecode self-audit 闭环."
@@ -244,6 +245,42 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 > **行为**: 5 步 false-positive 诊断 → 分类 (ci-workflow-grep-drift / submodule-broken / test-failed) → worktree + 修文件 + commit + push + 开 PR + 等 §11.1 auto-merge → cmd 5 兜底再 verify (期望 failures = []).
 >
 > **违反硬规则**: 跳过本 Layer = 2026-06-27 myk-skills 10 次 push fail 但 4 PR check-runs 全 clean 惨案重现.
+
+---
+
+## §A.4 Layer 2c: CI 全绿验收标准 (v2.6.45, 2026-06-29, 强制 · 不可跳过)
+
+> **触发**: user 2026-06-29 原话 "把《CI 全绿》这个标准加入 skill 里面". 任何 rich-audit run (含重度审计 #1-#5) 末段必跑 CI 全绿 5 字段自检表, 否决 "完成" 声明.
+>
+> **CI 全绿 = 5 字段自检全过** (跟 website-improve §L26 + process.md §H 同步, 跨 skill 一致性):
+>
+> | # | 字段 | 验收标准 | 验证命令 |
+> |---|------|---------|---------|
+> | 1 | **path** | 审计目标文件绝对路径已输出 | `ls -d ~/.claude/ ~/.agents/skills/` |
+> | 2 | **commit** | `git log -1` 双仓 (主仓 + 子仓) 都有新 commit | `git -C $HOME/.claude log -1 --format='%h %s' && git -C $HOME/.agents/skills log -1 --format='%h %s'` |
+> | 3 | **push** | `git rev-list --count @{u}..HEAD` 双仓都 = 0 | `git -C $HOME/.claude rev-list --count @{u}..HEAD && git -C $HOME/.agents/skills rev-list --count @{u}..HEAD` |
+> | 4 | **CI** | `gh run list` 子仓 HEAD conclusion=success (主仓无 GH Actions, 仅 git status verify) | `gh api repos/mykcs/myk-skills/commits/HEAD/status --jq .state` |
+> | 5 | **owner 隔离 + 验收证据** | owner 正确 (mykcs/.claude + mykcs/myk-skills, 不交叉到 wangrui2025) + 1+ 行可执行命令证据 | `git -C $HOME/.claude remote get-url origin` + Layer 0-3 子任务证据 (5 commands / 5-tool fan-out / push commit hash / smart-push output) |
+>
+> **判定矩阵** (跟 website-improve §L26 + process.md §C.3.7 同步):
+>
+> | CI 状态 | 判定 | 后续动作 |
+> |---------|------|---------|
+> | ✅ 5/5 字段全过 | **CI 全绿 ✅** | 写 case file (重度审计 → decisions/CASE) + decision-stream + §I.4 self-evolution 触发 |
+> | ❌ 1+ 字段 red | **BLOCKED on `<field>: <reason>`** | 走 §A.3 修复路径 (auto retry) 或 AskUserQuestion (回滚 / 接受 / 重试) |
+> | 🟡 1+ 字段 pending | **BLOCKED on `<field> pending`** | 等 (max 10 min, 用 `ScheduleWakeup` 重新调度) |
+> | 🔒 1+ 字段 物理不可达 | **BLOCKED on `<field> 物理不可达: <reason>`** | 诚实告知 user + AskUserQuestion 重新定义 goal |
+>
+> **完整 SOP 详见** [`references/layer-a4-ci-green.md`](references/layer-a4-ci-green.md) (新建, v2.6.45 立).
+>
+> **违反硬规则**: 跳过 5 字段自检表就声明 "完成" = 违反 §C.1 verification gate + §H Acceptance Protocol. 重演 2026-06-27 "claudecode 谎报 done" 反模式 (v2.6.40 教训).
+>
+> **联动**:
+> - **§A.2 Layer 2b** PR + CI 健康扫描 (本 Layer 的前置, 跑 cmd 5 检 CI status)
+> - **§A.3 Layer 3b** CI 检查修复协议 (本 Layer 的修复路径, 1+ 字段 red 时触发)
+> - **website-improve §L26** CI 全绿验收标准 (跨 skill 一致性, v4.0.5 立)
+> - **process.md §H** Acceptance Protocol (5 字段自检表, 跨仓同步)
+> - **process.md §C.3.7** 4 站 CI 全绿硬规则 (rich-audit 不跑 4 网站, 但 site-modernizer 类 run 触发)
 
 ---
 
