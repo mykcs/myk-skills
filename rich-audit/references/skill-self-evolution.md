@@ -202,6 +202,118 @@ ADR_FILE="$HOME/.claude/docs/adr/${ADR_NEXT}-<topic>.md"
 
 **真实案例**: v2.6.33 反转硬约束 → ADR-0020 (待写, 本次 session 自决任务清单)
 
+### §F.4.1 完整端到端案例: MiniMax key rotation v3 → v4 (2026-06-30, 跨 2 session)
+
+**触发**: user 原话 "修复 mcp__MiniMax__web_search 仍 2049 (key 失效, 跳过)" — mcp 工具返 2049 invalid api key, claudecode 误判 stale snapshot, 实际服务端物理失效.
+
+**§F.1 失败案例自审** (4 维 evidence + 5 失败路径):
+
+| Evidence | 工具 | 判定 |
+|----------|------|------|
+| 直 curl 老 key | `curl -X POST .../v1/text/chatcompletion_v2` | 2049 (服务端拒) ❌ |
+| 新 key 直 curl | 同上 | 200 + Pong! ✅ |
+| mcp__MiniMax__web_search | 上一条 session (46186) | 2049 (snapshot 永久, v3 假设) |
+| mcp__MiniMax__web_search | 新 session (本 session) | 10 results (status_code 0, v4 实测 reload ✅) |
+| .claude.json | grep -o key | 119 chars 新 key 真值 |
+
+**5 失败路径** (claudecode 凭印象做事):
+1. mem0 filter 格式错 2 次 (`{AND: [...]}` 嵌套)
+2. curl `-w "%{http_code}"` 仅看 HTTP 200, 误判 body 2049
+3. cross-session-grep 6 件套**立前跳过** (立 case 后才跑, 顺序错)
+4. Bash 调 `mcp__MiniMax__web_search` (误把 mcp 工具当 bash 命令)
+5. v3 假设 "mcp 端点 snapshot 永久 / 跨 session 不行" — 错, 实测 mcp 进程 per-session respawn, 跨 session (新 session 启动) = mcp respawn = reload 立即生效
+
+**§F.2 反模式沉淀**:
+
+- ❌ `curl -s -o /dev/null -w "%{http_code}\n"` 单查 HTTP status (MiniMax 业务 status_code 嵌 body `base_resp.status_code`)
+- ❌ 改 .claude.json mcpServers env 后误判 mcp reload 时机 (同 session 内部不 reload, 跨 session 自动 reload)
+- ❌ 立 case 假设 "永久 / 硬约束" 跑 Read + 实测 (v3 §硬约束 段错位)
+- ❌ 跨 protocol 链路 (mcp / HTTP / shell) 不三路并行 verify
+- ❌ 修订 v3 原文代替 v4 增量修正 (违反 case library 不可变性)
+
+**§F.3 changelog 更新** (4 file 同步):
+
+| 文件 | 改动 | 详情 |
+|------|------|------|
+| `~/.claude/knowledge/cases/wiki/CASE-MINIMAX-KEY-ROTATION-V3-20260630.md` | 新立 | 195 lines / 4 失败路径 / 5 IF...THEN / 1 协议级反模式 |
+| `~/.claude/knowledge/cases/wiki/CASE-MINIMAX-KEY-ROTATION-V4-20260630.md` | 新立 (v4 增量) | 244 lines / 4 维 evidence / 5 IF...THEN / 2 协议级反模式 / v3 §硬约束 修正 |
+| `~/.claude/docs/adr/0026-curl-body-vs-status-code.md` | 新立 | 117 lines / HTTP 200 ≠ 业务成功 / MiniMax 5 字段 (0/2049/1004/1008/1033) |
+| `~/.claude/docs/adr/0027-adr-namespace-resolution.md` | 新立 | 127 lines / 整数 slot 00NN + sub-slot 00NN-a/b (max 2) + 跳号 0014-0015 保留 |
+| `~/.claude/CLAUDE.local.md §9` | 改 | mcp__MiniMax__web_search 行 v3 → v4 假设错位修正 |
+| `~/.claude/CLAUDE.local.md §18` | 改 | verify-before-act 4 维 (file 存在 / path 正确 / 内容匹配 / 改动范围 ≤ 预期) — v3 v4 双重 verify |
+| `~/.claude/rules/process.md §A.1.5` | 改 | 加 ADR-0026 反模式 + 外部 API call 必读 body 协议 |
+| `~/.claude/memory/api-status-codes.md` | 新立 (adapter) | 150 lines / provider MiniMax / Anthropic / OpenAI / Gemini / OpenRouter |
+| `~/.claude/memory/adr-namespace.md` | 新立 (adapter) | 113 lines / 整数 slot + sub-slot + 跳号 保留 |
+| `~/.claude/decision-stream/2026-06-30-minimax-key-rotation-v3-abc-closure.md` | 新立 | 12 decisions / 4387 → 6406 bytes |
+| `~/.claude/backups/.claude.json.pre-minimax-rotate-v3-1782814337.json` | 新立 (备份) | 48133 bytes (atomic edit 前) |
+
+**§F.4 ADR 落地** (3 个 ADR 跨子仓 + 主仓):
+
+- **ADR-0026 curl body vs status_code**: 跟 v3 case 同源, 4 case 同源沉淀 (CASE-MINIMAX-KEY-ROTATION-V3 + CASE-FORCE-ALL-SEARCH-REALITY-ALIGNMENT-20260624 + CASE-RICH-AUDIT-A.1.5-SCOPE-FACT-CHECK-20260627 + CASE-PROTECTED-PATH-EDIT-BYPASS-20260627)
+- **ADR-0027 ADR 命名空间规约**: 跟 v2.6.47 frontmatter audit 同模式 (现状 grep 6 件套 必跑), 立新 ADR 必跑 `ls ~/.claude/docs/adr/ | sort | tail -10`
+- **ADR-0028 (备选)**: mcp reload 协议沉淀 (v4 case §"立 mcp reload 协议 3 步" 待立), 跨 session lifecycle 强耦合
+
+**§F.5 实战命令模板** (端到端 5 步, **本案例**完整流程):
+
+```bash
+# Step 1: 诊断 (直 curl 物理可达, 跑 mcp 工具)
+curl -s -X POST "https://api.minimaxi.com/v1/text/chatcompletion_v2" \
+  -H "Authorization: Bearer $OLD_KEY" \
+  -d '{"model":"MiniMax-Text-01","messages":[{"role":"user","content":"ping"}]}' | head -c 300
+
+# Step 2: 4 维 self-verify per CLAUDE.local.md §18 (改 .claude.json 前)
+cp -p ~/.claude.json ~/.claude/backups/.claude.json.pre-minimax-rotate-vN-$(date +%s).json
+python3 -c "import json, pathlib; p=pathlib.Path.home()/'.claude.json'; d=json.loads(p.read_text()); d['mcpServers']['MiniMax']['env']['MINIMAX_API_KEY']='$NEW_KEY'; t=p.with_suffix('.tmp'); t.write_text(json.dumps(d,indent=2)); t.rename(p)"
+
+# Step 3: 验证 (直 curl 物理可达, 不依赖 mcp 协议)
+curl -s -X POST "https://api.minimaxi.com/v1/text/chatcompletion_v2" \
+  -H "Authorization: Bearer $NEW_KEY" \
+  -d '{"model":"MiniMax-Text-01","messages":[{"role":"user","content":"ping"}]}' | head -c 200
+
+# Step 4: 立 case + ADR + cross-file sync (走 PR + worktree, per §11)
+git -C "$HOME/.claude" worktree add "$HOME/.claude/.worktrees/2026-06-30-minimax-key-rotation-vN" -b feat/minimax-key-rotation-vN main
+# ... 改 file + commit + push + gh pr create ...
+
+# Step 5: decision-stream 落地 (per calm-flow §4 schema)
+echo "decision-stream file 落地 (12 decisions, per calm-flow §4)"
+```
+
+**§F.6 反模式** (本案例新增 5 类, 跟 v2.6.43 跨期沉淀):
+
+- ❌ 误把 mcp 端点 "snapshot 永久" 假设写进 case (跟 v3 假设错位同源)
+- ❌ 改 .claude.json mcpServers env 后, 误判 mcp reload 时机
+- ❌ 立 case 假设 "永久 / 硬约束" 跑 Read + 实测 (v3 §硬约束 段错位)
+- ❌ 跨 protocol 链路 (mcp / HTTP / shell) 不三路并行 verify
+- ❌ 修订 v3 原文代替 v4 增量修正 (违反 case library 不可变性)
+
+**§F.7 完整流程图** (本案例 + 跨 2 session 演进):
+
+```
+Session A (v3 立, 22:30 PT)
+  ├─ mcp__MiniMax__web_search 返 2049 (v3 假设: snapshot 永久)
+  ├─ 直 curl 老 key 返 2049 (server-side invalid)
+  ├─ user 提供新 key → atomic edit .claude.json
+  ├─ 立 CASE-MINIMAX-KEY-ROTATION-V3 (195 lines, 4 失败路径 + 5 IF...THEN)
+  ├─ 立 ADR-0026 (117 lines, curl body vs status_code)
+  ├─ 立 ADR-0027 (127 lines, namespace rule)
+  ├─ 4 file sync: CLAUDE.local.md §9 + §18 + process.md §A.1.5 + memory 2 adapter
+  ├─ 3 PR (PR #12 #13 #14) all merged
+  └─ decision-stream 12 decisions 落地
+
+[user session restart]
+
+Session B (v4 实测, 23:10 PT)
+  ├─ mcp__MiniMax__web_search 返 10 results (v4 实测: mcp respawn 自动 reload)
+  ├─ 直 curl 新 key 返 200 + Pong! (跟 mcp 协议无关, 物理可达)
+  ├─ mcp__anysearch__web_search 返 2 results (chardet 修复生效)
+  ├─ 立 CASE-MINIMAX-KEY-ROTATION-V4 (244 lines, 4 维 evidence + 5 IF...THEN + 2 协议级反模式)
+  ├─ CLAUDE.local.md §9 改 v3 假设错位修正
+  ├─ PR #16 merged (commit 2b47161c → d66969ed)
+  └─ 立 §F.4.1 本案例段 (v2.6.50 bump) ← 当前 step
+
+[合并整套修复方法到 rich-audit skill]
+```
+
 ---
 
 ## §F.5 实战命令模板 (skill self-evolve 完整流程)
