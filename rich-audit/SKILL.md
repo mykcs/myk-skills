@@ -4,7 +4,7 @@ description: |
   三层进化系统：审计（发现问题）→ 修复（解决问题）→ 进化（主动获取外部先进知识并应用）。
   双模审计：Claude Code 配置审计（~/.claude/ + ~/.agents/skills/ 双仓）+ Python/ML 项目审计。
   触发词：rich审计, /rich-audit, 进化, 重度审计, deep audit, full audit, 整体审计, audit self-evolution, skill audit, 重版, 完整重版, 重度审计重版, frontmatter audit (v2.6.47 立, 必跑 sub-task 6/6, 4 字段修正: 15 fields 含 license / name 1-64 chars + no leading-trailing-consecutive hyphens / 1,536 chars cap 是 chars 不是 tokens / website-improve 1577 chars 超 cap 41 标 PENDING), shell unified check (v2.6.48 立, 必跑 sub-task 7/7, fish + bash + zsh 配置漂移 / plugin 覆盖率 / prompt style 一致度 3 维度, 用 ~/.claude/scripts/shell-unified-check.py), SKILL.md 1,536 char cap frontmatter audit (取消 "轻量版/快速版/速通版" 关键词, v2.6.46 立).
-  5 Layer：Layer 0 5 commands verification gate / Layer 1 全栈 5 sub-task audit / Layer 2 cleanup orphan / Layer 3 5-tool parallel fan-out (MiniMax + anysearch + WebFetch + exa + kimi-webbridge) + 8+ 资源 / Layer A.2-A.3 §C.3.7 4 站 CI 全绿 + §A.4 5 字段自检表 (path/commit/push/CI/owner)。I.4 self-evolution cycle 8 步循环。
+  5 Layer：Layer 0 5 commands verification gate / Layer 1 全栈 6 sub-task audit / Layer 2 cleanup orphan / Layer 3 5-tool parallel fan-out (MiniMax + kimi-webbridge + anysearch + WebFetch + exa) + 8+ 资源 / Layer A.2-A.3 §C.3.7 4 站 CI 全绿 + §A.4 5 字段自检表 (path/commit/push/CI/owner)。I.4 self-evolution cycle 8 步循环。**5-tool 顺序 per process.md §F.1 + ADR-0025 一致化审计标准 (kimi-webbridge 第 2 位, 跟 mcp__MiniMax__web_search 紧邻, 反映 "中文语义 + 真浏览器" 双维度起手)。**
   **重版约束 (v2.6.46)**: 默认跑完整重版 (≥ 30 min), 必跑 memory-bench 50 题 baseline (per process.md §C.3.3, ~3h) + 6 sub-task 全跑 (file size / cross-source dup / case library / orphan / frontmatter audit / shell unified check) + 5-tool fan-out 抓 8+ 资源 internalize. 任何 "轻量版/快速版" 触发都是 false completion 反模式, 必走 §C.2 deferred-detector 拦截. user 2026-06-30 显式授权.
   不适用：单文件 typo (Edit) / 文档微调 (Write) / 非 ~/.claude/ 路径项目 (用 website-improve 或 devfleet) / 想要快速版/轻量版 (拒绝, 走轻量 skip-marker 用户必问, 不可静默).
   反模式必避：❌ 凭印象/局部 cmd 验证/不跑 5 字段自检表 → 谎报 done (v2.6.40 教训) / ❌ 静默跳过任 1 tool (kimi-webbridge daemon dead 走 §F.1.2 4-tool 降级, 不退化到 0-tool) / ❌ reference file >100 行无 TOC (Anthropic 官方 threshold, audit-patterns.md 664 行已加 v2.6.45) / ❌ description 写得像 marketing tagline 缺 trigger phrases / ❌ 跳过 memory-bench 50 题 + 5 sub-task 跑 "轻量版" (v2.6.46 立, user 显式触发, 跟 §C.5 false completion 协同).
@@ -153,7 +153,7 @@ user-invocable: true
 |------|----------------|
 | 用户未指定工作区，但当前 cwd 在 `~/Repo/xxx` 下且有 Python 项目 | 在 "条件范围" 一行追加：当前 cwd = `$(pwd)` |
 | 用户明确指定了"只审计 X" | 将"目标文件夹"章节替换为用户指定的 X，其他保持默认 |
-| 用户说"全面审计" / "深度审计" | 在 "Layer 3 进化层" 标注 `深度模式：3-tool cascade (minimax → kimi-webbridge → anysearch) + 2 次 Context7` |
+| 用户说"全面审计" / "深度审计" | 在 "Layer 3 进化层" 标注 `深度模式：5-tool parallel fan-out (MiniMax + kimi-webbridge + anysearch + WebFetch + exa, per process.md §F.1 + §F.1.2 降级矩阵) + 2 次 Context7 (补充官方文档验证, 不替代 5-tool)` |
 | mem0 MCP 不可用 | 在 "关联范围 2" 后追加警告：`⚠️ mem0 MCP 不可用，L3 记忆对齐将降级为 L1/L2 双轨` |
 
 **反例（禁止）**：
@@ -297,7 +297,7 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 >
 > **触发**: rich-audit 跑完 Layer 1-3 + Layer A.2-A.3 + Layer I.1 之后, **必须**对 rich-audit skill 自身跑一次 self-evolution (扫本 session 失败案例 + **5-tool fan-out 4 源三角验证 (v2.6.35 强制)** + 反模式沉淀 + 4 处同步 + ADR 落地).
 >
-> **行为**: §F.1 自审本 session → **§F.2.0 必跑 5-tool fan-out (MiniMax + anysearch + WebFetch + exa + kimi-webbridge, per process.md §F.1.2 降级矩阵)** → §F.2.1 Edit SKILL.md → §F.3 bump version + 4 处同步 → §F.4 新决策写 ADR → §F.5 smart-push + 5 commands + cmd 5 兜底 verify.
+> **行为**: §F.1 自审本 session → **§F.2.0 必跑 5-tool fan-out (MiniMax + kimi-webbridge + anysearch + WebFetch + exa, per process.md §F.1 + §F.1.2 降级矩阵 + ADR-0025 一致化)** → §F.2.1 Edit SKILL.md → §F.3 bump version + 4 处同步 → §F.4 新决策写 ADR → §F.5 smart-push + 5 commands + cmd 5 兜底 verify.
 >
 > **违反硬规则**: 跳过本 Layer = 2026-06-27 session v2.6.33 反转硬约束 (claudecode 反复问 user 可逆操作) 惨案重现. 跳过 §F.2.0 5-tool fan-out = claudecode 凭记忆写 SOP, 跟 process.md §F.1 主协议 drift.
 
