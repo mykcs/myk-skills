@@ -1,25 +1,22 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill (v4.0.5 — Round 15 沉淀 + §L26 CI 全绿验收标准).
-  - **v4.0.5 架构**: 加 §L26 "CI 全绿" 验收标准 (5 字段自检表: path / commit / push / CI / owner 隔离). 跟 process.md §H Acceptance Protocol + §L19 4 站 CI gate + §L25 deployed-layer verify 全部同步. 触发: user 2026-06-29 原话 "把《CI 全绿》这个标准加入 skill 里面".
-  - **v4.0.4 架构**: Round 10-11 验证后加固. 新增 §L22 Subagent Tool Provisioning (Phase 0 ToolSearch 必跑 + 治本 subagent stall). §L23 Orchestrator Recovery SOP (subagent stalled 时检测已 commit 文件 + manual `git push` + rebase fallback). §L24 Stall Heartbeat Check (每 5min 检测 subagent transcript mtime, 静默 >10min trigger recovery). §L25 Deployed-Layer Verify Protocol (Round 11 发现 2 个 P0/P1 regression: mysite security.txt + content2html _headers — 文件存在但 GH Pages user/org site 不 serve; 必须 curl live URL 验证, 不只 source grep).
-  - **v4.0.3 架构**: 1 个 user intent → 内部 sweep 4 sub-mode (Check + Improve / Astro build / Project page / Multi-site fan-out), sub-mode 是阶段不是选项. 默认 4 sites (mykcs+GDKVM+OSA+content2html). v4.0.1 加 L19 CI 4 站全绿硬规则 + L20 fix-validate-build. v4.0.2 加 L21 Pre-flight Declaration Protocol (每次跑前必输 7 段). v4.0.3 加 L21 反转通道 (user 显式反转 → claudecode 不等 OK 直接执行).
-  - **Sub-mode A (Check + Improve)**: 默认必跑, 任何 website intent 都跑 — 含 SEO/a11y/i18n/build/ci/security 全维度
-  - **Sub-mode B (Astro build)**: Astro 项目自动跑 — 含 build pipeline / Tailwind v4 / deploy platform
-  - **Sub-mode C (Project page)**: 触发词 / DESIGN.md 检测命中时跑 — 含项目模板 / 学术资产
-  - **Sub-mode D (Multi-site fan-out)**: sites ≥ 2 或触发词命中时跑 — wall-clock = slowest site
-  这是网站相关工作的唯一入口，替代 site-modernizer、publishing-astro-websites、sync-all-sites 等分散 skill.
+  一站式网站改进 skill (v4.0.6 — description 裁剪 + kimi-webbridge 协议位同步).
+  触发: 用户说"改网页/提升网站/网站优化/site-improve/website/网站/4 站/4 sites/multi-site"或 sites ≥ 2 自动触发.
+  Sub-mode A (Check + Improve) / B (Astro build) / C (Project page) / D (Multi-site fan-out) — sub-mode 是阶段不是选项, 默认 4 sites (mykcs+GDKVM+OSA+content2html).
+  L19 4 站 CI 全绿硬规则 + L20 fix-validate-build + L21 pre-flight + L22 ToolSearch + L23 recovery SOP + L24 heartbeat + L25 deployed-layer curl verify + L26 CI 全绿验收标准.
+  不适用: 单文件 typo / 文档微调 / 跟网站无关的 bug 修.
+  反模式: ❌ 4 站 CI red 仍说 done / ❌ 改 package.json 没重生成 lockfile / ❌ 跳过 pre-flight declaration.
 license: MIT
 metadata:
-  version: "4.0.5"
+  version: "4.0.6"
   author: mykcs
   category: web-development
   changelog:
+    - "4.0.6 (2026-06-30): description 字段大幅裁剪 (592 chars ≤ 1536 cap, 之前 v4.0.5 是 5562 chars 超 cap 4026 chars). 同时协议位同步: kimi-webbridge 协议位反转 per ADR-0030 (skill + daemon → MCP server via stdio npx kimi-webbridge mcp). 触发: user 2026-06-30 反馈 '不要每次 A/B/C/D 来回点' + 5-tool fan-out 5/5 (3 降级, exa 顶替) 命中 AkagiYui/kimi-webbridge-mcp. 跟 rich-audit v2.6.49 description 'split in two' (combined 1184 chars ≤ 1536 cap) 跨 skill 一致. 联动: ADR-0030 + CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 13."
     - "4.0.5 (2026-06-29): §L26 CI 全绿 验收标准. user 显式要求 '把《CI 全绿》这个标准加入 skill 里面'. 5 字段自检表 (path / commit / push / CI / owner 隔离 + 验收证据) + 4 站 CI 验证模板 + 4 个 edge cases (red/pending/物理不可达) + Round 15 验证案例. 跟 process.md §H Acceptance Protocol + §L19 4 站 CI gate + §L25 deployed-layer verify 全部同步. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10-15 完整 6 轮 timeline + user 2026-06-29 原话触发."
     - "4.0.4 (2026-06-29): §L22-L25 治本 Round 10-11 暴露的 4 类问题. (1) §L22 Subagent Tool Provisioning — Phase 0 ToolSearch 必跑 + 治本 subagent stall (Issue #60237 frontmatter tools 静默 drop + Issue #49150 Task 无 timeout). (2) §L23 Orchestrator Recovery SOP — subagent 报 stalled 时, 检测磁盘已 commit 文件 + manual `git push` + rebase fallback (work product on disk 范式 per Issue #49150 #3). (3) §L24 Stall Heartbeat Check — 每 5min 检测 subagent transcript mtime, 静默 >10min 自动 trigger recovery (Issue #49150 #2 heartbeat protocol). (4) §L25 Deployed-Layer Verify Protocol — Round 11 发现 2 个 P0/P1 deployed-layer regression: mysite security.txt on disk but 404 served (Astro .well-known handler intercept) + content2html _headers not served (GH Pages user/org site 不支持, 仅 Project Pages 支持). 必 curl live URL 验证, 不只 source grep. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10 + Round 11."
     - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
-- "4.0.2 (2026-06-27): §L21 Pre-flight Declaration Protocol (强制). 每次 website-improve run 启动时必输出 7 段 pre-flight declaration (审计目标 / 目标文件夹 / Sub-mode sweep 计划 / 预期耗时 / 完成标准 / 风险自检 / 决策流锚点). 跟 §L19 (4 站 CI 全绿) + §L20 (fix-validate-build) 联动. Source: user 2026-06-27 原话 '修改网页提升 skill, 每次跑之前都要这样预声明一次' — 把 rich-audit pre-flight declaration 模式内化进 website-improve. 同时替换原有 3 要素启动声明 → 5 要素 + 预声明模板."
 - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
     - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
     - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."

@@ -10,7 +10,7 @@
 | 工具 | 角色 | 优势 | 局限 |
 |------|------|------|------|
 | `mcp__MiniMax__web_search` | primary, fast API | 大批量 query | 无浏览器 |
-| `kimi-webbridge` | real browser | 抓登录/动态/issue 评论 | 慢, 需 daemon running |
+| `kimi-webbridge` | MCP server (stdio, npx kimi-webbridge mcp) | real browser 抓登录/动态/issue 评论 | 慢, 需 daemon (Chrome ext) running + Desktop mcpServers 配置 |
 | `anysearch` | cross-validate | 多源, 23 垂直域 | API key 限流 |
 | `WebFetch` | direct URL fetch | 读单 URL 全文 | 需已知 URL |
 | `exa` (`mcp__exa__web_search_exa` + `mcp__exa__web_fetch_exa`) | **combo: search + fetch** | 算法/索引独立 (跟 MiniMax 不重叠), content extraction 干净 | API 配额 |
@@ -58,7 +58,7 @@
 
 **检测方法**: 启动 Phase A 前必须枚举 `available_tools` (MCP 注册表), 对照 5-tool 必需清单:
 - `mcp__MiniMax__web_search` ✓
-- `kimi-webbridge` (MCP skill 注册名: `kimi-webbridge`) ✓
+- `kimi-webbridge` (MCP server via stdio: `npx kimi-webbridge mcp`, Desktop mcpServers.webbridge 注册名: `webbridge`) ✓
 - `anysearch` (MCP skill 注册名: `anysearch`) ✓
 - `WebFetch` (Claude Code 内置 tool) ✓
 - `exa` (MCP 注册名: `mcp__exa__*`; 2 endpoints: `web_search_exa` + `web_fetch_exa`) ✓
