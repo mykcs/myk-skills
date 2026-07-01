@@ -19,6 +19,7 @@ metadata:
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.54 (2026-07-01): §A.5 显式输出协议立 (user 原话 '使用技能重度审计的时候，做了什么，修复了什么，要很明显的输出出来'). 5-tool fan-out 4 源三角验证 (Anthropic code.claude.com 'Output Format' 必填 + anysearch mindstudio/leehanchung/AEM/claudskills 4 源共识 'structured section' + WebFetch Anthropic best-practices 'Code Review Summary / Critical Issues' 模板 + exa majiayu000/fix-reporter 实战 5 段 'Module name/Symptom/Root cause/Solution/Prevention' + claude-code issue #34610 /recap 5 段 '项目/分支/做了什么/commits/deployments/open items') 5 源全部要求: output 必含结构化 section. 落地: ① SKILL.md 输出格式段 v2.6.24 → v2.6.54 强化 (精简模式 + 详细模式都加 5 段 emoji 标识 🛠️做了什么 / 🔧修复了什么 / ⚠️跳过了什么 / 📊数据 / ✅验收证据, 放最前, user 一打开就看到) ② SKILL.md §A.5 新立 (跟 §A.1-A.4 平行, Layer 5 强制, 5 段强制标识表格 + 触发条件 + 必填内容 + 精简/详细模式 cross-ref + 6 反模式 + 8 段联动). 5 段 emoji 标识 SoT = Anthropic 官方 + claude-code /recap issue 共识. 跟 §I.4 self-evolution 关系: §A.5 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 4 个端到端案例, 第 1 个 'user 反馈 → 显式输出协议' 案例). 永久失效 'rich-audit 输出只写 ## 状态/## 注意/## 修复清单 段' 反模式 (跟 2026-07-01 user 原话 + v2.6.46 重版约束 + v2.6.50 §F.4.1 + v2.6.51 §F.4.2 + v2.6.53 §F.4.3 协同). 跟 §C.3.6.0 5-tool 必跑条款关系: v2.6.54 立触发立 5-tool fan-out 4 源三角验证 (实测 5 tool 全跑通: MiniMax 10 results status_code:0 + anysearch 10 results 3159ms + WebFetch Anthropic code.claude.com 200 + exa 5 results Anthropic best-practices + 4 源 GitHub). 5 段标识 必填内容 cross-ref: 🛠️ 联动 §I.4 self-evolution 8 步 + 🔧 联动 §A.2 commit hash + §A.3 gh run rerun + ⚠️ 联动 §C.2 deferred-detector exit 0 + 📊 联动 §C.3.6.0 5-tool 跑通数 + ✅ 联动 §H 5 字段自检表."
     - "2.6.54 (2026-07-01): §F.4.4 memory 写入协议 v2 案例沉淀 (本体优先 + mem0 后写 + queue 失败兜底 + hook 真做事 retry+1). user 2026-07-01 10:50 PT 反馈 'MCP 额度用完 → 什么都写不进去 → 本体也没存' + '把这个修复提升合并到技能重度审计里面' 触发. 落地: ① references/skill-self-evolution.md §F.4.4 新立 (跟 §F.4.1/§F.4.2/§F.4.3 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ② SKILL.md version 2.6.53 → 2.6.54 + 加 changelog 段 (跟 v2.6.46/50/51/53 同长度 ~1200 字符) ③ 主仓 PR (TBD, ADR-0031 立 + memory-strategy.md v2 段 + hooks/mem0-deferred-replay.sh v2 fix atomic write + settings.json SessionStart 5→6 hooks + memory/.mem0-deferred-queue.md 新立 tracked) ④ 5 维 evidence 沉淀 (commit ab04a9c8 feat + commit a87d13c2 fix + atomic write retry+1 验证 0→1/2→3/10 不变 + 5 commands 验证 + mem0 event_id 803434d5) ⑤ 5 IF...THEN 规则 (写入顺序本体优先 / 双检测预检 + 写入 / queue 累积位置 / SessionStart 起手重试 / retry 上限 10 + ⚠️ 标) ⑥ 5 协议级反模式 (静默丢 / 双写无顺序 / 仅依赖 mem0 / 失败不告警 / 简化 hook 只 echo 不写). 联动: 5 case 同源 (CASE-MEMORY-SYSTEM-CONSOLIDATED + CASE-PROTECTED-PATH-EDIT-BYPASS-20260627 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5) + ADR-0031 立 (主仓 docs/adr/0031-memory-write-protocol-v2.md) + memory-strategy.md v2 段 + hooks/mem0-deferred-replay.sh v2 fix. 跟 v2.6.53 关系: v2.6.53 = §F.4.3 ADR slot 修复 + ADR-0027 v1.1 升级 (1 session 端到端), v2.6.54 = §F.4.4 memory 写入协议 v2 (1 session 端到端). 跟 §F.4.1 关系: §F.4.1 = MiniMax 跨 2 session + 协议级工具; §F.4.4 = 1 session + 协议级流程 (写入顺序 + 失败兜底). 跟 §I.4 self-evolution 关系: §F.4.4 是 self-evolution 第 8 步 internalize 案例 (跟 v2.6.34 立 self-evolution 协议后第 4 个端到端案例, 第 2 个非 '端到端 fix 工具' 案例). 永久失效 'claudecode 写记忆静默丢 / 简化版 hook 只 echo 不真做事' 反模式 (跟 §C.2 zero-deferred + §C.5 false completion + §A.4 5 字段自检协同). 跨文件同步: 主仓 PR (TBD: process.md §C.3.3 v2.6.54 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.54 + ADR-0031 立 + memory-strategy.md v2 段 + hooks + queue + settings.json 6 hooks)."
     - "2.6.53 (2026-07-01): §F.4.3 ADR slot 冲突修复案例 (主仓 PR #26 MERGED commit 4dfd2c97, ADR-0027 v1.1 跨日 sub-slot 边界升级). user 2026-07-01 02:30 PT 原话 '我希望你做的第一件事是修ADR，看看有没有重复的，或者是能不能组织的更好. 第二件事是把这个修复提升合并到技能重度审计里面' 触发. 落地: ① 子仓 references/skill-self-evolution.md §F.4.3 新立 (跟 §F.4.1/§F.4.2 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ② 子仓 SKILL.md version 2.6.51 → 2.6.53 + 加 changelog 段 (跟 v2.6.46/50/51 同长度 ~1200 字符) ③ 主仓 PR #26 MERGED (commit 4dfd2c97, 5 file 79+/3-, rename 0028-rich-audit-skill-evolution-v2-6-51-abc.md → 0028-b- + cp+add 0029-a-gdkvm-modern-gpu + ADR-0027 v1.1 升级 + memory/adr-namespace.md v1.5 + CLAUDE.local.md §11.2 v2.6.53 hint) ④ 5 维 evidence 沉淀 (slot 冲突实测 + ADR-0027 v1.0 协议自身边界 + git mv 验证 + PR #26 4 维 evidence + 跨 4 文件 sync) ⑤ 5 IF...THEN 规则 (现状 grep 必跑 / sub-slot 主从判定 / ADR-0027 v1.1 跨日 sub-slot 边界 / autopilot 模式 1 PR / untracked 用 cp+git add) ⑥ 5 协议级反模式 (跳 grep 抢 slot / 协议立了没阻止 v4 重复 / sub-slot 跨协议类型 / untracked 走 git mv / evidence 写模糊词). 联动: 5 case 同源 (CASE-MINIMAX-KEY-ROTATION-V3 + V4 + V5 + CASE-FORCE-ALL-SEARCH-REALITY-ALIGNMENT-20260624 + CASE-RICH-AUDIT-A.1.5-SCOPE-FACT-CHECK-20260627) + ADR-0025/0026/0027/0028/0028-b/0029/0029-a/0030 + 0025-b 修复 (PR #24 merged) + mcp-reload.sh v1.1/v1.2 autopilot 模式 协同. 跟 v2.6.51 关系: v2.6.51 = §F.4.2 端到端 fix 工具 v1.1 + ADR-0029 (跨 2 session), v2.6.53 = §F.4.3 ADR slot 修复 + ADR-0027 v1.1 升级 (1 session 端到端, 第 1 个非 '端到端 fix 工具' 案例). 跟 v2.6.50 关系: v2.6.50 = §F.4.1 MiniMax v3→v4 完整端到端案例 (跨 2 session), v2.6.53 = §F.4.3 ADR slot 修复案例 (1 session 端到端). 跟 §I.4 self-evolution 关系: §F.4.3 是 self-evolution 第 8 步 internalize 案例 (跟 v2.6.34 立 self-evolution 协议后第 3 个端到端案例). 永久失效 'claudecode 立新 ADR 跳现状 grep 抢同 slot' 反模式 (跟 0025-b 修复同源 + v3 case '凭印象做事' + §C.3.6.1 no-stuck 协议 + user 显式 autopilot 反馈协同). 跨文件同步: 主仓 PR #26 merged ✅ (process.md §C.3.3 v2.6.53 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.53 hint + memory/adr-namespace.md v1.5 现状表 — 跟主仓 PR 同步立). v2.6.52 跳过 (历史, 主仓 CLAUDE.local.md §11.2 是 '准备 hint' 不是 '落地', 子仓直接 2.6.51 → 2.6.53)."
     - "2.6.51 (2026-07-01): §F.4.2 端到端案例沉淀 (mcp-reload.sh v1.1 + ADR-0029 + CASE-MINIMAX-KEY-ROTATION-V5 跨 2 session 实战). user 2026-07-01 02:20 PT 反馈 '还是不满足每次都 P R 来回决策' 触发 autopilot 模式 2.0. 落地: ① SKILL.md version 2.6.50 → 2.6.51 + 加 changelog 段 (跟 v2.6.46 同长度 ~1200 字符) ② references/skill-self-evolution.md §F.4.2 新立 (跟 §F.4.1 同骨架 ~100 lines) ③ 4 维 evidence 沉淀 (mcp-reload.sh v1.1 commit 734a7131 + 端到端 dry-run 5/5 + 6 subcommand 全跑 + 防御性 fail-fast) ④ 5 IF...THEN 规则 (6 subcommand / dry-run DRY_RUN=true / rollback 无参数 / 防御性 fail-fast / §C.5 5/5) ⑤ 2 协议级反模式 (mcp-reload v1.0 缺 6 subcommand / rollback 误用 1 backup). 联动: 5 case 同源 (CASE-MINIMAX-KEY-ROTATION-V3 + V4 + V5 + CASE-FORCE-ALL-SEARCH-REALITY-ALIGNMENT-20260624 + CASE-RICH-AUDIT-A.1.5-SCOPE-FACT-CHECK-20260627) + ADR-0026 + ADR-0027 + ADR-0028 + ADR-0029 + mcp-reload.sh v1.0/v1.1/v1.2 + memory/api-status-codes.md + memory/adr-namespace.md + decision-stream/2026-07-01-4-pf-1-pr-autopilot.md. 跟 v2.6.50 关系: v2.6.50 = §F.4.1 真实端到端案例沉淀 (MiniMax v3 → v4 跨 2 session), v2.6.51 = §F.4.2 端到端 fix 工具 v1.1 + ADR-0029 + 跨 2 session 端到端案例. 永久失效 '每次都 P R 来回决策' 反模式 (跟 §C.3.6.1 no-stuck 协议 + user autopilot 反馈 2.0 协同)."
@@ -301,7 +302,51 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 
 ---
 
-## §I.4 Layer 4: Skill Self-Evolution (审计完 ~/.claude 后升级 skill 自身, v2.6.34+35, 强制 · 不可跳过)
+## §A.5 Layer 5: 显式输出协议 (v2.6.54, 2026-07-01, 强制 · 不可跳过)
+
+> **触发**: user 2026-07-01 原话 "使用技能重度审计的时候，做了什么，修复了什么，要很明显的输出出来". 跟 §A.4 CI 全绿验收标准 + §A.2 PR + CI 健康扫描 + §A.3 CI 检查修复 + §I.4 self-evolution 协同.
+>
+> **5-tool fan-out 4 源三角验证 (v2.6.54 立)**: Anthropic 官方 (code.claude.com "Output Format" 必填) + anysearch 共识 (mindstudio + leehanchung + AEM + claudskills 4 源, 4/4 必含 structured section) + WebFetch (Anthropic best-practices "Code Review Summary / Critical Issues / Major Issues" 模板) + exa (majiayu000/fix-reporter 实战 5 段: Module name / Symptom / Root cause / Solution / Prevention) + claude-code issue #34610 /recap (5 段: 项目/分支/做了什么/commits/deployments/open items). 5 源全部要求: output 必含结构化 section, user 一打开就看到 "做了什么 / 修复了什么".
+
+### 5 段强制标识 (claudecode 必填, 任何 rich-audit run 末段必跑)
+
+| emoji | 段名 | 触发 | 必填内容 |
+|------|------|------|----------|
+| 🛠️ | **做了什么** | 任何 run | 本次跑的几件事 (Layer 1-3 + Layer A.2-A.4 + §I.4 self-evolution), 每件 1 行, 数字逗号分隔 |
+| 🔧 | **修复了什么** | 任何有改动 | 实际改动的文件 + 行数 + commit hash, 按 Tier 1/2/3 分组 (per §A.4 Decision Pattern Reversal) |
+| ⚠️ | **跳过了什么** | 任何跳过 | 因 user override / 物理不可达 / scope out 跳的事项, 标理由 (per §C.2 deferred-detector 零容忍) |
+| 📊 | **数据** | 任何 run | 5-tool 跑通数 / 修复前后 weighted 分数 / memory-bench 50 题分数 / 6 sub-task 跑通数 |
+| ✅ | **验收证据** | 任何 run | 5 字段自检 (path / commit / push / CI / owner 隔离) + 必跑命令实际输出 (per §H Acceptance Protocol) |
+
+### 精简模式 (默认, ≤ 30 行)
+
+5 段标识各占 3-5 行, 数字逗号分隔, 不用表格 (per v2.6.23 协议). 详细模板见 SKILL.md "## 输出格式" 段精简模式.
+
+### 详细模式 (触发: "详细" / "verbose" / "展开" / "完整报告")
+
+5 段标识 + 维度表 + 修复清单 (Tier 1/0/3) + Bonus Test + 跨 session drift + 5-tool 实测表 + 双账号隔离检查. 详细模板见 SKILL.md "## 输出格式" 段详细模式.
+
+### 反模式 (claudecode 必避)
+
+- ❌ "只输出 ## 状态 / ## 注意 / ## 修复清单" 段, 缺 5 段 emoji 标识 — 违反 user 原话 "很明显的输出"
+- ❌ "做了什么 跟 修复了什么 混着写" — 不分开, 难以一眼看懂
+- ❌ "跳过的事 静默不提" — 违反 §C.2 deferred-detector 零容忍 + user 原话 "很明显"
+- ❌ "5 段 emoji 标识塞在报告末尾" — 违反 "放最前" 硬规则 (user 一打开就看到)
+- ❌ "数据段写 '0 项' / 'all green' 等模糊词" — 必跑实际命令 + 报实际输出
+- ❌ "验收证据段跳 5 字段自检表" — 违反 §H Acceptance Protocol 5 字段硬规则
+
+### 联动
+
+- **§A.4** CI 全绿验收标准 (5 字段自检表 = 本 §A.5 段 5 的子集)
+- **§A.2** PR + CI 健康扫描 (本 §A.5 段 2 "commit hash" 必含, 不跳)
+- **§A.3** CI 检查修复协议 (本 §A.5 段 2 "Tier 1 修复" 必含 gh run rerun 实战命令)
+- **§I.4** self-evolution 8 步循环 (本 §A.5 段 1 "做了什么" 必含 self-evolution 8 步 1 行)
+- **§H** Acceptance Protocol 5 字段自检表 (本 §A.5 段 5 必跑)
+- **§C.2** deferred-detector 零容忍 (本 §A.5 段 3 "跳过了什么" 必跑 deferred-detector exit 0)
+- **process.md §C.3.6.0** 5-tool 必跑条款 (本 §A.5 段 4 "5-tool 跑通数" 必跑, per global mandatory)
+- **Anthropic 官方** code.claude.com/docs/en/skills "Output Format" 必填 + claude-code #34610 /recap 5 段模板 (本 §A.5 5 段结构 SoT)
+
+> **违反硬规则**: 跳过本 Layer = 重演 2026-07-01 user 反馈 "做了什么 / 修复了什么 没显式输出" 反模式 (跟 v2.6.46 立重版约束 + v2.6.50 §F.4.1 立端到端案例 + v2.6.51 §F.4.2 立端到端 fix 工具 + v2.6.53 §F.4.3 立 ADR slot 修复案例 协同).
 
 > **完整 SOP 详见** [`references/skill-self-evolution.md`](references/skill-self-evolution.md) (§F.1 失败案例自审 + **§F.2.0 必跑前置 5-tool fan-out (v2.6.35 强制)** + §F.2.1 Edit SKILL.md + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图). 主 SKILL.md 仅留 trigger + 违规后果.
 >
@@ -317,35 +362,103 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 
 > **详细架构图 + Agent 策略 + 双模扫描 + 架构健康度阈值 + 记忆系统对齐** 详见 [`references/execution-flow.md`](references/execution-flow.md) (87 lines, progressive disclosure). 主 SKILL.md 只引用, 不重复内容. 
 
-## 输出格式（v2.6.24 双模式, 用户偏好）
+## 输出格式（v2.6.54 强化显式输出, 2026-07-01, 强制 · 不可跳过）
 
-### 默认: 精简模式 (v2.6.23 协议)
+> **触发**: user 2026-07-01 原话 "使用技能重度审计的时候，做了什么，修复了什么，要很明显的输出出来". 5-tool fan-out 4 源三角验证 (Anthropic best-practices + anysearch mindstudio/leehanchung/AEM/claudskills + exa fix-reporter + claude-code issue #34610 /recap) 共识: 显式输出必含 5 段独立 section + emoji 标识. 详细 SOP 见 `references/explicit-output-protocol.md` (TODO v2.6.55 立).
 
-全文 ≤ 30 行, ## 分 ≤ 2 句, ## 状态 ≤ 3 条, ## 注意 ≤ 3 条. 数字逗号分隔, 不用表格.
+### 强制 5 段标识 (user 一打开就看到, 放最前)
+
+| emoji | 段名 | 内容 |
+|------|------|------|
+| 🛠️ | **做了什么** | 本次跑的几件事 (Layer 1-3 + Layer A.2-A.4 + §I.4 self-evolution), 每件 1 行 |
+| 🔧 | **修复了什么** | 实际改动的文件 + 行数 + commit hash, 按 Tier 1/2/3 分组 |
+| ⚠️ | **跳过了什么** | 因 user override / 物理不可达 / scope out 跳的事项, 标理由 |
+| 📊 | **数据** | 5-tool 跑通数 / 修复前后 weighted 分数 / memory-bench 50 题分数 / 6 sub-task 跑通数 |
+| ✅ | **验收证据** | 5 字段自检 (path / commit / push / CI / owner 隔离) + 必跑命令实际输出 |
+
+### 默认: 精简模式 (v2.6.23 协议, 加 5 段强制)
+
+全文 ≤ 30 行 (5 段标识各占 3-5 行). 数字逗号分隔, 不用表格.
+
+```
+🛠️ 做了什么
+- Layer 1 7 sub-task 跑 (memory-bench 50 题 + frontmatter + shell unified)
+- Layer 3 5-tool fan-out 抓 8 资源
+- §I.4 self-evolution 8 步循环
+🔧 修复了什么
+- Tier 1: settings.json mcp reload (commit a1b2c3d)
+- Tier 2: rich-audit/SKILL.md description split (commit e4f5g6h)
+- Tier 3: 无
+⚠️ 跳过了什么
+- memory-bench Q046-Q050 (quota 不足, 走 fallback)
+📊 数据
+- weighted 0.91 (前 0.87, +0.04)
+- 5-tool 跑通 5/5
+- 6 sub-task 跑通 6/7
+✅ 验收证据
+- path: ~/.claude/, ~/.agents/skills/
+- commit: main @ 9be9ea1f
+- CI: mykcs/myk-skills green
+- owner: mykcs/* ✅
+```
 
 ### 详细模式 (触发: "详细" / "verbose" / "展开" / "完整报告")
 
-无硬上限. 含: 维度表 + 修复清单 (Tier 1/0/3) + Bonus Test + 跨 session drift + 5-tool 实测表 + 双账号隔离检查.
+无硬上限. 含: 5 段强制标识 (放最前) + 维度表 + 修复清单 (Tier 1/0/3) + Bonus Test + 跨 session drift + 5-tool 实测表 + 双账号隔离检查.
 
-模板:
 ```
-总分: weighted=X.X effective=Y.Y after advisory.
+🛠️ 做了什么
+- Layer 0: 5 commands verify (git log/status/remote/HEAD/gh run)
+- Layer 1: 7 sub-task audit (memory-bench 50 题 + file size + cross-source dup + case library + orphan + frontmatter + shell unified)
+- Layer 2: 3 orphan cleanup + 2 dead script fix
+- Layer 3: 5-tool fan-out 抓 8 资源 internalize
+- Layer A.2: 2 仓 PR + CI 健康扫描 (mykcs/.claude + mykcs/myk-skills)
+- Layer A.3: 1 CI failure 修复 (子仓 Unittest job exit 100, gh run rerun)
+- Layer A.4: CI 全绿 5 字段自检表 ✅
+- §I.4: 8 步 self-evolution 循环 (5-tool + 抓 8 资源 + changelog + commit + push + PR + 5 commands verify)
+🔧 修复了什么
+- Tier 1 (机械可逆): 3 项
+  - ~/.claude/hooks/symlink stale fix (commit a1b2c3d, +12/-5)
+  - rich-audit/SKILL.md frontmatter 15 fields 完整 (commit e4f5g6h, +2/-0)
+  - memory/adr-namespace.md 现状表加 0030 (commit i7j8k9l, +1/-0)
+- Tier 2 (语义安全): 2 项
+  - rich-audit/SKILL.md description split in two (commit m0n1o2p, +5/-3)
+  - 子仓 memory-bench v1→v5 拆分 (commit q3r4s5t, +120/-82)
+- Tier 3 (user 决策): 无
+⚠️ 跳过了什么
+- memory-bench Q046-Q050 (mem0 quota 不足, 走 fallback 协议)
+- website-improve 1577 chars 超 cap (v2.6.49 PENDING, 跨 skill 协同)
+- gh run rerun (subagent stall, 走 §A.3 retry 协议)
+📊 数据
+- weighted 0.91 (前 0.87, +0.04)
+- 5-tool 跑通 5/5 (MiniMax ✅ + anysearch ✅ + WebFetch ✅ + exa ✅ + kimi-webbridge ⚠️ 降级)
+- 6 sub-task 跑通 6/7 (case library PENDING 走 v2.6.46 重版约束)
+- memory-bench 50 题 baseline: 47/50 命中 (weighted 0.91)
+- 修复数: 5 (Tier 1: 3 / Tier 2: 2 / Tier 3: 0)
+- PR 状态: 3 PR created, 2 auto-merged, 1 pending review
+✅ 验收证据
+- path: ~/.claude/, ~/.agents/skills/, ~7 files modified
+- commit: main @ 9be9ea1f (主仓) + e716c74 (子仓)
+- push: 0 ahead (`git rev-list --count @{u}..HEAD = 0`)
+- CI: mykcs/.claude green (主仓无 GH Actions) + mykcs/myk-skills green (Unittest + Modernization Check passed)
+- owner 隔离: mykcs/* ✅ (双账号铁律)
+总分: weighted=0.91 effective=0.95 after advisory.
 分: 8 维度 + 5-tool 实测 + 跨仓 push 状态.
 ## 状态 (5-10 条 OK)
 - ...
 ## 注意 (3-6 条 user 需知)
 - ...
 ## 修复清单 (Tier 1/0/3 分组)
-- Tier 1 (机械可逆): N 项
-- Tier 0 (informational 降级): M 项
-- Tier 3 (user 决策): K 项
+- Tier 1 (机械可逆): 3 项
+- Tier 0 (informational 降级): 0 项
+- Tier 3 (user 决策): 0 项
 ## Bonus Test
 - (强证据 case)
 ```
 
 ### JSON 报告结构 (保留, 用于程序消费)
 
-JSON 保留 5 维度 + severity_counts + score_breakdown, 人类可读报告按本节精简协议.
+JSON 保留 5 维度 + severity_counts + score_breakdown + 新增 explicit_output 段 (5 段标识 machine-readable), 人类可读报告按本节精简协议.
 
 ---
 
