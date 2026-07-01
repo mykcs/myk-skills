@@ -14,7 +14,7 @@ metadata:
   category: web-development
   changelog:
     - "4.0.6 (2026-06-30): description 字段大幅裁剪 (592 chars ≤ 1536 cap, 之前 v4.0.5 是 5562 chars 超 cap 4026 chars). 同时协议位同步: kimi-webbridge 协议位反转 per ADR-0030 (skill + daemon → MCP server via stdio npx kimi-webbridge mcp). 触发: user 2026-06-30 反馈 '不要每次 A/B/C/D 来回点' + 5-tool fan-out 5/5 (3 降级, exa 顶替) 命中 AkagiYui/kimi-webbridge-mcp. 跟 rich-audit v2.6.49 description 'split in two' (combined 1184 chars ≤ 1536 cap) 跨 skill 一致. 联动: ADR-0030 + CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 13."
-    - "4.0.5 (2026-06-29): §L26 CI 全绿 验收标准. user 显式要求 '把《CI 全绿》这个标准加入 skill 里面'. 5 字段自检表 (path / commit / push / CI / owner 隔离 + 验收证据) + 4 站 CI 验证模板 + 4 个 edge cases (red/pending/物理不可达) + Round 15 验证案例. 跟 process.md §H Acceptance Protocol + §L19 4 站 CI gate + §L25 deployed-layer verify 全部同步. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10-15 完整 6 轮 timeline + user 2026-06-29 原话触发."
+    - "4.0.7 (2026-07-01): §L21 默认反转模式升级 (Round 18 user 显式要求 '选 1 修改 skill 以后默认 1' = 默认行为 = 反转). 把 v4.0.3 §L21 反转通道从 opt-in 升级为 default: 每次 website-improve run 启动, claudecode 仍必输 7 段 pre-flight declaration (audit trail), 但**不再等 user 回 OK** — 直接进 Phase 1 + 每步 auto-decide + decision-stream 追加. user 显式说 '恢复 pre-flight 等 OK' / '回到等待模式' / 'stop 自决' 可反转回旧默认 (v4.0.5 行为). 跟 CLAUDE.local.md §12 反转硬约束 #8 + MEMORY.md HOT FACTS §10 反转模式 8 类自决 + rich-audit calm-flow-reverse-mode.md 全部同步. Source: Round 18 audit-only pass — user '选 1 修改 skill 以后默认 1' 触发, CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 18 section. (注: 本 entry 在 PR #6 rebase 时从 4.0.6 → 4.0.7 升版, 避免跟 Round 13 description 裁剪 4.0.6 entry 编号冲突, 跟 user 2026-07-01 拍板 2 entry 都保留 决策, per 灵魂 v6 v0.2 不卸载 follow-up 协议)"
     - "4.0.4 (2026-06-29): §L22-L25 治本 Round 10-11 暴露的 4 类问题. (1) §L22 Subagent Tool Provisioning — Phase 0 ToolSearch 必跑 + 治本 subagent stall (Issue #60237 frontmatter tools 静默 drop + Issue #49150 Task 无 timeout). (2) §L23 Orchestrator Recovery SOP — subagent 报 stalled 时, 检测磁盘已 commit 文件 + manual `git push` + rebase fallback (work product on disk 范式 per Issue #49150 #3). (3) §L24 Stall Heartbeat Check — 每 5min 检测 subagent transcript mtime, 静默 >10min 自动 trigger recovery (Issue #49150 #2 heartbeat protocol). (4) §L25 Deployed-Layer Verify Protocol — Round 11 发现 2 个 P0/P1 deployed-layer regression: mysite security.txt on disk but 404 served (Astro .well-known handler intercept) + content2html _headers not served (GH Pages user/org site 不支持, 仅 Project Pages 支持). 必 curl live URL 验证, 不只 source grep. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10 + Round 11."
     - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
 - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
@@ -84,17 +84,19 @@ disable-model-invocation: false
 
 > **副作用声明**：本 skill 会修改代码、执行构建、并自动 `smart-autopush.sh` 提交。请勿在不确定时自动触发。
 
-### 启动声明 — Pre-flight Declaration (§L21, v4.0.2 强制)
+### 启动声明 — Pre-flight Declaration (§L21, v4.0.2 立, v4.0.6 默认反转)
 
-> **强制**: 每次 website-improve run 启动时, claudecode **必**先输出 7 段 pre-flight declaration, 等用户确认 OK 后才进 Phase 1. 这是 5 要素启动声明的强化版 (源自 rich-audit pre-flight protocol, 内化自 2026-06-27).
+> **强制**: 每次 website-improve run 启动时, claudecode **必**先输出 7 段 pre-flight declaration (audit trail). **v4.0.6 默认反转**: 输完 pre-flight 后, claudecode **直接进 Phase 1**, 不再等 user 回 OK (跟 v4.0.5 默认「等 OK」相反). Round 18 user 原话: "选 1 修改 skill 以后默认 1" = 默认行为 = 反转.
 >
-> **禁止**: 不输 pre-flight 就直接跑 = 违反 §L21, 同违反 §L19 (4 站 CI 全绿硬规则).
+> **可逆**: user 显式说 "恢复 pre-flight 等 OK" / "回到等待模式" / "stop 自决" → 反转回 v4.0.5 默认 (等 OK).
+>
+> **禁止**: 不输 pre-flight 就直接跑 = 违反 §L21 (audit trail 必留), 同违反 §L19 (4 站 CI 全绿硬规则).
 
-**7 段模板** (claudecode 启动时复制 + 填充, 末尾明确"请用户回 OK / 改 X / 跳过"):
+**7 段模板** (claudecode 启动时复制 + 填充, 末尾明确"v4.0.6 默认 = 直接进 Phase 1", user 可显式 "等 OK" 反转回 v4.0.5 默认):
 
 ```
 ═══════════════════════════════════════════════════════════
-🚀 website-improve v4.0.2 启动 — Pre-flight Declaration
+🚀 website-improve v4.0.6 启动 — Pre-flight Declaration (默认反转模式)
 ═══════════════════════════════════════════════════════════
 
 📌 审计目标 (What I will audit):
@@ -142,7 +144,8 @@ disable-model-invocation: false
       每次自决必追加 (auto-decide / must-ask / risk / reversible)
 
 ═══════════════════════════════════════════════════════════
-              预声明结束 — 等用户回 OK / 改 X / 跳过
+              预声明结束 — v4.0.6 默认 = 直接进 Phase 1 (反转模式)
+              可反转: user 说"恢复 pre-flight 等 OK" / "回到等待模式" → 回 v4.0.5 默认
 ═══════════════════════════════════════════════════════════
 ```
 
