@@ -15,10 +15,11 @@ when_to_use: |
   反模式: ❌ 凭印象 / ❌ 静默跳 1 tool / ❌ reference > 100 行无 TOC / ❌ description 像 marketing tagline / ❌ 跳过 memory-bench + 7 sub-task 跑轻量版.
 license: MIT
 metadata:
-  version: "2.6.54"
+  version: "2.6.55"
   author: mykcs
   category: self-evolution
   changelog:
+    - "2.6.55 (2026-07-01): 显式输出协议立 + §F.4.5 端到端案例 (rich-audit 跑完必须明显输出 '做了什么 / 修了什么'). user 2026-07-01 11:15 PT 原话 '使用技能重度审计的时候, 做了什么, 修复了什么, 要很明显的输出出来' 触发. 落地: ① SKILL.md version 2.6.54 → 2.6.55 ② 输出格式段新增 '做了什么/修了什么' 显式段 (跟 v2.6.24 '总分总' 协同, 加 ## 做了什么 + ## 修了什么 强制 2 段, 不可省) ③ references/skill-self-evolution.md §F.4.5 新立 (跟 §F.4.1-§F.4.4 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ④ 主仓 ADR-0032 立 (整数 slot 不抢 sub-slot per ADR-0027 v1.1) ⑤ 跨文件同步: 主仓 process.md §C.3.3 v2.6.55 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.55 hint. 5 维 evidence: user 原话触发 + 现状 grep (SKILL.md line 320-344 缺显式 '做了什么' 段) + v2.6.24 '总分总' 框架扩展 + 5 反模式沉淀 (跑完不告诉做了什么 / 只给数字不给清单 / 修复藏在注意里 / 用了 emoji 但没具体内容 / 跟 v2.6.46 重版 < 30min 协同) + 5 step 实战命令模板. 跟 v2.6.54 关系: v2.6.54 = memory 写入协议 v2 (协议级流程, 1 session), v2.6.55 = 显式输出协议 (协议级 UX, 1 session 协同立). 跟 §F.4.4 关系: §F.4.4 = 协议级流程 (写入顺序 + 失败兜底), §F.4.5 = 协议级 UX (输出协议). 跟 §I.4 self-evolution 关系: §F.4.5 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 5 个端到端案例). 永久失效 'rich-audit 跑完 user 看不到做了什么/修了什么' 反模式 (跟 §C.1 verification gate + v2.6.24 总分总 + §C.5 false completion 协同)."
     - "2.6.54 (2026-07-01): §F.4.4 memory 写入协议 v2 案例沉淀 (本体优先 + mem0 后写 + queue 失败兜底 + hook 真做事 retry+1). user 2026-07-01 10:50 PT 反馈 'MCP 额度用完 → 什么都写不进去 → 本体也没存' + '把这个修复提升合并到技能重度审计里面' 触发. 落地: ① references/skill-self-evolution.md §F.4.4 新立 (跟 §F.4.1/§F.4.2/§F.4.3 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ② SKILL.md version 2.6.53 → 2.6.54 + 加 changelog 段 (跟 v2.6.46/50/51/53 同长度 ~1200 字符) ③ 主仓 PR (TBD, ADR-0031 立 + memory-strategy.md v2 段 + hooks/mem0-deferred-replay.sh v2 fix atomic write + settings.json SessionStart 5→6 hooks + memory/.mem0-deferred-queue.md 新立 tracked) ④ 5 维 evidence 沉淀 (commit ab04a9c8 feat + commit a87d13c2 fix + atomic write retry+1 验证 0→1/2→3/10 不变 + 5 commands 验证 + mem0 event_id 803434d5) ⑤ 5 IF...THEN 规则 (写入顺序本体优先 / 双检测预检 + 写入 / queue 累积位置 / SessionStart 起手重试 / retry 上限 10 + ⚠️ 标) ⑥ 5 协议级反模式 (静默丢 / 双写无顺序 / 仅依赖 mem0 / 失败不告警 / 简化 hook 只 echo 不写). 联动: 5 case 同源 (CASE-MEMORY-SYSTEM-CONSOLIDATED + CASE-PROTECTED-PATH-EDIT-BYPASS-20260627 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5) + ADR-0031 立 (主仓 docs/adr/0031-memory-write-protocol-v2.md) + memory-strategy.md v2 段 + hooks/mem0-deferred-replay.sh v2 fix. 跟 v2.6.53 关系: v2.6.53 = §F.4.3 ADR slot 修复 + ADR-0027 v1.1 升级 (1 session 端到端), v2.6.54 = §F.4.4 memory 写入协议 v2 (1 session 端到端). 跟 §F.4.1 关系: §F.4.1 = MiniMax 跨 2 session + 协议级工具; §F.4.4 = 1 session + 协议级流程 (写入顺序 + 失败兜底). 跟 §I.4 self-evolution 关系: §F.4.4 是 self-evolution 第 8 步 internalize 案例 (跟 v2.6.34 立 self-evolution 协议后第 4 个端到端案例, 第 2 个非 '端到端 fix 工具' 案例). 永久失效 'claudecode 写记忆静默丢 / 简化版 hook 只 echo 不真做事' 反模式 (跟 §C.2 zero-deferred + §C.5 false completion + §A.4 5 字段自检协同). 跨文件同步: 主仓 PR (TBD: process.md §C.3.3 v2.6.54 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.54 + ADR-0031 立 + memory-strategy.md v2 段 + hooks + queue + settings.json 6 hooks)."
     - "2.6.53 (2026-07-01): §F.4.3 ADR slot 冲突修复案例 (主仓 PR #26 MERGED commit 4dfd2c97, ADR-0027 v1.1 跨日 sub-slot 边界升级). user 2026-07-01 02:30 PT 原话 '我希望你做的第一件事是修ADR，看看有没有重复的，或者是能不能组织的更好. 第二件事是把这个修复提升合并到技能重度审计里面' 触发. 落地: ① 子仓 references/skill-self-evolution.md §F.4.3 新立 (跟 §F.4.1/§F.4.2 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ② 子仓 SKILL.md version 2.6.51 → 2.6.53 + 加 changelog 段 (跟 v2.6.46/50/51 同长度 ~1200 字符) ③ 主仓 PR #26 MERGED (commit 4dfd2c97, 5 file 79+/3-, rename 0028-rich-audit-skill-evolution-v2-6-51-abc.md → 0028-b- + cp+add 0029-a-gdkvm-modern-gpu + ADR-0027 v1.1 升级 + memory/adr-namespace.md v1.5 + CLAUDE.local.md §11.2 v2.6.53 hint) ④ 5 维 evidence 沉淀 (slot 冲突实测 + ADR-0027 v1.0 协议自身边界 + git mv 验证 + PR #26 4 维 evidence + 跨 4 文件 sync) ⑤ 5 IF...THEN 规则 (现状 grep 必跑 / sub-slot 主从判定 / ADR-0027 v1.1 跨日 sub-slot 边界 / autopilot 模式 1 PR / untracked 用 cp+git add) ⑥ 5 协议级反模式 (跳 grep 抢 slot / 协议立了没阻止 v4 重复 / sub-slot 跨协议类型 / untracked 走 git mv / evidence 写模糊词). 联动: 5 case 同源 (CASE-MINIMAX-KEY-ROTATION-V3 + V4 + V5 + CASE-FORCE-ALL-SEARCH-REALITY-ALIGNMENT-20260624 + CASE-RICH-AUDIT-A.1.5-SCOPE-FACT-CHECK-20260627) + ADR-0025/0026/0027/0028/0028-b/0029/0029-a/0030 + 0025-b 修复 (PR #24 merged) + mcp-reload.sh v1.1/v1.2 autopilot 模式 协同. 跟 v2.6.51 关系: v2.6.51 = §F.4.2 端到端 fix 工具 v1.1 + ADR-0029 (跨 2 session), v2.6.53 = §F.4.3 ADR slot 修复 + ADR-0027 v1.1 升级 (1 session 端到端, 第 1 个非 '端到端 fix 工具' 案例). 跟 v2.6.50 关系: v2.6.50 = §F.4.1 MiniMax v3→v4 完整端到端案例 (跨 2 session), v2.6.53 = §F.4.3 ADR slot 修复案例 (1 session 端到端). 跟 §I.4 self-evolution 关系: §F.4.3 是 self-evolution 第 8 步 internalize 案例 (跟 v2.6.34 立 self-evolution 协议后第 3 个端到端案例). 永久失效 'claudecode 立新 ADR 跳现状 grep 抢同 slot' 反模式 (跟 0025-b 修复同源 + v3 case '凭印象做事' + §C.3.6.1 no-stuck 协议 + user 显式 autopilot 反馈协同). 跨文件同步: 主仓 PR #26 merged ✅ (process.md §C.3.3 v2.6.53 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.53 hint + memory/adr-namespace.md v1.5 现状表 — 跟主仓 PR 同步立). v2.6.52 跳过 (历史, 主仓 CLAUDE.local.md §11.2 是 '准备 hint' 不是 '落地', 子仓直接 2.6.51 → 2.6.53)."
     - "2.6.51 (2026-07-01): §F.4.2 端到端案例沉淀 (mcp-reload.sh v1.1 + ADR-0029 + CASE-MINIMAX-KEY-ROTATION-V5 跨 2 session 实战). user 2026-07-01 02:20 PT 反馈 '还是不满足每次都 P R 来回决策' 触发 autopilot 模式 2.0. 落地: ① SKILL.md version 2.6.50 → 2.6.51 + 加 changelog 段 (跟 v2.6.46 同长度 ~1200 字符) ② references/skill-self-evolution.md §F.4.2 新立 (跟 §F.4.1 同骨架 ~100 lines) ③ 4 维 evidence 沉淀 (mcp-reload.sh v1.1 commit 734a7131 + 端到端 dry-run 5/5 + 6 subcommand 全跑 + 防御性 fail-fast) ④ 5 IF...THEN 规则 (6 subcommand / dry-run DRY_RUN=true / rollback 无参数 / 防御性 fail-fast / §C.5 5/5) ⑤ 2 协议级反模式 (mcp-reload v1.0 缺 6 subcommand / rollback 误用 1 backup). 联动: 5 case 同源 (CASE-MINIMAX-KEY-ROTATION-V3 + V4 + V5 + CASE-FORCE-ALL-SEARCH-REALITY-ALIGNMENT-20260624 + CASE-RICH-AUDIT-A.1.5-SCOPE-FACT-CHECK-20260627) + ADR-0026 + ADR-0027 + ADR-0028 + ADR-0029 + mcp-reload.sh v1.0/v1.1/v1.2 + memory/api-status-codes.md + memory/adr-namespace.md + decision-stream/2026-07-01-4-pf-1-pr-autopilot.md. 跟 v2.6.50 关系: v2.6.50 = §F.4.1 真实端到端案例沉淀 (MiniMax v3 → v4 跨 2 session), v2.6.51 = §F.4.2 端到端 fix 工具 v1.1 + ADR-0029 + 跨 2 session 端到端案例. 永久失效 '每次都 P R 来回决策' 反模式 (跟 §C.3.6.1 no-stuck 协议 + user autopilot 反馈 2.0 协同)."
@@ -346,6 +347,44 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 ### JSON 报告结构 (保留, 用于程序消费)
 
 JSON 保留 5 维度 + severity_counts + score_breakdown, 人类可读报告按本节精简协议.
+
+### 显式输出协议 (v2.6.55 新立, ADR-0032)
+
+> **触发**: rich-audit 跑完**任何**阶段 (Layer 1-3 + A.2-A.4 + I.4 self-evolution) 必须输出下面 2 段, **不可省**.
+> **Why**: user 2026-07-01 原话 "使用技能重度审计的时候, 做了什么, 修复了什么, 要很明显的输出出来". v2.6.24 总分总协议分数 + 修复清单混在一起, user 看不到具体动了什么 + 修了什么.
+> **协同**: v2.6.22 总分总 (不散落 emoji) + v2.6.24 双模式 (默认精简 / 详细) + v2.6.46 重版约束 (≥ 30 min) + v2.6.55 本协议 (显式做了什么/修了什么).
+
+```markdown
+## 做了什么 (N 项)
+- [Layer X] 具体动作 (e.g. "[Layer 1] 跑了 7 sub-task: memory-bench 50 题 + file size + cross-source dup + case library + orphan + frontmatter audit + shell unified check")
+- [Layer 2] 修复 N 项 Tier 1 (具体清单: 3 symlink + 5 frontmatter + 2 orphan + 2 shell alias)
+- [Layer 3] 抓 8+ 外部资源, internalize 到 N memory/.md (具体文件名)
+- [Layer A.2] PR #X 创建 (M commit / N file +X/-Y)
+- [Layer A.3] 4 站 CI verify (具体仓名 + 状态)
+- [Layer A.4] 5 字段验收 + smart-push 完成 (ahead=0, owner mykcs/* 正确)
+
+## 修了什么 (N 项)
+- [Bug N] bug 描述 → 根因 → case/ADR 引用 (e.g. "[Bug 2] mem0 quota 失败 → 静默丢 → 加 queue 兜底协议 (per ADR-0031)")
+- [Refactor N] 重构描述 → 协议引用
+- [ADR 立] ADR-NNNN 协议名 (整数 slot 不抢 sub-slot per ADR-0027 v1.1)
+- [Case 立] CASE-XXX-YYYYMMDD.md (KB 数)
+```
+
+**字段约束**:
+| 字段 | 约束 |
+|------|------|
+| 做了什么 | ≥ 1 项, 每项含 `[Layer X]` + 具体动作 + 数字 |
+| 修了什么 | ≥ 1 项, 每项含 bug/重构描述 + 根因 + case/ADR 引用 |
+| emoji | 限 OK 状态 `✅` + 段头 `🚀` (启动) / `📋` (做了什么) / `🔧` (修了什么), 禁散落 (per v2.6.22) |
+| 数字 | "修复 12 项" 不是 "修复12项" (per v2.6.22 数字逗号规则) |
+| 数字具体 | "5 file +98/-12" 不模糊 "动了几个文件" |
+
+**反模式** (永久失效):
+- ❌ 跑完只给分数不给清单
+- ❌ 修复藏在 `## 注意` 段 (跟做了什么混)
+- ❌ 用 emoji 替代具体内容
+- ❌ "动了几个文件" 等模糊措辞
+- ❌ 必跑没跑 (e.g. memory-bench 50 题未跑但报告写"跑了")
 
 ---
 

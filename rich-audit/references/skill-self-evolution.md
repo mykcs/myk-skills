@@ -603,3 +603,104 @@ user 反馈记忆流程问题 → 现状 grep (memory-strategy.md + MEMORY.md + 
 - 跟 §I.4 self-evolution 关系: §F.4.4 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 4 个端到端案例)
 
 **永久失效**: 'claudecode 写记忆静默丢 / 简化 hook 只 echo 不真做事 / 失败不告警 / 失败不写入 queue / 双写无顺序' 反模式 (跟 §C.2 zero-deferred + §C.5 false completion + §A.4 5 字段自检 + §F.4.4 5 step 实战模板 协同).
+
+---
+
+## §F.4.5 rich-audit 显式输出协议端到端案例 (2026-07-01, 1 session 闭环)
+
+> **触发**: user 2026-07-01 11:15 PT 原话 "使用技能重度审计的时候, 做了什么, 修复了什么, 要很明显的输出出来" (跟在 §F.4.4 memory 写入协议 v2 沉淀后, user 显式要求 UX 升级).
+>
+> **本案例粒度**: 1 session 端到端 (跟 §F.4.4 同 session 协同立, 第 2 个协议级 UX 案例).
+>
+> **跟 §F.4.1-§F.4.4 区别**: §F.4.1/§F.4.2 = 协议级工具 (跨 2 session), §F.4.3 = 协议级 slot 修复 (1 session), §F.4.4 = 协议级流程 (1 session 流程闭环), §F.4.5 = **协议级 UX** (1 session 输出协议).
+
+### 5 维 evidence
+
+| # | evidence | 实测命令 / 真值 |
+|---|----------|----------------|
+| 1 | user 原话触发 | "使用技能重度审计的时候, 做了什么, 修复了什么, 要很明显的输出出来" (2026-07-01 11:15 PT) |
+| 2 | 现状 grep 验证 | SKILL.md line 320-344 有 v2.6.24 输出格式段, 但**无**显式 "做了什么/修了什么" 段 (`grep -c "^## 做了什么\|^## 修了什么" SKILL.md` = 0) |
+| 3 | v2.6.22 总分总协议 | changelog line 22 "禁止散落的绿色对勾 emoji + 多余详细文字说明; 用 总分总 或 总分 结构; 绿色大勾集中在一处 (「## 状态」section); 注意事项另起一区 (「## 注意」section), 不混在结论里" |
+| 4 | v2.6.46 重版约束 | 取消轻量版, ≥ 30 min 必跑完整重版 (memory-bench 50 题 + 7 sub-task 全跑), 输出必须有 "做了什么" 维度 |
+| 5 | ADR-0032 立 | 主仓 `docs/adr/0032-rich-audit-explicit-output-protocol.md` (整数 slot 0032, 不抢 sub-slot per ADR-0027 v1.1) |
+
+### 5 IF...THEN 规则
+
+```
+1. IF rich-audit 跑完任意阶段 (Layer 1-3 + A.2-A.4 + I.4) THEN 必输出 "## 做了什么" + "## 修了什么" 2 段
+2. IF 跑完只给分数 THEN 标 false completion (per §C.5) + 强制补充做了什么/修了什么清单
+3. IF 修复项藏在 ## 注意 段 THEN 重构成独立 "## 修了什么" 段, 跟 "## 做了什么" 分离
+4. IF 数字没具体 THEN 改 "5 file +98/-12" 不模糊 "动了几个文件"
+5. IF 必跑项未跑但报告写跑了 THEN 永久失效 (per v2.6.46 重版约束 + §C.5 false completion 协同)
+```
+
+### 5 协议级反模式 (永久失效)
+
+| # | 反模式 | 失败案例 |
+|---|--------|---------|
+| 1 | **跑完只给分数不给清单** | v2.6.24 总分总协议下, user 看不到 Layer 1-3 到底跑了什么 sub-task |
+| 2 | **修复藏在 ## 注意 段** | v2.6.22 反模式 "注意事项另起一区", 但修复跟注意混在一起, user 找不到具体修了什么 |
+| 3 | **用 emoji 替代具体内容** | 散落绿色对勾 (per v2.6.22 反模式) |
+| 4 | **"动了几个文件" 等模糊措辞** | 必须具体 "5 file +98/-12" (per ADR-0032 字段约束) |
+| 5 | **必跑没跑但报告写跑了** | 跟 v2.6.46 重版约束 + §C.5 false completion 协同, 标 [light-audit] + 跑完 |
+
+### 5 step 实战命令模板
+
+```bash
+# Step 1: 跑 rich-audit (Layer 1-3 + A.2-A.4 + I.4)
+# 触发: user 说 "rich审计" / "/rich-audit" / "进化" 等触发词
+# 时机: 跑完所有阶段
+
+# Step 2: 输出 "## 做了什么" 段 (per ADR-0032)
+echo "## 做了什么 (N 项)"
+echo "- [Layer 1] 跑了 7 sub-task: memory-bench 50 题 + file size + cross-source dup + case library + orphan + frontmatter audit + shell unified check"
+echo "- [Layer 2] 修复 N 项 Tier 1 (具体清单: 3 symlink + 5 frontmatter + 2 orphan + 2 shell alias)"
+echo "- [Layer 3] 抓 8+ 外部资源, internalize 到 N memory/.md (具体文件名)"
+echo "- [Layer A.2] PR #X 创建 (M commit / N file +X/-Y)"
+echo "- [Layer A.3] 4 站 CI verify (具体仓名 + 状态)"
+echo "- [Layer A.4] 5 字段验收 + smart-push 完成 (ahead=0, owner mykcs/* 正确)"
+
+# Step 3: 输出 "## 修了什么" 段 (per ADR-0032)
+echo "## 修了什么 (N 项)"
+echo "- [Bug N] bug 描述 → 根因 → case/ADR 引用"
+echo "- [Refactor N] 重构描述 → 协议引用"
+echo "- [ADR 立] ADR-NNNN 协议名"
+echo "- [Case 立] CASE-XXX-YYYYMMDD.md (KB 数)"
+
+# Step 4: 跟 v2.6.22 总分总协议协同
+echo "## 状态 (5-10 条 OK)"  # 跟做了什么/修了什么分离
+echo "## 注意 (3-6 条 user 需知)"  # 跟修复分离
+
+# Step 5: 5 commands verification
+git -C "$HOME/.claude" log -1 --format="%h | %s"
+git -C "$HOME/.claude" rev-list --left-right --count @{u}...HEAD
+git -C "$HOME/.claude" remote -v | head -1
+git -C "$HOME/.claude" diff --stat HEAD~1 HEAD
+```
+
+### 1 session 端到端流程图 (跟 §F.4.3/§F.4.4 同 1 session 骨架)
+
+```
+user 反馈 "做了什么/修了什么要明显输出" → 现状 grep (SKILL.md 输出格式段 + 历史报告 + changelog 引用) →
+  5 维 evidence 沉淀 → 协议设计 (强制 2 段 + 字段约束 + 5 反模式) →
+  SKILL.md 输出格式段加显式协议 (line 344 后插入) + bump v2.6.54 → v2.6.55 →
+  references/skill-self-evolution.md §F.4.5 新立 (跟 §F.4.4 同 1 session 协同) →
+  主仓 ADR-0032 立 (整数 slot 0032 不抢 sub-slot) + process.md §C.3.3 v2.6.55 强化段 →
+  跨仓 PR 独立走 (子仓 SKILL.md + references + 主仓 ADR + process.md) →
+  5 commands verify + mem0 event_id 落地
+```
+
+### 联动
+
+- ADR-0032 立 (主仓 docs/adr/0032-rich-audit-explicit-output-protocol.md)
+- SKILL.md v2.6.55 + 输出格式段 line 344 后新增 "显式输出协议 (v2.6.55 新立, ADR-0032)"
+- references/skill-self-evolution.md §F.4.5 新立 (跟 §F.4.4 同 1 session 协同)
+- 主仓 process.md §C.3.3 v2.6.55 强化段 (跨仓同步)
+- CLAUDE.local.md §11.2 hot recall v2.6.55 hint
+- 跟 §F.4.4 关系: §F.4.4 = 协议级流程 (写入顺序 + 失败兜底), §F.4.5 = 协议级 UX (输出协议), 同 session 协同立
+- 跟 v2.6.22 关系: v2.6.22 = 总分总协议 (不散落 emoji), v2.6.55 = 显式输出协议 (做了什么/修了什么) — 协同
+- 跟 v2.6.24 关系: v2.6.24 = 输出格式双模式 (默认精简 / 详细), v2.6.55 = 输出格式扩展 (强制 2 段) — 扩展
+- 跟 v2.6.46 关系: v2.6.46 = 重版约束 (≥ 30 min), v2.6.55 = 输出必显 (做了什么/修了什么) — 协同防止 false completion
+- 跟 §I.4 self-evolution 关系: §F.4.5 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 5 个端到端案例, 第 1 个 UX 案例)
+
+**永久失效**: 'rich-audit 跑完只给分数 / 修复藏在注意 / emoji 替代内容 / 数字模糊 / 必跑没跑谎报' 反模式 (跟 v2.6.22 总分总 + v2.6.46 重版 + §C.5 false completion + §C.1 verification gate + ADR-0032 字段约束 协同).
