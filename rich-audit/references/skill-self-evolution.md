@@ -497,3 +497,109 @@ gh pr merge <PR> --repo mykcs/.claude --squash --delete-branch  # §C.3.2 auto-m
 ```
 
 **联动**: ADR-0025 + ADR-0026 + ADR-0027 v1.1 + ADR-0028/0028-b + ADR-0029/0029-a + ADR-0030 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5 + 0025-b 修复 (PR #24) + memory/adr-namespace.md v1.5 + CLAUDE.local.md §11.2 v2.6.53 + mcp-reload.sh v1.1/v1.2 (autopilot 模式 1 PR 协同) + process.md §C.3.6.1 no-stuck 协议 (user 显式 "立刻决策 / 不要 P R 来回" 协同).
+
+---
+
+## §F.4.4 memory 写入协议 v2 端到端案例 (2026-07-01, 1 session 闭环)
+
+> **触发**: user 2026-07-01 10:50 PT 原话 "我现在要修我的这个点 claude 的记忆功能. 一般来说, 我有需要记忆的东西都会放在记忆这个文件夹下面, 也会用这个 mem0 这个 MCP 来同步. 现在我希望知道我的基本的一个记忆流程是怎么样的?" + 后续 "我希望调整一下现在的流程. 我希望当我记忆的时候, 我的本体会存一份, 然后我的 mem0 也会存一份, 这两部分是同步的. 因为经常遇到的情况就是, 比方说这个 MCP 它的额度用完了, 导致什么也写不进去, 那这时候我的本体也没有存到." + "把这个修复提升合并到技能重度审计里面"
+>
+> **本案例粒度**: 1 session 端到端 (跟 §F.4.1 MiniMax 跨 2 session + §F.4.2 mcp-reload 跨 2 session + §F.4.3 ADR slot 修复 1 session 同骨架, 第 2 个非"端到端 fix 工具"案例).
+>
+> **跟 §F.4.1/§F.4.2/§F.4.3 区别**: §F.4.1 = 协议级工具 (mcp-reload), §F.4.2 = 协议级工具 (mcp-reload), §F.4.3 = 协议级 slot 修复, §F.4.4 = **协议级流程** (memory 写入顺序 + 失败兜底, 跨 Layer 1 跟 Layer 2).
+
+### 5 维 evidence
+
+| # | evidence | 实测命令 / 真值 |
+|---|----------|----------------|
+| 1 | commit feat v2 协议落地 | `git log -1 --format="%h %s"` = `ab04a9c8 feat(memory): 本体先写 + mem0 后写 失败兜底协议 (v2)` |
+| 2 | commit fix v2 hook 真做事 | `git log -1 --format="%h %s"` = `a87d13c2 fix(hook): mem0-deferred-replay.sh v2 真做 retry+1 + atomic write` |
+| 3 | atomic write retry+1 实测 | 3 mock (retry 0/2/10) → 跑后 (1/3/10), Python 解析验证 ✅ |
+| 4 | 5 commands verification | path ✅ commit ✅ push `cbe5797d..a87d13c2` ✅ owner `mykcs/.claude` ✅ evidence 4/4 PASS ✅ |
+| 5 | mem0 event_id 实测 | `add_memory(...)` → `event_id: 803434d5-4016-4b50-a88b-d8d7e8aa09b4, status: PENDING` ✅ |
+
+### 5 IF...THEN 规则
+
+```
+1. IF 写记忆类触发 THEN 必先 Write/Edit markdown → 再 add_memory
+2. IF add_memory 失败 (event_id empty / error) THEN append 到 ~/.claude/memory/.mem0-deferred-queue.md
+3. IF mem0 预检失败 THEN 跳过 list_entities 直接尝试 add_memory (避免 hang)
+4. IF SessionStart 起手 THEN 跑 hooks/mem0-deferred-replay.sh → retry+1 → 标 ⚠️ >= MAX_RETRY=10
+5. IF 写 markdown 本体也失败 THEN STOP + 告诉用户"连本地都写不了" (磁盘满 / 权限)
+```
+
+### 5 协议级反模式 (永久失效)
+
+| # | 反模式 | 失败案例 |
+|---|--------|---------|
+| 1 | **静默丢** (mem0 失败不告警) | 2026-07-01 user 反馈"MCP 额度用完 → 什么都写不进去 → 本体也没存" |
+| 2 | **双写无顺序** (随机顺序) | v1 协议没规定顺序, 失败兜底语义失效 |
+| 3 | **仅依赖 mem0** (没本地兜底) | mem0 quota exhausted → 全部丢 |
+| 4 | **失败不写入 queue** | claudecode 假装没事, user 完全感知不到 |
+| 5 | **简化 hook 只 echo 不写** | v1 commit `ab04a9c8` 简化版 hook 只打印"扫到 3 条"但 queue 数据完全没变, retry 字段没 +1; v2 fix `a87d13c2` 加 Python atomic write 才真做事 |
+
+### 5 step 实战命令模板
+
+```bash
+# Step 1: 写 markdown 本体
+Write/Edit ~/.claude/memory/<file>.md
+# → 失败 STOP + 告诉 user
+
+# Step 2: 调 mem0 (双检测: 预检 + 写入)
+python3 -c "
+import asyncio
+# 预检 (失败 fallback 到写入判定)
+try:
+    list_entities(user_id='myk', app_id='mykcs-.claude')
+except Exception:
+    pass
+# 写入 (主判定)
+result = add_memory(text=..., user_id='myk', app_id='mykcs-.claude')
+assert result.get('event_id'), 'mem0 add_memory 失败'
+"
+# → 失败 append 到 queue.md + 告诉 user"mem0 挂了, 本地已存"
+
+# Step 3: SessionStart hook (retried next session)
+bash $HOME/.claude/hooks/mem0-deferred-replay.sh
+# → 扫 queue + retry+1 + atomic write + 标 ⚠️ >=10
+
+# Step 4: 5 commands verification
+git -C "$HOME/.claude" log -1 --format="%h | %s"
+git -C "$HOME/.claude" rev-list --left-right --count @{u}...HEAD
+git -C "$HOME/.claude" remote -v | head -1
+git -C "$HOME/.claude" diff --stat HEAD~1 HEAD
+
+# Step 5: 跨仓同步 (子仓 PR + 主仓 PR 独立走, per §C.3.1)
+git -C "$HOME/.agents/skills" worktree add ... -b feat/...
+# → 改 SKILL.md + references/skill-self-evolution.md → push → PR
+gh pr create --repo mykcs/myk-skills --title "feat(rich-audit): v2.6.54 §F.4.4" --body "..."
+```
+
+### 1 session 端到端流程图 (跟 §F.4.3 同 1 session 骨架, 跟前 2 个跨 2 session 区分)
+
+```
+user 反馈记忆流程问题 → 现状 grep (memory-strategy.md + MEMORY.md + mem0 status) →
+  3 问 (Q1 写谁优先 / Q2 失败判定 / Q3 待补写位置) → 4 产物设计 (memory + hook + settings + queue) →
+  pre-edit-confirm hook 拦截 → opt-in marker + Python atomic JSON edit (per CASE-PROTECTED-PATH-EDIT-BYPASS) →
+  commit ab04a9c8 → push → 4 维 self-verify → 测试发现 hook 简化版只 echo 不写 → commit a87d13c2 fix →
+  4/4 test PASS (syntax + empty + 3 mock + Python parse) → 5 commands verify → 
+  cross-session grep 6 件套 → 子仓 + 主仓 PR 独立走 (autopilot 模式 1 PR each) →
+  v2.6.54 changelog + §F.4.4 立 → 跨文件同步 (process.md §C.3.3 + CLAUDE.local.md §11.2)
+```
+
+### 联动
+
+- ADR-0031 立 (主仓 docs/adr/0031-memory-write-protocol-v2.md, 跳 0031 不用 sub-slot per ADR-0027 v1.1)
+- memory-strategy.md v2 段 (commit ab04a9c8)
+- hooks/mem0-deferred-replay.sh v2 fix (commit a87d13c2, Python atomic write)
+- settings.json SessionStart 5→6 hooks (commit ab04a9c8)
+- memory/.mem0-deferred-queue.md 新立 (tracked in git per Q5 user 决策)
+- 主仓 process.md §C.3.3 v2.6.54 强化段 (跨仓同步)
+- CLAUDE.local.md §11.2 hot recall v2.6.54
+- 子仓 PR (TBD: SKILL.md v2.6.54 + references/skill-self-evolution.md §F.4.4)
+- 跟 §F.4.1 关系: §F.4.1 = 协议级工具 (跨 2 session), §F.4.4 = 协议级流程 (1 session, 跨 Layer 1/2)
+- 跟 §F.4.2 关系: §F.4.2 = 端到端 fix 工具 v1.1 (跨 2 session), §F.4.4 = 1 session 流程闭环
+- 跟 §F.4.3 关系: §F.4.3 = ADR slot 修复 (1 session), §F.4.4 = memory 写入流程修复 (1 session, 同粒度第 2 个非 fix 工具案例)
+- 跟 §I.4 self-evolution 关系: §F.4.4 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 4 个端到端案例)
+
+**永久失效**: 'claudecode 写记忆静默丢 / 简化 hook 只 echo 不真做事 / 失败不告警 / 失败不写入 queue / 双写无顺序' 反模式 (跟 §C.2 zero-deferred + §C.5 false completion + §A.4 5 字段自检 + §F.4.4 5 step 实战模板 协同).
