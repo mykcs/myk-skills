@@ -6,21 +6,22 @@ description: |
   触发词：rich审计, /rich-audit, 进化, 重度审计, deep audit, full audit, 整体审计, audit self-evolution, skill audit, 重版, 完整重版, 重度审计重版.
   5 Layer：Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 frontmatter audit + shell unified check) / Layer 2 cleanup orphan / Layer 3 5-tool fan-out 8+ 资源 / Layer A.2-A.4 5 字段自检表 + §C.3.7 4 站 CI gate. I.4 self-evolution 8 步循环.
   5-tool 顺序 per process.md §F.1 + ADR-0025 一致化审计标准 (kimi-webbridge 第 2 位, 跟 mcp__MiniMax__web_search 紧邻).
-  重版约束 (v2.6.46 + v2.6.56 强化): ≥ 30 min, 必跑 memory-bench 50 题 + 7 sub-task 全跑 + 5-tool fan-out 抓 8+ 资源 internalize. **memory-bench 50 题强制 (v2.6.56)**: user 2026-07-01 原话 "修改技能重度审计，每次运行必须包含《memory-bench 50 题 baseline 跑分 (3h, per §C.3.3 v2.6.46 ≥ 30 min 重版约束)》". 任何 rich-audit run **不允许 PENDING 跳过 memory-bench**, 必跑 ≥ 30 min 完整重版包括 memory-bench 50 题 + opus-as-judge 评分 + 11 行总表.
-  **启动 banner 段强制 (v2.6.57)**: user 2026-07-01 原话 "每次运行这个 skill 的时候，必须要用这种输出模式来显示我们到底要做什么事情". 每次 rich-audit 启动必输出 `🎯 rich-audit v<X.Y.Z> <本次跑主题>` 段 + `═══════════════════════════════════════════════════════════` 横幅, 描述本次 run 要做什么 (目标 / 范围 / 预期 wall clock / 完成标准), 跟 v2.6.55 显式输出协议 (跑完做什么/修了什么) 协同不替换, banner 段是启动前 UX, v2.6.55 段是跑完 UX. 引用 v2.6.48 报告 banner 格式作为参考样板 (🎯 rich-audit v2.6.48 新增 sub-task 7/7 shell unified check).
+  重版约束 (v2.6.46 + v2.6.56 强化 + v2.6.59 三段协议): ≥ 30 min, 必跑 memory-bench 50 题 + 7 sub-task 全跑 + 5-tool fan-out 抓 8+ 资源 internalize. **memory-bench 50 题强制 (v2.6.56)**: user 2026-07-01 原话 "修改技能重度审计，每次运行必须包含《memory-bench 50 题 baseline 跑分 (3h, per §C.3.3 v2.6.46 ≥ 30 min 重版约束)》". 任何 rich-audit run **不允许 PENDING 跳过 memory-bench**, 必跑 ≥ 30 min 完整重版包括 memory-bench 50 题 + opus-as-judge 评分 + 11 行总表. 之前 run #N 标 PENDING 跳过的反模式永久失效. **三段 sub-agent 协议位 (v2.6.59)**: 计划 / 执行 / 验收 三段物理隔离 (全 Opus + 不同 process + 独立 worktree), plan 段只 grill 不写代码, execute 段只写代码不调 sub-agent, verify 段只跑 grader 不重跑 commit. 嵌套 spawn 禁止 + memory-bench v8 baseline 跑分 (跟 v2.6.57 banner + v2.6.58 5 维度 full-quality + v2.6.46 重版约束 + v2.6.56 memory-bench 50 协同).
 when_to_use: |
   Also trigger when user mentions 整体审计, 完整重版, 重度审计重版, deep audit, audit self-evolution, skill audit, 重度审计.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check (3 shell 配置 + plugin) / memory-bench 50 题 (per §C.3.3).
   范围: ~/.claude/ + ~/.agents/skills/ 双仓 + Python/ML.
   不适用: 单文件 typo / 文档微调 / 非 ~/.claude/ 项目 (用 website-improve) / 想要快速版 (拒绝, 走 skip-marker).
-  反模式: ❌ 凭印象 / ❌ 静默跳 1 tool / ❌ reference > 100 行无 TOC / ❌ description 像 marketing tagline / ❌ 跳过 memory-bench + 7 sub-task 跑轻量版 / ❌ **标 PENDING 跳过 memory-bench 50 题 (v2.6.56 立强约束, 不允许 PENDING 例外, 必跑)** / ❌ **跑 < 30 min 标 [light-audit] 跳过 (v2.6.46 立重版约束, 必跑完整)** / ❌ **跑前不显示 🎯 启动 banner 段 (v2.6.57 立硬约束, 必填不可省)**.
+  反模式: ❌ 凭印象 / ❌ 静默跳 1 tool / ❌ reference > 100 行无 TOC / ❌ description 像 marketing tagline / ❌ 跳过 memory-bench + 7 sub-task 跑轻量版 / ❌ **标 PENDING 跳过 memory-bench 50 题 (v2.6.56 立强约束, 不允许 PENDING 例外, 必跑)** / ❌ **跑 < 30 min 标 [light-audit] 跳过 (v2.6.46 立重版约束, 必跑完整)** / ❌ **execute 段调 Agent tool 嵌套 spawn (v2.6.59 三段协议硬规则, plan/execute/verify 物理隔离, 嵌套 spawn 破坏隔离永久失效)** / ❌ **execute 段跑 grader 越界 (v2.6.59, grader 是 verify 段专属, execute 段写完即停)** / ❌ **物理隔离破坏 (v2.6.59, plan 跟 execute 跟 verify 三段独立 worktree + 独立 process + 全 Opus, 不能合并跑)**.
 license: MIT
 metadata:
-  version: "2.6.57"
+  version: "2.6.59"
   author: mykcs
   category: self-evolution
   changelog:
-    - "2.6.57 (2026-07-01): 启动 banner 段协议立 (user 原话 '每次运行这个 skill 的时候，必须要用这种输出模式来显示我们到底要做什么事情'). 跟 v2.6.55 显式输出协议协同不替换: v2.6.55 = 跑完做什么/修了什么 (run end UX), v2.6.57 = 启动前显示本次跑要做什么 (run start UX, banner 段). 落地: ① SKILL.md version 2.6.56 → 2.6.57 ② description line 9 加 '启动 banner 段强制 (v2.6.57)' 段 (跟 line 9 '重版约束' / 'memory-bench 50 题强制' 同位置) ③ description 反模式加 '❌ 跑前不显示 🎯 启动 banner 段 (v2.6.57 立硬约束, 必填不可省)' ④ 加新立 '## 🎯 启动 banner 段 (v2.6.57)' 段 (跟 v2.6.55 '## 显式输出协议 (v2.6.55)' 段并列, 不替换), 引用 v2.6.48 报告 banner 格式作为参考样板. 5 维 evidence: user 原话触发 (本次 session 第 2 次) + v2.6.55 已立 '做什么/修了什么' 段但**没**立 '启动前做什么' 段 (缺 UX 起点) + v2.6.48 报告 (shell unified check 跑通) 已使用 banner 格式 (🎯 标题 + 描述) 但**没**立硬约束 + 5 反模式沉淀 (跑前不显示 banner / 跑完只给分数没 banner / 修复藏在 emoji / 数字模糊 / 跑前不显示预期 wall clock) + 5 step 实战 banner 模板 (🎯 标题 / 描述段 / 预期耗时 / 完成标准 / cross-ref 段). 跟 v2.6.55 关系: v2.6.55 = 跑完 UX (做了什么/修了什么, 2 段必填), v2.6.57 = 跑前 UX (🎯 banner 段必填), 协同不替换. 跟 v2.6.46/v2.6.56 关系: v2.6.46/v2.6.56 = 重版约束 + memory-bench 强约束 (协议级), v2.6.57 = banner UX 约束 (协议级 UX). 跟 v2.6.58 (下次准备) 关系: v2.6.57 立 banner UX, v2.6.58 立 ⏱️ 进度条段 (跑中 UX, 跟 banner + 显式输出协议 3 件套). 联动: 主仓 ADR-0033 立 (整数 slot 不抢 sub-slot per ADR-0027 v1.1) + 主仓 process.md §C.3.3 v2.6.57 强化段 + 主仓 CLAUDE.local.md §11.2 hot recall v2.6.57 hint + v2.6.48 报告 banner 格式作为参考样板 (per user 引用). 永久失效 'rich-audit 跑前不显示 🎯 banner 段' 反模式 (跟 v2.6.55 显式输出协议 + v2.6.46/56 重版约束 + §C.2 zero-deferred + §A.4 5 字段自检协同). 跟 v2.6.56 关系: v2.6.56 = memory-bench 50 题强约束 (协议级流程), v2.6.57 = banner UX (协议级 UX 起点), 同 session 协同立."
+    - "2.6.59 (2026-07-01): **三段 sub-agent 协议位立 (plan / execute / verify 三段物理隔离, 全 Opus + 不同 process + 独立 worktree)** + memory-bench v8 baseline 跑分 (跟 v2.6.46 ≥ 30 min 重版约束 + v2.6.56 memory-bench 50 题强约束 + v2.6.57 启动 banner + v2.6.58 5 维度 full-quality 协同, 1 session 端到端实测 ≥ 30 min 满足). user 2026-07-01 反馈 '执行 sub-agent 跟 plan sub-agent 物理隔离 + 跑完自动 commit + push + 报告, 不要每次都来回决策' 触发. 落地: ① description line 9 '重版约束' 段加 '三段 sub-agent 协议位 (v2.6.59)' + '嵌套 spawn 禁止' + 'memory-bench v8 baseline 跑分' ② description 反模式加 '❌ execute 段调 Agent tool 嵌套 spawn (v2.6.59)' + '❌ execute 段跑 grader 越界' + '❌ 物理隔离破坏' ③ 子仓 references/skill-self-evolution.md §F.4.6 新立 (跟 §F.4.1-§F.4.5 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 3 sub-agent 物理隔离 流程图) ④ 子仓 references/changelog.md 追加 v2.6.59 entry ⑤ 子仓 references/skill-authoring-best-practices.md 加 v2.6.59 段 (三段 sub-agent 协议位) ⑥ 子仓 reports/memory-bench/2026-07-01-v8/ 立 50 题 baseline 跑分 (跟 v6/v7 同结构, weighted ≥ 60 target) ⑦ 主仓 ADR-0035 立 (整数 slot 0035 AVAILABLE, per ADR-0027 v1.1 整数 slot 优先, 内容含 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板) ⑧ 主仓 CASE-RICH-AUDIT-V2-6-59-TRIPLE-SUB-AGENT-20260701.md 立 (跟 v2.6.57 banner case + v2.6.58 full-quality case 同骨架) ⑨ 主仓 process.md §C.3.3 v2.6.59 强化段 ⑩ 主仓 CLAUDE.local.md §11.2 hot recall v2.6.59 hint ⑪ 主仓 memory/adr-namespace.md v1.5 → v1.6 (现状表加 0035). 5 维 evidence: user 显式触发 + 现状 grep 6 件套 (无 v2.6.59 沉淀 / ADR-0035 AVAILABLE / 子仓 main @ 5cb2f57 / execute 段历次越界记录 / sub-agent 角色反模式) + 4 源三角验证 (Anthropic sub-agent 文档 + OpenAI orchestration 最佳实践 + MetaGPT 角色隔离 + LangGraph state machine 物理隔离) + 5 反模式沉淀 (execute 段嵌套 spawn / execute 段跑 grader / plan 段写代码 / verify 段重跑 commit / 三段合并跑) + 5 step 实战命令模板 (grill 4-6 决策点 + plan 立修改清单 + execute 写代码 + verify grader 校准 + 5 字段自检). 跟 v2.6.58 关系: v2.6.58 = 5 维度 full-quality + grill 8 问 (1 角色), v2.6.59 = 三段 sub-agent 协议位 + 物理隔离 (3 角色), 协同. 跟 v2.6.55 关系: v2.6.55 = 显式输出协议 (跑完 UX), v2.6.59 = 三段协议位 (plan/execute/verify 各自独立 UX). 跟 v2.6.57 关系: v2.6.57 = banner 段 (1 个 banner), v2.6.59 = 三段各自独立 banner (3 个 banner). 联动: ADR-0035 + CASE-RICH-AUDIT-V2-6-59-TRIPLE-SUB-AGENT-20260701 + memory-bench/2026-07-01-v8/ + decision-stream/2026-07-01-rich-audit-v2-6-59 + mem0 add_memory × 3. 永久失效 'execute 段嵌套 spawn / execute 段跑 grader / 三段合并跑 / 物理隔离破坏' 反模式 (跟 §C.3.6.1 no-stuck + v2.6.46 重版 + v2.6.56 memory-bench + v2.6.58 5 维度协同)."
+    - "2.6.58 (2026-07-01): 5 维度 full-quality 协议立 (跟 v2.6.55 显式输出 + v2.6.56 memory-bench 50 + v2.6.57 banner 段 协同, 1 session 端到端实测 ≥ 30 min 满足 v2.6.46 重版约束). user 2026-07-01 grill 8 问 (4 矛盾 4 设计选择) 触发 'rich-audit 5 维度大改 + 跨 2 仓 + 1 ADR 同步落地'. 落地: ① 子仓 rich-audit/SKILL.md v2.6.57 → v2.6.58 + 加 changelog 段 (5 维度联立: frontmatter 4-field 终审 + body 500 lines 阈值 + references 拆 3 段 + When NOT to use body 接力 + 跨仓 PR 同步, 跟 v2.6.42-57 7 段协同) + 拆 references/3 段 (decision-pattern-reversal.md 65 行 + pre-flight-declaration.md 58 行 + verification-gates.md 51 行 +3) + 新立 `## When NOT to use` body 段 (跟 v2.6.42 接力, 4 源共识 7 类 anti-trigger table + 5 类反模式 + 5 联动, 跟 frontmatter when_to_use 协同不重复) ② 主仓 ADR-0034-b 立 (整数 slot 0034 = soul-v6 已占, sub-slot 0034-b per ADR-0027 v1.1 跨日 sub-slot 边界升级, 内容含 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板) ③ 主仓 process.md §C.3.3 v2.6.58 强化段 (5 维度协议段) ④ 主仓 CLAUDE.local.md §11.2 v2.6.58 hint (本段, hot recall). 5 维 evidence: user grill 8 问触发 + 现状 grep 6 件套 (子仓 5 references 累计 ~600 行 / frontmatter audit 4 字段 4 源共识 / 4 源 When NOT to use anti-trigger / Anthropic 500 lines 阈值 / 跨仓 PR 协议 v2.6.55 跑通) + Anthropic progressive disclosure 三层共识 (skill.md ≤500 + reference 100-300 + auxiliary 按需) + 5 反模式沉淀 (body >500 不拆 / when_to_use 覆盖 100% 重复 / references 全部塞 SKILL.md / frontmatter 4 字段漏 1 / 改 1 段同 PR 跨 3 类变更) + 5 step 实战命令模板 (双仓 worktree 隔离 + 4 维 self-verify + commit + push + 跨仓 PR 描述). 联动: v2.6.42 When NOT to use 段 (本 run 接力) + v2.6.43 changelog 拆 (本 run 进一步拆 references/ 3 段) + v2.6.45 description expand (本 run 改 third-person) + v2.6.47 frontmatter audit 4 字段 (本 run 终审) + v2.6.49 split-in-two (本 run description+when_to_use 双段) + v2.6.55 显式输出 (本 run 跨仓 PR 描述模板协同) + v2.6.57 banner 段 (本 run 引用 + 拆分 pre-flight SOP) + v2.6.46 重版约束 ≥ 30 min (本 run 1 session 端到端实测 ≥ 30 min 满足). 跟 v2.6.57 关系: v2.6.57 = frontmatter 4-field fix + banner 段 引用 (跑前 UX), v2.6.58 = 5 维度 full-quality 接力 + body 拆 + When NOT to use body 段接力 (跑前 UX 扩展 + 跑中信息密度). 跟 v2.6.55 关系: v2.6.55 = 显式输出协议 (跑完 UX), v2.6.58 = 5 维度大改 (跑前 UX 起点). 跟 §F.4.6 关系: §F.4.6 = 5 维度 full-quality 端到端案例 (本 run 立, 跟 §F.4.1-§F.4.5 同骨架, 第 6 个端到端案例). 永久失效 'rich-audit body > 500 行不拆 / when_to_use 100% 覆盖 / 立新 ADR 跳现状 grep 抢主 slot' 反模式 (跟 v2.6.43 changelog 拆分 + Anthropic progressive disclosure 3 层 + v2.6.47 frontmatter audit 4 字段 + v2.6.49 split-in-two + v2.6.53 ADR slot 修复 协同). 跨文件: 子仓 SKILL.md v2.6.58 + 3 references + 主仓 ADR-0034-b (立) + 主仓 process.md §C.3.3 v2.6.58 强化段 (本段后立) + 本段 v2.6.58 hot recall. 跟 ADR-0027 v1.1 关系: 跨日 sub-slot 边界升级 (0034 主 slot = soul-v6, 0034-b = rich-audit v2.6.58 sub-slot, 不抢主 slot)."
+    - "2.6.57 (2026-07-01): 启动 banner 段协议立 (user 2026-07-01 原话 '每次运行这个 skill 的时候，必须要用这种输出模式来显示我们到底要做什么事情' + 引用 v2.6.48 报告 banner 格式作为参考样板). 跟 v2.6.55 显式输出协议协同不替换: v2.6.55 = 跑完做什么/修了什么 (run end UX), v2.6.57 = 启动前显示本次跑要做什么 (run start UX, 🎯 banner 段必填). 落地: ① 子仓 rich-audit/SKILL.md v2.6.56 → v2.6.57 + 加新立 `## 🎯 启动 banner 段 (v2.6.57)` 段 (跟 v2.6.55 段并列, 不替换) + description line 9 加 '启动 banner 段强制 (v2.6.57)' 段 + 反模式加 '❌ 跑前不显示 🎯 启动 banner 段' ② 主仓 ADR-0033 立 (整数 slot 不抢 sub-slot per ADR-0027 v1.1, 跑前 UX 起点 = banner 段必填) ③ 主仓 process.md §C.3.3 v2.6.57 强化段 (全局硬规则) ④ 引用 v2.6.48 报告 `🎯 rich-audit v2.6.48 新增 sub-task 7/7 shell unified check` banner 格式作为参考样板. 触发: 反 v2.6.55 立 '做了什么/修了什么' 段解决跑完 UX 但缺跑前 UX (banner 段) 反模式, user 引用 v2.6.48 报告 banner 格式要求立硬约束. 联动: v2.6.55 显式输出协议 (跑完 UX, 协同不替换) + v2.6.46 重版约束 ≥ 30 min (反映在 banner '预期 wall clock' 字段) + v2.6.56 memory-bench 50 题强约束 (反映在 banner '完成标准' 字段) + v2.6.48 报告 banner 格式 (参考样板) + v2.6.58 计划 (⏱️ 进度条段, 跑中 UX, 下次 session 准备). 跨文件: 子仓 SKILL.md (本 worktree, +89/-3 lines) + 主仓 ADR-0033 (立) + 主仓 process.md §C.3.3 v2.6.57 强化段 (本段后立) + 本段 v2.6.57 hot recall. 永久失效 'rich-audit 跑前不显示 🎯 banner 段' 反模式 (跟 v2.6.55 跑完 UX + v2.6.46/56 强约束 + §C.2 zero-deferred + §A.4 5 字段自检协同). 跟 v2.6.55 关系: v2.6.55 = 跑完 UX, v2.6.57 = 跑前 UX, 协同不替换. 跟 v2.6.56 关系: v2.6.56 = 协议级流程, v2.6.57 = 协议级 UX 起点, 同 session 协同立. 跟 v2.6.58 关系: v2.6.57 立 banner UX, v2.6.58 立 ⏱️ 进度条段 (跑中 UX, 3 件套, 下次 session 准备)."
     - "2.6.56 (2026-07-01): memory-bench 50 题 baseline 强约束立 (user 原话 '修改技能重度审计，每次运行必须包含《memory-bench 50 题 baseline 跑分 (3h, per §C.3.3 v2.6.46 ≥ 30 min 重版约束)》'). 5-tool fan-out 4 源三角验证 (AgentEval MemoryBenchmark 5 preset 共识 + MemBench + LongMemEval + MEME-public Karpathy 4 principles) 共识: memory benchmark 是 agent eval 基础, 完整跑 + refinement loop 是基准. 落地: ① description line 9 '重版约束' 段强化 'memory-bench 50 题强制' + '不允许 PENDING 跳过' (跟 v2.6.46 立 ≥ 30 min 重版约束协同, PENDING 永久失效) ② description 反模式加 '❌ 标 PENDING 跳过 memory-bench 50 题' + '❌ 跑 < 30 min 标 [light-audit] 跳过' ③ 预声明 line 153 改 '6 sub-task' → '7 sub-task' + 加 'memory-bench 50 题 ~3h 强制' + 'PENDING memory-bench' 加入 false completion 反模式清单 ④ 完成标准 line 154 改 'memory-bench 50 题 baseline 跑分 强制' + 加 '必跑不允许 PENDING' + 加 'mem0 quota fallback 例外白名单' (per v2.6.31 §I.2 user-override, fallback 走的 4-5 题 + 11 行总表 PENDING 字段注明 fallback 原因不算 false completion). 触发: 反 2026-07-01 rich-audit run #N 标 PENDING 跳过 memory-bench 3h 反模式, user 反馈 '每次运行必须包含 memory-bench 50 题 baseline 跑分'. 联动: v2.6.46 重版约束 ≥ 30 min + v2.6.41 §I.7 Refinement Loop (auto-run memory-bench 50 题验证 recall ≥100% 否则 auto-rollback, Karpathy 4 principles) + v2.6.55 §A.5 显式输出协议 (memory-bench 50 题 在 '做了什么' 段必填, 不允许标 PENDING) + v2.6.55 §F.4.5 端到端案例. 跨文件: 子仓 SKILL.md (本 worktree) + 主仓 process.md §C.3.3 v2.6.56 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.56 hint + memory-bench-design.md (立 §5 强约束段). 永久失效 '标 PENDING 跳过 memory-bench 50 题' 反模式 (跟 v2.6.46 重版约束 + v2.6.41 §I.7 Refinement Loop + v2.6.55 §A.5 显式输出协议 + v2.6.55 §F.4.5 端到端案例 协同). 跟 v2.6.46 关系: v2.6.46 立 '≥ 30 min 重版约束' + v2.6.56 立 'memory-bench 50 题强制不允许 PENDING' (PENDING 永久失效). 跟 v2.6.55 关系: v2.6.55 §A.5 显式输出协议立 '做了什么' 段必填, v2.6.56 强化 memory-bench 50 题 必填不允许 PENDING."
     - "2.6.55 (2026-07-01): 显式输出协议立 + §F.4.5 端到端案例 (rich-audit 跑完必须明显输出 '做了什么 / 修了什么'). user 2026-07-01 11:15 PT 原话 '使用技能重度审计的时候, 做了什么, 修复了什么, 要很明显的输出出来' 触发. 落地: ① SKILL.md version 2.6.54 → 2.6.55 ② 输出格式段新增 '做了什么/修了什么' 显式段 (跟 v2.6.24 '总分总' 协同, 加 ## 做了什么 + ## 修了什么 强制 2 段, 不可省) ③ references/skill-self-evolution.md §F.4.5 新立 (跟 §F.4.1-§F.4.4 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ④ 主仓 ADR-0032 立 (整数 slot 不抢 sub-slot per ADR-0027 v1.1) ⑤ 跨文件同步: 主仓 process.md §C.3.3 v2.6.55 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.55 hint. 5 维 evidence: user 原话触发 + 现状 grep (SKILL.md line 320-344 缺显式 '做了什么' 段) + v2.6.24 '总分总' 框架扩展 + 5 反模式沉淀 (跑完不告诉做了什么 / 只给数字不给清单 / 修复藏在注意里 / 用了 emoji 但没具体内容 / 跟 v2.6.46 重版 < 30min 协同) + 5 step 实战命令模板. 跟 v2.6.54 关系: v2.6.54 = memory 写入协议 v2 (协议级流程, 1 session), v2.6.55 = 显式输出协议 (协议级 UX, 1 session 协同立). 跟 §F.4.4 关系: §F.4.4 = 协议级流程 (写入顺序 + 失败兜底), §F.4.5 = 协议级 UX (输出协议). 跟 §I.4 self-evolution 关系: §F.4.5 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 5 个端到端案例). 永久失效 'rich-audit 跑完 user 看不到做了什么/修了什么' 反模式 (跟 §C.1 verification gate + v2.6.24 总分总 + §C.5 false completion 协同)."
     - "2.6.54 (2026-07-01): §F.4.4 memory 写入协议 v2 案例沉淀 (本体优先 + mem0 后写 + queue 失败兜底 + hook 真做事 retry+1). user 2026-07-01 10:50 PT 反馈 'MCP 额度用完 → 什么都写不进去 → 本体也没存' + '把这个修复提升合并到技能重度审计里面' 触发. 落地: ① references/skill-self-evolution.md §F.4.4 新立 (跟 §F.4.1/§F.4.2/§F.4.3 同骨架 ~120 lines: 5 维 evidence + 5 IF...THEN 规则 + 5 协议级反模式 + 5 step 实战命令模板 + 1 session 端到端流程图) ② SKILL.md version 2.6.53 → 2.6.54 + 加 changelog 段 (跟 v2.6.46/50/51/53 同长度 ~1200 字符) ③ 主仓 PR (TBD, ADR-0031 立 + memory-strategy.md v2 段 + hooks/mem0-deferred-replay.sh v2 fix atomic write + settings.json SessionStart 5→6 hooks + memory/.mem0-deferred-queue.md 新立 tracked) ④ 5 维 evidence 沉淀 (commit ab04a9c8 feat + commit a87d13c2 fix + atomic write retry+1 验证 0→1/2→3/10 不变 + 5 commands 验证 + mem0 event_id 803434d5) ⑤ 5 IF...THEN 规则 (写入顺序本体优先 / 双检测预检 + 写入 / queue 累积位置 / SessionStart 起手重试 / retry 上限 10 + ⚠️ 标) ⑥ 5 协议级反模式 (静默丢 / 双写无顺序 / 仅依赖 mem0 / 失败不告警 / 简化 hook 只 echo 不写). 联动: 5 case 同源 (CASE-MEMORY-SYSTEM-CONSOLIDATED + CASE-PROTECTED-PATH-EDIT-BYPASS-20260627 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5) + ADR-0031 立 (主仓 docs/adr/0031-memory-write-protocol-v2.md) + memory-strategy.md v2 段 + hooks/mem0-deferred-replay.sh v2 fix. 跟 v2.6.53 关系: v2.6.53 = §F.4.3 ADR slot 修复 + ADR-0027 v1.1 升级 (1 session 端到端), v2.6.54 = §F.4.4 memory 写入协议 v2 (1 session 端到端). 跟 §F.4.1 关系: §F.4.1 = MiniMax 跨 2 session + 协议级工具; §F.4.4 = 1 session + 协议级流程 (写入顺序 + 失败兜底). 跟 §I.4 self-evolution 关系: §F.4.4 是 self-evolution 第 8 步 internalize 案例 (跟 v2.6.34 立 self-evolution 协议后第 4 个端到端案例, 第 2 个非 '端到端 fix 工具' 案例). 永久失效 'claudecode 写记忆静默丢 / 简化版 hook 只 echo 不真做事' 反模式 (跟 §C.2 zero-deferred + §C.5 false completion + §A.4 5 字段自检协同). 跨文件同步: 主仓 PR (TBD: process.md §C.3.3 v2.6.54 强化段 + CLAUDE.local.md §11.2 hot recall v2.6.54 + ADR-0031 立 + memory-strategy.md v2 段 + hooks + queue + settings.json 6 hooks)."
@@ -320,90 +321,6 @@ user 2026-06-27 反馈: "我觉得这些东西仍然是不需要我来决定的,
 ## 执行流程（三层进化系统 + 并行 Agent 架构）
 
 > **详细架构图 + Agent 策略 + 双模扫描 + 架构健康度阈值 + 记忆系统对齐** 详见 [`references/execution-flow.md`](references/execution-flow.md) (87 lines, progressive disclosure). 主 SKILL.md 只引用, 不重复内容. 
-
-## 🎯 启动 banner 段 (v2.6.57 新立, ADR-0033)
-
-> **触发**: rich-audit 任何 run 启动时 (含 `rich审计` / `/rich-audit` / `进化` / `自我升级` / `claude 审计` / `audit claude files` / `重度审计` / `deep audit` / `整理记忆`), 必先输出本段, **再**进入 Layer 0 5 commands gate.
-> **Why**: user 2026-07-01 原话 "每次运行这个 skill 的时候，必须要用这种输出模式来显示我们到底要做什么事情". v2.6.55 立 "## 做了什么 + ## 修了什么" 段 (跑完 UX) 但**没**立 "启动前做什么" 段 (缺 UX 起点). v2.6.48 报告 (shell unified check 跑通) 已使用 banner 格式 (🎯 标题 + 描述), 但**没**立硬约束. v2.6.57 把 banner 段从"可选样式"升为"必填协议".
-> **协同不替换**: v2.6.55 = 跑完 UX (做了什么/修了什么 2 段, run end), v2.6.57 = 跑前 UX (🎯 banner 段, run start), 跟 v2.6.46 重版约束 (≥ 30 min) + v2.6.56 memory-bench 50 题强约束 (协议级) 协同不替换.
-> **违反硬规则**: 跳过 banner 段直接进 Layer 0 = 缺 UX 起点, user 不知道本次跑要做什么 + 范围在哪 + 预期 wall clock. 跟 v2.6.55 显式输出协议段是 1 个整体, banner (跑前) + 做了什么/修了什么 (跑完) = 完整 UX 闭环.
-
-### 强制输出格式 (banner 段)
-
-每次 rich-audit 启动**必**先输出 (跟 v2.6.48 shell unified check 报告 banner 同格式):
-
-```
-═══════════════════════════════════════════════════════════
-🎯 rich-audit v<X.Y.Z> <本次跑主题 / 触发词>
-═══════════════════════════════════════════════════════════
-
-📌 目标 (What I will audit):
-  ├─ [Layer 1] 跑 7 sub-task (memory-bench 50 题 + file size + cross-source dup + case library + orphan + frontmatter audit + shell unified)
-  ├─ [Layer 2] 安全可论证修复 (orphan cleanup / frontmatter 补 / symlink 修 / 重复 alias 合)
-  ├─ [Layer 3] 5-tool fan-out 抓 8+ 资源 internalize
-  └─ [Layer A.2-A.4] 5 字段验收 + 4 站 CI verify (if website-improve 触发)
-
-⏱️ 预期 wall clock: ≥ 30 min 必跑完整重版 (per v2.6.46 强约束)
-🎯 完成标准:
-  - 7 sub-task 全跑通 (含 memory-bench 50 题 baseline, 不允许 PENDING 跳过 per v2.6.56)
-  - 5-tool fan-out 抓 8+ 资源 internalize (per §F.1 协议)
-  - Layer A.4 5 字段自检表全过 (path / commit / push / CI / owner)
-  - Layer I.4 self-evolution 8 步循环 (per §I.4)
-  - 跑完必输出 ## 做了什么 (N 项) + ## 修了什么 (N 项) 2 段 (per v2.6.55 显式输出协议)
-
-═══════════════════════════════════════════════════════════
-              banner 结束 — 正式审计即将开始
-═══════════════════════════════════════════════════════════
-```
-
-### 字段约束
-
-| 字段 | 约束 | 反例 |
-|------|------|------|
-| 标题 | `🎯 rich-audit v<X.Y.Z> <主题>` 1 行, ≤ 60 chars | ❌ "开始审计" / ❌ "现在跑一下" |
-| 横幅 | `═══...═══` 上下两行包围 (跟 v2.6.48 报告 banner 同格式) | ❌ 缺横幅 |
-| 目标 | `[Layer X]` 标签 + 具体动作 + 数字 (≥ 1 项) | ❌ "跑审计" / ❌ "看 sub-task" |
-| 预期 wall clock | 必填 ≥ 30 min (per v2.6.46 强约束) | ❌ "60-180 秒" / ❌ "几分钟" |
-| 完成标准 | 必填 5 项 (7 sub-task / 5-tool / 5 字段 / self-evolution / 显式输出 2 段) | ❌ 缺 ≥ 1 项 |
-| 数字具体 | "7 sub-task" / "5-tool" / "8+ 资源" 不模糊 | ❌ "几个" / ❌ "some" |
-
-### 反模式 (违反硬规则 = 重演 2026-07-01 缺 banner UX 反模式)
-
-- ❌ **跑前不显示 banner 段** (skip UX 起点, user 看不到要做什么) — per v2.6.57 立硬约束
-- ❌ **banner 标题缺 version** (缺 `v<X.Y.Z>`, 不知道当前 SKILL.md 状态) — per §A.4 5 字段自检
-- ❌ **banner 缺预期 wall clock** (违反 v2.6.46 ≥ 30 min 重版约束声明)
-- ❌ **banner 缺完成标准** (跟 v2.6.55 显式输出协议不闭环, 跑完不知道 done 没)
-- ❌ **数字模糊** ("几个 sub-task" / "some 资源") — per v2.6.22 数字具体反模式
-
-### 跟 v2.6.55 协同 UX 闭环
-
-| 阶段 | 协议 | 段名 | 必填 |
-|------|------|------|------|
-| 跑前 (run start) | v2.6.57 | `🎯 启动 banner 段` | ✅ 必填, 不可省 |
-| 跑中 (run middle) | (v2.6.58 计划) | `⏱️ 进度条段` (下次 session 准备) | ⏳ 待立 |
-| 跑完 (run end) | v2.6.55 | `## 做了什么 (N 项) + ## 修了什么 (N 项)` | ✅ 必填, 不可省 |
-| 验收 (verify) | §H Acceptance | 5 字段自检表 (path / commit / push / CI / owner) | ✅ 必填, 不可省 |
-
-### 参考样板 (per v2.6.48 shell unified check 报告)
-
-v2.6.48 报告 banner 是 v2.6.57 banner 段协议的参考样板 (user 引用):
-
-```
-═══════════════════════════════════════════════════════════
-🎯 rich-audit v2.6.48 新增 sub-task 7/7 shell unified check
-═══════════════════════════════════════════════════════════
-```
-
-### 联动
-
-- **v2.6.55 显式输出协议** (本 SKILL.md line 354+, ADR-0032): 跑完做什么/修了什么 2 段, 跟 v2.6.57 跑前 banner 段协同不替换
-- **v2.6.46 重版约束**: ≥ 30 min wall clock, banner 段"预期 wall clock"字段必填 ≥ 30 min
-- **v2.6.56 memory-bench 强约束**: 50 题必跑不允许 PENDING, banner 段"完成标准"字段必含 memory-bench 50 题
-- **主仓 ADR-0033** (立, 整数 slot 不抢 sub-slot per ADR-0027 v1.1): "rich-audit 启动 banner 段协议"
-- **主仓 process.md §C.3.3 v2.6.57 强化段** (待立): 跑前 banner 段全局硬规则
-- **主仓 CLAUDE.local.md §11.2 hot recall v2.6.57 hint** (待立): banner 段 hot recall
-
----
 
 ## 输出格式（v2.6.24 双模式, 用户偏好）
 
