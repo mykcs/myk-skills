@@ -432,3 +432,68 @@ Layer I.4 (本文件): Skill Self-Evolution ← 新增
 - ✅ §C.3.2 auto-merge 5 步 (per user 显式 "auto-merge 不必问")
 
 **联动**: v2.6.50 §F.4.1 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5 + ADR-0026/0027/0028/0029 + mcp-reload.sh v1.0/v1.1/v1.2 + bugfix-400 §C.4/§C.5 + 5 case 同源.
+
+## §F.4.3 完整端到端案例: ADR slot 冲突修复 + ADR-0027 v1.1 跨日 sub-slot 边界升级 (2026-07-01, 1 session 端到端)
+
+**触发**: user 2026-07-01 02:30 PT 原话 "我希望你做的第一件事是修ADR，看看有没有重复的，或者是能不能组织的更好。第二件事是把这个修复提升合并到技能重度审计里面。"
+
+**5 维 evidence**:
+
+1. slot 冲突实测: `ls ~/.claude/docs/adr/ | grep "0028-\|0029-"` → 0028 slot 2 文件 (mcp-reload-protocol 13.3KB 19:16 + rich-audit-skill-evolution 8.4KB 19:24) + 0029 slot 2 文件 (mcp-reload-end-to-end-fix-tool 9.6KB 10:18 + gdkvm-modern-gpu 4.0KB 10:03) → 违反 ADR-0027 协议
+2. ADR-0027 v1.0 协议自身: 协议第 2 条 "跨月 / 跨日 → 必新整数 slot, 不用 sub-slot" 边界太严, 反向触发 "slot 满了不能用" 误判, claudecode 看到 0028/0029 已存就跳过现状 grep 抢同 slot
+3. git mv 验证: `git -C $HOME/.claude/.worktrees/2026-07-01-adr-slot-fix-0028-0029 status --short` → R 0028-rich-audit-skill-evolution-v2-6-51-abc.md → 0028-b-... (100%) + A 0029-a-gdkvm-modern-gpu-programming-2026.md (新 tracked,因原文件 untracked) ✅
+4. PR #26 4 维 evidence: mergeable=MERGEABLE + state=OPEN 非 draft + statusCheckRollup=[] (主仓无 GH Actions) + base=main → auto-merge ✅
+5. 跨 4 文件 sync: docs/adr/0027-...md v1.1 + memory/adr-namespace.md v1.5 现状表 +5 行 + CLAUDE.local.md §11.2 v2.6.53 hint + ADR-0027 → 0027/0028/0028-b/0029/0029-a/0030 6 slot 全在,无冲突
+
+**5 IF...THEN 规则** (跟 v2.6.50 §F.4.1 + §F.4.2 同骨架):
+
+1. 立新 ADR 必跑 `ls ~/.claude/docs/adr/ | sort | tail -10` 找 max+1 + `ls docs/adr/ | grep "00NN-"` 查目标 slot 冲突 (per cross-session-grep-mandatory §1)
+2. sub-slot 主从判定: 主 slot = "骨架/全局协议" (内容多 + 强 cross-ref 引用目标), sub-slot = "派生扩展" (跟主 slot 紧密耦合 + 不希望占下一个整数 slot)
+3. ADR-0027 v1.1 跨日 sub-slot 边界: "任何 slot 占用冲突立 sub-slot, 跨日/同日/跨分钟都允许" (v1.0 "限当日联立" 边界太严,改 v1.1 通用 sub-slot)
+4. 走 autopilot 模式 1 worktree + 1 commit + 1 PR (跟 v2.6.51 §F.4.2 协同, 跨 5 file 一次跑完)
+5. untracked ADR 文件用 `cp + git add` (worktree 不带 untracked 文件,跟 git mv 路径不同,实测 0029-gdkvm-modern-gpu 是 untracked 状态)
+
+**5 协议级反模式** (永久失效):
+
+- ❌ "claudecode 立新 ADR 跳现状 grep 抢同 slot" (跟 0025-b 修复同源 + v3 case "凭印象做事" 案例)
+- ❌ "ADR-0027 协议立了没阻止 v4 重复" (v1.1 升级 "跨日 sub-slot 边界" 修)
+- ❌ "sub-slot 跨协议类型" (0025 都是 rich-audit, 0025-c 给 frontend 错, per ADR-0027 §Anti-Patterns)
+- ❌ "untracked 文件走 git mv" (worktree 不带 untracked, 必走 cp + git add)
+- ❌ "5 维度 evidence 写 '好像 / 似乎' 模糊词" (每维度必 run 实测命令 + 报实际输出)
+
+**5 step 实战命令模板** (claudecode 复制跑):
+
+```bash
+# 1. 现状 grep (跨 2 session 端到端: 必跑)
+ls ~/.claude/docs/adr/ | sort | tail -10                       # 找 max+1
+ls ~/.claude/docs/adr/ | grep "00NN-"                          # 查目标 slot 冲突
+
+# 2. 建 worktree (主仓 + 子仓隔离, 跨仓冲突 → 2 独立 PR)
+git -C "$HOME/.claude" worktree add "$HOME/.claude/.worktrees/<YYYY-MM-DD>-adr-slot-fix" -b feat/adr-slot-fix
+
+# 3. git mv + cp + git add (untracked 文件路径不同, 必先 ls -la 查状态)
+git -C <worktree> mv docs/adr/0028-OLD.md docs/adr/0028-b-OLD.md  # tracked → git mv
+cp "$HOME/.claude/docs/adr/0029-UNTRACKED.md" <worktree>/docs/adr/0029-a-UNTRACKED.md  # untracked → cp
+git -C <worktree> add docs/adr/0029-a-UNTRACKED.md
+
+# 4. ADR-0027 v1.1 升级 + memory adapter 现状表 + hot recall
+# Edit docs/adr/0027-adr-namespace-resolution.md §Decision 第 2 条 +v1.1 段
+# Edit memory/adr-namespace.md 现状表加 slot 6 行 + Update log v1.5
+# Edit CLAUDE.local.md §11.2 +v2.6.53 hint
+
+# 5. commit + push + PR (autopilot 模式 1 commit + 1 PR, 跨 4-5 file)
+git -C <worktree> add -A && git -C <worktree> commit -m "docs(adr): 修 slot 冲突..."
+git -C <worktree> push -u origin feat/adr-slot-fix
+gh pr create --repo mykcs/.claude --title "..." --body "..."
+gh pr merge <PR> --repo mykcs/.claude --squash --delete-branch  # §C.3.2 auto-merge
+```
+
+**1 session 端到端流程图** (跟 v2.6.50 §F.4.1 2 session 区分,本案例 1 session 跑完):
+
+```
+现状 grep (ls docs/adr/) → 冲突诊断 (5 维 evidence) → 2 问 (Q1 = 协议升级路径 / Q2 = sub-slot 主从) →
+  worktree 立 → git mv + cp + git add → ADR-0027 v1.1 升级 → memory adapter 现状表 → hot recall →
+    commit 86e74ba5 → push → PR #26 → 4 条件 auto-merge (squash 4dfd2c97) → ff main → worktree cleanup → 5 commands verify
+```
+
+**联动**: ADR-0025 + ADR-0026 + ADR-0027 v1.1 + ADR-0028/0028-b + ADR-0029/0029-a + ADR-0030 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5 + 0025-b 修复 (PR #24) + memory/adr-namespace.md v1.5 + CLAUDE.local.md §11.2 v2.6.53 + mcp-reload.sh v1.1/v1.2 (autopilot 模式 1 PR 协同) + process.md §C.3.6.1 no-stuck 协议 (user 显式 "立刻决策 / 不要 P R 来回" 协同).
