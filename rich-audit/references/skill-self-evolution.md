@@ -398,3 +398,37 @@ Layer I.4 (本文件): Skill Self-Evolution ← 新增
 - 真实 case 2026-06-27: 本 session v2.6.33 反-failure 永久修复
 - 真实 case 2026-06-21: CASE-CONTENT2HTML-AUDIT-VERIFICATION-GATE-FAIL (verify gate bug)
 - 真实 case 2026-06-23: CASE-CLAUDECODE-DEFERRED-THEATER-RECURRENCE (反复问 user)
+
+## §F.4.2 完整端到端案例: mcp-reload.sh v1.1 + ADR-0029 (2026-07-01, 跨 2 session)
+
+**触发**: user 2026-07-01 02:20 PT 反馈 "还是不满足每次都 P R 来回决策", 走 autopilot 模式 2.0 (1 worktree + 1 commit + 1 PR 跨 N file 一次跑完).
+
+**4 维 evidence**:
+
+1. mcp-reload.sh v1.1 commit: `git log origin/main` → `734a7131 feat(scripts): mcp-reload.sh v1.1 ...` (PR #23 MERGED)
+2. 端到端 dry-run 5/5 (PR #23 §C.5 自验): `DRY_RUN=true SETTINGS_FILE=/tmp/test.json SKIP_BACKUP=true SKIP_RELOAD=true mcp-reload.sh all ...` → dry-run OK
+3. 6 subcommand 全跑: detect / verify / apply / rollback / all / dry-run (312 lines)
+4. 防御性 fail-fast: SKIP_BACKUP=true 不配 DRY_RUN=true → exit 1, 真 .claude.json 0 污染
+
+**5 IF...THEN 规则**:
+
+1. detect / verify subcommand 不改 SETTINGS_FILE (走 step 3 / step 2 only)
+2. dry-run subcommand 永久 DRY_RUN=true + SKIP_BACKUP=true + SKIP_RELOAD=true
+3. rollback 不需要 server/key/value 参数 (只看 backup 顺序)
+4. 防御性 fail-fast: SKIP_BACKUP=true 必须搭配 DRY_RUN=true
+5. §C.5 端到端 dry-run 验证清单 5/5 必跑
+
+**5 失败路径**:
+
+1. v1.0 缺 6 subcommand 模式 (单函数含 3 步)
+2. v1.0 rollback 误用 1 backup (实测 PR #22 测)
+3. v1.0 防御性 fail-fast 不严格
+4. v1.0 unknown subcommand 走 apply usage
+5. v1.0 python file edit 重写时复制 step1 (linter 误判)
+
+**autopilot 模式 1 PR 跨 N file**:
+
+- ✅ 1 worktree + 1 commit + 1 PR + 1 user review
+- ✅ §C.3.2 auto-merge 5 步 (per user 显式 "auto-merge 不必问")
+
+**联动**: v2.6.50 §F.4.1 + CASE-MINIMAX-KEY-ROTATION-V3/V4/V5 + ADR-0026/0027/0028/0029 + mcp-reload.sh v1.0/v1.1/v1.2 + bugfix-400 §C.4/§C.5 + 5 case 同源.
