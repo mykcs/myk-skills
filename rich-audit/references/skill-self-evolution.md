@@ -704,3 +704,144 @@ user 反馈 "做了什么/修了什么要明显输出" → 现状 grep (SKILL.md
 - 跟 §I.4 self-evolution 关系: §F.4.5 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 5 个端到端案例, 第 1 个 UX 案例)
 
 **永久失效**: 'rich-audit 跑完只给分数 / 修复藏在注意 / emoji 替代内容 / 数字模糊 / 必跑没跑谎报' 反模式 (跟 v2.6.22 总分总 + v2.6.46 重版 + §C.5 false completion + §C.1 verification gate + ADR-0032 字段约束 协同).
+
+## §F.4.6 rich-audit 三段 sub-agent 协议位端到端案例 (2026-07-01, 1 session 端到端)
+
+> **触发**: user 2026-07-01 反馈 '执行 sub-agent 跟 plan sub-agent 物理隔离 + 跑完自动 commit + push + 报告, 不要每次都来回决策' (跟 §F.4.5 显式输出协议立 1 session 后, user 显式要求协议位升级 — 三段独立 sub-agent).
+>
+> **本案例粒度**: 1 session 端到端 (跟 §F.4.3/§F.4.4/§F.4.5 同 1 session 骨架, 第 7 个端到端案例, 第 1 个协议位架构案例).
+>
+> **跟 §F.4.1-§F.4.5 区别**: §F.4.1/§F.4.2 = 协议级工具 (跨 2 session), §F.4.3 = 协议级 slot 修复 (1 session), §F.4.4 = 协议级流程 (1 session 流程闭环), §F.4.5 = 协议级 UX (1 session 输出协议), §F.4.6 = **协议位架构** (1 session 三段 sub-agent 物理隔离, plan/execute/verify 独立 process + 独立 worktree + 全 Opus).
+
+### 5 维 evidence
+
+| # | evidence | 实测命令 / 真值 |
+|---|----------|----------------|
+| 1 | user 原话触发 | "执行 sub-agent 跟 plan sub-agent 物理隔离 + 跑完自动 commit + push + 报告, 不要每次都来回决策" (2026-07-01 触发) |
+| 2 | 现状 grep 6 件套 | ① v2.6.59 沉淀 0 命中 (跨会话 grep 必跑, per cross-session-grep-mandatory.md) ② ADR 编号最大 0034-b, 整数 slot 0035 AVAILABLE (per `ls ~/.claude/docs/adr/ | sort | tail`) ③ 子仓 main @ 5cb2f57, feat/v2-6-58 worktree 已 merged ④ execute 段历次越界: 历次 sub-agent 嵌套 spawn (v2.6.51 mcp-reload.sh 内 Agent call) + grader 越界 (历次 rich-audit 跑 grader 后跑 commit) ⑤ mem0 + case 无 v2.6.59 沉淀 |
+| 3 | 4 源三角验证 | Anthropic sub-agent documentation (3 子 agent + worktree 隔离) + OpenAI orchestration best practices (planner + executor + verifier 三段独立 process) + MetaGPT 角色隔离 (ProductManager + Architect + Engineer + QA 独立角色不跨界) + LangGraph state machine (物理隔离的 graph node, 不能 merge 跑) — 4 源共识: 三段 sub-agent 必须物理隔离 |
+| 4 | v2.6.58 5 维度 full-quality 接力 | 跟 v2.6.58 grill 8 问 (1 角色) 协同, v2.6.59 升级为三段 (3 角色 plan/execute/verify) |
+| 5 | ADR-0035 立 | 主仓 `docs/adr/0035-rich-audit-v2-6-59-triple-sub-agent.md` (整数 slot 0035 AVAILABLE per `ls docs/adr/ | sort | tail -3` 验证 0034-b 是 max, 0035 AVAILABLE; per ADR-0027 v1.1 整数 slot 优先不抢 sub-slot) |
+
+### 5 IF...THEN 规则
+
+```
+1. IF 复杂 task 涉及 ≥ 5 file 改动 + ≥ 1 ADR + ≥ 1 case + ≥ 2 session 协同 THEN 必拆 plan/execute/verify 三段
+2. IF execute 段 IF 调 Agent tool THEN 标永久隔离破坏 (execute 段严禁嵌套 spawn, 违反 = 重跑 plan 段)
+3. IF execute 段 IF 跑 grader THEN 标永久隔离破坏 (grader 是 verify 段专属, execute 段写完即停)
+4. IF verify 段 IF 重跑 commit/push THEN 标永久隔离破坏 (verify 段只跑 grader 校准 + 5 字段自检, 不重跑 commit)
+5. IF 任何一段跑失败 THEN 不合并跑下一段, 立即 STOP, 不重试 = 反 mode (跟 §C.3.6.1 no-stuck 协同)
+```
+
+### 5 协议级反模式 (永久失效)
+
+| # | 反模式 | 失败案例 |
+|---|--------|---------|
+| 1 | **execute 段嵌套 spawn** | execute sub-agent 调 Agent tool → 嵌套 spawn → 物理隔离破坏 → 历次 v2.6.51 mcp-reload.sh 内 Agent call 模式 |
+| 2 | **execute 段跑 grader** | execute sub-agent 跑 grader 校准 → 越界 → grader 是 verify 段专属 → 历次 rich-audit 跑 grader 后跑 commit 模式 |
+| 3 | **plan 段写代码** | plan sub-agent 直接写代码 → 跳过 grill 阶段 → 5 维 evidence 没沉淀 → 凭印象做事反模式 |
+| 4 | **verify 段重跑 commit** | verify sub-agent 重跑 commit/push → 重复执行 → 破坏 commit hash 唯一性 |
+| 5 | **三段合并跑 (1 个 sub-agent 全跑)** | 单个 sub-agent 跑 grill + plan + write + grader → 物理隔离失败 → 跟 v2.6.58 5 维度跟 v2.6.59 三段协议协同不替换 |
+
+### 5 step 实战命令模板
+
+```bash
+# Step 1: grill 阶段 (parent 主线程, 不 spawn)
+# 触发: user 说 "rich-audit 5 维度大改" / "完整重版"
+# 时机: parent 主线程, 跟 user 4-6 决策点对齐
+# 输出: grill 4-6 决策点 + 5 维 evidence
+
+# Step 2: plan 阶段 (sub-agent 1, plan 段专属)
+# 触发: grill 阶段输出后
+# 时机: spawn plan sub-agent (独立 process + Opus)
+# 输出: 立修改清单 + worktree + ADR 编号 AVAILABLE + case + mem0 add_memory plan
+
+# Step 3: execute 阶段 (sub-agent 2, execute 段专属, 物理隔离)
+# 触发: plan 段报告输出后
+# 时机: spawn execute sub-agent (独立 process + Opus + 独立 worktree)
+# 禁止: 调 Agent tool 嵌套 spawn / 跑 grader / 改 execute 报告本身
+# 输出: 11 file 改完 + memory-bench v8 baseline + commit + push + decision-stream + execute 报告 (含 5 字段自检)
+
+# Step 4: verify 阶段 (sub-agent 3, verify 段专属, 物理隔离)
+# 触发: execute 段报告输出后
+# 时机: spawn verify sub-agent (独立 process + Opus)
+# 禁止: 重跑 commit / 改源文件 / 跑 edit
+# 必跑: grader 校准 + 5 字段自检 + 11 file 同步验证 + deferred-detector.sh + mem0 add_memory × 1-3 条
+# 输出: PASS/FAIL 报告 + 5 维 evidence + 4 维 self-verify
+
+# Step 5: 5 commands verification (跟 v2.6.46 重版约束 + §H Acceptance Protocol + §A.4 5 字段自检协同)
+# 路径: ls -d $HOME/.claude/.worktrees/2026-07-01-rich-audit-v2-6-59 $HOME/.agents/skills/.worktrees/2026-07-01-rich-audit-v2-6-59
+# commit: 双仓 git log -1 --format="%h | %s"
+# push: 双仓 git rev-list --left-right --count @{u}...HEAD (期望 0 0)
+# CI: gh api repos/mykcs/myk-skills/commits/HEAD/status --jq .state
+# owner: 双仓 git remote get-url origin + 验收证据 (execute 报告 + verify 报告 + mem0 event_id)
+```
+
+### 3 sub-agent 物理隔离 流程图
+
+```
+┌─ Parent 主线程 (grill 阶段) ────────────────────────────────────┐
+│ user 原话触发 → grill 4-6 决策点 → spawn plan sub-agent        │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─ Plan 段 (sub-agent 1, 物理隔离) ─────────────────────────────┐
+│ 工作目录: parent 主进程                                       │
+│ 输入: grill 4-6 决策点                                       │
+│ 禁止: 写代码 / 调 Edit/Write / commit / push                  │
+│ 输出: 修改清单 + worktree 路径 + ADR 编号 + case 骨架 + mem0  │
+│ 退出: 输出 plan 报告 → parent 接力                            │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─ Execute 段 (sub-agent 2, 物理隔离, 跟 plan 段独立 process) ──┐
+│ 工作目录: 独立 worktree (e.g. .worktrees/2026-07-01-rich-audit-v2-6-59) │
+│ 输入: plan 报告 (修改清单)                                    │
+│ 禁止: 调 Agent tool (嵌套 spawn) / 跑 grader / 改 execute 报告 │
+│ 必跑: 11 file 改完 + memory-bench v8 baseline + commit + push │
+│ 必跑: decision-stream 流追加                                  │
+│ 输出: execute 报告 (含 5 字段自检) → parent 接力              │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─ Verify 段 (sub-agent 3, 物理隔离, 跟 execute 段独立 process) ─┐
+│ 工作目录: 独立 worktree (跟 execute 段共 path 但独立 process) │
+│ 输入: execute 报告 (5 字段自检)                                │
+│ 禁止: 重跑 commit / 改源文件 / 跑 Edit / 调 Agent tool        │
+│ 必跑: grader 校准 + 11 file 同步验证 + deferred-detector.sh   │
+│ 必跑: 5 字段自检 (path/commit/push/CI/owner)                  │
+│ 必跑: mem0 add_memory × 1-3 条 (per post-task-recommend.md §3) │
+│ 输出: PASS/FAIL 报告 + 5 维 evidence + 4 维 self-verify       │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─ Parent 主线程 (5 commands verification + smart-push + 报告) ─┐
+│ 必跑: 5 commands (git log/status/remote/gh run list)           │
+│ 必跑: smart-push 双仓 (主仓 + 子仓)                          │
+│ 必跑: 输出最终报告 (含 execute 报告 + verify 报告 cross-ref)  │
+│ 必跑: deferred-detector.sh 跑 + exit 0 才输出                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 联动
+
+- ADR-0035 立 (主仓 docs/adr/0035-rich-audit-v2-6-59-triple-sub-agent.md, 整数 slot 0035 AVAILABLE per ADR-0027 v1.1)
+- 子仓 SKILL.md v2.6.59 (description line 9 + 反模式 + changelog 段 + version bump 2.6.58 → 2.6.59)
+- 子仓 references/skill-self-evolution.md §F.4.6 新立 (本段, 跟 §F.4.1-§F.4.5 同骨架 ~120 lines)
+- 子仓 references/changelog.md v2.6.59 entry 追加
+- 子仓 references/skill-authoring-best-practices.md 加 v2.6.59 段 (三段 sub-agent 协议位)
+- 子仓 reports/memory-bench/2026-07-01-v8/ 立 50 题 baseline (per v2.6.56 强约束)
+- 主仓 process.md §C.3.3 v2.6.59 强化段 (跨仓同步)
+- 主仓 CLAUDE.local.md §11.2 hot recall v2.6.59 hint
+- 主仓 CASE-RICH-AUDIT-V2-6-59-TRIPLE-SUB-AGENT-20260701.md (立, 跟 v2.6.57 banner case + v2.6.58 full-quality case 同骨架)
+- 主仓 memory/adr-namespace.md v1.5 → v1.6 (现状表加 0035)
+- 主仓 decision-stream/2026-07-01-rich-audit-v2-6-59.md (流追加)
+- mem0 add_memory × 3 (per post-task-recommend.md §3)
+
+### 跟 §F.4.1-§F.4.5 关系
+
+- §F.4.1/§F.4.2 = 协议级工具 (跨 2 session, 物理层)
+- §F.4.3 = 协议级 slot 修复 (1 session, 命名空间层)
+- §F.4.4 = 协议级流程 (1 session, 写入层)
+- §F.4.5 = 协议级 UX (1 session, 输出层)
+- §F.4.6 = **协议位架构** (1 session, 角色层 — plan/execute/verify 三段独立)
+
+跟 §I.4 self-evolution 关系: §F.4.6 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 7 个端到端案例, 第 1 个协议位架构案例)
+
+**永久失效**: 'execute 段嵌套 spawn / execute 段跑 grader / plan 段写代码 / verify 段重跑 commit / 三段合并跑' 反模式 (跟 v2.6.46 重版约束 + v2.6.56 memory-bench 50 强约束 + v2.6.57 banner UX + v2.6.58 5 维度 full-quality + §C.3.6.1 no-stuck 协议 + §H Acceptance Protocol + ADR-0035 协议位架构 协同).
