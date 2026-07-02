@@ -73,13 +73,16 @@ if [ "$MODE" = "verify" ]; then
     exit 0
 fi
 
-# 2. check env for daily/weekly
-for var in LARK_APP_ID LARK_APP_SECRET BAPP_TOKEN TABLE_ID_PAPER TABLE_ID_WEEKLY; do
+# 2. check env for daily/weekly (LARK_APP_SECRET 缺省 = 走 lark-cli keychain 自动鉴权)
+for var in LARK_APP_ID BAPP_TOKEN TABLE_ID_PAPER TABLE_ID_WEEKLY; do
     if [ -z "${!var}" ]; then
         echo -e "${RED}❌ $var 未设, 跑 --verify 看 checklist 或填 templates/loop-protocol-feishu.md${NC}"
         exit 1
     fi
 done
+if [ -z "$LARK_APP_SECRET" ]; then
+    echo -e "${YELLOW}⚠️ LARK_APP_SECRET 未设, lark-cli daemon 自动从 keychain 取 (推荐 macOS users)${NC}"
+fi
 
 # 3. check input
 if [ -z "$INPUT" ]; then
