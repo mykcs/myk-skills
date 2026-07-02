@@ -128,6 +128,7 @@ metadata:
 ## 🧪 演化历史
 
 - **v0.1.0** (2026-07-02): 立 MVP 骨架. 4 决策拍板 (5 源 + daily+weekly + MVP + 4 表). 5 pipeline 协议 + 4 templates + 3 scripts 自包含. 待 5 源验证 + Bitable 实跑.
+- **v0.1.1** (2026-07-02): 真 collect 17 records (mcp__MiniMax__web_search + mcp__exa__web_search_exa fan-out, 4 源真抓 + 1 源 hn Algolia API 真接) + Python 旁路 merge 真 composite_score (top 10 全可引 3.9-4.7) + digest-score.sh script bug 发现 (. + {score:3} 覆盖原 7 维), 留 v0.1.2 修. MVP 实质 4/6 (records 5 + 真抓 17 + 真评分 + 真 Bitable base).
 
 ## 🔗 相关
 
