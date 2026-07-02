@@ -1,20 +1,23 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill (v4.0.6 — description 裁剪 + kimi-webbridge 协议位同步).
-  触发: 用户说"改网页/提升网站/网站优化/site-improve/website/网站/4 站/4 sites/multi-site"或 sites ≥ 2 自动触发.
-  Sub-mode A (Check + Improve) / B (Astro build) / C (Project page) / D (Multi-site fan-out) — sub-mode 是阶段不是选项, 默认 4 sites (mykcs+GDKVM+OSA+content2html).
-  L19 4 站 CI 全绿硬规则 + L20 fix-validate-build + L21 pre-flight + L22 ToolSearch + L23 recovery SOP + L24 heartbeat + L25 deployed-layer curl verify + L26 CI 全绿验收标准.
+  一站式网站改进 skill (v4.0.7 — §L27 3-role workflow 立, 跟 PR #6 §L21 默认反转 协同).
+  触发: "改网页/提升网站/网站优化/site-improve/website/网站/4 站/4 sites/multi-site"或 sites ≥ 2 自动触发.
+  Sub-mode A (Check+Improve) / B (Astro build) / C (Project page) / D (Multi-site fan-out) — sub-mode 是阶段不是选项, 默认 4 sites.
+  L19 4 站 CI 全绿 + L20 fix-validate-build + L21 pre-flight (默认反转) + L22 ToolSearch + L23 recovery + L24 heartbeat + L25 deployed-layer curl + L26 CI 全绿验收 + L27 3-role workflow.
   不适用: 单文件 typo / 文档微调 / 跟网站无关的 bug 修.
-  反模式: ❌ 4 站 CI red 仍说 done / ❌ 改 package.json 没重生成 lockfile / ❌ 跳过 pre-flight declaration.
+  反模式: ❌ 4 站 CI red 仍说 done / ❌ 改 package.json 没重生成 lockfile / ❌ 跳过 pre-flight / ❌ 1 个 sub-agent 跑 3 角色.
+when_to_use: |
+  3-role workflow 触发词: "3 role / 工作流 / workflow / planner / executor / verifier / 3 个独立 subagent / 3 个 sub-agent / 计划者 / 执行者 / 检查验收者 / 计划执行验收 / handoff 协议 / JSON schema 脚本".
+  3 sub-agent 独立: planner 跑 plan_json_gen.py → executor 跑 exec_log_gen.py → verifier 跑 verdict_json_gen.py, verifier PASS 才 done, FAIL → executor 重做整轮. JSON schema 脚本立 ~/.claude/scripts/website-improve/.
 license: MIT
 metadata:
-  version: "4.0.6"
+  version: "4.0.7"
   author: mykcs
   category: web-development
   changelog:
     - "4.0.6 (2026-06-30): description 字段大幅裁剪 (592 chars ≤ 1536 cap, 之前 v4.0.5 是 5562 chars 超 cap 4026 chars). 同时协议位同步: kimi-webbridge 协议位反转 per ADR-0030 (skill + daemon → MCP server via stdio npx kimi-webbridge mcp). 触发: user 2026-06-30 反馈 '不要每次 A/B/C/D 来回点' + 5-tool fan-out 5/5 (3 降级, exa 顶替) 命中 AkagiYui/kimi-webbridge-mcp. 跟 rich-audit v2.6.49 description 'split in two' (combined 1184 chars ≤ 1536 cap) 跨 skill 一致. 联动: ADR-0030 + CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 13."
-    - "4.0.7 (2026-07-01): §L21 默认反转模式升级 (Round 18 user 显式要求 '选 1 修改 skill 以后默认 1' = 默认行为 = 反转). 把 v4.0.3 §L21 反转通道从 opt-in 升级为 default: 每次 website-improve run 启动, claudecode 仍必输 7 段 pre-flight declaration (audit trail), 但**不再等 user 回 OK** — 直接进 Phase 1 + 每步 auto-decide + decision-stream 追加. user 显式说 '恢复 pre-flight 等 OK' / '回到等待模式' / 'stop 自决' 可反转回旧默认 (v4.0.5 行为). 跟 CLAUDE.local.md §12 反转硬约束 #8 + MEMORY.md HOT FACTS §10 反转模式 8 类自决 + rich-audit calm-flow-reverse-mode.md 全部同步. Source: Round 18 audit-only pass — user '选 1 修改 skill 以后默认 1' 触发, CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 18 section. (注: 本 entry 在 PR #6 rebase 时从 4.0.6 → 4.0.7 升版, 避免跟 Round 13 description 裁剪 4.0.6 entry 编号冲突, 跟 user 2026-07-01 拍板 2 entry 都保留 决策, per 灵魂 v6 v0.2 不卸载 follow-up 协议)"
+    - "4.0.7 (2026-07-01, B): §L27 3-role workflow 立 (3 独立 sub-agent + JSON schema 脚本). user 2026-07-01 原话 '修改 skill website improve 这个 skill 要有工作流，使用 Workflow 这个功能。不管是 skill 还是 workflow，要有计划者、执行者、检查验收者，这三个独立的。subagent 的，要分开'. 架构: Workflow tool 调 3 个独立 OMC sub-agent (planner / executor / verifier, 全 Opus) + SKILL.md 写双层手册. 3 sub-agent 互相不共享 context window, handoff 唯一通道 = JSON artifact 文件 (plan.json / exec-log.json / verdict.json). verifier PASS 才算 done; FAIL → executor 重做整轮 (user 选 A 失败 1 次 reject 整轮, 2026-07-01). 跟 §A.6 Verifier Self-Test 协同升级 (独立 verifier sub-agent, 跟 §A.5 Multi-Round Audit §L22-L26 全部保留). 跟 PR #6 §L21 默认反转 100% 兼容 (planner 输 7 段 pre-flight 后直接进 executor). 3 schema 脚本立 ~/.claude/scripts/website-improve/ (commit 01a75b6e + a867e3d3). Source: decision-stream/2026-07-01-website-improve-3role-design.md + CASE-WEBSITE-IMPROVE-3ROLE-WORKFLOW-20260701 + CASE-POST-TASK-RECOMMEND-20260701 (灵魂 v6 v0.2 follow-up 不卸载协议联动)."
     - "4.0.4 (2026-06-29): §L22-L25 治本 Round 10-11 暴露的 4 类问题. (1) §L22 Subagent Tool Provisioning — Phase 0 ToolSearch 必跑 + 治本 subagent stall (Issue #60237 frontmatter tools 静默 drop + Issue #49150 Task 无 timeout). (2) §L23 Orchestrator Recovery SOP — subagent 报 stalled 时, 检测磁盘已 commit 文件 + manual `git push` + rebase fallback (work product on disk 范式 per Issue #49150 #3). (3) §L24 Stall Heartbeat Check — 每 5min 检测 subagent transcript mtime, 静默 >10min 自动 trigger recovery (Issue #49150 #2 heartbeat protocol). (4) §L25 Deployed-Layer Verify Protocol — Round 11 发现 2 个 P0/P1 deployed-layer regression: mysite security.txt on disk but 404 served (Astro .well-known handler intercept) + content2html _headers not served (GH Pages user/org site 不支持, 仅 Project Pages 支持). 必 curl live URL 验证, 不只 source grep. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10 + Round 11."
     - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
 - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
@@ -669,6 +672,142 @@ done
 - **process.md §H** Acceptance Protocol (5 字段自检表, 同源)
 - **CLAUDE.local.md §15** 4 站 CI 全绿 hot recall
 - **Round 10-15 完整 6 轮 timeline** (case file `~/.claude/knowledge/cases/CASE-MULTI-SITE-FULL-AUDIT-V4-20260627.md`)
+
+### ⚠️ §L27 3-Role Workflow (v4.0.7, 强制, 适用所有 sub-mode)
+
+> **Source**: user 2026-07-01 原话 "修改 skill website improve 这个 skill 要有工作流，使用 Workflow 这个功能。不管是 skill 还是 workflow，要有计划者、执行者、检查验收者，这三个独立的。subagent 的，要分开。"
+
+**架构 (3 独立 sub-agent + Workflow tool + SKILL.md 手册, 双层)**:
+
+| 角色 | OMC agent | Model | 责任 |
+|------|-----------|-------|------|
+| **planner** | oh-my-claudecode:planner | Opus | §L21 pre-flight + 4 站 scan plan + 风险决策 + 写 plan.json |
+| **executor** | oh-my-claudecode:executor | Opus | git apply + smart-push.sh + decision-stream + 写 exec-log.json |
+| **verifier** | oh-my-claudecode:verifier | Opus | 4 站 CI curl + 5 字段自检 + PASS/FAIL verdict + reject → executor 重做 |
+
+**3 sub-agent 独立硬规则 (claudecode 必背)**:
+
+1. 3 sub-agent 互相**不共享 context window**（灵魂 v4 黑话: "3 个师傅互相看不到对方工作笔记"）
+2. handoff 唯一通道 = JSON artifact 文件（planner → plan.json → executor，executor → exec-log.json → verifier，verifier → verdict.json → executor 重做或 done）
+3. **verifier PASS 才算 done** — executor 不能自己标 done（per §A.6 升级）
+4. **verifier reject → executor 重做整轮**（user 2026-07-01 选 A 失败 1 次 reject 整轮）
+5. 3 sub-agent 各自跑 Phase 0 ToolSearch（§L22 保留）
+6. 任一 sub-agent stall → 触发 §L23 Orchestrator Recovery + §L24 Heartbeat Check（保留）
+
+**JSON artifact schema 必跑**（per plan / exec-log / verdict 各自 schema）:
+
+```bash
+# planner → plan.json (per ~/.claude/scripts/website-improve/plan_json_gen.py)
+python3 ~/.claude/scripts/website-improve/plan_json_gen.py \
+  --audit-target "<本次目标>" \
+  --sub-modes "A,B,D" \
+  --sites "GDKVM,OSA,mykcs,content2html" \
+  --expected-wall-clock 45 \
+  --completion "4 站 CI green,5 字段自检全过,decision-stream 全 append,case file 沉淀" \
+  --pre-flight "<7 段 pre-flight 声明>" \
+  --out plan.json
+
+# executor → exec-log.json (per exec_log_gen.py)
+python3 ~/.claude/scripts/website-improve/exec_log_gen.py \
+  --plan plan.json \
+  --files-changed "<path:N:M,path:N:M>" \
+  --git-commits "<site:sha:msg,site:sha:msg>" \
+  --smart-push "<status:site,status:site>" \
+  --decision-stream-file "<JSON 数组 file>" \
+  --out exec-log.json
+
+# verifier → verdict.json (per verdict_json_gen.py)
+python3 ~/.claude/scripts/website-improve/verdict_json_gen.py \
+  --verdict PASS \
+  --ci-gdkvm green --ci-mykcs green --ci-osa green --ci-content2html green \
+  --sc-path PASS --sc-commit PASS --sc-push PASS --sc-ci PASS --sc-owner PASS \
+  --dl-gdkvm PASS --dl-mykcs PASS --dl-osa PASS --dl-content2html PASS \
+  --out verdict.json
+```
+
+**§L21 Pre-flight 默认反转 (PR #6 兼容)**:
+
+- planner 输 7 段 pre-flight（audit trail）→ **直接进 executor**（不 user 等 OK，per v4.0.6 §L21 默认反转模式 + PR #6 merged commit f702ba8）
+- 跟 PR #6 v4.0.6 §L21 默认反转模式 100% 兼容
+
+**§L19/L25/L26 verifier 必跑**:
+
+- **§L19**: 4 站 CI（mykcs/GDKVM/OSA/content2html）任一 red → verifier reject 整轮
+- **§L25**: 4 站 curl live URL（不只 source grep）
+- **§L26**: 5 字段自检表（path / commit / push / CI / owner 隔离 + 验收证据, per process.md §H Acceptance Protocol）
+
+**e2e test 必跑 (跟 §C.5 验证门 + §D Bonus Test 协同)**:
+
+```bash
+# 10 case 端到端测试: 6 PASS + 4 FAIL 验证 schemas.py + 3 gen 脚本不退化
+PATH=$HOME/.claude/scripts/website-improve/.venv/bin:$PATH \
+  bash ~/.claude/scripts/website-improve/test_3role_e2e.sh
+# 期望: PASS: 10 / FAIL: 0, rc=0
+```
+
+**触发式决策**:
+
+- IF user 触发 website-improve → orchestrator 必 spawn 3 sub-agent（planner → executor → verifier），**不允许单 sub-agent 跑**
+- IF 任一 sub-agent stall → §L23 Recovery（保留）
+- IF verifier FAIL → executor 重做整轮（user 2026-07-01 选 A）
+- IF verifier FAIL 2 次 → AskUserQuestion 拍板（no-stuck §C.3.6.1）
+- IF 3 role workflow 跟 PR #6 §L21 默认反转冲突 → 以 PR #6 为准（默认反转优先，PR #6 merged commit f702ba8）
+
+**反模式 (新立, v4.0.7)**:
+
+- ❌ 1 个 sub-agent 自己跑完 3 角色工作（违反"独立"原则，user 原话 "subagent 的, 要分开"）
+- ❌ executor 自己标 done（绕过 verifier, 违反 §A.6 升级）
+- ❌ verifier FAIL 还强行 ship（违反 §L19 4 站 CI gate）
+- ❌ sub-agent 之间口头传话不走 JSON artifact（违反 handoff 硬规则）
+- ❌ 跳过 §L22 ToolSearch 让 sub-agent 0 tool uses（违反 §L22）
+- ❌ verifier FAIL → executor 不重做（违反 user 选 A 失败 1 次 reject 整轮）
+- ❌ plan.json / exec-log.json / verdict.json 写完不校验（fail-fast 缺失, jsonschema strict 校验立竿见影抓 case-sensitive bug）
+
+**联动**:
+
+- **§A.6 Verifier Self-Test Protocol**（v3.10.0 强制）— 升级为独立 verifier sub-agent（3 角色第 3 个）
+- **§A.5 Multi-Round Audit Protocol**（v3.9.0 强制）— 每次 round 都跑 1 次完整 3-role（planner → executor → verifier）
+- **§A.7 Template Consistency Check**（v3.10.0 强制）— 跟 3-role 协同不替换
+- **§L19** 4 站 CI 全绿硬规则 — verifier 必跑
+- **§L20** fix-validate-build — executor 改 package.json 后必 npm install + 二次 build
+- **§L21** Pre-flight Declaration（v4.0.6 默认反转, PR #6 merged）— planner 输 7 段 pre-flight 兼容
+- **§L22** Subagent Tool Provisioning（v4.0.4 治本 subagent stall）— 3 sub-agent 各自跑 Phase 0 ToolSearch
+- **§L23** Orchestrator Recovery SOP（v4.0.4 治标 subagent stall）— 任一 sub-agent stall 触发
+- **§L24** Stall Heartbeat Check（v4.0.4 subagent 静默检测）— 3 sub-agent 都受 5min heartbeat
+- **§L25** Deployed-Layer Verify Protocol（v4.0.4 Round 11 P0/P1 regression 治本）— verifier 必跑 4 站 curl
+- **§L26** CI 全绿验收标准（v4.0.5, per process.md §H Acceptance Protocol）— verifier 5 字段自检表
+- **process.md §C.5** false completion — 任何 3-role run 必跑完所有阶段才能声明 done
+- **process.md §C.3.6.1** no-stuck — 失败任一环立即 STOP + 降级或 AskUserQuestion
+- **process.md §H** Acceptance Protocol — verifier self_check_5_fields 字段直接对应
+- **CLAUDE.local.md §15** 4 站 CI 全绿 hot recall — verifier 必跑
+- **CLAUDE.local.md §11.2** v2.6.57 banner UX 协同 (跟 PR #6 §L21 默认反转 UX 一致)
+- **calm-flow.md §5** 卡片墙 — 3-role 决策摘要
+- **post-task-recommend.md v0.2** 灵魂 v6 协议 — claudecode 顺手做的必自决（v0.2 永久失效反模式）
+- **decision-stream/2026-07-01-website-improve-3role-design.md**（本 session design 草稿）
+- **decision-stream/2026-07-01-website-improve-pr6-merge-rebase.md**（PR #6 merge 决策）
+- **CASE-WEBSITE-IMPROVE-3ROLE-WORKFLOW-20260701**（立, 跟本段联动）
+- **CASE-POST-TASK-RECOMMEND-20260701**（灵魂 v6 v0.2 协议联动）
+- **CASE-SOUL-V6-4-VIOLATIONS-20260701**（4 类违反修复, 跟 §L27 反模式清单同源）
+- **CASE-RICH-AUDIT-V2-6-59-TRIPLE-SUB-AGENT-20260701**（rich-audit v2.6.59 三段 sub-agent 协议位, 跟 §L27 3 角色架构同源）
+
+**案例沉淀**:
+
+- CASE-WEBSITE-IMPROVE-3ROLE-WORKFLOW-20260701 (立, 跟本段协同)
+- CASE-POST-TASK-RECOMMEND-20260701 (灵魂 v6 v0.2 协议联动)
+- CASE-SOUL-V6-4-VIOLATIONS-20260701 (4 类违反修复, 跟 §L27 反模式清单同源)
+- CASE-RICH-AUDIT-V2-6-59-TRIPLE-SUB-AGENT-20260701 (rich-audit v2.6.59 三段 sub-agent 协议位, 跟 §L27 3 角色架构同源)
+
+**Ref**:
+- ~/.agents/skills/website-improve/SKILL.md (本文件)
+- ~/.claude/decision-stream/2026-07-01-website-improve-3role-design.md
+- ~/.claude/scripts/website-improve/README.md
+- ~/.claude/rules/post-task-recommend.md v0.2
+- ~/.claude/rules/process.md §C.3.6 §H §C.5
+- ~/.claude/CLAUDE.local.md §15 §11.2 §12
+
+---
+
+📂 **模式 A: 检查+提升流程** → see [`references/mode-a.md`](references/mode-a.md) (loaded on demand)
 
 ---
 
