@@ -2,83 +2,21 @@
 name: website-improve
 description: |
   一站式网站改进 skill (v4.0.7 — §L27 3-role workflow 立, 跟 PR #6 §L21 默认反转 协同).
-  触发: "改网页/提升网站/网站优化/site-improve/website/网站/4 站/4 sites/multi-site"或 sites ≥ 2 自动触发.
-  Sub-mode A (Check+Improve) / B (Astro build) / C (Project page) / D (Multi-site fan-out) — sub-mode 是阶段不是选项, 默认 4 sites.
-  L19 4 站 CI 全绿 + L20 fix-validate-build + L21 pre-flight (默认反转) + L22 ToolSearch + L23 recovery + L24 heartbeat + L25 deployed-layer curl + L26 CI 全绿验收 + L27 3-role workflow.
+  触发: 改网页 / 提升网站 / site-improve / multi-site / 4 站 / sites≥2.
+  Sub-mode A/B/C/D, 默认 4 sites (multi-site fan-out).
+  L19-L27: 4 站 CI 全绿 / fix-validate-build / pre-flight / ToolSearch / recovery / heartbeat / deployed-layer curl / 验收 / 3-role workflow.
   不适用: 单文件 typo / 文档微调 / 跟网站无关的 bug 修.
   反模式: ❌ 4 站 CI red 仍说 done / ❌ 改 package.json 没重生成 lockfile / ❌ 跳过 pre-flight / ❌ 1 个 sub-agent 跑 3 角色.
 when_to_use: |
-  3-role workflow 触发词: "3 role / 工作流 / workflow / planner / executor / verifier / 3 个独立 subagent / 3 个 sub-agent / 计划者 / 执行者 / 检查验收者 / 计划执行验收 / handoff 协议 / JSON schema 脚本".
+  3-role workflow 触发词: 3 role / workflow / planner / executor / verifier / 计划者 / 执行者 / 检查验收者 / handoff.
   3 sub-agent 独立: planner 跑 plan_json_gen.py → executor 跑 exec_log_gen.py → verifier 跑 verdict_json_gen.py, verifier PASS 才 done, FAIL → executor 重做整轮. JSON schema 脚本立 ~/.claude/scripts/website-improve/.
-license: MIT
 metadata:
-  version: "4.0.7"
+  version: "4.0.8"
   author: mykcs
   category: web-development
-  changelog:
-    - "4.0.6 (2026-06-30): description 字段大幅裁剪 (592 chars ≤ 1536 cap, 之前 v4.0.5 是 5562 chars 超 cap 4026 chars). 同时协议位同步: kimi-webbridge 协议位反转 per ADR-0030 (skill + daemon → MCP server via stdio npx kimi-webbridge mcp). 触发: user 2026-06-30 反馈 '不要每次 A/B/C/D 来回点' + 5-tool fan-out 5/5 (3 降级, exa 顶替) 命中 AkagiYui/kimi-webbridge-mcp. 跟 rich-audit v2.6.49 description 'split in two' (combined 1184 chars ≤ 1536 cap) 跨 skill 一致. 联动: ADR-0030 + CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 13."
-    - "4.0.7 (2026-07-01, B): §L27 3-role workflow 立 (3 独立 sub-agent + JSON schema 脚本). user 2026-07-01 原话 '修改 skill website improve 这个 skill 要有工作流，使用 Workflow 这个功能。不管是 skill 还是 workflow，要有计划者、执行者、检查验收者，这三个独立的。subagent 的，要分开'. 架构: Workflow tool 调 3 个独立 OMC sub-agent (planner / executor / verifier, 全 Opus) + SKILL.md 写双层手册. 3 sub-agent 互相不共享 context window, handoff 唯一通道 = JSON artifact 文件 (plan.json / exec-log.json / verdict.json). verifier PASS 才算 done; FAIL → executor 重做整轮 (user 选 A 失败 1 次 reject 整轮, 2026-07-01). 跟 §A.6 Verifier Self-Test 协同升级 (独立 verifier sub-agent, 跟 §A.5 Multi-Round Audit §L22-L26 全部保留). 跟 PR #6 §L21 默认反转 100% 兼容 (planner 输 7 段 pre-flight 后直接进 executor). 3 schema 脚本立 ~/.claude/scripts/website-improve/ (commit 01a75b6e + a867e3d3). Source: decision-stream/2026-07-01-website-improve-3role-design.md + CASE-WEBSITE-IMPROVE-3ROLE-WORKFLOW-20260701 + CASE-POST-TASK-RECOMMEND-20260701 (灵魂 v6 v0.2 follow-up 不卸载协议联动)."
-    - "4.0.4 (2026-06-29): §L22-L25 治本 Round 10-11 暴露的 4 类问题. (1) §L22 Subagent Tool Provisioning — Phase 0 ToolSearch 必跑 + 治本 subagent stall (Issue #60237 frontmatter tools 静默 drop + Issue #49150 Task 无 timeout). (2) §L23 Orchestrator Recovery SOP — subagent 报 stalled 时, 检测磁盘已 commit 文件 + manual `git push` + rebase fallback (work product on disk 范式 per Issue #49150 #3). (3) §L24 Stall Heartbeat Check — 每 5min 检测 subagent transcript mtime, 静默 >10min 自动 trigger recovery (Issue #49150 #2 heartbeat protocol). (4) §L25 Deployed-Layer Verify Protocol — Round 11 发现 2 个 P0/P1 deployed-layer regression: mysite security.txt on disk but 404 served (Astro .well-known handler intercept) + content2html _headers not served (GH Pages user/org site 不支持, 仅 Project Pages 支持). 必 curl live URL 验证, 不只 source grep. Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 Round 10 + Round 11."
-    - "4.0.3 (2026-06-27): §L21 反转通道 (user 显式说'不再问 OK/改/跳过' → claudecode 仍输 pre-flight 但不等 user 回 OK, 直接进 Phase 1, decision-stream 记反转原因). Source: user 2026-06-27 原话 '修改这个 skill 然后不需要再问我, OK 还是改, 还是跳过, 就直接执行' — 反转硬约束 §12 #8 触发. 跟 soul v3 反转指令 v0.2 + CLAUDE.local.md §12 一脉相承. 反转状态可被后续 user '恢复 pre-flight 等 OK' 再次反转回默认."
+  changelog: "see references/changelog.md for full history (v3.x-v4.0.7)"
 - "4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分."
-    - "3.11.0 (2026-06-23): §9.3 Bare-vs-Prefixed Route Collision Detection (CRITICAL). Triggers on i18n sites where `public/<route>/` static asset collides with `[lang]/<route>.astro` route (e.g. OSA `/slides/` serving raw iframe content while `/en/slides/` is the wrapped page). 3 detection patterns + 1 acceptance gate. Source: CASE-OSA-DUPLICATE-SLIDES-URL (2026-06-23) — `/osa/slides/` was serving 126KB raw slide content with no Astro chrome, while `/osa/en/slides/` was the proper wrapper. SEO duplicate-content + user confusion. Fix: move raw iframe asset to `/slides-raw/` (non-route path), add meta-refresh redirector at `/slides/`. See scan-checklist §9.3 for detection script."
-    - "3.10.0 (2026-06-23): Verifier Self-Test Protocol (§A.6, 强制) + Template Consistency Check (§A.7, 强制). 2 升级 per CASE-CONTENT2HTML-MULTI-ROUND-MODE-A-COMPLETE-20260622: (1) verifier 必含 2-sample test (PASS + FAIL known state) 防 false-positive — content2html v3.9.0 absolute 5KB threshold 在 6-page paper 全 false-positive; 改 relative threshold (<avg × 0.5) + 自测脚本; (2) N pages share template 时必跑 check-template-consistency.sh, 防 template drift — 2606.18246 R5 之前 4 slides plain heading vs 2603.12109 16 slides full template, 视觉不一致."
-    - "3.9.0 (2026-06-22): Multi-Round Audit Protocol (§A.5). 4 sub-provisions: (1) deferred ≠ fixed — re-evaluate every round; (2) deployed behavior check (curl live URL, not source grep); (3) CVE registry override — `npm audit --registry=https://registry.npmjs.org/` bypasses mirror 404; (4) snapshot diff vs last audit. scan-checklist §5.3 扩展: 验证 `[lang]/404.astro` 部署后真实行为 (curl `/nonexistent-path/` HTTP 404 + content), 不仅是文件存在. §4.6 加 registry override pattern. Trigger: CASE-WEBSITE-IMPROVE-INCREMENTAL-AUDIT-20260622."
-    - "3.8.0 (2026-06-15): Mode D Phase 3 now fixes P0/P1/P2 instead of only P0/P1. Updated references/mode-d-multisite.md prompt and hard rules to enforce P2 remediation; removed 'P2 out of scope' language."
-    - "3.7.0 (2026-06-10): Progressive disclosure refactor (per Anthropic SKILL.md best practices). 861 → 487 行 (-43%). Skill Evolution 历史 307 行 → references/evolution-history.md; 跨站点/触类旁通/学术资产化 34 行 → references/site-improvement-protocols.md; triggers 长尾 36 行 → references/triggers.md. 满足 Anthropic 500-line hard limit + AEM 200-line reliability sweet spot."
-    - "3.6.0 (2026-06-09): §33-§35 orchestrator + fix-agent 硬化. H1 ASI 防御 (Workflow 脚本 `SITES.map(...)\n({...})` ASI 解析 bug → TypeError recovery) / H2 autopush fallback (autopush 误判 staged-only deletion → direct `git push` 兜底) / H3 fix agent 二次 `git status` 验证 (避免 dangling untracked-deletion). 来自 CASE-MULTI-SITE-IMPROVE-20260609."
-    - "3.5.0 (2026-06-08): L17+L18 orchestrator 硬化. Phase 0 工具预加载 (ToolSearch 治本 subagent tool loading bug) + L17 auto-fallback (agent ack → SendMessage 重发 JSON). 解决 Run 4 暴露的 L14 enforcement 2/3 success + GDKVM 0 tool uses 2 个 bug."
-    - 3.4.0 (2026-06-08): 吞并 sync-all-sites as Mode D (multi-site 编排). 4-phase 协议 + L14 + 4-section output contract. sync-all-sites 目录删除.
-    - 3.3.0 (2026-06-03): 自进化协议 + 反模式硬化 (§30-§32)
-    - 3.2.0 (2026-06-03): 3 站 Mode A 跨站 bug 模式 (§23-§29)
-  triggers:
-    # 核心入口 (8 个, 必查) — v4.0.0: 任意 website intent 触发全 sweep
-    - website-improve
-    - 改进网站
-    - 优化网站
-    - audit website
-    - 网站审计
-    - site health
-    - project page
-    - 项目页
-    # Astro 模式 (4 个) — v4.0.0: Astro 项目自动 sweep B sub-mode
-    - create astro site
-    - deploy astro to firebase
-    - build static blog
-    - astro markdown setup
-    # Multi-Site 模式 (10 个, v4.0.0 扩展 +4) — sites count ≥ 2 自动 sweep D sub-mode
-    - sync all sites
-    - fan-out
-    - deploy all
-    - audit all
-    - multi-site
-    - 多站点
-    - parallel full audit   # v4.0.0 新增: 并行全量 audit
-    - 全量 fan-out          # v4.0.0 新增: 全量 fan-out
-    - 4-site sweep          # v4.0.0 新增: 4 站同时 sweep
-    - full sweep            # v4.0.0 新增: 全模式 sweep
-    # 改进/重构 (6 个)
-    - upgrade
-    - 重构
-    - cleanup
-    - 反模式扫描
-    - build fix
-    - fix build
-    # 完整列表见 references/triggers.md (24 个长尾触发器, v3.7.0 拆分, v4.0.0 加 4)
-  tags:
-    - audit
-    - improve
-    - astro
-    - performance
-    - a11y
-    - security
-    - layout
-    - modernization
-    - deployment
-    - checklist
-    - multi-round
-user-invocable: true
-disable-model-invocation: false
+  tags: [website, improve, multi-site, astro]
 ---
 
 # website-improve Skill
