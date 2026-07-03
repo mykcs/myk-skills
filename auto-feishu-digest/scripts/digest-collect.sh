@@ -43,34 +43,34 @@ collect_one() {
 
     case "$src" in
         arxiv)
-            # 5-tool parallel fan-out (per process.md §F.1 + user 2026-07-03 反馈 "每源都用 5-tool, 不是 1 源 1 tool")
-            # 5 mcp 并行跑 query: mcp__MiniMax__web_search + mcp__anysearch__web_search + WebFetch + mcp__exa (combo) + mcp__kimi-webbridge
-            # 5 工具都查 arxiv, dedup by arxiv_id (per templates/feishu-bit-schema.md)
-            # 1 源 = 5 工具都跑 (不只 1 个), 结果去重合并
+            # 王锐 N-tool 自定义多重网络搜索协议 (per process.md §F.1, N 可扩展)
+            # 5 是当前实例 (mcp__MiniMax + mcp__anysearch + WebFetch + mcp__exa + mcp__kimi-webbridge)
+            # 未来加 mcp__x__web_search / mcp__context7__query_docs / mcp__agent-reach__search_17_platforms 等直接扩 N
+            # 1 源 = N 工具都跑, dedup by arxiv_id (per templates/feishu-bit-schema.md)
             {
                 echo "{\"source\": \"arxiv\", \"query\": \"self-evolving agent OR AI scientist 2026\", \"tools\": [\"MiniMax\", \"anysearch\", \"WebFetch\", \"exa\", \"kimi-webbridge\"], \"fetched_at\": \"$(date -Iseconds)\"}"
             } > "$out"
-            # 真抓时: claudecode 主进程跑 5 mcp, 把结果 concat 写到 $out
+            # 真抓时: claudecode 主进程跑 N mcp, 把结果 concat 写到 $out
             ;;
         venue)
-            # 顶会 NIPS/ICML/ICLR/CVPR: 5-tool parallel fan-out (5 工具都查, 不只 1 个)
+            # 顶会 NIPS/ICML/ICLR/CVPR: 王锐 N-tool protocol (N 工具都查, 不只 1 个)
             {
                 echo "{\"source\": \"venue-conference\", \"query\": \"NIPS 2026 OR ICML 2026 OR ICLR 2026 self-evolving\", \"tools\": [\"MiniMax\", \"anysearch\", \"WebFetch\", \"exa\", \"kimi-webbridge\"], \"fetched_at\": \"$(date -Iseconds)\"}"
             } > "$out"
             ;;
         blog)
-            # tech blog (OpenAI/Anthropic/DeepMind/HuggingFace): 5-tool fan-out
+            # tech blog (OpenAI/Anthropic/DeepMind/HuggingFace): 王锐 N-tool protocol
             {
                 echo "{\"source\": \"blog-rss\", \"query\": \"AI lab blog 2026 self-evolving agent\", \"tools\": [\"MiniMax\", \"anysearch\", \"WebFetch\", \"exa\", \"kimi-webbridge\"], \"fetched_at\": \"$(date -Iseconds)\"}"
             } > "$out"
             ;;
         hn)
-            # HN frontpage + Show HN: 5-tool fan-out (HN Algolia API + 4 mcp 也跑同样 query dedup)
+            # HN frontpage + Show HN: 王锐 N-tool protocol (HN Algolia API + N mcp 也跑同样 query dedup)
             curl -s "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30" 2>/dev/null >> "$out" || true
-            # HN Algolia 抓不到, 4 mcp 兜底
+            # HN Algolia 抓不到, N mcp 兜底
             ;;
         github)
-            # GitHub trending: 5-tool fan-out (curl + 4 mcp 同样 query)
+            # GitHub trending: 王锐 N-tool protocol (curl + N mcp 同样 query)
             curl -s "https://github.com/trending?since=daily" 2>/dev/null >> "$out" || true
             ;;
         *)
