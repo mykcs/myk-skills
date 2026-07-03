@@ -71,39 +71,24 @@ SCORED_TMP="$CACHE/.tmp-scored-$$.jsonl"
 
 if [ "$DRY_RUN" = "true" ]; then
     # mock: 所有 paper 同分 (演示流程)
+    # v0.1.2 修: if 原 7 维有值, 保留; else 补 3
     jq -c '
-        . + {
-            venue_score: 3,
-            author_score: 3,
-            code_score: 3,
-            dataset_score: 3,
-            number_score: 3,
-            citation_score: 3,
-            match_score: 3,
-            composite_score: 3.0,
-            caution_flag: "✅ 可引",
-            scored_at: now | todate
-        }
+        if .venue_score then .
+        else . + {venue_score: 3, author_score: 3, code_score: 3, dataset_score: 3, number_score: 3, citation_score: 3, match_score: 3}
+        end |
+        . + {composite_score: (((.venue_score // 3) + (.author_score // 3) + (.code_score // 3) + (.dataset_score // 3) + (.number_score // 3) + (.citation_score // 3) + (.match_score // 3)) / 7.0 | . * 10 | round / 10), caution_flag: (if (((.venue_score // 3) + (.author_score // 3) + (.code_score // 3) + (.dataset_score // 3) + (.number_score // 3) + (.citation_score // 3) + (.match_score // 3)) / 7.0) <= 3 then "⚠️ 慎引" else "✅ 可引" end), scored_at: (now | todate)}
     ' "$DEDUP_TMP" > "$SCORED_TMP" 2>/dev/null || cat "$DEDUP_TMP" > "$SCORED_TMP"
-    echo "  (dry-run) LLM judge 已 mock 全部 3 分"
+    echo "  (dry-run) LLM judge 已 mock 全部 3 分 (v0.1.2 if-then 保留原 7 维)"
 else
     # 真 LLM judge (claudecode 执行时补全)
-    # 推荐: per-paper opus-as-judge, batch size 5
-    echo "  ⚠️ 真 LLM judge 需 claudecode 跑 (MVP 占位)"
+    # v0.1.2 修: if 原 7 维有值, 保留; else 补 3 (跟 dry-run 同 logic)
     jq -c '
-        . + {
-            venue_score: 3,
-            author_score: 3,
-            code_score: 3,
-            dataset_score: 3,
-            number_score: 3,
-            citation_score: 3,
-            match_score: 3,
-            composite_score: 3.0,
-            caution_flag: "✅ 可引",
-            scored_at: now | todate
-        }
+        if .venue_score then .
+        else . + {venue_score: 3, author_score: 3, code_score: 3, dataset_score: 3, number_score: 3, citation_score: 3, match_score: 3}
+        end |
+        . + {composite_score: (((.venue_score // 3) + (.author_score // 3) + (.code_score // 3) + (.dataset_score // 3) + (.number_score // 3) + (.citation_score // 3) + (.match_score // 3)) / 7.0 | . * 10 | round / 10), caution_flag: (if (((.venue_score // 3) + (.author_score // 3) + (.code_score // 3) + (.dataset_score // 3) + (.number_score // 3) + (.citation_score // 3) + (.match_score // 3)) / 7.0) <= 3 then "⚠️ 慎引" else "✅ 可引" end), scored_at: (now | todate)}
     ' "$DEDUP_TMP" > "$SCORED_TMP" 2>/dev/null || cp "$DEDUP_TMP" "$SCORED_TMP"
+    echo "  ⚠️ 真 LLM judge 需 claudecode 跑 (MVP 占位, v0.1.2 if-then 保留原 7 维)"
 fi
 
 # 4. 按 composite_score 降序
