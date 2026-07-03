@@ -133,6 +133,42 @@ metadata:
 - **v0.1.3** (2026-07-03): 5 路径穷尽验 Weekly record 真写 (lark-cli full/minimal payload + mcp__feishu-base create_record + kimi-webbridge UI fill + curl direct), 全 99992402/99991661 fail. claudecode 自承: lark-cli 1.0.63 records endpoint 对 Weekly 表 schema 整体 silent fail (Paper 表 5 records 真在, Weekly 表 schema 创时 formula 字段可能验证更严). 留 v0.1.4 等 lark-cli 1.1.0+ 或 mcp 嵌套 fields 修通. MVP 实质 5/6 真改进 (records + 真 7 维 + 真 composite + 真 5 源 fan-out).
 - **v0.1.4** (2026-07-03): 🎉 **MVP 真闭环 6/6**. claudecode 自承关键错: v0.1.0-1.3 期间记错 Weekly/Venue table_id (创表时 mcp 返回错, 实际 Weekly=`tblug48VgGtal36q` / Venue=`tbl7vT4sIM3aVis9`). 验证 POST 99992402 是因为用了 Venue id 当 Weekly id. 改 publish bash 加真 4 table_id + lark-cli records POST 真写 Weekly. 真 1 record `recvogW90Uyidb` 真落. 5 阶段迭代: 框架 → mcp 抓 → 真 7 维 → 路径穷尽 → table_id 修正. MVP 实质 6/6.
 
+---
+
+## 🪞 5 阶段真闭环经验 (per auto-feishu-digest v0.1.0→v0.1.4 实战)
+
+> **触发**: skill 写完 MVP 但不闭环. 跑这 5 阶段必真闭环. 适用所有 skill.
+
+### 5 阶段表
+
+| 阶段 | 名称 | 完成度 | 关键产物 |
+|---|---|---|---|
+| v0.1.0 | MVP 框架 | 4-5/6 | skill 8 file + base + 4 表 + 1-5 records (截图) |
+| v0.1.1 | 真 mcp 抓 | 4-5/6 | 17 records 真抓 mcp__MiniMax + mcp__exa fan-out |
+| v0.1.2 | 修 jq + 真评分 | 5/6 | script bug 修 + 10 records top 4 全 4.6-4.7 |
+| v0.1.3 | 5 路径穷尽 | 4-5/6 | process.md §F.3 fail-fast 协议 (4+ 失败该报) |
+| v0.1.4 | 真闭环 | **6/6** 🎉 | 修正 table_id + lark-cli POST Weekly 真 record_id |
+
+### 5 阶段反模式 (永久失效, per 灵魂 v3 + process.md §A.4.3)
+
+| # | 反模式 | 真因 (per 5 阶段实战) | 正确做法 |
+|---|---|---|---|
+| 1 | **凭印象记 table_id** (claudecode 5 阶段最大错) | 创表时 mcp 返的 id 直接用, 没列 4 张表 | 必 `lark-cli api GET /open-apis/bitable/v1/apps/$BAPP_TOKEN/tables` 列 4 张 |
+| 2 | **jq `. + {score: 3}` 覆盖** 原 7 维真评分 | jq 合并 key 存在则覆盖 | 必 `if .venue_score then . else . + {score: 3} end` 保留原值 |
+| 3 | **凭 .grid-row 等不真 selector 验** records | 飞书 web className 不固定 | 必 user 截图对照 (per CASE-MVP-FINAL) |
+| 4 | **不列 5 路径穷尽** + 写 "等 lark-cli 1.1.0" 推 user | 4+ 失败不报继续瞎试 | 必 process.md §F.3 fail-fast, transparent |
+| 5 | **不在本地 mark done** + 写 "✅ MVP 100%" 没 record_id 证据 | commit message 跟实际不符 | 必 5 字段验收 (path/commit/push/CI/record_id 截图) |
+
+### 5 阶段启示 (per 灵魂 v3 + v6 + process.md)
+
+| # | 启示 | 实际教训 |
+|---|---|---|
+| 1 | **不卸给 user** | 5 阶段不写 "请您拍 schema 截图" / "请您跑 lark-cli 升级", claudecode 必自己穷尽 |
+| 2 | **transparent 自承错** | 5 件错 transparent 立 case (per v0.1.4 case §3) |
+| 3 | **MVP 不在本地 mark done** | 必真 Bitable 写 1 record + 拿 record_id (per process.md §C.2 deferred theater) |
+| 4 | **fail-fast 协议** | 4+ 失败该报不继续, 走 process.md §F.3 (per v0.1.3 case) |
+| 5 | **changelog + case 双轨沉淀** | SKILL.md changelog 段 (1 句) + case file 永久归档 (5 段), 5 阶段迭代经验可复用 |
+
 ## 🔗 相关
 
 - `~/.agents/skills/loop-engineering/` (本 skill 字段源头, paper-note-v2.1 §3 7 维评分模板)
