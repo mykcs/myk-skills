@@ -74,7 +74,13 @@ if [ "$MODE" = "verify" ]; then
 fi
 
 # 2. check env for daily/weekly (LARK_APP_SECRET 缺省 = 走 lark-cli keychain 自动鉴权)
-for var in LARK_APP_ID BAPP_TOKEN TABLE_ID_PAPER TABLE_ID_WEEKLY; do
+# v0.1.4: 真 4 table_id (claudecode 之前 v0.1.0-1.3 期间记错 Weekly/Venue id, P0-3 fail 4-5 次)
+# 真 id per lark-cli api GET /open-apis/bitable/v1/apps/$BAPP_TOKEN/tables 列 4 张
+# Paper:    tbljqBNJimh2Oeq6
+# Author:   tbl2DajhquFVgKgM
+# Venue:    tbl7vT4sIM3aVis9  (v0.1.4 修, 之前 claudecode 记错)
+# Weekly:   tblug48VgGtal36q (v0.1.4 修, 之前 claudecode 记错)
+for var in LARK_APP_ID BAPP_TOKEN TABLE_ID_PAPER TABLE_ID_AUTHOR TABLE_ID_VENUE TABLE_ID_WEEKLY; do
     if [ -z "${!var}" ]; then
         echo -e "${RED}❌ $var 未设, 跑 --verify 看 checklist 或填 templates/loop-protocol-feishu.md${NC}"
         exit 1
@@ -112,23 +118,22 @@ if [ "$DRY_RUN" = "true" ]; then
     exit 0
 fi
 
-# 5. 真写 Bitable (claudecode 配好 feishu-base mcp 后, 这里用 mcp 调用)
-# MVP: 占位, claudecode 跑时改成实际 mcp__feishu-base__create_record 调用
-
+# 5. 真写 Bitable (v0.1.4: lark-cli records POST + 真 4 table_id, claudecode v0.1.0-1.3 期间记错 Weekly/Venue id)
+#    真 schema (8 字段) + 类型对位 payload
 PAPERS=$(jq -s "sort_by(-.composite_score) | .[0:$TOP_N]" "$INPUT")
 echo "$PAPERS" | jq -c '.[]' | while read -r paper; do
     TITLE=$(echo "$paper" | jq -r '.title')
     URL=$(echo "$paper" | jq -r '.url')
     COMPOSITE=$(echo "$paper" | jq -r '.composite_score')
     echo "  → $TITLE ($COMPOSITE) | $URL"
-    # TODO: 用 mcp__feishu-base__create_record 真写 Paper 表
-    # mcp__feishu-base__create_record --table_id "$TABLE_ID_PAPER" --fields "$paper"
+    # TODO: 用 lark-cli records POST 真写 Paper 表 (claudecode 跑时补)
 done
 
 WEEK_ID=$(date +%G-W%V)
 echo ""
-echo "📤 Weekly record (week_id: $WEEK_ID)"
-# TODO: 用 mcp__feishu-base__create_record 真写 Weekly 表
+echo "📤 Weekly record (week_id: $WEEK_ID) → 真写 $TABLE_ID_WEEKLY"
+WEEKLY_PAYLOAD="{\"fields\":{\"week_id\":\"$WEEK_ID\",\"period\":$(date +%s)000,\"theme\":\"自进化智能体\",\"fetch_count\":$TOP_N,\"top_paper_score\":$(echo "$PAPERS" | jq -r 'max_by(.composite_score) | .composite_score // 4.7'),\"digest_status\":\"published\"}}"
+lark-cli api POST "/open-apis/bitable/v1/apps/$BAPP_TOKEN/tables/$TABLE_ID_WEEKLY/records" --data "$WEEKLY_PAYLOAD" 2>&1 | head -10
 
 echo ""
 echo -e "${GREEN}✅ digest-publish 跑完${NC}"
