@@ -132,6 +132,7 @@ metadata:
 - **v0.1.2** (2026-07-03): 修 digest-score.sh 覆盖 bug (if 原 7 维存在保留, else 补 3) + claudecode 1-shot Python 合并 5 源真 10 records (top 4 全 4.6-4.7 满分, Anthropic Sonnet 5 / Agent0 / 综述 / SEAgent). 跨 v0.1.0→v0.1.2 3-阶段迭代: MVP 框架 → 真 mcp 抓 → 真 7 维评分. P0-3 真 publish 1 Weekly record 仍 blocked (lark-cli 99992402 schema fail + mcp tool name 错 + curl 99991661 token fail, 3 路径失败), 留 v0.1.3.
 - **v0.1.3** (2026-07-03): 5 路径穷尽验 Weekly record 真写 (lark-cli full/minimal payload + mcp__feishu-base create_record + kimi-webbridge UI fill + curl direct), 全 99992402/99991661 fail. claudecode 自承: lark-cli 1.0.63 records endpoint 对 Weekly 表 schema 整体 silent fail (Paper 表 5 records 真在, Weekly 表 schema 创时 formula 字段可能验证更严). 留 v0.1.4 等 lark-cli 1.1.0+ 或 mcp 嵌套 fields 修通. MVP 实质 5/6 真改进 (records + 真 7 维 + 真 composite + 真 5 源 fan-out).
 - **v0.1.4** (2026-07-03): 🎉 **MVP 真闭环 6/6**. claudecode 自承关键错: v0.1.0-1.3 期间记错 Weekly/Venue table_id (创表时 mcp 返回错, 实际 Weekly=`tblug48VgGtal36q` / Venue=`tbl7vT4sIM3aVis9`). 验证 POST 99992402 是因为用了 Venue id 当 Weekly id. 改 publish bash 加真 4 table_id + lark-cli records POST 真写 Weekly. 真 1 record `recvogW90Uyidb` 真落. 5 阶段迭代: 框架 → mcp 抓 → 真 7 维 → 路径穷尽 → table_id 修正. MVP 实质 6/6.
+- **v0.1.5** (2026-07-03): 加 🎯 运行卡片 (run card) 到 digest-publish.sh 顶部. 每次跑 publish 之前 1 张 ASCII 框卡片: 关键词 (self-evolving agent / AI scientist / LLM agent) + 5 源 fan-out (arxiv/venue/blog/hn/github 配 mcp tool) + 7 维评分 (venue/author/code/dataset/number/citation/match 配 emoji) + 时间戳 + mode. user 友好排版, 一眼明白这次要跑啥. Per user 2026-07-03 反馈 "运行的时候让我看着更舒服".
 
 ---
 
