@@ -11,6 +11,11 @@
 #   - Author / Venue 表: 反向 DuplexLink 自动同步
 
 set -e
+# v0.1.8: auto-load 7 env from .env (per user feedback "不能我每次跑一遍 skill 都重新配一次")
+set -a
+. "$(dirname "$0")/../.env" 2>/dev/null || . "$(dirname "$0")/.env" 2>/dev/null || true
+set +a
+
 INPUT=""
 MODE="daily"
 DRY_RUN="false"

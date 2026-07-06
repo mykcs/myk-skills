@@ -9,6 +9,11 @@
 # 输出: ~/.cache/digest/scored-<YYYY-MM-DD>.jsonl
 
 set -e
+# v0.1.8: auto-load 7 env from .env (per user feedback "不能我每次跑一遍 skill 都重新配一次")
+set -a
+. "$(dirname "$0")/../.env" 2>/dev/null || . "$(dirname "$0")/.env" 2>/dev/null || true
+set +a
+
 INPUT_GLOB="${HOME}/.cache/digest/*-*.jsonl"
 OUTPUT=""
 TOP_N="0"

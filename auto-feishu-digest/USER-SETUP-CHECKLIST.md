@@ -1,9 +1,22 @@
-# User-Side Setup Checklist — auto-feishu-digest MVP (待您配)
+# User-Side Setup Checklist — auto-feishu-digest MVP (待您配 LARK_APP_SECRET)
 
-> **状态**: 等待 user 配 4 env + 拆 Bitable 4 表, 配好后我跑 A4 真 publish
-> **skill**: `~/.agents/skills/auto-feishu-digest v0.1.0` (commit `252ac35`)
+> **状态**: v0.1.8 (2026-07-06) — LARK_APP_ID + BAPP_TOKEN 已从 ~/.zshrc 搬到 `.env`,自动 source,不用每次手动 export。
+> **skill**: `~/.agents/skills/auto-feishu-digest v0.1.8` (commit 待 push)
+> **剩 1 项**: 替换 `LARK_APP_SECRET` 占位符 → 跑 `--verify` 全 ✅ → claudecode 跑 A4
+> **核心改动**: `.env` 跟 skill 走 (per user 反馈 "不能我每次跑一遍 skill 都重新配一次")
 > **验证脚本**: `bash ~/.agents/skills/auto-feishu-digest/scripts/digest-publish.sh --verify`
-> **下一步**: 您跑上面 --verify, 若 7 env 全 ✅, 您回 "env 配好", 我跑 A4
+> **下一步**: 您把 LARK_APP_SECRET 替换真值 → 跑 --verify 7 全 ✅ → 回 "env 配好", claudecode 跑 A4
+
+---
+
+## Step 0: 为什么有 .env (per v0.1.8)
+
+**之前 (v0.1.0-1.7)**: 7 env 全放 `~/.zshrc`,每次新 shell 要 `source ~/.zshrc`,换电脑 / 重装就丢,**鱼 bash zsh 行为分裂**。
+**v0.1.8 起**: 7 env 放 `~/.agents/skills/auto-feishu-digest/.env` (跟 skill 走),3 个 .sh 脚本顶部自动 `set -a; . ../.env; set +a`。**好处**:
+- 不用每次手动 export
+- 换电脑直接拷 .env 就跑
+- 不污染公共 shell source (`~/.zshrc` 保留)
+- Secret 跟 skill 走,`mykcs/myk-skills` 仓 `.gitignore` 已含 `.env`,**不会被 push 泄漏**
 
 ---
 
@@ -56,27 +69,24 @@
 
 ---
 
-## Step 3: 填 7 env 到 shell (1 min)
+## Step 3: 替换 LARK_APP_SECRET 占位符 (1 min)
 
-打开 ~/.zshrc (macOS 默认) / ~/.bash_profile (Linux), 加:
-
-```bash
-# AI Daily Digest (auto-feishu-digest skill, 2026-07-02 立)
-export LARK_APP_ID="cli_xxx"              # 从 Step 1.6
-export LARK_APP_SECRET="xxx"              # 从 Step 1.6 (用 Secret 而非 App ID-Secret)
-export BAPP_TOKEN="AbCdEfGhiJkLmN"        # 从 Step 2.8 (base ID)
-export TABLE_ID_PAPER="tblXXX1"           # 从 Step 2.8
-export TABLE_ID_AUTHOR="tblXXX2"          # 从 Step 2.8
-export TABLE_ID_VENUE="tblXXX3"           # 从 Step 2.8
-export TABLE_ID_WEEKLY="tblXXX4"          # 从 Step 2.8
-```
-
-然后重载:
+v0.1.8 起,env 跟 skill 走。打开:
 
 ```bash
-source ~/.zshrc   # macOS
-# source ~/.bash_profile  # Linux
+vim ~/.agents/skills/auto-feishu-digest/.env
 ```
+
+把 `LARK_APP_SECRET="REPLACE_WITH_YOUR_APP_SECRET_HERE"` 那一行替换成真值 (从飞书 App "应用功能 → 凭证与基础信息" 拿)。
+
+**已自动填好的 (从 zshrc 搬来,无需重配)**:
+- LARK_APP_ID (跟 `~/.zshrc` 一致)
+- BAPP_TOKEN (跟 `~/.zshrc` 一致)
+- 4 TABLE_ID (Paper / Author / Venue / Weekly)
+
+**用户替换 1 项**: LARK_APP_SECRET
+
+**`~/.zshrc` 那 2 行 export 保留不动** (per user 2026-07-06 决策 "保留 zshrc 不动"),`.env` 为准, 鱼 bash 自动 source, zsh 走 zshrc (重复定义不冲突)。
 
 ---
 
@@ -124,6 +134,8 @@ bash ~/.agents/skills/auto-feishu-digest/scripts/digest-score.sh
 bash ~/.agents/skills/auto-feishu-digest/scripts/digest-publish.sh --mode=daily --dry-run  # 先 dry-run
 bash ~/.agents/skills/auto-feishu-digest/scripts/digest-publish.sh --mode=daily             # 真写
 ```
+
+**v0.1.8 起不用 `source ~/.zshrc` 重载 env** — 3 个 .sh 脚本顶部自动 `.env`,任何 shell (fish / bash / zsh) 跑都生效。
 
 5 字段验收 + case file 立到 `~/.claude/knowledge/cases/wiki/CASE-AUTO-FEISHU-DIGEST-MVP-RUN1-<date>.md`
 
