@@ -52,12 +52,20 @@ echo "├───────────────────────�
 echo "│  📌 主题: 面向科研的自进化智能体                          │"
 echo "│      (self-evolving agent for scientific research)     │"
 echo "│                                                         │"
-echo "│  🔍 关键词 (5 个):                                       │"
+echo "│  🔍 关键词 (按主题层级, v0.1.17):                            │"
+echo "│  主题范围: 面向科研的智能体 + 自进化智能体                 │"
 echo "│     1. self-evolving agent    (自进化智能体)            │"
+echo "│        → 跟面向科研的智能体 + 自进化 都相关               │"
 echo "│     2. AI scientist           (AI 科学家)               │"
+echo "│        → 跟面向科研的智能体 相关                          │"
 echo "│     3. LLM agent              (大语言模型智能体)         │"
+echo "│        → 跟面向科研的智能体 相关                          │"
 echo "│     4. agentic system         (智能体系统)                │"
-echo "│     5. reasoning              (推理)                     │"
+echo "│        → 跟面向科研的智能体 相关                          │"
+echo "│     5. reasoning              (推理能力)                  │"
+echo "│        → 跟面向科研的智能体 相关                          │"
+echo "│  ⚠️ 关键词范围: 面向科研的智能体 + 自进化智能体           │"
+echo "│      (跟主题无关的, 例如 organicmaps.app 离线地图, 排掉)  │"
 echo "│                                                         │"
 echo "│  📡 3 大类信息源 × N 工具 (王锐 N-tool 自定义协议):     │"
 echo "│     【第 1 大类】论文 / 会议类:                           │"
@@ -71,8 +79,8 @@ echo "│       codex 产品负责人播客 + Stratechery 等 6 个         │"
 echo "│              (N mcp 同上)                              │"
 echo "│  ⚠️ N 工具自定义, 5 是当前实例, 未来扩展不减维护       │"
 echo "│                                                         │"
-echo "│  🎯 目标筛选 (THINK 阶段重点):                            │"
-echo "│     • 面向科研的自进化智能体主题词 + 关键词 5 个           │"
+echo "│  🎯 目标筛选 (THINK 阶段重点, per user 2026-07-07):     │"
+echo "│     • 关键词范围: 面向科研的智能体 + 自进化智能体       │"
 echo "│     • 跟主题无关的 (e.g. organicmaps.app 离线地图)       │"
 echo "│       排掉, 不进 Bitable                                │"
 echo "│     • 阈值: match_score ≥ 3 进 Top 5 / ≤ 2 排掉         │"
@@ -222,7 +230,8 @@ echo "╠═══════════════════════�
 echo "║                                                              ║"
 echo "║  1. 主题: 面向科研的自进化智能体                            ║"
 echo "║       (self-evolving agent for scientific research)          ║"
-echo "║       → 关键词 5 个 (见 Run Card 第 2 段)                    ║"
+echo "║       → 关键词范围: 面向科研的智能体 + 自进化智能体       ║"
+echo "║       → 关键词 5 个 (见 Run Card 第 2 段, 按主题层级分)  ║"
 echo "║                                                              ║"
 echo "║  2. 4 个动作要求 (设计哲学):                                ║"
 echo "║       2.1 7×24 自动 + 自动推送 (不需您主动搜)               ║"
@@ -292,12 +301,18 @@ TOP_N=$([ "$MODE" = "daily" ] && echo 5 || echo 20)
 # ║    4. mcp__exa (combo: web_search + web_fetch)               ║
 # ║    5. mcp__kimi-webbridge (extension 真浏览器)               ║
 # ║                                                              ║
-# ║  🔍 关键词 (全列):                                           ║
-# ║    • self-evolving agent                                      ║
-# ║    • AI scientist                                              ║
-# ║    • LLM agent                                                 ║
-# ║    • agentic system                                            ║
-# ║    • reasoning                                                 ║
+# ║  🔍 关键词 (按主题层级, v0.1.17):                             ║
+# ║  主题范围: 面向科研的智能体 + 自进化智能体                ║
+# ║    1. self-evolving agent    (自进化智能体)             ║
+# ║       → 跟面向科研的智能体 + 自进化 都相关            ║
+# ║    2. AI scientist           (AI 科学家)                ║
+# ║       → 跟面向科研的智能体 相关                       ║
+# ║    3. LLM agent              (大语言模型智能体)         ║
+# ║       → 跟面向科研的智能体 相关                       ║
+# ║    4. agentic system         (智能体系统)               ║
+# ║       → 跟面向科研的智能体 相关                       ║
+# ║    5. reasoning              (推理能力)                 ║
+# ║       → 跟面向科研的智能体 相关                       ║
 # ╚═══════════════════════════════════════════════════════════════╝
 echo "Mode: $MODE | Top N: $TOP_N | Input: $INPUT"
 echo "Dry run: $DRY_RUN"
