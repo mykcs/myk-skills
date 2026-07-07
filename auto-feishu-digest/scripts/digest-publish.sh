@@ -180,9 +180,70 @@ WEEK_ID=$(date +%G-W%V)
 echo ""
 echo "📤 Weekly record (week_id: $WEEK_ID) → 真写 $TABLE_ID_WEEKLY"
 WEEKLY_PAYLOAD="{\"fields\":{\"week_id\":\"$WEEK_ID\",\"period\":$(date +%s)000,\"theme\":\"自进化智能体\",\"fetch_count\":$TOP_N,\"top_paper_score\":$(echo "$PAPERS" | jq -r 'max_by(.composite_score) | .composite_score // 4.7'),\"digest_status\":\"published\"}}"
-lark-cli api POST "/open-apis/bitable/v1/apps/$BAPP_TOKEN/tables/$TABLE_ID_WEEKLY/records" --data "$WEEKLY_PAYLOAD" 2>&1 | head -10
+WEEKLY_RESP=$(lark-cli api POST "/open-apis/bitable/v1/apps/$BAPP_TOKEN/tables/$TABLE_ID_WEEKLY/records" --data "$WEEKLY_PAYLOAD" 2>&1)
+echo "$WEEKLY_RESP" | head -10
+WEEKLY_RECORD_ID=$(echo "$WEEKLY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('record',{}).get('record_id','N/A'))" 2>/dev/null || echo "N/A")
 
 echo ""
+echo "═══════════════════════════════════════════════════════════════"
+echo "📊 本次运行产出 (Run Report)"
+echo "═══════════════════════════════════════════════════════════════"
+python3 <<PYEOF
+import json, sys, subprocess
+cache = "${HOME}/.cache/digest"
+papers_json = """$PAPERS"""
+try:
+    papers = json.loads(papers_json) if papers_json.strip() else []
+except Exception:
+    papers = []
+
+if not papers:
+    print("(empty)")
+else:
+    papers_sorted = sorted(papers, key=lambda x: x.get('composite_score', 0), reverse=True)
+    print()
+    print(f"🎯 **今日必读 Top {len(papers_sorted)}** (composite ≥ 3 慎引, ≥ 4 推荐)")
+    print()
+    print("| # | 标题 | 子方向 | 综合分 | 来源 |")
+    print("|---|------|--------|--------|------|")
+    for i, p in enumerate(papers_sorted, 1):
+        title = (p.get('title') or '')[:60]
+        source = p.get('source') or ''
+        cs = p.get('composite_score') or 0
+        caution = p.get('caution_flag') or ''
+        subareas = p.get('subareas') or ['?']
+        sub_str = ','.join(subareas) if isinstance(subareas, list) else str(subareas)
+        print(f"| {i} | {title} | {sub_str} | {cs} {caution} | {source} |")
+    print()
+    top = papers_sorted[0]
+    print("📌 **字段提炼 (per 7 维评分)**")
+    print()
+    print("| 字段 | 值 | 说明 |")
+    print("|------|----|----|")
+    print(f"| 🏆 Top 1 paper | \`{top.get('title','N/A')}\` | composite_score {top.get('composite_score',0)} ✅ |")
+    print(f"| 🔗 Top 1 URL | {top.get('url','N/A')} | 直接精读入口 |")
+    print(f"| 🎯 主题 | 自进化智能体 | v0.1.7 起写死 |")
+    print(f"| ⚠️ 慎引数量 | {sum(1 for p in papers_sorted if '慎引' in (p.get('caution_flag') or ''))} 条 | composite ≤ 3 |")
+    print(f"| ❌ 不引数量 | {sum(1 for p in papers_sorted if '不引' in (p.get('caution_flag') or ''))} 条 | composite ≤ 2 |")
+    print(f"| ✅ 可引数量 | {sum(1 for p in papers_sorted if '可引' in (p.get('caution_flag') or ''))} 条 | composite > 3 |")
+    print()
+    print("📤 **本周写到飞书 Bitable 的 record**")
+    print()
+    print("| 字段 | 值 |")
+    print("|------|----|")
+    print(f"| Table | Weekly ($TABLE_ID_WEEKLY) |")
+    print(f"| record_id | \`$WEEKLY_RECORD_ID\` | 拿回 = 真闭环证据 |")
+    print(f"| week_id | $WEEK_ID |")
+    print(f"| theme | 自进化智能体 |")
+    print(f"| fetch_count | {len(papers_sorted)} |")
+    print(f"| top_paper_score | {top.get('composite_score',0)} |")
+    print(f"| digest_status | published |")
+    print()
+PYEOF
+echo "═══════════════════════════════════════════════════════════════"
 echo -e "${GREEN}✅ digest-publish 跑完${NC}"
 echo ""
-echo "下一步: 验证 Bitable 打开了 Paper / Weekly 表, 飞书消息推送自己 review"
+echo "下一步:"
+echo "  1. 飞书刷 base: https://lxpii9q8vy0.feishu.cn/base/$BAPP_TOKEN?table=$TABLE_ID_WEEKLY"
+echo "  2. 找 record_id=$WEEKLY_RECORD_ID 验真在"
+echo "  3. 错误时看 log: ~/.cache/digest/log/"
