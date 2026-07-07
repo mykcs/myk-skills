@@ -159,6 +159,47 @@ fi
 # ║    • 您手动跑 `bash digest-publish.sh --mode=daily`           ║
 # ║    • 周日 20:00 launchd 触发 weekly 模式                       ║
 # ║                                                              ║
+# ║  📋 设计要求清单 (User Requirements Manifest, v0.1.16):       ║
+# ║    (按 user 2026-07-07 反馈沉淀, 跑 skill 时必交代所有要求)  ║
+# ║                                                              ║
+# ║    1. 主题: 面向科研的自进化智能体                          ║
+# ║       (self-evolving agent for scientific research)          ║
+# ║       → 关键词 5 个 (见 Run Card 第 2 段)                    ║
+# ║                                                              ║
+# ║    2. 4 个动作要求 (设计哲学):                                ║
+# ║       2.1 7×24 自动 + 自动推送 (不需您主动搜)               ║
+# ║       2.2 防遗漏 (过去 2-3 年奠基 + 每天新出)               ║
+# ║       2.3 可速览 (30 秒刷表格判断要不要精读)               ║
+# ║       2.4 飞书 4 表联动沉淀 (Paper / Author / Venue / Weekly)║
+# ║                                                              ║
+# ║    3. 信息源 3 大类 (per user 2026-07-07 重定义):             ║
+# ║       3.1 论文 / 会议类: arXiv + NIPS+ICML+ICLR+CVPR       ║
+# ║       3.2 国内博客: 晓辉博士 + 冰瓶子 (Kimi PM)            ║
+# ║       3.3 国外博主: codex PM 播客 + 6 个其他                ║
+# ║                                                              ║
+# ║    4. 字段提炼 + 7 维评分 (自动):                            ║
+# ║       来源 / 领域标签 / 核心技术 / 一句话价值               ║
+# ║       跟您领域匹配度 (match_score) → 排掉无关 paper         ║
+# ║                                                              ║
+# ║    5. 相关性判断 (THINK 阶段重点, per organicmaps.app 反馈):  ║
+# ║       organicmaps.app = 离线地图, 跟主题无关 → 排掉         ║
+# ║       match_score ≥ 3 进 Top 5 / ≤ 2 排掉                   ║
+# ║                                                              ║
+# ║    6. 输出格式 (您要求的):                                    ║
+# ║       6.1 Markdown 卡片 (运行卡片) 看着舒服                  ║
+# ║       6.2 4 阶段 banner (前置准备 / 搜索 / 思考 / 落地)     ║
+# ║       6.3 中文 + 专有名词保留英文 (arXiv / NIPS 等)        ║
+# ║       6.4 每阶段收尾 ✅/⚠️/❌, ALL 4 PHASES COMPLETED      ║
+# ║       6.5 输出"本次运行产出" (Top 5 表 + 字段提炼 + record_id)║
+# ║                                                              ║
+# ║    7. N-tool 协议 (王锐自定义, 写模式不写数字, N 可扩):     ║
+# ║       每源跑 N 工具 (mcp__MiniMax + mcp__anysearch +       ║
+# ║       WebFetch + mcp__exa + mcp__kimi-webbridge 等)         ║
+# ║                                                              ║
+# ║    8. 7×24 自动化 (v0.1.8 launchd 调度, user 反馈"不能每次手动")║
+# ║       macOS launchd plist: ~/Library/LaunchAgents/            ║
+# ║       com.mykcs.auto-feishu-digest.plist 每日 08:00 跑      ║
+# ║                                                              ║
 # ║  📥 输入:                                                    ║
 # ║    • 环境变量 (LARK_APP_ID + BAPP_TOKEN + 4 个 table_id)     ║
 # ║    • lark-cli daemon 内置 macOS keychain 自动取 APP_SECRET    ║
@@ -172,6 +213,53 @@ fi
 echo ""
 echo -e "${GREEN}✅ 第 1/4 阶段 (🧰 前置准备) 完成: 环境 6 项 ✅ + 1 项 ⚠️ keychain${NC}"
 echo -e "${PHASE1_STATUS}"
+
+# v0.1.16: 设计要求清单 (User Requirements Manifest) — 跑 skill 必交代所有要求
+echo "╔═══════════════════════════════════════════════════════════════╗"
+echo "║  📋 设计要求清单 (User Requirements Manifest, v0.1.16):       ║"
+echo "║    (按 user 2026-07-07 反馈沉淀, 跑 skill 必交代所有要求)  ║"
+echo "╠═══════════════════════════════════════════════════════════════╣"
+echo "║                                                              ║"
+echo "║  1. 主题: 面向科研的自进化智能体                            ║"
+echo "║       (self-evolving agent for scientific research)          ║"
+echo "║       → 关键词 5 个 (见 Run Card 第 2 段)                    ║"
+echo "║                                                              ║"
+echo "║  2. 4 个动作要求 (设计哲学):                                ║"
+echo "║       2.1 7×24 自动 + 自动推送 (不需您主动搜)               ║"
+echo "║       2.2 防遗漏 (过去 2-3 年奠基 + 每天新出)               ║"
+echo "║       2.3 可速览 (30 秒刷表格判断要不要精读)               ║"
+echo "║       2.4 飞书 4 表联动沉淀 (Paper / Author / Venue / Weekly)║"
+echo "║                                                              ║"
+echo "║  3. 信息源 3 大类 (per user 2026-07-07 重定义):             ║"
+echo "║       3.1 论文 / 会议类: arXiv + NIPS+ICML+ICLR+CVPR       ║"
+echo "║       3.2 国内博客: 晓辉博士 + 冰瓶子 (Kimi PM)            ║"
+echo "║       3.3 国外博主: codex PM 播客 + 6 个其他                ║"
+echo "║                                                              ║"
+echo "║  4. 字段提炼 + 7 维评分 (自动):                            ║"
+echo "║       来源 / 领域标签 / 核心技术 / 一句话价值               ║"
+echo "║       跟您领域匹配度 (match_score) → 排掉无关 paper         ║"
+echo "║                                                              ║"
+echo "║  5. 相关性判断 (THINK 阶段重点, per organicmaps.app 反馈):  ║"
+echo "║       organicmaps.app = 离线地图, 跟主题无关 → 排掉         ║"
+echo "║       match_score ≥ 3 进 Top 5 / ≤ 2 排掉                   ║"
+echo "║                                                              ║"
+echo "║  6. 输出格式 (您要求的):                                    ║"
+echo "║       6.1 Markdown 卡片 (运行卡片) 看着舒服                  ║"
+echo "║       6.2 4 阶段 banner (前置准备 / 搜索 / 思考 / 落地)     ║"
+echo "║       6.3 中文 + 专有名词保留英文 (arXiv / NIPS 等)        ║"
+echo "║       6.4 每阶段收尾 ✅/⚠️/❌, ALL 4 PHASES COMPLETED      ║"
+echo "║       6.5 输出本次运行产出 (Top 5 表 + 字段提炼 + record_id)║"
+echo "║                                                              ║"
+echo "║  7. N-tool 协议 (王锐自定义, 写模式不写数字, N 可扩):     ║"
+echo "║       每源跑 N 工具 (mcp__MiniMax + mcp__anysearch +       ║"
+echo "║       WebFetch + mcp__exa + mcp__kimi-webbridge 等)         ║"
+echo "║                                                              ║"
+echo "║  8. 7×24 自动化 (v0.1.8 launchd 调度, user 反馈):         ║"
+echo "║       macOS launchd plist: ~/Library/LaunchAgents/            ║"
+echo "║       com.mykcs.auto-feishu-digest.plist 每日 08:00 跑      ║"
+echo "║                                                              ║"
+echo "╚═══════════════════════════════════════════════════════════════╝"
+echo ""
 echo ""
 
 # 3. check input
