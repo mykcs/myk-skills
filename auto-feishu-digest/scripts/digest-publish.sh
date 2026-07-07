@@ -81,13 +81,21 @@ echo ""
 if [ "$MODE" = "verify" ]; then
     echo ""
     echo "[1] 检查环境变量:"
-    for var in LARK_APP_ID LARK_APP_SECRET BAPP_TOKEN TABLE_ID_PAPER TABLE_ID_AUTHOR TABLE_ID_VENUE TABLE_ID_WEEKLY; do
+    for var in LARK_APP_ID BAPP_TOKEN TABLE_ID_PAPER TABLE_ID_AUTHOR TABLE_ID_VENUE TABLE_ID_WEEKLY; do
         if [ -z "${!var}" ]; then
             echo -e "  ${RED}❌ $var 未设${NC}"
         else
             echo -e "  ${GREEN}✅ $var 已设${NC}"
         fi
     done
+    # LARK_APP_SECRET 是 warning 不 error (lark-cli daemon 走 macOS keychain, 不需 env 变量, per USER-SETUP-CHECKLIST v0.1.8 .env line 11)
+    if [ -z "$LARK_APP_SECRET" ]; then
+        echo -e "  ${YELLOW}⚠️ LARK_APP_SECRET 未设 (lark-cli daemon 走 keychain 自动, OK)${NC}"
+        LARK_SECRET_STATUS="✅ keychain 自动"
+    else
+        echo -e "  ${GREEN}✅ LARK_APP_SECRET 已设${NC}"
+        LARK_SECRET_STATUS="✅ env"
+    fi
 
     echo ""
     echo "[2] 检查 Bitable 可读 (如果有 feishu-cli):"
