@@ -43,26 +43,40 @@ echo "════════════════════════�
 echo "📤 Digest Publish — 写飞书 Bitable"
 echo "═══════════════════════════════════════════════════════════"
 
-# 0. 运行卡片: 关键词 + 5 源 + 7 维评分 (v0.1.5 新加, per user 2026-07-03)
+# 0. 运行卡片: 主题 + 关键词 + 5 源 + 7 维评分 (v0.1.5 新加, per user 2026-07-03)
+# v0.1.15: 加主题 "面向科研的自进化智能体" + 关键词中文翻译 + 3 大类信息源
 echo ""
 echo "┌─────────────────────────────────────────────────────────┐"
 echo "│ 🎯 本次运行目标 (Run Card)                              │"
 echo "├─────────────────────────────────────────────────────────┤"
-echo "│  🔍 关键词: self-evolving agent / AI scientist /       │"
-echo "│           LLM agent / agentic system / reasoning      │"
+echo "│  📌 主题: 面向科研的自进化智能体                          │"
+echo "│      (self-evolving agent for scientific research)     │"
 echo "│                                                         │"
-echo "│  📡 5 源 × N 工具 fan-out (王锐 N-tool protocol):      │"
-echo "│     1️⃣  arxiv          (mcp__MiniMax + anysearch + WebFetch │"
-echo "│                        + exa + kimi-webbridge + ...)   │"
-echo "│     2️⃣  venue          (mcp__MiniMax + anysearch + WebFetch │"
-echo "│                        + exa + kimi-webbridge + ...)   │"
-echo "│     3️⃣  blog-rss       (mcp__MiniMax + anysearch + WebFetch │"
-echo "│                        + exa + kimi-webbridge + ...)   │"
-echo "│     4️⃣  hn             (mcp__MiniMax + anysearch + WebFetch │"
-echo "│                        + exa + kimi-webbridge + ...)   │"
-echo "│     5️⃣  github         (mcp__MiniMax + anysearch + WebFetch │"
-echo "│                        + exa + kimi-webbridge + ...)   │"
+echo "│  🔍 关键词 (5 个):                                       │"
+echo "│     1. self-evolving agent    (自进化智能体)            │"
+echo "│     2. AI scientist           (AI 科学家)               │"
+echo "│     3. LLM agent              (大语言模型智能体)         │"
+echo "│     4. agentic system         (智能体系统)                │"
+echo "│     5. reasoning              (推理)                     │"
+echo "│                                                         │"
+echo "│  📡 3 大类信息源 × N 工具 (王锐 N-tool 自定义协议):     │"
+echo "│     【第 1 大类】论文 / 会议类:                           │"
+echo "│       arxiv   (mcp__MiniMax + anysearch + WebFetch       │"
+echo "│              + exa + kimi-webbridge)                    │"
+echo "│       venue   (OpenReview NIPS+ICML+ICLR+CVPR 同上)    │"
+echo "│     【第 2 大类】国内博客:                                │"
+echo "│       晓辉博士 + 冰瓶子 + 中文 AI 社群里 (N mcp 同上)   │"
+echo "│     【第 3 大类】国外博主:                                │"
+echo "│       codex 产品负责人播客 + Stratechery 等 6 个         │"
+echo "│              (N mcp 同上)                              │"
 echo "│  ⚠️ N 工具自定义, 5 是当前实例, 未来扩展不减维护       │"
+echo "│                                                         │"
+echo "│  🎯 目标筛选 (THINK 阶段重点):                            │"
+echo "│     • 面向科研的自进化智能体主题词 + 关键词 5 个           │"
+echo "│     • 跟主题无关的 (e.g. organicmaps.app 离线地图)       │"
+echo "│       排掉, 不进 Bitable                                │"
+echo "│     • 阈值: match_score ≥ 3 进 Top 5 / ≤ 2 排掉         │"
+echo "│                                                         │"
 echo "│                                                         │"
 echo "│  📊 7 维评分 (0-5 stars):                                │"
 echo "│     🏛  venue        会议/期刊权威                       │"
@@ -233,14 +247,18 @@ echo ""
 echo -e "${GREEN}✅ 第 2/4 阶段 (🔍 搜索) 完成: 3 大类信息源 fan-out 真抓, 原始 ${RAW_COUNT} 行${NC}"
 
 # ╔═══════════════════════════════════════════════════════════════╗
-# ║  ⏰ Phase 3 / 4: 🧠 THINK (思考)                             ║
-# ╠═══════════════════════════════════════════════════════════════╣
-# ║  🎯 目标: 7 维 LLM judge + dedup + 真评分                   ║
-# ║                                                              ║
-# ╔═══════════════════════════════════════════════════════════════╗
 # ║  ⏰ 第 3 / 4 阶段: 🧠 思考 (THINK)                           ║
 # ╠═══════════════════════════════════════════════════════════════╣
-# ║  🎯 目标: 7 维 LLM judge + 去重 + 真评分                      ║
+# ║  🎯 目标: 主题相关性判断 + 7 维 LLM judge + 真评分            ║
+# ║                                                              ║
+# ║  📌 主题: 面向科研的自进化智能体                              ║
+# ║      (self-evolving agent for scientific research)          ║
+# ║                                                              ║
+# ║  🔍 相关性判断 (per user 2026-07-07 organicmaps.app 反馈):  ║
+# ║    • organicmaps.app = 离线地图, 跟自进化智能体无关          ║
+# ║    • claudecode 必判断每篇是否跟主题相关                    ║
+# ║    • match_score ≤ 2 → 排掉, 不进 Bitable                  ║
+# ║    • match_score ≥ 3 → 进 Top 5 (真闭环写入)               ║
 # ║                                                              ║
 # ║  📊 7 维评分 (全列, 0-5 分制):                                ║
 # ║    🏛  venue        - 会议/期刊权威                          ║
@@ -249,7 +267,7 @@ echo -e "${GREEN}✅ 第 2/4 阶段 (🔍 搜索) 完成: 3 大类信息源 fan-
 # ║    📦  dataset      - 数据集可获得性                         ║
 # ║    🔢  number       - 实验数字完整性                          ║
 # ║    📈  citation     - 引用数                                  ║
-# ║    🎯  match        - 跟您领域匹配度                         ║
+# ║    🎯  match        - 跟"面向科研的自进化智能体"主题关联度  ║
 # ║                                                              ║
 # ║  📉  去重: 3081 raw → 2160 dedup (91% 已去重)                ║
 # ║  📈  综合分 = 7 维平均值 / 5                                    ║
