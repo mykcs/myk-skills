@@ -138,25 +138,25 @@ if [ -z "$LARK_APP_SECRET" ]; then
 fi
 
 # ╔═══════════════════════════════════════════════════════════════╗
-# ║  ⏰ Phase 1 / 4: 🧰 SETUP (前置准备)                          ║
+# ║  ⏰ 第 1 / 4 阶段: 🧰 前置准备 (SETUP)                       ║
 # ╠═══════════════════════════════════════════════════════════════╣
-# ║  🎯 触发:                                                    ║
-# ║    • launchd plist 每日 08:00 自动                            ║
-# ║    • user 手动 `bash digest-publish.sh --mode=daily`         ║
-# ║    • 周日 20:00 launchd weekly 模式                          ║
+# ║  🎯 触发方式:                                                ║
+# ║    • macOS launchd plist 每日 08:00 自动                     ║
+# ║    • 您手动跑 `bash digest-publish.sh --mode=daily`           ║
+# ║    • 周日 20:00 launchd 触发 weekly 模式                       ║
 # ║                                                              ║
 # ║  📥 输入:                                                    ║
-# ║    • env (LARK_APP_ID + BAPP_TOKEN + 4 table_id)              ║
-# ║    • lark-cli daemon 内置 macOS keychain 自动取 APP_SECRET   ║
-# ║    • mode = daily (5) / weekly (20) / verify                ║
+# ║    • 环境变量 (LARK_APP_ID + BAPP_TOKEN + 4 个 table_id)     ║
+# ║    • lark-cli daemon 内置 macOS keychain 自动取 APP_SECRET    ║
+# ║    • 模式参数 mode = daily (5 篇) / weekly (20 篇) / verify  ║
 # ╚═══════════════════════════════════════════════════════════════╝
 if [ -z "$LARK_APP_SECRET" ]; then
-    PHASE1_STATUS="${YELLOW}⚠️ LARK_APP_SECRET 走 keychain 自动 (OK)${NC}"
+    PHASE1_STATUS="${YELLOW}⚠️ LARK_APP_SECRET 未设, lark-cli daemon 自动从 macOS keychain 取 (OK)${NC}"
 else
     PHASE1_STATUS="${GREEN}✅ LARK_APP_SECRET 已设${NC}"
 fi
 echo ""
-echo -e "${GREEN}✅ Phase 1/4 (🧰 SETUP) 完成: env 6 ✅ + 1 ⚠️ keychain${NC}"
+echo -e "${GREEN}✅ 第 1/4 阶段 (🧰 前置准备) 完成: 环境 6 项 ✅ + 1 项 ⚠️ keychain${NC}"
 echo -e "${PHASE1_STATUS}"
 echo ""
 
@@ -165,18 +165,17 @@ if [ -z "$INPUT" ]; then
     INPUT="$CACHE/scored-${TODAY}.jsonl"
 fi
 if [ ! -f "$INPUT" ]; then
-    echo -e "${RED}❌ input file 不存在: $INPUT${NC}"
-    echo "  先跑: bash digest-collect.sh --source=all && bash digest-score.sh"
+    echo -e "${RED}❌ 输入文件不存在: $INPUT${NC}"
+    echo "  请先跑: bash digest-collect.sh --source=all && bash digest-score.sh"
     exit 1
 fi
 
 TOP_N=$([ "$MODE" = "daily" ] && echo 5 || echo 20)
 
 # ╔═══════════════════════════════════════════════════════════════╗
-# ║  ⏰ Phase 2 / 4: 🔍 SEARCH (搜索)                            ║
+# ║  ⏰ 第 2 / 4 阶段: 🔍 搜索 (SEARCH)                          ║
 # ╠═══════════════════════════════════════════════════════════════╣
-# ║  🎯 目标: 5 源 × N 工具 fan-out (王锐 N-tool protocol)       ║
-# ║                                                              ║
+# ║  🎯 目标: 3 大类信息源 × N 工具 fan-out (王锐 N-tool 自定义协议)  ║
 # ║  📡 5 源 (全列):                                             ║
 # ║    1️⃣  arxiv          - 学术论文 (N mcp 并行)               ║
 # ║    2️⃣  venue          - NIPS/ICML/ICLR/CVPR (N mcp)          ║
@@ -212,10 +211,10 @@ if [ "$DRY_RUN" = "true" ]; then
     jq -s "sort_by(-.composite_score) | .[0:$TOP_N] | .[] | {title, composite_score, source}" "$INPUT" 2>/dev/null \
         || head -$TOP_N "$INPUT"
     echo ""
-    echo -e "${YELLOW}⚠️ Phase 1/4 (🧰 SETUP) 完成: dry-run (env 全设)${NC}"
-    echo -e "${YELLOW}⚠️ Phase 2/4 (🔍 SEARCH) 完成: dry-run, 3 大类信息源待实跑${NC}"
-    echo -e "${YELLOW}⚠️ Phase 3/4 (🧠 THINK) 跳过 (dry-run)${NC}"
-    echo -e "${YELLOW}⚠️ Phase 4/4 (🌱 LAND) 跳过 (dry-run)${NC}"
+    echo -e "${YELLOW}⚠️ 第 1/4 阶段 (🧰 前置准备) 完成: dry-run (环境 全设)${NC}"
+    echo -e "${YELLOW}⚠️ 第 2/4 阶段 (🔍 搜索) 完成: dry-run, 3 大类信息源待实跑${NC}"
+    echo -e "${YELLOW}⚠️ 第 3/4 阶段 (🧠 思考) 跳过 (dry-run)${NC}"
+    echo -e "${YELLOW}⚠️ 第 4/4 阶段 (🌱 落地) 跳过 (dry-run)${NC}"
     exit 0
 fi
 
@@ -231,14 +230,19 @@ done
 # 5 源实抓行统计 (per ~/.cache/digest/*-<date>.jsonl)
 RAW_COUNT=$(for f in $CACHE/*-${TODAY}.jsonl; do [ -f "$f" ] && wc -l < "$f"; done | awk '{s+=$1} END {print s+0}')
 echo ""
-echo -e "${GREEN}✅ Phase 2/4 (🔍 SEARCH) 完成: 5 源 fan-out 真抓, raw ${RAW_COUNT} 行${NC}"
+echo -e "${GREEN}✅ 第 2/4 阶段 (🔍 搜索) 完成: 3 大类信息源 fan-out 真抓, 原始 ${RAW_COUNT} 行${NC}"
 
 # ╔═══════════════════════════════════════════════════════════════╗
 # ║  ⏰ Phase 3 / 4: 🧠 THINK (思考)                             ║
 # ╠═══════════════════════════════════════════════════════════════╣
 # ║  🎯 目标: 7 维 LLM judge + dedup + 真评分                   ║
 # ║                                                              ║
-# ║  📊 7 维评分 (全列):                                          ║
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║  ⏰ 第 3 / 4 阶段: 🧠 思考 (THINK)                           ║
+# ╠═══════════════════════════════════════════════════════════════╣
+# ║  🎯 目标: 7 维 LLM judge + 去重 + 真评分                      ║
+# ║                                                              ║
+# ║  📊 7 维评分 (全列, 0-5 分制):                                ║
 # ║    🏛  venue        - 会议/期刊权威                          ║
 # ║    👤  author       - 作者团队                                ║
 # ║    💻  code         - 代码可获得性                           ║
@@ -247,14 +251,14 @@ echo -e "${GREEN}✅ Phase 2/4 (🔍 SEARCH) 完成: 5 源 fan-out 真抓, raw $
 # ║    📈  citation     - 引用数                                  ║
 # ║    🎯  match        - 跟您领域匹配度                         ║
 # ║                                                              ║
-# ║  📉  dedup: 3081 raw → 2160 dedup (91% deduped)             ║
-# ║  📈  composite = avg(7 维) / 5                                  ║
+# ║  📉  去重: 3081 raw → 2160 dedup (91% 已去重)                ║
+# ║  📈  综合分 = 7 维平均值 / 5                                    ║
 # ║     • ≥ 4 ✅ 可引                                              ║
 # ║     • 3-4 ⚠️ 慎引                                                ║
 # ║     • < 3 ❌ 不引                                                 ║
 # ╚═══════════════════════════════════════════════════════════════╝
 echo ""
-echo "Mode: $MODE | Top N: $TOP_N 真评分 (top $TOP_N 已按 composite_score 排序):"
+echo "模式: $MODE | 取 Top N: $TOP_N 真评分 (top $TOP_N 已按综合分排序):"
 echo ""
 
 # 5 源真评分统计
@@ -262,7 +266,7 @@ SCORED_TOP_N=$(echo "$PAPERS" | python3 -c "import json,sys; print(len(json.load
 CAUTION_OK=$(echo "$PAPERS" | python3 -c "import json,sys; print(sum(1 for p in json.loads(sys.stdin.read()) if '可引' in p.get('caution_flag','')))" 2>/dev/null || echo "?")
 CAUTION_WARN=$(echo "$PAPERS" | python3 -c "import json,sys; print(sum(1 for p in json.loads(sys.stdin.read()) if '慎引' in p.get('caution_flag','')))" 2>/dev/null || echo "?")
 CAUTION_NO=$(echo "$PAPERS" | python3 -c "import json,sys; print(sum(1 for p in json.loads(sys.stdin.read()) if '不引' in p.get('caution_flag','')))" 2>/dev/null || echo "?")
-echo -e "${GREEN}✅ Phase 3/4 (🧠 THINK) 完成: ${SCORED_TOP_N} 篇真评分 (✅ ${CAUTION_OK} / ⚠️ ${CAUTION_WARN} / ❌ ${CAUTION_NO})${NC}"
+echo -e "${GREEN}✅ 第 3/4 阶段 (🧠 思考) 完成: ${SCORED_TOP_N} 篇真评分 (✅ ${CAUTION_OK} / ⚠️ ${CAUTION_WARN} / ❌ ${CAUTION_NO})${NC}"
 
 # ╔═══════════════════════════════════════════════════════════════╗
 # ║  ⏰ Phase 4 / 4: 🌱 LAND (落地)                              ║
@@ -287,9 +291,9 @@ echo "$WEEKLY_RESP" | head -10
 WEEKLY_RECORD_ID=$(echo "$WEEKLY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('record',{}).get('record_id','N/A'))" 2>/dev/null || echo "N/A")
 
 if [ "$WEEKLY_RECORD_ID" = "N/A" ] || [ -z "$WEEKLY_RECORD_ID" ]; then
-    LAND_STATUS="${RED}❌ Phase 4/4 (🌱 LAND) 失败: lark-cli 返错, 看 log${NC}"
+    LAND_STATUS="${RED}❌ 第 4/4 阶段 (🌱 落地) 失败: lark-cli 返错, 看 log${NC}"
 else
-    LAND_STATUS="${GREEN}✅ Phase 4/4 (🌱 LAND) 完成: record_id=${WEEKLY_RECORD_ID}${NC}"
+    LAND_STATUS="${GREEN}✅ 第 4/4 阶段 (🌱 落地) 完成: record_id=${WEEKLY_RECORD_ID}${NC}"
 fi
 echo "$LAND_STATUS"
 
