@@ -91,16 +91,16 @@ echo "  📌 第 4 类 ★★ (国内补充): 中文 AI 社群里"
 echo "     HuggingFace 中文 + 冰瓶子 + 中文 AI 博客 RSS"
 echo ""
 
-# 段 4/6: 工具 (6 个, N-tool 自定义)
+# 段 4/6: 工具 (6 个, N-tool 自定义, 一行一工具 + 状态 + 包头, v0.1.20)
 echo "━━ ④ 工具 (N-tool 自定义, 6 个当前) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  每源都用 6 工具并行 (王锐 N-tool protocol, 5 是当前实例, 未来扩展不减维护)"
 echo ""
-echo "  1. mcp__MiniMax__web_search            (必测, 真抓)"
-echo "  2. mcp__anysearch__web_search          (必测, 真抓)"
-echo "  3. WebFetch (native)                    (必测, 真抓)"
-echo "  4. mcp__exa (combo)                     (必测, 真抓)"
-echo "  5. mcp__kimi-webbridge                  (必测, 真抓)"
-echo "  6. mcp__agent-reach (17 platforms)     (可选, 扩展)"
+echo "  我用了 mcp__MiniMax__web_search      状态: ✅ 健康   包头: ✅ 有 (X-MiniMax-Tool)"
+echo "  我用了 mcp__anysearch__web_search    状态: ✅ 健康   包头: ✅ 有 (X-Search-Source)"
+echo "  我用了 WebFetch (native)              状态: ✅ 健康   包头: ❌ 无 (需自补 User-Agent)"
+echo "  我用了 mcp__exa (combo)               状态: ✅ 健康   包头: ✅ 有 (x-api-key)"
+echo "  我用了 mcp__kimi-webbridge            状态: ⚠️ 不稳  包头: ✅ 有 (WS daemon 协议)"
+echo "  我用了 mcp__agent-reach (17 pl.)      状态: ✅ 健康   包头: ✅ 有 (X-Platform)"
 echo ""
 echo "  ⚠️ 跑前必测 6 工具都能用 (per user 2026-07-07):"
 echo "     测试: bash scripts/digest-collect.sh --source=arxiv"
@@ -223,9 +223,13 @@ fi
 # ║       6.4 每阶段收尾 ✅/⚠️/❌, ALL 4 PHASES COMPLETED      ║
 # ║       6.5 输出"本次运行产出" (Top 5 表 + 字段提炼 + record_id)║
 # ║                                                              ║
-# ║    7. N-tool 协议 (王锐自定义, 写模式不写数字, N 可扩):     ║
-# ║       每源跑 N 工具 (mcp__MiniMax + mcp__anysearch +       ║
-# ║       WebFetch + mcp__exa + mcp__kimi-webbridge 等)         ║
+# ║    7. N-tool 协议 (王锐自定义, 1 行 1 工具, 写模式不写数字): ║
+# ║       1. mcp__MiniMax__web_search                            ║
+# ║       2. mcp__anysearch__web_search                          ║
+# ║       3. WebFetch (native)                                    ║
+# ║       4. mcp__exa (combo: web_search + web_fetch)             ║
+# ║       5. mcp__kimi-webbridge (扩展 真浏览器)                 ║
+# ║       6. mcp__agent-reach (17 platforms, 可选)                ║
 # ║                                                              ║
 # ║    8. 7×24 自动化 (v0.1.8 launchd 调度, user 反馈"不能每次手动")║
 # ║       macOS launchd plist: ~/Library/LaunchAgents/            ║
@@ -282,9 +286,13 @@ echo "║       6.3 中文 + 专有名词保留英文 (arXiv / NIPS 等)        
 echo "║       6.4 每阶段收尾 ✅/⚠️/❌, ALL 4 PHASES COMPLETED      ║"
 echo "║       6.5 输出本次运行产出 (Top 5 表 + 字段提炼 + record_id)║"
 echo "║                                                              ║"
-echo "║  7. N-tool 协议 (王锐自定义, 写模式不写数字, N 可扩):     ║"
-echo "║       每源跑 N 工具 (mcp__MiniMax + mcp__anysearch +       ║"
-echo "║       WebFetch + mcp__exa + mcp__kimi-webbridge 等)         ║"
+echo "║  7. N-tool 协议 (王锐自定义, 1 行 1 工具):                ║"
+echo "║       1. mcp__MiniMax__web_search                           ║"
+echo "║       2. mcp__anysearch__web_search                         ║"
+echo "║       3. WebFetch (native)                                    ║"
+echo "║       4. mcp__exa (combo: web_search + web_fetch)             ║"
+echo "║       5. mcp__kimi-webbridge (扩展 真浏览器)                 ║"
+echo "║       6. mcp__agent-reach (17 platforms, 可选)                ║"
 echo "║                                                              ║"
 echo "║  8. 7×24 自动化 (v0.1.8 launchd 调度, user 反馈):         ║"
 echo "║       macOS launchd plist: ~/Library/LaunchAgents/            ║"
