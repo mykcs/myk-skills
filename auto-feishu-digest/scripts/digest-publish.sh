@@ -138,7 +138,7 @@ if [ -z "$LARK_APP_SECRET" ]; then
 fi
 
 # ╔═══════════════════════════════════════════════════════════════╗
-# ║  ⏰ Phase 1 / 4: 🌱 LIFE (生活)                              ║
+# ║  ⏰ Phase 1 / 4: 🧰 SETUP (前置准备)                          ║
 # ╠═══════════════════════════════════════════════════════════════╣
 # ║  🎯 触发:                                                    ║
 # ║    • launchd plist 每日 08:00 自动                            ║
@@ -156,7 +156,7 @@ else
     PHASE1_STATUS="${GREEN}✅ LARK_APP_SECRET 已设${NC}"
 fi
 echo ""
-echo -e "${GREEN}✅ Phase 1/4 (🌱 LIFE) 完成: env 6 ✅ + 1 ⚠️ keychain${NC}"
+echo -e "${GREEN}✅ Phase 1/4 (🧰 SETUP) 完成: env 6 ✅ + 1 ⚠️ keychain${NC}"
 echo -e "${PHASE1_STATUS}"
 echo ""
 
@@ -212,7 +212,8 @@ if [ "$DRY_RUN" = "true" ]; then
     jq -s "sort_by(-.composite_score) | .[0:$TOP_N] | .[] | {title, composite_score, source}" "$INPUT" 2>/dev/null \
         || head -$TOP_N "$INPUT"
     echo ""
-    echo -e "${YELLOW}⚠️ Phase 2/4 (🔍 SEARCH) 完成: dry-run, 5 源待实跑${NC}"
+    echo -e "${YELLOW}⚠️ Phase 1/4 (🧰 SETUP) 完成: dry-run (env 全设)${NC}"
+    echo -e "${YELLOW}⚠️ Phase 2/4 (🔍 SEARCH) 完成: dry-run, 3 大类信息源待实跑${NC}"
     echo -e "${YELLOW}⚠️ Phase 3/4 (🧠 THINK) 跳过 (dry-run)${NC}"
     echo -e "${YELLOW}⚠️ Phase 4/4 (🌱 LAND) 跳过 (dry-run)${NC}"
     exit 0
@@ -349,8 +350,8 @@ else:
     print()
 PYEOF
 echo "═══════════════════════════════════════════════════════════════"
-echo -e "${GREEN}✅ ALL 4 PHASES COMPLETED — auto-feishu-digest v0.1.11 真闭环${NC}"
-echo -e "${GREEN}   🌱 LIFE ✅  🔍 SEARCH ✅  🧠 THINK ✅  🌱 LAND ✅${NC}"
+echo -e "${GREEN}✅ ALL 4 PHASES COMPLETED — auto-feishu-digest v0.1.13 真闭环${NC}"
+echo -e "${GREEN}   🧰 SETUP ✅  🔍 SEARCH ✅  🧠 THINK ✅  🌱 LAND ✅${NC}"
 echo ""
 echo "📌 下一步 (4 步):"
 echo "  1. 飞书刷 base: https://lxpii9q8vy0.feishu.cn/base/$BAPP_TOKEN?table=$TABLE_ID_WEEKLY"
