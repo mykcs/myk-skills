@@ -52,18 +52,10 @@ echo "├───────────────────────�
 echo "│  📌 主题: 面向科研的自进化智能体                          │"
 echo "│      (self-evolving agent for scientific research)     │"
 echo "│                                                         │"
-echo "│  🔍 关键词 (按主题层级, v0.1.17):                            │"
+echo "│  🔍 关键词 (1 个核心, v0.1.18):                              │"
 echo "│  主题范围: 面向科研的智能体 + 自进化智能体                 │"
 echo "│     1. self-evolving agent    (自进化智能体)            │"
 echo "│        → 跟面向科研的智能体 + 自进化 都相关               │"
-echo "│     2. AI scientist           (AI 科学家)               │"
-echo "│        → 跟面向科研的智能体 相关                          │"
-echo "│     3. LLM agent              (大语言模型智能体)         │"
-echo "│        → 跟面向科研的智能体 相关                          │"
-echo "│     4. agentic system         (智能体系统)                │"
-echo "│        → 跟面向科研的智能体 相关                          │"
-echo "│     5. reasoning              (推理能力)                  │"
-echo "│        → 跟面向科研的智能体 相关                          │"
 echo "│  ⚠️ 关键词范围: 面向科研的智能体 + 自进化智能体           │"
 echo "│      (跟主题无关的, 例如 organicmaps.app 离线地图, 排掉)  │"
 echo "│                                                         │"
@@ -172,7 +164,7 @@ fi
 # ║                                                              ║
 # ║    1. 主题: 面向科研的自进化智能体                          ║
 # ║       (self-evolving agent for scientific research)          ║
-# ║       → 关键词 5 个 (见 Run Card 第 2 段)                    ║
+# ║       → 关键词 1 个核心 (见 Run Card 第 2 段)              ║
 # ║                                                              ║
 # ║    2. 4 个动作要求 (设计哲学):                                ║
 # ║       2.1 7×24 自动 + 自动推送 (不需您主动搜)               ║
@@ -231,7 +223,7 @@ echo "║                                                              ║"
 echo "║  1. 主题: 面向科研的自进化智能体                            ║"
 echo "║       (self-evolving agent for scientific research)          ║"
 echo "║       → 关键词范围: 面向科研的智能体 + 自进化智能体       ║"
-echo "║       → 关键词 5 个 (见 Run Card 第 2 段, 按主题层级分)  ║"
+echo "║       → 关键词 1 个核心 (见 Run Card 第 2 段)              ║"
 echo "║                                                              ║"
 echo "║  2. 4 个动作要求 (设计哲学):                                ║"
 echo "║       2.1 7×24 自动 + 自动推送 (不需您主动搜)               ║"
@@ -301,18 +293,10 @@ TOP_N=$([ "$MODE" = "daily" ] && echo 5 || echo 20)
 # ║    4. mcp__exa (combo: web_search + web_fetch)               ║
 # ║    5. mcp__kimi-webbridge (extension 真浏览器)               ║
 # ║                                                              ║
-# ║  🔍 关键词 (按主题层级, v0.1.17):                             ║
-# ║  主题范围: 面向科研的智能体 + 自进化智能体                ║
+# ║  🔍 关键词 (1 个核心, v0.1.18):                              ║
+# ║  主题范围: 面向科研的智能体 + 自进化智能体                 ║
 # ║    1. self-evolving agent    (自进化智能体)             ║
 # ║       → 跟面向科研的智能体 + 自进化 都相关            ║
-# ║    2. AI scientist           (AI 科学家)                ║
-# ║       → 跟面向科研的智能体 相关                       ║
-# ║    3. LLM agent              (大语言模型智能体)         ║
-# ║       → 跟面向科研的智能体 相关                       ║
-# ║    4. agentic system         (智能体系统)               ║
-# ║       → 跟面向科研的智能体 相关                       ║
-# ║    5. reasoning              (推理能力)                 ║
-# ║       → 跟面向科研的智能体 相关                       ║
 # ╚═══════════════════════════════════════════════════════════════╝
 echo "Mode: $MODE | Top N: $TOP_N | Input: $INPUT"
 echo "Dry run: $DRY_RUN"
