@@ -14,11 +14,18 @@ if [ "$1" = "--force-first" ]; then
     FORCE_FIRST=true
 fi
 
-# 1. 检测 API 提供商（通用正则提取域名前缀）
-API_URL=$(grep -o '"ANTHROPIC_BASE_URL"[[:space:]]*:[[:space:]]*"[^"]*"' "$SETTINGS_SRC" 2>/dev/null | sed 's/.*"https:\/\/\([^\/]*\)\/.*/\1/' | head -1 || true)
+# 1. 检测 API 提供商（通用正则提取域名前缀，兼容 http://127.0.0.1:PORT 本地代理）
+#    修法: 兼容 http(s) + 剥端口 + 识别 127.0.0.1/localhost -> cc-switch
+#    per CASE-BACKUP-CLAUDE-SETTINGS-CCSWITCH-PROVIDER-MISMATCH-20260708
+API_URL=$(grep -o '"ANTHROPIC_BASE_URL"[[:space:]]*:[[:space:]]*"[^"]*"' "$SETTINGS_SRC" 2>/dev/null | sed -E 's/.*"https?:\/\/([^"]+)".*/\1/' | head -1 || true)
 
 if [ -n "$API_URL" ]; then
-    PROVIDER=$(echo "$API_URL" | sed -E 's/^([a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+)\..*/\2/')
+    HOST=$(echo "$API_URL" | sed -E 's/:[0-9]+$//')
+    if echo "$HOST" | grep -qE '^(127\.0\.0\.1|localhost)$'; then
+        PROVIDER="cc-switch"
+    else
+        PROVIDER=$(echo "$HOST" | sed -E 's/^([a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+)\..*/\2/')
+    fi
 else
     PROVIDER="unknown"
 fi
