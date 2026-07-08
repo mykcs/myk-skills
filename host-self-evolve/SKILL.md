@@ -1,23 +1,23 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.1.0 design philosophy): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.0 design philosophy + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3).
   范围: ~/.claude/ + ~/.agents/skills/ 双仓.
   不适用: 单文件 typo / 文档微调 / 非 ~/.claude/ 项目 (用 website-improve).
-  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段. 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
+  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段. 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
 license: MIT
 metadata:
-  version: "3.1.0"
+  version: "3.2.0"
   author: mykcs
   category: self-evolution
-  changelog: "see references/changelog.md for v1.0.0-v3.1.0 history (v3.1.0 = 🎯 执行前 banner + ✅ 执行后 detailed 3 段 + §✅ 修没做到 协议, per user 2026-07-03 反馈)"
-  tags: [self-evolution, claude, host, banner, fix-until-done]
+  changelog: "see references/changelog.md for v1.0.0-v3.2.0 history (v3.2.0 = 🎯 banner + §Phase 1 Life/Setup 4 子模块总览嵌入, per user 2026-07-08 反馈 + ADR-0041)"
+  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup]
 ---
 
 # 主机自升级 Skill (host-self-evolve v3.0.0)
@@ -141,6 +141,165 @@ metadata:
 - ❌ banner 数字模糊 ("一些" / "几个")
 - ❌ 预期 wall clock 写约束值 (per CASE-HOST-SELF-EVOLVE-V2-7-0-WALL-CLOCK-FALSE-CLAIM)
 - ❌ 主题字段缺 (banner 跑前 user 不知道要干嘛)
+
+---
+
+## 🌱 Phase 1 — Life / Setup 段 (v3.2.0 立, 2026-07-08, per ADR-0041)
+
+> **触发**: user 2026-07-08 反馈 "修改 skill 主机自升级, 我需要你把这个 skill 明显的分为几个阶段或者是几个模块. 我需要在这个第一阶段是生命或者是设置, 需要完整的输出出来, 我们要干什么". 跟 v3.1.0 banner UX 协同: banner 之后**必**输出本段 (不可跳, 违反 v3.2.0 §✅ 修没做到).
+>
+> **协议位**: host-self-evolve 跑前 banner 之后**必**先输出本段 (跟 v3.1.0 banner + ADR-0041 协同). 缺 = 违反 v3.2.0 硬约束.
+
+**强制输出格式** (跟 v3.1.0 banner 同框架, 大横幅 + 4 子模块 + 整体验收):
+
+```
+═══════════════════════════════════════════════════════════
+🌱 Phase 1 — Life / Setup (生命 / 设置) — 完整说明
+═══════════════════════════════════════════════════════════
+
+🎯 这一阶段的目的:
+  把本机 ~/.claude/ + ~/.agents/skills/ 这台"小主机"先从
+  "能跑" 升级到 "稳跑 + 自我知道怎么跑". 后面 4 个子模块是
+  "地基", 地基不稳, 后面盖楼 (审计 / 进化 / 沉淀) 全是危楼.
+
+─────────────────────────────────────────────────────────
+🧩 4 个子模块 — 第一批要干的活 (Phase 1.1 → Phase 1.4)
+─────────────────────────────────────────────────────────
+
+📦 Phase 1.1 — BASH / FISH / ZSH 整理
+   一句话: 把本机 3 个 shell 配置拉到统一基线 (per shell-unify-checklist v1.1)
+
+   现状 (per 上次跑):
+     - fish 4.6.0 (主用, 严格统一)
+     - bash 3.2.57 (claudecode 进程用, 严格统一)
+     - zsh 5.9 (macOS 自带, 放松维护)
+
+   干什么 (SOP per shell-unify-checklist.md §2):
+     1. 5 探测摸底 (LoginShell / 进程 shell / 3 shell 版本 / config 文件 / 公共源)
+     2. 跑 shell-unified-check.py (Layer 1.4 orphan + 跨 shell dup)
+     3. 手动 diff fish 跟 bash (真实 login shell 跑命令, 不靠文本 grep)
+     4. 单源 grep (7 env var + 3 function 期望 1-2 命中)
+     5. 修复: 抽公共源 ~/.config/shell-common/ 12 文件
+     6. 5 commands 验收
+
+   验收:
+     - 12 公共源文件就位
+     - 3 shell config 引用公共源 (loader.sh/fish)
+     - 重复 key 检查 0 (除 env.sh + env.fish 双语版本)
+     - shell-unified-check.py exit 0 (或 expected exit 1 zsh 放松)
+
+─────────────────────────────────────────────────────────
+
+🧠 Phase 1.2 — 记忆整理
+   一句话: 把本机所有"记忆" (MEMORY.md / mem0 / CLAUDE.local.md) 拉到统一基线
+
+   干什么 (3 子层):
+     A. MEMORY.md 索引化 (CLAUDE.local.md 已是 source-of-truth, MEMORY.md 只留 1 行 pointer)
+        - 现状: MEMORY.md 200+ 行, 含 hot facts + feedback + cases + cross-cutting, 散落
+        - 目标: 拆 4 文件 (MEMORY-index.md / MEMORY-feedback.md / MEMORY-cases-active.md / MEMORY-cross-cutting.md)
+        - 验收: MEMORY.md ≤ 50 行, 全部子文件带 frontmatter + 互链
+
+     B. mem0 cleanup (quota 1000/1000 满, reset 2026-08-01)
+        - 现状: mem0 配额耗尽, 暂不可搜不可写
+        - 目标: 跑 mem0 memory-reviewer skill (per mem0:memory-reviewer) 删过期 / 重复 memory
+        - 验收: mem0 健康, quota < 80%, 关键决策可搜回
+
+     C. CLAUDE.local.md hot facts 收紧 (321 行 → ≤ 250 行)
+        - 现状: §5.1 / §5.2 / §6.1 / §7.1 / §8.1 / §10.1 ... 各 section 引用文件, 部分重复
+        - 目标: 全 hot facts 走 SSOT 1 行 pointer 引用 (per ADR-0037 v0.1)
+        - 验收: CLAUDE.local.md ≤ 250 行, 0 内容重复, 全 pointer 引用 protocols/*.md
+
+─────────────────────────────────────────────────────────
+
+📐 Phase 1.3 — 规则整理
+   一句话: rules/ 8 文件 path-scoped + 0 散落 + 全 SSOT 引用
+
+   现状 (per README.md §Active Rules):
+     - 8 个 active rule 文件 (universal / process / typescript / python / language-stack / bugfix-400 / tooling / shell-unify / cross-session-grep / post-pr-merge-ff-verify)
+     - 6 个 protocols/ SSOT v0.1 草案 (2026-07-02 立, ADR-0037 待立)
+     - 散落位: 75 files drift per soul-protocol.md §7 (skill-self-evolution) + 41+ files 5 字段自检
+
+   干什么 (SOP):
+     1. 跑 shell-unified-check.py Layer 1.4 (orphan audit) → 找 0 真 orphan
+     2. 跑 N-tool-search.md §1 6-tool (降级矩阵 OK) → 抓 8+ 外部资源
+     3. cross-session-grep.md §1 6 件套 grep → 找命名冲突 / 重复字段
+     4. 跟 6 个 protocols/ SSOT 路径对比 → 标散落位
+     5. 修法: 改 1 行 anchor pointer (per §A.4.2 #4 path-scoped)
+     6. 立 ADR-0041 (本 run 协调性 fix 沉淀, 整数 slot)
+
+   验收:
+     - 6 SSOT 全部 ≤ 200 行 (per §A.4.2 #4 CLAUDE.md < 200 行硬规则)
+     - 散落位 75 → 0 (per ADR-0037 §8 判定)
+     - new ADR 立 (0041 整数 slot, per ADR-0027 v1.1 不抢 sub-slot)
+
+─────────────────────────────────────────────────────────
+
+⚙️ Phase 1.4 — 本机自带自动化整理
+   一句话: 把 ~/.claude/hooks/ + scripts/ + settings.json 4 hooks 协议位 整理
+
+   现状 (per CLAUDE.local.md §18 + rules/protocol-violation-auto-detect.md §4):
+     - 4 hooks 协议位 (cross-session-grep / verify-before-act / post-pr-merge-ff-verify / protocol-violation-auto-detect)
+     - 挂载在 ~/.claude/settings.json 的 PreToolUse / PostPRMerge / Stop 钩子位
+     - 实施状态: 0 个真挂 (参考实现 ~/.omc/hooks/*.sh 写好了, user 没挂载)
+
+   干什么 (SOP per ADR-0026 + ADR-0039 + §18):
+     1. 摸底: `grep -A 20 '"hooks"' ~/.claude/settings.json` 看实际挂载数
+     2. 比对参考实现 ~/.omc/hooks/* 4 个脚本 (per protocol-violation-auto-detect.md §4)
+     3. 跟 user 确认是否挂 (灵魂 v3 §3: framework config 改字段 必问)
+     4. 挂载后跑 5 commands verify + 1 次实战触发验证
+     5. 立 ADR-0042 (本机自动化挂载决策沉淀)
+
+   验收:
+     - 4 hooks 协议位 100% 挂载 (或 user 决策"参考实现就够" 走文档化)
+     - settings.json diff ≤ 50 行 (per tooling-section-A §A.2 触发式决策表)
+     - new ADR 立 (0042 整数 slot)
+
+═══════════════════════════════════════════════════════════
+
+🚀 Phase 1 整体验收 (跑完 1.1 → 1.4 后必跑)
+═══════════════════════════════════════════════════════════
+  - 5 fields acceptance (path / commit / push / CI / owner)
+  - decision-stream 流追加 (per calm-flow §4)
+  - mem0 add_memory × 1-3 条 (per post-task-recommend §3)
+  - ADR 整数 slot 不抢 sub-slot (per ADR-0027 v1.1)
+  - SKILL.md changelog 升 v3.2.0 (本 run 沉淀)
+
+═══════════════════════════════════════════════════════════
+```
+
+**字段约束** (跟 v3.1.0 banner §字段约束 协同):
+- 标题 `🌱 Phase 1 — Life / Setup` 1 行 ≤ 60 chars
+- 横幅 `═══...═══` 上下两行包围
+- 4 子模块必填 (1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化)
+- 整体验收必填 (5 fields + decision-stream + mem0 + ADR + changelog)
+- 数字具体 ("12 公共源文件" / "75 files drift" / "≥ 30 min 实测")
+
+**§Phase 1 协议位硬规则**:
+- IF user 触发「主机自升级」/ self-evolve / 整理记忆 / claude 协调 / 协调 ~/.claude / 自我进化
+- AND banner 段跑完
+- THEN **必**接本 §Phase 1 段 (banner 之后, Layer 0-3 之前)
+- AND 4 子模块描述必完整 (一句话 + 现状 + 干什么 + 验收)
+
+**反模式 (永久失效)**:
+- ❌ 跑前只输出 banner 5 字段, 缺 §Phase 1 段 (违反 ADR-0041 v3.2.0)
+- ❌ Phase 1 段输出后跳过 Layer 0-3 (违反 §I.4 8 步循环)
+- ❌ Phase 1 4 子模块拆 4 个独立 skill (违反 host-self-evolve 主 skill 协调定位)
+- ❌ Phase 1 跑完不跑整体验收 (违反 §H Acceptance Protocol 5 字段自检表)
+- ❌ banner 写 wall clock = "30 min" 约束值 (违反 CASE-HOST-SELF-EVOLVE-V2-7-0-WALL-CLOCK-FALSE-CLAIM)
+
+**联动**:
+- 跟 v3.1.0 banner UX (跑前) 协同: banner → §Phase 1 → Layer 0-3 顺序固定
+- 跟 v3.1.0 ✅ 执行后 3 段 detailed (跑后) 协同: §Phase 1 → Layer 0-3 → 3 段 detailed
+- 跟 v2.6.46 wall-clock 改名实测硬约束协同: Phase 1 段含 wall clock 字段必填实测值
+- 跟 v2.6.59 三段 sub-agent 协议位 (plan / execute / verify) 协同: Phase 1 跑前属于 plan 段
+- 跟 ADR-0041 协同: 本段是 ADR-0041 §协议位架构图 的 SKILL.md 落地
+- 跟 shell-unify-checklist v1.1 §2 4 步 SOP 协同: Phase 1.1 主入口
+- 跟 memory-strategy.md v2 §F.4.4 协同: Phase 1.2 主入口
+- 跟 rules-distill skill 协同: Phase 1.3 主入口
+- 跟 protocol-violation-auto-detect §4 4 hooks 协议位 协同: Phase 1.4 主入口
+
+**历史 record**:
+- 2026-07-08 v3.2.0 立 (user 2026-07-08 反馈 + ADR-0041, 整数 slot 0041 AVAILABLE)
 
 ---
 
