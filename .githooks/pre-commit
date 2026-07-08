@@ -1,0 +1,38 @@
+#!/bin/bash
+# pre-commit hook — 阻止 Run Card 标题 vs SKILL.md frontmatter drift 提交
+# 触发: 任何 git commit 之前, 自动跑 scripts/check-run-card-version.sh
+# 起源: 2026-07-08 v0.2.3 立 (per user "立 lint 加进 pre-commit hook")
+#
+# exit 0 = drift 修复 / 通过
+# exit 1 = drift 未修复, 阻止 commit
+
+set -e
+
+# 找到本 skill 的 lint 脚本 (本 hook 假定在 mykcs/myk-skills 仓内)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# .git/hooks/pre-commit → 上 2 层是 .git/ 仓根, 上 1 层是 skill 子目录
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+LINT_SH="$REPO_ROOT/auto-feishu-digest/scripts/check-run-card-version.sh"
+
+# 只在 auto-feishu-digest 改动时跑 (避免不相关 commit 触发)
+STAGED=$(git diff --cached --name-only 2>/dev/null || true)
+if ! echo "$STAGED" | grep -qE "auto-feishu-digest/(SKILL\.md|scripts/digest-publish\.sh)"; then
+    exit 0
+fi
+
+# 跑 lint
+if [ ! -x "$LINT_SH" ]; then
+    echo "⚠️ pre-commit: $LINT_SH 不存在或不可执行, 跳过 (请手动跑)"
+    exit 0
+fi
+
+echo "🔍 pre-commit: 跑 Run Card 版本一致性检查..."
+if ! bash "$LINT_SH"; then
+    echo ""
+    echo "❌ DRIFT 阻止 commit"
+    echo "   修法: cd auto-feishu-digest && bash scripts/check-run-card-version.sh --auto-fix"
+    echo "   之后再 git commit"
+    exit 1
+fi
+echo "✅ pre-commit: Run Card 版本一致"
+exit 0
