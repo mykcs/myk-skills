@@ -4,9 +4,9 @@ description: 自动追踪领域重要 articles + tech blogs → 按 7 维评分�
 metadata:
   type: skill
   project_id: auto-feishu-digest
-  version: v0.1.0
+  version: v0.2.2
   作者: claudecode (2026-07-02)
-  状态: MVP 骨架 (待 5 source 验证 + Bitable 实跑)
+  状态: MVP 真闭环 (Run Card 同步 v0.2.2 + N-tool 7 + paper-search-mcp fallback + lint 规则立)
   触发词: "auto digest" / "daily digest" / "weekly digest" / "飞书表格" / "Bitable" / "自动追踪"
 ---
 
