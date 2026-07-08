@@ -149,93 +149,184 @@ metadata:
 > **触发**: user 2026-07-08 反馈 "修改 skill 主机自升级, 我需要你把这个 skill 明显的分为几个阶段或者是几个模块. 我需要在这个第一阶段是生命或者是设置, 需要完整的输出出来, 我们要干什么". 跟 v3.1.0 banner UX 协同: banner 之后**必**输出本段 (不可跳, 违反 v3.2.0 §✅ 修没做到).
 >
 > **协议位**: host-self-evolve 跑前 banner 之后**必**先输出本段 (跟 v3.1.0 banner + ADR-0041 协同). 缺 = 违反 v3.2.0 硬约束.
+>
+> **🔴 硬规则 (per CASE-HOST-SELF-EVOLVE-V3-2-0-PHASE-1-MISSED-20260708, 2026-07-08 user 抓包立)**:
+> - 跑 banner 段 (v3.1.0) → **立即**接 §Phase 1 段 (v3.2.0) → 然后才跑 Layer 0-3 摸底
+> - **不可跳** §Phase 1 段直接进 Layer 0-3 摸底
+> - **不可自决**"先跑 7 sub-task 再补 §Phase 1 段" (违反"banner 之后立即")
+> - **不可混** Phase 1.1-1.4 摸底 (Layer 0-3 子任务) 跟 §Phase 1 段 (跑前必输协议位 output), 2 个独立硬约束
+> - claudecode 把"必"降级成"可选" = false completion (per §C.5 + 灵魂 v6 §6 self-verify)
+> - 跑完**必**灵魂 v6 self-verify: `grep -E "🌱 Phase 1" <output>` 期望 ≥ 1 命中, 0 命中 = 违反 v3.2.0 硬约束, 立即 abort 改写
 
-**强制输出格式** (跟 v3.1.0 banner 同框架, 大横幅 + 4 子模块 + 整体验收):
+**强制输出格式**:
 
 ```
-═══════════════════════════════════════════════════════════
-🌱 Phase 1 — Life / Setup (生命 / 设置) — 完整说明
-═══════════════════════════════════════════════════════════
+🎯 host-self-evolve v3.2.0 — 主机自升级
+═══════════════════════════════════════
 
-🎯 这一阶段的目的:
+🔍 检查什么
+
+  - Layer 0: 跑 5 个 git 命令 (查提交历史 / 当前改了什么 / 远程地址 / 跟远程差几条 / 线上是否绿)
+  - Layer 1: 跑 7 项体检 (文件大小 / 重复内容 / 案例库 / 孤儿文件 / SKILL.md 头 / shell 配置 / 记忆题库 50 题)
+  - Layer 2: 清掉没用的文件 / 断链 / 死代码
+  - Layer 3: 上网查资料 (用 6 个搜索工具并行)
+  - Layer A: 检查路径/提交/推送/线上绿灯/归属 5 项 + 4 个站点线上是否都绿
+
+🔧 修复什么
+
+  - Layer 0-3 跑出来标红的关键项 (FAIL 必须修)
+  - Layer A 5 项里有哪项没过
+  - 记忆题库 50 题分数 < 60 → 立刻改协议
+
+🚀 提升什么
+
+  - 新学到的东西写进本地记忆文件
+  - 立新的 ADR (用整数编号,不抢 sub-slot)
+  - SKILL.md 版本号往上提一档
+  - 子 skill / 参考文档 增量补完
+
+⏱️ 预计要多久: 至少 30 分钟 (写实测值,别写最低要求)
+
+✅ 完成标准
+
+  - 7 项体检全跑通 (含记忆题库 50 题, 不能跳过)
+  - 上网查到 8 条以上资料并写进记忆
+  - Layer A 5 项检查全过
+  - 用三段 sub-agent 跑 (计划 / 执行 / 验收 三个人独立)
+  - 跑完输出 ## ✅ 做了 + ## ❌ 没做 + ## 🔧 修了 三段
+
+═══════════════════════════════════════
+banner 结束 — 立即接 Phase 1 段
+═══════════════════════════════════════
+```
+
+```
+🌱 Phase 1 — Setup (设置) — 完整说明
+═══════════════════════════════════════
+
+🎯 目的
+
   把本机 ~/.claude/ + ~/.agents/skills/ 这台"小主机"先从
-  "能跑" 升级到 "稳跑 + 自我知道怎么跑". 后面 4 个子模块是
-  "地基", 地基不稳, 后面盖楼 (审计 / 进化 / 沉淀) 全是危楼.
+  "能跑" 升级到 "稳跑 + 自我知道怎么跑"。后面 4 个子模块是
+  地基, 地基不稳, 后面盖楼 (审计 / 进化 / 沉淀) 全是危楼。
 
-─────────────────────────────────────────────────────────
-🧩 4 个子模块 — 第一批要干的活 (Phase 1.1 → Phase 1.4)
-─────────────────────────────────────────────────────────
+───────────────────────────────────────
+🧩 4 个子模块 — 第一批要干的活
+───────────────────────────────────────
+
 
 📦 Phase 1.1 — BASH / FISH / ZSH 整理
-   一句话: 把本机 3 个 shell 配置拉到统一基线 (per shell-unify-checklist v1.1)
 
-   现状 (per 上次跑):
-     - fish 4.6.0 (主用, 严格统一)
-     - bash 3.2.57 (claudecode 进程用, 严格统一)
-     - zsh 5.9 (macOS 自带, 放松维护)
+  一句话: 把本机 3 个 shell 配置拉到统一基线 (per shell-unify-checklist v1.1)
 
-   干什么 (SOP per shell-unify-checklist.md §2):
-     1. 5 探测摸底 (LoginShell / 进程 shell / 3 shell 版本 / config 文件 / 公共源)
-     2. 跑 shell-unified-check.py (Layer 1.4 orphan + 跨 shell dup)
-     3. 手动 diff fish 跟 bash (真实 login shell 跑命令, 不靠文本 grep)
-     4. 单源 grep (7 env var + 3 function 期望 1-2 命中)
-     5. 修复: 抽公共源 ~/.config/shell-common/ 12 文件
-     6. 5 commands 验收
+  现状:
+    - fish 4.6.0 (主用, 严格统一)
+    - bash 3.2.57 (claudecode 进程用, 严格统一)
+    - zsh 5.9 (macOS 自带, 放松维护)
 
-   验收:
-     - 12 公共源文件就位
-     - 3 shell config 引用公共源 (loader.sh/fish)
-     - 重复 key 检查 0 (除 env.sh + env.fish 双语版本)
-     - shell-unified-check.py exit 0 (或 expected exit 1 zsh 放松)
+  干什么:
+    1. 5 探测摸底 (LoginShell / 进程 shell / 3 shell 版本 / config 文件 / 公共源)
+    2. 跑 shell-unified-check.py (Layer 1.4 orphan + 跨 shell dup)
+    3. 手动 diff fish 跟 bash (真实 login shell 跑命令)
+    4. 单源 grep (7 env var + 3 function 期望 1-2 命中)
+    5. 修复: 抽公共源 ~/.config/shell-common/ 12 文件
+    6. 5 commands 验收
 
-─────────────────────────────────────────────────────────
+  验收:
+    - 12 公共源文件就位
+    - 3 shell config 引用公共源 (loader.sh/fish)
+    - 重复 key 检查 0 (除 env.sh + env.fish 双语版本)
+    - shell-unified-check.py exit 0 (或 expected exit 1 zsh 放松)
+
+
+───────────────────────────────────────
+
 
 🧠 Phase 1.2 — 记忆整理
-   一句话: 把本机所有"记忆" (MEMORY.md / mem0 / CLAUDE.local.md) 拉到统一基线
 
-   干什么 (3 子层):
-     A. MEMORY.md 索引化 (CLAUDE.local.md 已是 source-of-truth, MEMORY.md 只留 1 行 pointer)
-        - 现状: MEMORY.md 200+ 行, 含 hot facts + feedback + cases + cross-cutting, 散落
-        - 目标: 拆 4 文件 (MEMORY-index.md / MEMORY-feedback.md / MEMORY-cases-active.md / MEMORY-cross-cutting.md)
-        - 验收: MEMORY.md ≤ 50 行, 全部子文件带 frontmatter + 互链
+  一句话: 把本机所有"记忆" (MEMORY.md / mem0 / CLAUDE.local.md) 拉到统一基线
 
-     B. mem0 cleanup (quota 1000/1000 满, reset 2026-08-01)
-        - 现状: mem0 配额耗尽, 暂不可搜不可写
-        - 目标: 跑 mem0 memory-reviewer skill (per mem0:memory-reviewer) 删过期 / 重复 memory
-        - 验收: mem0 健康, quota < 80%, 关键决策可搜回
+  干什么 (3 子层):
 
-     C. CLAUDE.local.md hot facts 收紧 (321 行 → ≤ 250 行)
-        - 现状: §5.1 / §5.2 / §6.1 / §7.1 / §8.1 / §10.1 ... 各 section 引用文件, 部分重复
-        - 目标: 全 hot facts 走 SSOT 1 行 pointer 引用 (per ADR-0037 v0.1)
-        - 验收: CLAUDE.local.md ≤ 250 行, 0 内容重复, 全 pointer 引用 protocols/*.md
+    A. MEMORY.md 索引化
+       - 现状: MEMORY.md 200+ 行, 含 hot facts + feedback + cases + cross-cutting, 散落
+       - 目标: 拆 4 文件 (MEMORY-index.md / MEMORY-feedback.md / MEMORY-cases-active.md / MEMORY-cross-cutting.md)
+       - 验收: MEMORY.md ≤ 50 行, 全部子文件带 frontmatter + 互链
 
-─────────────────────────────────────────────────────────
+    B. mem0 cleanup (quota 1000/1000 满, reset 2026-08-01)
+       - 现状: mem0 配额耗尽, 暂不可搜不可写
+       - 目标: 跑 mem0 memory-reviewer 删过期 / 重复 memory
+       - 验收: mem0 健康, quota < 80%, 关键决策可搜回
+
+    C. CLAUDE.local.md hot facts 收紧 (321 行 → ≤ 250 行)
+       - 现状: §5.1 / §5.2 / §6.1 / §7.1 / §8.1 / §10.1 ... 各 section 引用文件, 部分重复
+       - 目标: 全 hot facts 走 SSOT 1 行 pointer 引用
+       - 验收: CLAUDE.local.md ≤ 250 行, 0 内容重复
+
+
+───────────────────────────────────────
+
 
 📐 Phase 1.3 — 规则整理
-   一句话: rules/ 8 文件 path-scoped + 0 散落 + 全 SSOT 引用
 
-   现状 (per README.md §Active Rules):
-     - 8 个 active rule 文件 (universal / process / typescript / python / language-stack / bugfix-400 / tooling / shell-unify / cross-session-grep / post-pr-merge-ff-verify)
-     - 6 个 protocols/ SSOT v0.1 草案 (2026-07-02 立, ADR-0037 待立)
-     - 散落位: 75 files drift per soul-protocol.md §7 (skill-self-evolution) + 41+ files 5 字段自检
+  一句话: rules/ 8 文件 path-scoped + 0 散落 + 全 SSOT 引用
 
-   干什么 (SOP):
-     1. 跑 shell-unified-check.py Layer 1.4 (orphan audit) → 找 0 真 orphan
-     2. 跑 N-tool-search.md §1 6-tool (降级矩阵 OK) → 抓 8+ 外部资源
-     3. cross-session-grep.md §1 6 件套 grep → 找命名冲突 / 重复字段
-     4. 跟 6 个 protocols/ SSOT 路径对比 → 标散落位
-     5. 修法: 改 1 行 anchor pointer (per §A.4.2 #4 path-scoped)
-     6. 立 ADR-0041 (本 run 协调性 fix 沉淀, 整数 slot)
+  现状:
+    - 8 个 active rule 文件 (universal / process / typescript / python / language-stack / bugfix-400 / tooling / shell-unify / cross-session-grep / post-pr-merge-ff-verify)
+    - 6 个 protocols/ SSOT v0.1 草案 (2026-07-02 立)
+    - 散落位: 75 files drift (skill-self-evolution) + 41+ files 5 字段自检
 
-   验收:
-     - 6 SSOT 全部 ≤ 200 行 (per §A.4.2 #4 CLAUDE.md < 200 行硬规则)
-     - 散落位 75 → 0 (per ADR-0037 §8 判定)
-     - new ADR 立 (0041 整数 slot, per ADR-0027 v1.1 不抢 sub-slot)
+  干什么:
+    1. 跑 shell-unified-check.py Layer 1.4 (orphan audit)
+    2. 跑 N-tool-search.md §1 6-tool 抓 8+ 外部资源
+    3. cross-session-grep.md §1 6 件套 grep
+    4. 跟 6 个 protocols/ SSOT 路径对比, 标散落位
+    5. 修法: 改 1 行 anchor pointer (per §A.4.2 #4 path-scoped)
+    6. 立 ADR-0041 (本 run 协调性 fix 沉淀, 整数 slot)
 
-─────────────────────────────────────────────────────────
+  验收:
+    - 6 SSOT 全部 ≤ 200 行
+    - 散落位 75 → 0
+    - new ADR 立 (0041 整数 slot)
+
+
+───────────────────────────────────────
+
 
 ⚙️ Phase 1.4 — 本机自带自动化整理
-   一句话: 把 ~/.claude/hooks/ + scripts/ + settings.json 4 hooks 协议位 整理
+
+  一句话: 把 ~/.claude/hooks/ + scripts/ + settings.json 4 hooks 协议位 整理
+
+  现状:
+    - 4 hooks 协议位 (cross-session-grep / verify-before-act / post-pr-merge-ff-verify / protocol-violation-auto-detect)
+    - 挂载在 ~/.claude/settings.json 的 PreToolUse / PostPRMerge / Stop 钩子位
+    - 实施状态: 0 个真挂 (参考实现 ~/.omc/hooks/*.sh 写好了, user 没挂载)
+
+  干什么:
+    1. 摸底: grep -A 20 '"hooks"' ~/.claude/settings.json
+    2. 比对参考实现 ~/.omc/hooks/* 4 个脚本
+    3. 跟 user 确认是否挂 (framework config 改字段 必问)
+    4. 挂载后跑 5 commands verify + 1 次实战触发验证
+    5. 立 ADR-0042 (本机自动化挂载决策沉淀)
+
+  验收:
+    - 4 hooks 协议位 100% 挂载 (或 user 决策"参考实现就够" 走文档化)
+    - settings.json diff ≤ 50 行
+    - new ADR 立 (0042 整数 slot)
+
+
+═══════════════════════════════════════
+🚀 Phase 1 整体验收 (跑完 1.1 → 1.4 后必跑)
+═══════════════════════════════════════
+
+  - 5 fields acceptance (path / commit / push / CI / owner)
+  - decision-stream 流追加 (per calm-flow §4)
+  - mem0 add_memory × 1-3 条 (per post-task-recommend §3)
+  - ADR 整数 slot 不抢 sub-slot (per ADR-0027 v1.1)
+  - SKILL.md changelog 升 v3.2.X (本 run 沉淀)
+
+═══════════════════════════════════════
+``` 整理
 
    现状 (per CLAUDE.local.md §18 + rules/protocol-violation-auto-detect.md §4):
      - 4 hooks 协议位 (cross-session-grep / verify-before-act / post-pr-merge-ff-verify / protocol-violation-auto-detect)
