@@ -1,15 +1,19 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.2 汇报格式 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.2 汇报格式段 (per ADR-0051, 跑后汇报必走 §Phase 1 同款大白话) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3).
   范围: ~/.claude/ + ~/.agents/skills/ 双仓.
   不适用: 单文件 typo / 文档微调 / 非 ~/.claude/ 项目 (用 website-improve).
+  🆕 v3.2.3 汇报极简化 (per ADR-0052 user-override):
+    - 跑完汇报长度 ≤ §Phase 1 段 (~80 行)
+    - 严格 1:1 复刻: 目的 + N 件事 (一句话 + 现状 + 干什么 + 验收) + 整体验收 (5 项)
+    - 删 v3.2.2 扩展: BLOCKED 段 / ⏱️ 段 / 任务后建议段 / 自检 emoji
   🆕 v3.2.1 default decision (per ADR-0050 user-override):
     - Run 范围: 默认全套 (Phase 1.1 → 1.4), user 显式说"只跑 X" 才拆 sub-task
     - 执行模式: 默认三段串行 (plan/execute/verify 物理隔离, per v2.6.59 + §C.3.7)
@@ -17,14 +21,14 @@ when_to_use: |
   🆕 v3.2.2 汇报格式 (per ADR-0051 user-override):
     - 跑完汇报必走 §Phase 1 段同款大白话 (现状 + 干什么 + 验收, 不用 table markdown)
     - 整体验收段必填 5 项 (path / commit / push / CI / owner)
-  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1) / ❌ 跑完汇报用 table markdown (per ADR-0051 v3.2.2). 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
+  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1) / ❌ 跑完汇报用 table markdown (per ADR-0051 v3.2.2 废弃) / ❌ 跑完汇报 > 80 行 (per ADR-0052 v3.2.3) 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
 license: MIT
 metadata:
-  version: "3.2.2"
+  version: "3.2.3"
   author: mykcs
   category: self-evolution
-  changelog: "v3.2.2 (2026-07-10): §v3.2.2 汇报格式段 + frontmatter 升级 (per ADR-0051 user-override, 跑完汇报必走 §Phase 1 同款大白话, 不用 table markdown). v3.2.1 = §v3.2.1 default decision 段 (per ADR-0050). 详见 references/changelog.md."
-  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2, report-format, phase-1-style, adr-0051]
+  changelog: "v3.2.3 (2026-07-10): §v3.2.3 汇报极简化段 (per ADR-0052 user-override, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式). v3.2.2 = §v3.2.2 汇报格式段 (废弃, 被 v3.2.3 取代). 详见 references/changelog.md."
+  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052]
 ---
 
 # 主机自升级 Skill (host-self-evolve v3.2.1)
@@ -73,91 +77,71 @@ metadata:
 
 ---
 
-## 🎯 v3.2.2 汇报格式段 (2026-07-10 立, per ADR-0051)
+## 🎯 v3.2.3 汇报极简化段 (2026-07-10 立, per ADR-0052)
 
-> **触发**: user 2026-07-10 跑完反馈原话 "结束后的汇报也要像这样的格式一样清晰整洁说人话" (引用 §Phase 1 段示例)
-> **协议位**: host-self-evolve v3.2.2+ 跑完汇报**必**走"§Phase 1 段同款大白话格式", 不用 table markdown
+> **触发**: user 反馈 "还是不够还是不够整洁, 完全模仿 §Phase 1 段格式就好了"
+> **协议位**: host-self-evolve v3.2.3+ 跑完汇报 ≤ §Phase 1 段同长度 (~80 行), 严格 1:1 复刻
 
-**汇报格式骨架** (跟 §Phase 1 段 1:1 复刻, 见 ADR-0051 §2):
+**骨架** (跟 §Phase 1 段 1:1, 见 §Phase 1 段):
 
 ```
-🌱 Run Summary — <本次 run 主题> — 完整说明
+🌱 Run Summary — <主题> — 完整说明
 ═══════════════════════════════════════
 
 🎯 目的
 
-  <一句话讲本次 run 的核心目的, ≤ 3 行>
+  <一句话, ≤ 3 行>
 
 ───────────────────────────────────────
-🧩 <做了几件事> 件事 — 清单
+🧩 <N> 件事 — 清单
 ───────────────────────────────────────
 
-📦 做了 1: <事项标题>
+📦 <事项 1>
 
-  一句话: <本事项核心目的, ≤ 1 行>
+  一句话: <本事项目的, ≤ 1 行>
 
-  现状 (跑前):
+  现状:
     - <事实 1>
     - <事实 2>
 
-  干了啥:
+  干什么:
     1. <动作 1>
     2. <动作 2>
-    ...
 
   验收:
-    - <验收标准 1>
-    - <验收标准 2>
-
-───────────────────────────────────────
-
-📦 做了 2: <事项标题>
-
-  ...
+    - <验收 1>
+    - <验收 2>
 
 ═══════════════════════════════════════
-🚀 整体验收 (跑完后必跑)
+🚀 整体验收
 ═══════════════════════════════════════
 
-  - path / commit / push / CI / owner (5 字段自检)
-  - decision-stream 流追加 (per calm-flow §4)
-  - mem0 add_memory × 1-3 条 (per post-task-recommend §3)
-  - ADR 整数 slot 沉淀 (per ADR-0027 v1.1)
-  - SKILL.md changelog 升 v3.2.X (本 run 沉淀)
+  - path: <文件路径>
+  - commit: <hash | msg>
+  - push: ahead/behind 0 0
+  - CI: <state>
+  - owner: <mykcs / wangrui2025>
 ```
 
-**字段约束** (跟 §Phase 1 段 §字段约束 协同):
-- 标题 `🌱 Run Summary — <主题>` 1 行 ≤ 60 chars
-- 横幅 `═══...═══` 上下两行包围
-- 每个事项段: 一句话 + 现状 + 干了啥 + 验收 4 子段必填
-- 整体验收段: 必填 5 项 (path / commit / push / CI / owner)
-- 数字具体 ("4 hooks 挂载" / "3 段 detailed 输出" / "实测 ~20 min")
+**字段约束**:
+- 总长度 ≤ 80 行 (跟 §Phase 1 段同)
+- 不写 BLOCKED 段 (走 AskUserQuestion, 不在汇报)
+- 不写 ⏱️ wall clock 段 (灵魂 v6 自检机制已立, 不重报)
+- 不写任务后建议段 (post-task-recommend v3 清理后, 走 mem0 自动沉淀)
+- 不用 emoji (✅❌🔧) 替代内容
 
-**§v3.2.2 协议位硬规则**:
-- IF host-self-evolve 跑完 (Layer A.4 5 字段自检全过)
-- AND 准备输出最终汇报
-- THEN **必**走 §v3.2.2 汇报格式段骨架, 不用 table markdown
-- AND 保留 ❌ 没做事项段 (用 "📦 没做 N: ..." 命名, 标 BLOCKED 协议位原因)
-- AND 保留 ⏱️ 实测 wall clock + 5 字段自检段 (从 §✅ 3 段 detailed 沿用)
+**反模式 (永久失效, 6 条)**:
+1. ❌ 跑完汇报 > 80 行
+2. ❌ 跑完汇报含 BLOCKED 段
+3. ❌ 跑完汇报含 ⏱️ wall clock 段
+4. ❌ 跑完汇报含任务后建议段
+5. ❌ 跑完汇报含自检 emoji (✅❌🔧)
+6. ❌ 跑完汇报堆 "联动 cross-references" 段
 
-**反模式 (永久失效, 5 条)**:
-1. ❌ 跑完汇报用 table markdown (| ... |) = 违反 §v3.2.2 格式
-2. ❌ 跑完汇报用 list bullet (- ...) 替代子段描述 = 违反 §Phase 1 同款
-3. ❌ 跑完汇报直接给 "✅" emoji 无子段上下文 = 违反"清晰整洁说人话"
-4. ❌ 跑完汇报不写 "干了啥" 步骤, 只给结论 = 违反 user 反馈
-5. ❌ 跑完汇报混用 table + 大白话格式 = 违反统一格式
-
-**联动**:
-- 跟 v3.1.0 §✅ 3 段 detailed (✅ 做了 / ❌ 没做 / 🔧 修了) 协同: v3.1.0 = 数据结构, v3.2.2 = 表达格式, 协同不替换
-- 跟 v3.2.1 default decision 段协同: v3.2.1 跑前决策 + v3.2.2 跑后汇报 = 完整 UX
-- 跟 v3.2.0 §Phase 1 段协同: 汇报格式 1:1 复刻, 跑前跑后格式统一
-- 跟 ADR-0051 v1.0 协同: 本段是 ADR-0051 §3 SKILL.md 改动清单落地
-- 跟 ADR-0050 v3.2.1 default decision 协同: 跟本段连用, v3.2.2 = v3.2.1 + 汇报格式升级
-- 跟灵魂 v3 + v4 + v5 + v6 协同: 跑完汇报走"大白话 + 字母选项 + 三句话开头 + 任务后建议"全部灵魂规则
-- 跟 CLAUDE.md §ADHD 友好输出 协同: 1 段 ≤ 5 行, 列表 ≤ 5 项, 字母选项必翻译 (本段骨架符合)
+**联动**: v3.2.2 §汇报格式段 废弃 (太复杂), v3.2.3 取代 (极简); ADR-0051 v3.2.2 废弃, ADR-0052 v3.2.3 立
 
 **历史 record**:
-- 2026-07-10 v3.2.2: 立 (ADR-0051 整数 slot 0051 + user-override 落点 + 本段嵌入 SKILL.md + table markdown 永久失效反模式)
+- 2026-07-10 v3.2.3: 立 (ADR-0052 整数 slot 0052 + user-override 2 次反馈 + 跑完汇报极简化 ≤ 80 行)
 
 ---
 
