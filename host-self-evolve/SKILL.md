@@ -1,26 +1,74 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.0 design philosophy + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3).
   范围: ~/.claude/ + ~/.agents/skills/ 双仓.
   不适用: 单文件 typo / 文档微调 / 非 ~/.claude/ 项目 (用 website-improve).
-  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段. 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
+  🆕 v3.2.1 default decision (per ADR-0050 user-override):
+    - Run 范围: 默认全套 (Phase 1.1 → 1.4), user 显式说"只跑 X" 才拆 sub-task
+    - 执行模式: 默认三段串行 (plan/execute/verify 物理隔离, per v2.6.59 + §C.3.7)
+    - AskUserQuestion 触发白名单 (以下才问): 不可逆操作 / framework config 改字段 / user 偏好变更 / user 显式说"立刻决策"
+  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1). 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
 license: MIT
 metadata:
-  version: "3.2.0"
+  version: "3.2.1"
   author: mykcs
   category: self-evolution
-  changelog: "see references/changelog.md for v1.0.0-v3.2.0 history (v3.2.0 = 🎯 banner + §Phase 1 Life/Setup 4 子模块总览嵌入, per user 2026-07-08 反馈 + ADR-0041)"
-  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup]
+  changelog: "v3.2.1 (2026-07-10): §v3.2.1 default decision 段 + frontmatter when_to_use 默认决策 (per ADR-0050 user-override, 不再问 Run 范围 + 执行模式). 详见 references/changelog.md."
+  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050]
 ---
 
-# 主机自升级 Skill (host-self-evolve v3.0.0)
+# 主机自升级 Skill (host-self-evolve v3.2.1)
+
+## 🎯 v3.2.1 default decision 段 (2026-07-10 立, per ADR-0050)
+
+> **触发**: user 2026-07-10 主机自升级 run 拍板原话 (2 段):
+>   1. "修改 skill 以后不许问这个问题, 直接全套"
+>   2. "修改 skill 以后不许问这个问题, 直接三段串行"
+> **协议位**: host-self-evolve v3.2.1+ 跑前**不再问** "Run 范围" + "执行模式" 2 类决策, 默认走自决路径
+
+**默认决策 (per ADR-0050 user-override)**:
+- ✅ **Run 范围**: 默认全套 (Phase 1.1 → 1.4), user 显式说"只跑 X" 才拆 sub-task
+- ✅ **执行模式**: 默认三段串行 (plan / execute / verify 物理隔离, per v2.6.59 + §C.3.7)
+- ✅ **判定流程**:
+  1. user 触发 host-self-evolve → 立即加载 v3.2.0 banner 段 + v3.2.0 Phase 1 段 + v3.2.1 default decision 段 (本段)
+  2. **不再 AskUserQuestion** "Run 范围" + "执行模式" 2 类问题
+  3. 默认跑全套 + 三段串行, 走 execute 段
+  4. user 在跑中显式说"只跑 X" → 立即切单 sub-task, 不停 run
+  5. 跑完按 v3.1.0 §✅ 3 段 detailed 输出 (✅ 做了 / ❌ 没做 / 🔧 修了)
+
+**保留 AskUserQuestion 触发白名单** (硬约束 + user override 协同, 跟 calm-flow §6 反转模式 4 类硬约束对齐):
+1. **不可逆操作**: rm / push main / reset hard / 删数据库表
+2. **framework config 改字段**: settings.json / hooks 挂载 / SKILL.md frontmatter
+3. **user 偏好变更**: 命名 / 风格 / 路线选择 / user 哲学
+4. **user 显式说**: "立刻决策 / 快问我 / 先问后做 / 不要自决"
+
+**反模式 (永久失效, 6 条, per ADR-0050 §5)**:
+1. ❌ 跑 host-self-evolve 还问 "Run 范围" / "执行模式" = 违反 user-override
+2. ❌ 跑全套后假装"只跑 X" (实跑全部但报告说"我没跑完") = 违反 §C.5 false completion
+3. ❌ 拆三段 sub-agent 后用 1 个 agent 跑完 = 违反 §C.3.7 物理隔离硬约束
+4. ❌ user 显式说"只跑 X" 还跑全套 = 违反 user override 优先级
+5. ❌ 把本段"不再问"推广到所有 AskUserQuestion = 违反 4 类必问硬约束保留
+6. ❌ 跑完不输出 v3.1.0 §✅ 3 段 detailed = 违反 v3.1.0 硬约束
+
+**联动**:
+- 跟 v3.1.0 banner UX (跑前) + v3.2.0 Phase 1 段 (跑前) 协同: 三段顺序 = banner → Phase 1 → v3.2.1 default decision → execute
+- 跟 v3.1.0 §✅ 3 段 detailed (跑后) 协同: 本段跑前决策 + v3.1.0 跑后报告 = 完整 UX
+- 跟 ADR-0050 v1.0 (整数 slot 0050) 协同: 本段是 ADR-0050 §3 SKILL.md 改动清单落地
+- 跟 calm-flow §6 反转模式协同: 4 类必问硬约束保留 = calm-flow 反转触发
+- 跟 §C.3.7 三段 sub-agent 协议位统一协议 (v2.6.60) 协同: 本段默认触发协议位执行
+- 跟 CASE-HOST-SELF-EVOLVE-PHASE-1-LIFE-SETUP-20260708 协同: 本段立条源 (user 反馈触发)
+
+**历史 record**:
+- 2026-07-10 v3.2.1: 立 (ADR-0050 整数 slot 0050 + user-override 落点 + 本段嵌入 SKILL.md)
+
+---
 
 ## 设计哲学 (design philosophy, v1.0 立)
 
