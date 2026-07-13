@@ -42,7 +42,7 @@
 
 | Stage | 目的 | 输入 | 输出 | 单 sub-agent 时间 |
 |---|---|---|---|---|
-| 1 SEARCH | 5-tool fan-out 抓候选 | query | `search-<C>-<date>.jsonl` (5-10 条/子方向) | 2-5 min |
+| 1 SEARCH | N-tool fan-out 抓候选 (N 当前 = 6) | query | `search-<C>-<date>.jsonl` (5-10 条/子方向) | 2-5 min |
 | 2 FILTER | A+B+C 三方交叉 | jsonl | `filtered-papers-<date>.md` (排除低质 / 重复) | 5-10 min |
 | 3 NOTE | v2.1 模板精读 | 通过清单 | `<n>-<slug>.md` (每篇 100-120 行) | 5-10 min |
 | 4 REPORT | 总谱系索引 | notes + 候选 | `report-<date>.md` + `.html` (4 粒度对位) | 10-15 min |
@@ -94,7 +94,7 @@
 | # | 反模式 | 真因 | 正确做法 |
 |---|---|---|---|
 | 1 | 6 sub-agent 全并行 | 1 挂 = 全盘重起 + 监控难 | **L4 4 串行 + 时序错开** |
-| 2 | 单源 web search | 1 工具 = 单点故障 | 5-tool fan-out (MiniMax + anysearch + WebFetch + exa + kimi-webbridge) |
+| 2 | 单源 web search | 1 工具 = 单点故障 | N-tool fan-out (MiniMax + kimi-webbridge + anysearch + WebFetch + exa + mmx, N 当前 = 6) |
 | 3 | "差不多完成" | 缺 5 字段验收 | 必跑 §H.1 自检表, 缺一项 = FAIL |
 | 4 | 抄模板不改 | 复用 ≠ 改版 | 每次必改: 子方向 / 时间窗 / 验证标准 |
 

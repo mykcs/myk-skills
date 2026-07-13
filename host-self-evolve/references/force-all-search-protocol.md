@@ -1,125 +1,65 @@
-# Force-All-Search Protocol v2.9 (2026-06-12)
+# Force-All-Search Protocol v2.9 (历史副 SSOT, 已 redirect 到主 SSOT N-tool-search.md v1.1)
 
-> 来源: `~/.agents/skills/rich-audit/SKILL.md` v2.9 Layer 3
-> 全局化: `~/.claude/rules/behavioral-process-forceallsearch.md`
-> 输出契约: **per-tool 显式披露** (每个工具独立 1 段: 工具 / 搜索内容 / 结论 / 状态) + 共识 / 冲突 / 缺失工具分段; Layer 2 fail-fast 时必填 缺失工具
-> 重命名历史: v2.6 "Tri-Search Protocol" (2026-06-10) → v2.7 "Force-All-Search Protocol" (2026-06-12) → v2.8 "5-tool with exa" (2026-06-12) → **v2.9 "per-tool 显式披露" (2026-06-12)**
+> **⚠️ 本文件已作废** (per ADR-0056, 2026-07-13 立)
+>
+> **历史**: 本文件原是 Force-All-Search Protocol v2.9 (2026-06-12 立) 副 SSOT, 2026-07-13 ADR-0056 全面清理后作废.
+>
+> **现在**: 本文件**仅保留 redirect header + 历史归档**, 不再复述协议位 (per §20 SSOT 原则, 反模式 #5: 字面协议位散落).
+>
+> **完整协议位** (N 工具 / 顺序 / 降级矩阵 / 触发场景 / 反模式 / 可达性矩阵) 见主 SSOT:
+> - 主仓: [`~/.claude/rules/protocols/N-tool-search.md`](../../../../../.claude/rules/protocols/N-tool-search.md) v1.1
+> - (跨仓路径解析: 主仓 `~/.claude/` 跟子仓 `~/.agents/skills/` 是 sibling 目录)
 
-## Phase A: 5-way Parallel Fan-out
+---
 
-| 工具 | 角色 | 优势 | 局限 |
-|------|------|------|------|
-| `mcp__MiniMax__web_search` | primary, fast API | 大批量 query | 无浏览器 |
-| `kimi-webbridge` | MCP server (stdio, npx kimi-webbridge mcp) | real browser 抓登录/动态/issue 评论 | 慢, 需 daemon (Chrome ext) running + Desktop mcpServers 配置 |
-| `anysearch` | cross-validate | 多源, 23 垂直域 | API key 限流 |
-| `WebFetch` | direct URL fetch | 读单 URL 全文 | 需已知 URL |
-| `exa` (`mcp__exa__web_search_exa` + `mcp__exa__web_fetch_exa`) | **combo: search + fetch** | 算法/索引独立 (跟 MiniMax 不重叠), content extraction 干净 | API 配额 |
+## 历史归档 (per ADR-0037 protocol-ssot-drift-audit-standard §5)
 
-## Phase B: Merge + Compare
+**v2.9 (2026-06-12)**: Force-All-Search Protocol v2.9 = 5 工具 (mcp__MiniMax__web_search ∥ kimi-webbridge ∥ anysearch ∥ WebFetch ∥ exa). 共 5 工具, 缺 mmx 第 6 工具.
 
-- **共识** (≥3 源一致): 高 confidence, 直接采纳
-- **冲突** (≥1 源不一致): 入 Phase C 溯源
-- **数据缺口** (某工具 502/error): 不算冲突, 标注"降级"
+**v1.0 (2026-07-03)**: 改名 `5-tool-search.md`, 128+ 散落位改 1 行 pointer.
 
-## Phase C: Conflict Resolve (递归 ≤2 层)
+**v1.1 (2026-07-03)**: 加 mmx 第 6 工具 + 抽象协议名 `N-tool` (N 当前 = 6, 未来可扩), 改名 `N-tool-search.md`.
 
-1. 对冲突项用 5 工具再 fan-out 一次
-2. 仍冲突 → 报告"未收敛", 降级人工
-3. hard cap 2 层防无限递归
+**v1.1.1 (2026-07-03)**: 撤 mmx-mcp-shim, mmx 恢复单形式 (per ADR-0038 v1.1.1 patch).
 
-## 降级矩阵（两层）
+**v2.9.2 (2026-07-13 ADR-0056)**: 本文件 (子仓副 SSOT) + 主仓副 SSOT (`~/.claude/rules/references/process-section-F-force-all-search.md`) 一起作废, redirect 到主 SSOT `N-tool-search.md` v1.1.
 
-> **核心区分**: Layer 1 = 工具已注册但暂不可用 (HTTP 4xx/5xx, rate limit, timeout) → 降级继续
->                  Layer 2 = 工具未注册 (MCP server 缺席) → **fail-fast**
+---
 
-### Layer 1: 已注册但暂不可用
+## 反模式 (永久失效, 5 条)
 
-| 不可用 | 替代 | 报告标注 |
-|--------|------|----------|
-| kimi-webbridge 502 | WebFetch 抓 GitHub / docs URL | `⚠️ kimi-webbridge 502 → WebFetch` |
-| minimax 4xx | anysearch 替代 | `⚠️ minimax 4xx → anysearch` |
-| anysearch rate limit | minimax 替代 | `⚠️ anysearch rate-limited → minimax` |
-| WebFetch 404 | 跳过, 报告"URL 不可达" | `⚠️ WebFetch 404, URL 跳过` |
-| exa 4xx/5xx | 跳过 (combo 工具, 整体降级) | `⚠️ exa 4xx/5xx, search+fetch 双 endpoint 跳过` |
+1. ❌ 引用本文件当 N-tool 协议位 = 字面散落 (per §20 反模式 #5)
+2. ❌ 引用 `5-tool-search.md` = 文件名已弃用, 必用 `N-tool-search.md`
+3. ❌ 引用 `Force-All-Search Protocol v2.9` 当主协议 = v2.9 已是历史, N-tool v1.1 才是当前
+4. ❌ 假设 N = 5 写死数字 = 违反 N-tool 抽象 (per N-tool-search.md §9 v1.1 changelog)
+5. ❌ 在其他文件复述 6 工具顺序 = 必引用 SSOT §1, 不复制
 
-### Layer 2: 未注册 (MCP server 缺席)
+---
 
-| 场景 | 行为 | 报告 |
-|------|------|------|
-| 缺 1 个工具 | **fail-fast** — 拒绝执行 Force-All-Search | `❌ BLOCKED: 缺失 <tool_name> (MCP server 未注册). 请安装 MCP server 或调整 spec.` |
-| 缺 ≥ 2 个工具 | **fail-fast** + 列出全部缺失 | `❌ BLOCKED: 缺失 N 个工具 [<tool1>, <tool2>, ...]. 5-tool 三角测量失效.` |
+## Cross-references (历史追溯)
 
-**Why Layer 2 不降级**（设计意图 "强制全用 + 交叉验证" 的硬约束）:
-- 5-tool parallel fan-out 设计 = redundancy + depth + cross-validation + direct fetch + **algorithm/index diversity (exa)** **5 维并行**
-- 缺 1 维 = 失去该维度兜底 (e.g. 缺 kimi-webbridge = 无 real browser 抓登录/动态页; 缺 exa = 无独立算法/索引兜底)
-- 缺 2+ 维 = 三角测量失效, "强制全用 + 交叉验证" 设计意图被违反
-- 静默降级到 < 5 tool (e.g. minimax + exa) = **"假性 full coverage"**, 输出看起来 ≥2 工具, 实际缺乏 depth/real-browser/cross-validation 维度
-- **唯一例外**: 用户显式说"接受降级" (e.g. "用 minimax+exa 跑就行") → 才走 Layer 1 同源替代路径
+- 主 SSOT: `~/.claude/rules/protocols/N-tool-search.md` v1.1
+- 起源 ADR: `~/.claude/docs/adr/0022-5-tool-mandatory.md` (v2.9 必跑条款, HIGHEST PRIORITY)
+- 顺序 ADR: `~/.claude/docs/adr/0025-rich-audit-5-tool-order-alignment.md`
+- kimi-webbridge: `~/.claude/docs/adr/0030-kimi-webbridge-protocol-position-reversal.md`
+- SSOT 起源: `~/.claude/docs/adr/0037-protocol-ssot-drift-audit-standard.md`
+- N-tool 重命名: `~/.claude/docs/adr/0038-b-n-tool-search-v1.1.md`
+- mmx 形式修正: `~/.claude/docs/adr/0038-b-n-tool-search-v1.1.md` v1.1.1 patch
+- Drift 清理: `~/.claude/docs/adr/0056-n-tool-drift-cleanup.md` (本文件作废的 ADR)
+- 起源 case: `~/.claude/knowledge/cases/wiki/CASE-SEARCH-TOOL-PROTOCOL-DRIFT-20260702.md`
+- N-tool v1.1 case: `~/.claude/knowledge/cases/wiki/CASE-N-TOOL-MMX-DOUBLE-FORM-MISJUDGMENT-20260713.md`
+- mmx 双形式 case: `~/.claude/knowledge/cases/wiki/CASE-N-TOOL-MMX-DOUBLE-FORM-MISJUDGMENT-20260713.md`
 
-**检测方法**: 启动 Phase A 前必须枚举 `available_tools` (MCP 注册表), 对照 5-tool 必需清单:
-- `mcp__MiniMax__web_search` ✓
-- `kimi-webbridge` (MCP server via stdio: `npx kimi-webbridge mcp`, Desktop mcpServers.webbridge 注册名: `webbridge`) ✓
-- `anysearch` (MCP skill 注册名: `anysearch`) ✓
-- `WebFetch` (Claude Code 内置 tool) ✓
-- `exa` (MCP 注册名: `mcp__exa__*`; 2 endpoints: `web_search_exa` + `web_fetch_exa`) ✓
+---
 
-缺任意一个 → 走 Layer 2 路径.
+## 历史 record
 
-## 输出模板 (v2.9: per-tool 显式披露)
-
-**强制要求**: 每个工具**必须**独立披露 1 段 (即使降级/未注册也要写 1 段, 标状态), 不能只给合并结论。
-
-```
-工具: mcp__MiniMax__web_search
-搜索内容: <query 或 URL>
-结论: 根据 mcp__MiniMax__web_search 搜索, 找到 N 个结果: <raw result 1-2 句>
-状态: ✅ 成功 / ⚠️ 降级 (替代工具: <name>) / ❌ 失败 (<error>)
-
-工具: kimi-webbridge
-搜索内容: <query 或 URL>
-结论: 根据 kimi-webbridge 搜索, 找到 N 个结果: <raw result 1-2 句>
-状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
-
-工具: anysearch
-搜索内容: <query 或 URL>
-结论: 根据 anysearch 搜索, 找到 N 个结果: <raw result 1-2 句>
-状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
-
-工具: WebFetch
-搜索内容: <URL>
-结论: 根据 WebFetch 抓取 <URL> 全文: <raw result 1-2 句>
-状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
-
-工具: exa (mcp__exa__web_search_exa + mcp__exa__web_fetch_exa)
-搜索内容: <query 或 URL>
-结论: 根据 exa (web_search + web_fetch) 搜索, 找到 N 个结果: <raw result 1-2 句>
-状态: ✅ 成功 / ⚠️ 降级 / ❌ 失败
-
-共识 / 合并结论: <Phase B 共识 (≥3 源一致), 高 confidence>
-冲突项: <Phase B 冲突清单, [tool1, tool2, item, reason]>
-未收敛项: <Phase C 仍冲突, 报告"未收敛", 降级人工>
-缺失工具: [Layer 2 fail-fast 时必填, e.g. "kimi-webbridge, anysearch, exa (未注册)"]
-```
-
-**Why 显式披露** (vs 旧 3 字段合并):
-- **Audit trail**: 每个工具独立可追溯, 出问题能定位是哪个工具给的错答案
-- **透明**: 不是只给"最终结论", 而是"5 个工具分别怎么说", 用户能看见推理过程
-- **降级可见**: 缺/降级工具的空白/警告一目了然, 防"假性 full coverage" (输出 ≥5 段但其中 1 段说"未注册" / "降级", 不会被合并结论遮蔽)
-- **cross-validation 真正生效**: 共识/冲突分段强制 agent 报告哪些源一致 / 哪些冲突, 不是只看 1 个 tool 的结论
-
-## Why 5 tools (而非 1 / 3 / 4)
-
-- **1 tool**: Run 1 (2026-06-08) 单源 WebSearch 400 error + incomplete coverage
-- **3 tools (旧 cascade)**: 缺 URL 全文验证层, 易"搜到但没读"
-- **4 tools (v2.7)**: 三角测量 = redundancy + depth + cross-validation + direct fetch; 缺独立算法/索引兜底
-- **5 tools (v2.8)**: 4-tool + exa (算法/索引独立, 跟 MiniMax/anysearch 不重叠) = 5 维并行, 兜底更强
-- **< 5 tools (降级)**: 失去"强制全用 + 交叉验证" 设计意图, 走 Layer 2 fail-fast
-
-## 重命名 / 演进历史
-
-| 版本 | 日期 | 名称 | 备注 |
-|------|------|------|------|
-| v2.6 | 2026-06-10 | Tri-Search Protocol | 数字 tri(=3) 误导实际 4-tool |
-| v2.7 | 2026-06-12 | Force-All-Search Protocol | 反映"强制全用 + 交叉验证" 设计意图; 同步拆降级矩阵为 Layer 1/2 |
-| v2.8 | 2026-06-12 | Force-All-Search Protocol (5-tool) | 加 exa 为第 5 工具 (combo web_search+web_fetch, 算法/索引独立) |
-| **v2.9** | **2026-06-12** | **Force-All-Search Protocol (per-tool 显式披露)** | **输出模板从 3 字段合并 → 5 段 per-tool 显式披露** (工具/搜索内容/结论/状态) + 共识/冲突/缺失工具分段; audit trail + 防假性 full coverage |
+- 2026-06-10: 立 v2.6 Tri-Search Protocol (3-tool)
+- 2026-06-12: v2.7 Force-All-Search Protocol (4-tool)
+- 2026-06-12: v2.8 (5-tool 加 exa)
+- 2026-06-12: v2.9 (per-tool 显式披露)
+- 2026-06-29: v2.9.2 (降级矩阵)
+- 2026-07-03: 改名 5-tool-search.md v1.0
+- 2026-07-03: 改名 N-tool-search.md v1.1 (加 mmx)
+- 2026-07-03: v1.1.1 patch (撤 mmx-mcp-shim)
+- **2026-07-13: ADR-0056 立, 本文件作废, redirect 到 N-tool-search.md v1.1** (本 redirect header 写入)
