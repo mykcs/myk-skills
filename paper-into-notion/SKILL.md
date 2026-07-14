@@ -1,15 +1,16 @@
 ---
 name: paper-into-notion
 description: |
-  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 6 scripts + 4 templates + 2 references. weiying20260624 PhD 申请场景.
+  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 10 scripts + 5 templates + 3 references. weiying20260624 PhD 申请场景.
 when_to_use: |
-  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动. NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
+  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "**跨 db 搬 schema**" / "**跨 db 同步**" / "**跨 db 搬运行记录**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 (新建/扩 database property) 走 add-property.sh 独立入口. NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.0 (2026-07-14)
+  version: v2.1 (2026-07-14)
   changelog: |
+    v2.1 (2026-07-14) — 跨 Notion database 搬 schema 4 踩坑沉淀: 新增 scripts/add-property.sh (PATCH /v1/data_sources/{id} 加 property 独立可用) + templates/cross-db-migrate-payload.md (跨 db strip id 规则) + references/notion-schema-migration.md (Notion 2025 API model 速查 + 4 错误码) + 触发词 + 3 + 4 反模式表独立段
     v2.0 (2026-07-14) — description split-in-two + 触发词扩 15+ + 6 字段 → 8 字段 schema 文档 + frontmatter audit 4 字段全过
     v1.8 (2026-07-13) — 亮点 --highlight user override (claudecode 翻译)
     v1.7 (2026-07-13) — --knowledge user override + 状态 status type 修
@@ -20,14 +21,14 @@ metadata:
     v1.2 (2026-07-13) — education-type-judge + 新 page 才填教育类型
     v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
-  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级为 v2.0
-  关联 ADR: ADR-0057
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-20260714
+  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级), 2026-07-14 v2.1 (跨 db 搬 schema 协议)
+  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714
   关联 skill: weekly-report-phd (ntn CLI) / teacher-report (paper card) / auto-feishu-digest (3 scripts 风格)
   适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
 ---
 
-# paper-into-notion v1.0
+# paper-into-notion v2.1
 
 > **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/知识点) 永不覆盖已有值 ✅
 > **触发**: user 说 "paper 进 Notion" / "Notion 沉淀" / "把这个 paper 加到 Notion" / "写论文卡片" 时跑
@@ -246,6 +247,19 @@ print(entry.find('atom:title', ns).text.strip())
 | 4 | **没 record_id 就算完成** | §C.2 deferred theater | 必须 ntn create 返 id + url |
 | 5 | **跳过 verify agent** | 自检不可信 | spawn agent 跑 multi_select 保护 grader |
 | 6 | **写 fallback 偷懒** (per Q4) | arXiv 失败留空 title 或写 fallback record | **重试 3 次 + 报错 + 不写 fallback** (per Q4 自修复) |
+
+---
+
+## 4 反模式 (跨 db 搬 schema 专属, v2.1 新增)
+
+> 起源: CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714, 4 真实踩坑
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 7 | **信任 docs "Notion API 不支持 add property"** (stale 知识) | 2025-09 API release 后 PATCH /v1/data_sources/{id} 加 property 实际支持 | **先试** PATCH, 失败再走 kimi-webbridge / UI |
+| 8 | **跨 db 搬 multi_select / select / status option 复制 source id** | Notion 校验 `input id must = target existing id` | payload 永远 strip id 只留 `name` (per `templates/cross-db-migrate-payload.md` §2) |
+| 9 | **PATCH data source `title` 想改 property name** | data source title ≠ property name, API 无 PATCH name endpoint | 接受 1 字段差异 / UI 改 property name |
+| 10 | **workspace-level database 硬试 archive / delete** | Notion API 限制, 必 UI 操作 | 立即 AskUserQuestion 让 user UI 删, 不硬试 N 次 |
 
 ---
 
