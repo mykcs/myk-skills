@@ -9,11 +9,24 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
 
-# 13 教育类型白名单 (per Notion schema 2026-07-14, 跟飞书 1:1 加 Notion 原有)
+# 13 教育类型白名单 (per Notion schema 2026-07-14, 跟飞书 1:1)
+# 顺序按飞书实际使用频率排 (高 → 低), 第一个命中胜出
+# 关键: PR 放后面 (因为英文 "PRecise"/"aPPRoach"/"pRoceed" 误命中)
+# 关键: \b 边界匹配, 避免 "experimental" 命中 "实验" 短词
 WHITELIST=(
-  教授 课 基础知识 手把手实现 入门扫盲
-  讲座讨论 PR 综述 实验 meeting insight
-  论文阅读 项目
+  论文阅读
+  实验
+  综述
+  讲座讨论
+  入门扫盲
+  手把手实现
+  基础知识
+  课
+  项目
+  meeting
+  insight
+  教授
+  PR
 )
 
 # --verify 子命令
@@ -79,11 +92,13 @@ if [ -n "$LLM_OUTPUT" ]; then
   fi
 fi
 
-# Fallback: 关键词匹配
+# Fallback: 关键词匹配 (按 WHITELIST 顺序, 第一个命中胜出)
+# 用 \b 词边界 + extended regex 避免英文子串误命中
 if [ ${#TAGS[@]} -eq 0 ]; then
-  echo "⚠️ LLM judge fallback → 关键词匹配" >&2
+  echo "⚠️ LLM judge fallback → 关键词匹配 (按 WHITELIST 频率, 词边界)" >&2
   for w in "${WHITELIST[@]}"; do
-    if echo "$ABSTRACT_TRIM" | grep -qi "$w"; then
+    # -w 词边界 (避免 "PRecise" 命中 PR, "experimental" 命中 实验)
+    if echo "$ABSTRACT_TRIM" | grep -qwE "$w"; then
       TAGS+=("$w")
       [ ${#TAGS[@]} -ge 2 ] && break
     fi
