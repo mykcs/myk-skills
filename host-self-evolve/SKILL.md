@@ -229,6 +229,59 @@ metadata:
 
 **联动**: §20 8 步管道 (per ADR-0055) + §C.3.1 worktree + §C.3.2 PR auto-merge + post-pr-merge-ff-verify hook + §H 5 字段自检 + ADR-0056 + CASE-N-TOOL-DRIFT-CLEANUP-20260713
 
+## 🔍 N-tool 协议位 audit 子任务 (per ADR-0056 + user 2026-07-13 拍板, 2026-07-13 立)
+
+> **触发**: user 原话 "把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议, 就是我规定的 N 重网络搜索工具协议". claudecode 跑 host-self-evolve 时, **必**跑本子任务审计.
+>
+> **目的**: 自动检测协议位字面散落, 防止 SSOT 收口后子协议位 drift (N-tool v1.1 收口时漏清 6 P0 字面散落, 本子任务立条).
+>
+> **协议位**: 主 SSOT = `~/.claude/rules/protocols/N-tool-search.md` v1.1 (N 当前 = 6 = MiniMax + kimi-webbridge + anysearch + WebFetch + exa + mmx). claudecode 必跑 4 维 audit, 命中 drift 走 §20 8 步管道 + 立 ADR (整数 slot).
+
+### 4 维 audit 协议 (per ADR-0056 §1.1)
+
+| # | 维度 | 跑法 | 期望命中 |
+|---|------|------|---------|
+| 1 | **主仓 grep** | `grep -rE "5-tool\|5-tool-search" ~/.claude/{rules,protocols,memory,docs,knowledge/cases,decision-stream}/` | 0 命中 (字面) + 历史段除外 |
+| 2 | **子仓 grep** | `grep -rE "5-tool\|5-tool-search" ~/.agents/skills/*/SKILL.md ~/.agents/skills/*/references/` | 0 命中 (字面) |
+| 3 | **active 仓 grep** | `grep -rE "5-tool\|5-tool-search" ~/Repo/webs/{active,academic}/` | 0 命中 (跟 N-tool 无关) |
+| 4 | **N-tool pointer verify** | `grep -rE "N-tool-search\.md" ~/.claude/rules/` + `~/.claude/rules/protocols/N-tool-search.md` 存在 | ≥ 1 (主 SSOT 必存) |
+
+### 判定分支
+
+| 命中 | 严重度 | 修法 |
+|------|-------|------|
+| 主仓/子仓 5-tool 字面 + 协议位段落 | 🔴 P0 | 走 §20 8 步管道 + 立 ADR (整数 slot) |
+| 主仓/子仓 5-tool 字面 + changelog/历史段 | ⚪ P2 | 不动 (历史演进证据) |
+| 主仓/子仓 5-tool 字面 + 反模式段落 | ⚪ P2 | 不动 (反模式说明) |
+| 副 SSOT 整篇 v2.9 协议位 | 🔴 P0 | 整篇 redirect → N-tool-search.md v1.1 |
+| 协议位列 < 6 工具 (漏 mmx) | 🔴 P0 | 1 行补 mmx → 完整协议位 |
+| N-tool-search.md 不存在 | 🔴 P0 | 立即 git restore (丢失主 SSOT) |
+
+### 5 IF...THEN 触发规则
+
+1. **IF** user 触发 host-self-evolve **THEN** 本子任务必跑 (per v3.2.3 硬约束)
+2. **IF** 4 维 audit 命中 P0 字面散落 **THEN** 立新 ADR (整数 slot 不抢 sub-slot, per ADR-0027 v1.1)
+3. **IF** 命中 P0 ≥ 1 file **THEN** 走 §20 8 步管道 (6 件套 grep → AskUserQuestion → worktree → 改 N file → commit + push + PR → gh pr merge + ff verify + cleanup → 5 字段自检, per ADR-0055)
+4. **IF** 命中副 SSOT **THEN** 整篇 redirect (不只改 1 行)
+5. **IF** N-tool-search.md 缺失 **THEN** git restore + 立 ADR 立条 (per ADR-0037 散落审计)
+
+### 6 协议级反模式 (永久失效)
+
+1. ❌ 跑 host-self-evolve 不跑 N-tool audit 子任务 = 字面 drift 漏检
+2. ❌ 命中 5-tool 字面残留但没走 §20 8 步管道 = 违反 ADR-0055/0056
+3. ❌ 副 SSOT 只改 1 行不整篇 redirect = 残留误导
+4. ❌ audit grep 只看主仓不看子仓/active 仓 = 跨仓协议位分裂
+5. ❌ 命中 P0 不立 ADR 直接 commit = 跳 ADR-0027 v1.1 整数 slot 优先
+6. ❌ N-tool 协议位扩展 (加 N+1 工具) 不跑 audit = 字面散落源头
+
+### 联动
+
+- ADR-0056 (本子任务起源 ADR, 整数 slot 0056)
+- CASE-N-TOOL-DRIFT-CLEANUP-20260713 (本子任务起源 case)
+- §20 8 步管道 (per ADR-0055) — 命中 P0 必走
+- SSOT = `~/.claude/rules/protocols/N-tool-search.md` v1.1 (主权威)
+- 副 SSOT (已作废) = `process-section-F-force-all-search.md` + 子仓 `force-all-search-protocol.md` (redirect)
+
 ## 触发方式 (中英文, 12 词)
 
 | 中文 | 英文 |
