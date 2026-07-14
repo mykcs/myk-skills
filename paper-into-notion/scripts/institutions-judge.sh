@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # institutions-judge.sh — abstract+authors → 机构 multi_select (per ADR-0057 v3.1)
 # 用法: bash institutions-judge.sh <ABSTRACT_TEXT> [<AUTHORS_LINE>]
-# 输出: JSON 数组字符串 (e.g. ["SZU"] 或 ["SZU","PolyU"] 或 [])
-# 写字段: Notion 机构 multi_select (SZU/PolyU 2 个 options per db schema, v2.7 实测)
+# 输出: JSON 数组字符串 (e.g. ["SZU"] 或 ["SZU","PolyU"] 或 ["其他机构"])
+# 写字段: Notion 机构 multi_select (per db schema v3.2 实测 2026-07-14)
+#   whitelist: Anthropic / SZU / PolyU / 其他机构 (4 options)
+#   - 前 3 个 LLM/邮箱判, 命中精确 (Anthropic/SZU/PolyU)
+#   - LLM 判出机构但不在 whitelist → 标 "其他机构" (避免丢 paper)
+#   - LLM 判空 → []
 # 跟 v1.4 multi_select 保护 grader 协同: PATCH 时 body 只在 机构字段为空时才传 (per v3.0 空才填)
+# 跟 db schema 同步: 必须先 PATCH /v1/data_sources/{id} 写完整 options list
+#   (否则 Notion API 400: option name "X" not found in target data source)
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,8 +41,11 @@ ABSTRACT_TRIM=$(echo "$ABSTRACT" | head -c 1500)
 # Layer 1: email 域名 grep (强信号, 优先) — 不调用 mmx, 立即快
 INSTITUTIONS=""
 if [ -n "$AUTHORS" ]; then
+  if echo "$AUTHORS" | grep -qiE 'anthropic\.com|anthropic\b' 2>/dev/null; then
+    INSTITUTIONS="Anthropic"
+  fi
   if echo "$AUTHORS" | grep -qiE 'szu\.edu\.cn|szu\.edu\b|szu\b|sou\.edu|szu\.edu\.hk|南方医科大学|深圳大学|southern university' 2>/dev/null; then
-    INSTITUTIONS="SZU"
+    INSTITUTIONS="${INSTITUTIONS:+$INSTITUTIONS,}SZU"
   fi
   if echo "$AUTHORS" | grep -qiE 'polyu\.edu\.hk|polyu\.edu\b|polyu\b|理大|香港理工大学|hong kong polytechnic' 2>/dev/null; then
     INSTITUTIONS="${INSTITUTIONS:+$INSTITUTIONS,}PolyU"
@@ -46,12 +55,17 @@ fi
 # Layer 2: LLM 判 (机构隶属 + 邮箱 fallback)
 if [ -z "$INSTITUTIONS" ]; then
   PROMPT=$(cat <<EOF
-You are a research institution classifier. Read this paper abstract + author list and return ONLY the institutions (深圳大学 = SZU, 香港理工大学 = PolyU, 都不是 = empty).
+You are a research institution classifier. Read this paper abstract + author list and return ONLY the institutions.
 
 Output strict JSON format, no markdown, no comments:
-{"institutions": ["SZU"]} or {"institutions": ["SZU","PolyU"]} or {"institutions": []}
+{"institutions": ["SZU"]} or {"institutions": ["SZU","PolyU"]} or {"institutions": ["Anthropic"]} or {"institutions": ["其他机构"]} or {"institutions": []}
 
-Decide based on author affiliations/affiliation emails. szu.edu.cn / szu.edu / szu → SZU; polyu.edu.hk / polyu → PolyU.
+Decide based on author affiliations/affiliation emails:
+- szu.edu.cn / szu.edu / szu → SZU (深圳大学)
+- polyu.edu.hk / polyu → PolyU (香港理工大学)
+- anthropic.com → Anthropic
+- 其他任何机构 (Google / Meta / Stanford / Princeton / SakanaAI / MIT / ETH / DeepMind / ...) → "其他机构"
+- 都不是 (e.g. 没有作者邮箱) → []
 
 Abstract:
 $ABSTRACT_TRIM
@@ -86,15 +100,21 @@ text = sys.stdin.read().strip()
 try:
     d = json.loads(text)
     if isinstance(d, dict) and 'institutions' in d:
-        inst = [i for i in d['institutions'] if i in ('SZU','PolyU')]
+        VALID = {'Anthropic','SZU','PolyU','其他机构'}
+        inst = [i for i in d['institutions'] if i in VALID]
+        # v3.2: 接受 其他机构 fallback (paper 不在前 3 个 whitelist 但 LLM 判定有机构)
         if inst:
             print(','.join(inst))
         raise SystemExit(0)
 except: pass
-# fallback: 在 text 里 grep 'SZU' / 'PolyU'
+# fallback: 在 text 里 grep 'SZU' / 'PolyU' / 'Anthropic' / '其他机构'
 out = []
+if re.search(r'\bAnthropic\b', text): out.append('Anthropic')
 if re.search(r'\bSZU\b', text): out.append('SZU')
 if re.search(r'\bPolyU\b', text): out.append('PolyU')
+# text fallback 命中任一关键词 (机构相关) → 其他机构 fallback
+if out and '其他机构' not in out and 'SZU' not in out and 'PolyU' not in out and 'Anthropic' not in out:
+    out.append('其他机构')
 print(','.join(out))
 " 2>/dev/null || echo "")
     if [ -n "$PARSED" ]; then
@@ -112,7 +132,8 @@ inner = text.strip('[]').strip()
 if not inner:
     print('[]')
 else:
+    VALID = {'Anthropic','SZU','PolyU','其他机构'}
     items = [x.strip().strip('\"').strip(\"'\") for x in inner.split(',') if x.strip()]
-    valid = [x for x in items if x in ('SZU', 'PolyU')]
+    valid = [x for x in items if x in VALID]
     print(json.dumps(valid, ensure_ascii=False))
 "
