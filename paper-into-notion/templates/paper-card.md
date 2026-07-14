@@ -16,7 +16,7 @@
 - **Citation**: [N] (Google Scholar 截至 [date])
 - **My Take**: [1 句个人评价, ≤ 50 字]
 - **Status**: [未读 / 精读 / 笔记完成] (per Notion `状态` 字段)
-- **Tags**: [教育类型] / [知识点] / [标签] (per Notion multi_select, 后填)
+- **Tags**: [教育类型] / [关键词] / [标签] (per Notion multi_select, 后填)
 ```
 
 ---
@@ -49,9 +49,9 @@
 | Title | ✅ | 页面 (title) |
 | arXiv ID + date | ❌ | (放 My Take 或 Notes) |
 | Authors | ❌ | (Notion schema 暂不支持, 后填) |
-| Taxonomy | ❌ | (放 multi_select 知识点) |
+| Taxonomy | ❌ | (放 multi_select 关键词) |
 | TL;DR / Method / Result | ❌ | (放 rich_text 亮点, 后填) |
 | Code / Citation / My Take | ❌ | (放 rich_text 亮点) |
 | Status | ✅ | 状态 (select) — 固定 "未开始" |
 | 模态类型 | ✅ | 模态类型 (select) |
-| 多选字段 | ❌ | 教育类型 / 知识点 / 标签 (后填) |
+| 多选字段 | ❌ | 教育类型 / 关键词 / 标签 (后填) |

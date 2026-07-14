@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# knowledge-tag-judge.sh — LLM judge 抓 abstract → 1-3 个 知识点 标签 (per ADR-0057 v1.1)
+# knowledge-tag-judge.sh — LLM judge 抓 abstract → 1-3 个 关键词 标签 (per ADR-0057 v1.1)
 # 用法: bash knowledge-tag-judge.sh <ABSTRACT_TEXT>
 #       bash knowledge-tag-judge.sh --verify
 # 输出: JSON 数组 ["llm", "Transformer", "attention"] (1-3 个标签, 只用 40 选项里的)
@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
 
-# 40 知识点白名单 (per Notion schema 2026-07-13, 跟飞书 1:1)
+# 40 关键词白名单 (per Notion schema 2026-07-13, 跟飞书 1:1)
 WHITELIST=(
   llm cv 科研认知 表征学习 分割 fcn Transformer cuda mamba
   科研基本功 医学图像 attention 深度学习 nlp 机器学习 服务器

@@ -55,7 +55,7 @@ echo "data source id: $DS_ID"
 | 日期 | date | 日期 | date | `{"date": <value>}` 或 `{"date": null}` |
 | 模态类型 | select | 模态类型 | select | **strip id, 只留 name** |
 | 状态 | status | 状态 | status | **strip id, 只留 name** |
-| 知识点 | multi_select | 知识点 | multi_select | **strip id, 只留 name** |
+| 关键词 | multi_select | 关键词 | multi_select | **strip id, 只留 name** |
 | 地点 | place | (target 通常无) | — | 跳过 |
 
 ## §2. strip id 规则 (跨 db 必走, 永久生效)
@@ -102,7 +102,7 @@ def to_payload(props_src, target_title_field='名称'):
     sta = props_src['状态'].get('status')
     out['状态'] = {'status': {'name': sta['name']} if sta else {'name': '未开始'}}
     # multi_select: strip id
-    out['知识点'] = {'multi_select': [{'name': x['name']} for x in props_src['知识点']['multi_select']]}
+    out['关键词'] = {'multi_select': [{'name': x['name']} for x in props_src['关键词']['multi_select']]}
     return out
 
 # 用法
@@ -128,7 +128,7 @@ for tr in tgt['results']:
                if r['properties']['页面']['title'][0]['plain_text'] == title), None)
     if not sr: continue
     sp = sr['properties']
-    # 7 字段比对 (link / 亮点 / 教育类型 / 日期 / 模态类型 / 状态 / 知识点)
+    # 7 字段比对 (link / 亮点 / 教育类型 / 日期 / 模态类型 / 状态 / 关键词)
     checks = {
         'link': (sp['link'].get('url'), tp['link'].get('url')),
         '亮点': (''.join(x['plain_text'] for x in sp['亮点']['rich_text']),
@@ -140,8 +140,8 @@ for tr in tgt['results']:
                    tp['模态类型'].get('select', {}).get('name') if tp['模态类型'].get('select') else None),
         '状态': (sp['状态'].get('status', {}).get('name') if sp['状态'].get('status') else None,
                 tp['状态'].get('status', {}).get('name') if tp['状态'].get('status') else None),
-        '知识点': (sorted(x['name'] for x in sp['知识点']['multi_select']),
-                  sorted(x['name'] for x in tp['知识点']['multi_select'])),
+        '关键词': (sorted(x['name'] for x in sp['关键词']['multi_select']),
+                  sorted(x['name'] for x in tp['关键词']['multi_select'])),
     }
     pass_n = sum(1 for k, (s, t) in checks.items() if s == t)
     print(f'{title}: {pass_n}/7 {"✅" if pass_n == 7 else "❌"}')
@@ -178,7 +178,7 @@ for spec in \
   '日期|date|' \
   '模态类型|select|[{"name":"arXiv","color":"blue"},{"name":"微信公众号","color":"green"},{"name":"博客","color":"purple"},{"name":"Twitter","color":"default"},{"name":"其他","color":"gray"}]' \
   '状态|status|[{"name":"未开始","color":"default"},{"name":"进行中","color":"blue"},{"name":"已完成","color":"green"}]' \
-  '知识点|multi_select|[{"name":"llm","color":"blue"},{"name":"超声心动","color":"pink"},{"name":"线性注意力","color":"purple"}]'
+  '关键词|multi_select|[{"name":"llm","color":"blue"},{"name":"超声心动","color":"pink"},{"name":"线性注意力","color":"purple"}]'
 do
   IFS='|' read -r NAME TYPE OPTS <<< "$spec"
   bash scripts/add-property.sh "$DS" "$NAME" "$TYPE" "$OPTS"

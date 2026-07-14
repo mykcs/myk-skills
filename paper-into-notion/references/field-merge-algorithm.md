@@ -1,6 +1,6 @@
 # field-merge-algorithm.md — 字段级 merge 算法详解
 
-> **核心铁律**: PATCH body **永远不包含** `教育类型 / 标签 / 知识点` (multi_select) + `亮点` (rich_text) + `上次编辑时间` (Notion auto)
+> **核心铁律**: PATCH body **永远不包含** `教育类型 / 标签 / 关键词` (multi_select) + `亮点` (rich_text) + `上次编辑时间` (Notion auto)
 > **目的**: 保护 Notion 已有 page 的 multi_select 值不被 PATCH 覆盖
 
 ---
@@ -23,7 +23,7 @@
 # 假设 page 已有:
 教育类型 = ["论文阅读"]
 标签 = ["入门引导"]
-知识点 = ["llm"]
+关键词 = ["llm"]
 
 # 错误做法: 想"增量更新", PATCH 传 ["论文阅读"]
 PATCH /v1/pages/$PAGE_ID
@@ -107,7 +107,7 @@ PATCH_BODY='{
 ```
 
 **核心铁律**:
-- body 永远不含 `教育类型 / 标签 / 知识点` (multi_select)
+- body 永远不含 `教育类型 / 标签 / 关键词` (multi_select)
 - body 永远不含 `亮点` (rich_text, 你后填)
 - body 永远不含 `上次编辑时间` (Notion auto, 422 error)
 
@@ -135,7 +135,7 @@ MODAL=$(echo "$PAGE" | jq -r '.properties["模态类型"].select.name')
 # 2. multi_select 保护 (per 核心铁律)
 EDU=$(echo "$PAGE" | jq -r '.properties["教育类型"].multi_select | length')
 TAG=$(echo "$PAGE" | jq -r '.properties["标签"].multi_select | length')
-KNOW=$(echo "$PAGE" | jq -r '.properties["知识点"].multi_select | length')
+KNOW=$(echo "$PAGE" | jq -r '.properties["关键词"].multi_select | length')
 
 # 新建 page: EDU=TAG=KNOW=0
 # 更新 page: EDU/TAG/KNOW = PATCH 前的值 (没变)

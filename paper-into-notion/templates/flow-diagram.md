@@ -38,7 +38,7 @@
 │     │   ⚠️ body 永远不含:                            │
 │     │     教育类型 (multi_select)                     │
 │     │     标签 (multi_select)                         │
-│     │     知识点 (multi_select)                       │
+│     │     关键词 (multi_select)                       │
 │     │     亮点 (rich_text)                            │
 │     │     上次编辑时间 (Notion auto, 不能 PATCH)      │
 │     │                                                 │
@@ -54,7 +54,7 @@
 │     ├─ [2/5] 状态 (select=未开始) ✅                   │
 │     ├─ [3/5] 模态类型 (select=arXiv) ✅                │
 │     ├─ [4/5] multi_select 保护:                       │
-│     │       教育类型 / 标签 / 知识点                  │
+│     │       教育类型 / 标签 / 关键词                  │
 │     │       新建 = 0 项 / 更新 = 保留原值             │
 │     │       ⚠️ 任何 > 0 表示 PATCH 覆盖了 → ❌         │
 │     └─ [5/5] 上次编辑时间 (Notion auto) ✅             │

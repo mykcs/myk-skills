@@ -59,7 +59,7 @@ for spec in \
   '日期|date|' \
   '模态类型|select|[{"name":"arXiv","color":"blue"},{"name":"微信公众号","color":"green"},{"name":"博客","color":"purple"},{"name":"Twitter","color":"default"},{"name":"其他","color":"gray"}]' \
   '状态|status|[{"name":"未开始","color":"default"},{"name":"进行中","color":"blue"},{"name":"已完成","color":"green"}]' \
-  '知识点|multi_select|[{"name":"llm","color":"blue"},{"name":"超声心动","color":"pink"},{"name":"线性注意力","color":"purple"}]'
+  '关键词|multi_select|[{"name":"llm","color":"blue"},{"name":"超声心动","color":"pink"},{"name":"线性注意力","color":"purple"}]'
 do
   IFS='|' read -r NAME TYPE OPTS <<< "$spec"
   bash scripts/add-property.sh "$DS" "$NAME" "$TYPE" "$OPTS"

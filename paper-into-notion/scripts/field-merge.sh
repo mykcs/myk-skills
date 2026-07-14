@@ -7,7 +7,7 @@
 #     bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT> [INSTITUTIONS_JSON]
 # 输出: ntn POST/PATCH 返的 page JSON {id, url, ...}
 # v3.1 增量: INSTITUTIONS (第 7 参数) 写 机构 multi_select (SZU/PolyU); v3.0 空才填协同
-# 铁律 (per ADR-0057 v1.4, schema 8 字段: 页面/状态/平台/link/亮点/知识点/展现形式/机构):
+# 铁律 (per ADR-0057 v1.4, schema 8 字段: 页面/状态/平台/link/亮点/关键词/展现形式/机构):
 #   - 默认: 新 page POST body 含 全 8 auto 字段 (link 自动填 URL); 已有 page PATCH body GET 判空 + LLM 字段空才填
 #   - --force: 已有 page PATCH body 含 全 8 字段 (覆盖模式)
 #   - 上次编辑时间: Notion auto, 不传
@@ -37,6 +37,7 @@ LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
 ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
 MODAL_PROP="${NOTION_MODAL_PROPERTY:-${MODAL_PROP:-平台}}"
 FORM_PROP="${NOTION_FORM_PROPERTY:-${FORM_PROP:-展现形式}}"
+KEYWORD_PROP="${NOTION_KEYWORD_PROPERTY:-${KEYWORD_PROP:-关键词}}"   # v3.6: 旧 知识点 改名
 
 # 解析 --force flag
 FORCE=false
@@ -92,7 +93,7 @@ try:
 except: pass
 ")
     if [ -n "$KNOWLEDGE_NAMES" ]; then
-      KNOWLEDGE_PROP=",\"知识点\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
+      KNOWLEDGE_PROP=",\"${KEYWORD_PROP}\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
     fi
   fi
 
@@ -186,7 +187,7 @@ QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/$DS_ID/query" -d "$QUERY_
 COUNT=$(echo "$QUERY_RESULT" | jq '.results | length' 2>/dev/null || echo "0")
 
 if [ "$COUNT" = "0" ]; then
-  echo "→ POST 新 page (含 8 字段: 3 auto + link + 知识点 + 展现形式 + 亮点 + 机构)" >&2
+  echo "→ POST 新 page (含 8 字段: 3 auto + link + 关键词 + 展现形式 + 亮点 + 机构)" >&2
   AUTO_PROPS=$(build_auto_props "$SOURCE_URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
   POST_BODY=$(cat <<EOF
 {
@@ -231,7 +232,7 @@ try:
 except: pass
 ")
     if [ -n "$KNOWLEDGE_NAMES" ]; then
-      PATCH_LLM_PROPS+=",\"知识点\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
+      PATCH_LLM_PROPS+=",\"${KEYWORD_PROP}\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
     fi
   fi
   if [ -n "$EDUCATION_TAGS" ] && [ "$EDUCATION_TAGS" != "[]" ] && [ "$EDUCATION_EMPTY" = "true" ]; then
@@ -284,7 +285,7 @@ except: pass
 }
 EOF
 )
-  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|知识点|'"${FORM_PROP:-展现形式}"'|亮点|'"${ORG_PROP:-机构}"')"' | wc -l | tr -d ' ')
+  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|'"${KEYWORD_PROP:-关键词}"'|'"${FORM_PROP:-展现形式}"'|亮点|'"${ORG_PROP:-机构}"')"' | wc -l | tr -d ' ')
   echo "    [v3.1] 字段空判定: link=$LINK_EMPTY knowledge=$KNOWLEDGE_EMPTY education=$EDUCATION_EMPTY highlights=$HIGHLIGHTS_EMPTY org=$ORG_EMPTY" >&2
   echo "    [v3.0] 本次 fill-empty 实际填 $FILLED_COUNT LLM 字段 (非空保留)" >&2
   ntn api --method PATCH "/v1/pages/$EXISTING_PAGE_ID" -d "$PATCH_BODY"

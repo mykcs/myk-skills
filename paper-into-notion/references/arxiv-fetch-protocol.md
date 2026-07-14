@@ -123,7 +123,7 @@ ID=$(echo "$URL" | grep -oE '[0-9]{4}\.[0-9]{4,5}' | head -1)
 | `<author>` × N | (Notion schema 暂不支持, 后填) | ❌ |
 | `<summary>` | (放 rich_text 亮点) | ❌ 后填 |
 | `<published>` | (放 paper card "date") | ❌ 后填 |
-| `<category>` | (放 multi_select 知识点) | ❌ 后填 |
+| `<category>` | (放 multi_select 关键词) | ❌ 后填 |
 | `<link rel="alternate">` | (放 paper card "Code/Link") | ❌ 后填 |
 
 **paper-into-notion skill 只填 Notion 3 auto 字段** (页面 / 状态 / 模态类型), 其他 arXiv 信息由 user 在 Notion UI 后填, 或由 weekly-report-phd skill 输出 paper card.

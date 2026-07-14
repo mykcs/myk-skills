@@ -47,7 +47,7 @@ GET /v1/data_sources/$DS_ID/query → 找到 <N> 条 page
 ✅ 模态类型 (select): arXiv
 ✅ 教育类型 (multi_select): 0 项 (新建 page 全空, 符合预期)
 ✅ 标签 (multi_select): 0 项
-✅ 知识点 (multi_select): 0 项
+✅ 关键词 (multi_select): 0 项
 ✅ 上次编辑时间 (auto): 2026-07-13T18:30:00.000Z
 ```
 

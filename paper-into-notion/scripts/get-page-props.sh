@@ -39,6 +39,7 @@ title_prop = os.environ.get("NOTION_TITLE_PROPERTY") or os.environ.get("TITLE_PR
 modal_prop = os.environ.get("NOTION_MODAL_PROPERTY") or os.environ.get("MODAL_PROP") or "平台"
 form_prop = os.environ.get("NOTION_FORM_PROPERTY") or os.environ.get("FORM_PROP") or "展现形式"
 org_prop = os.environ.get("NOTION_ORG_PROPERTY") or os.environ.get("ORG_PROP") or "机构"
+keyword_prop = os.environ.get("NOTION_KEYWORD_PROPERTY") or os.environ.get("KEYWORD_PROP") or "关键词"  # v3.6: 旧 知识点 改名
 
 print(f"title={'empty' if is_empty(props.get(title_prop)) else 'filled'}")
 status_prop = props.get("状态")
@@ -48,8 +49,8 @@ print(f"modal={'empty' if is_empty(props.get(modal_prop)) else 'filled'}")
 # link url 字段: db 实际有但 v2.5 之前 schema 漏
 print(f"link={'empty' if is_empty(props.get('link')) else 'filled'}")
 
-# 4 LLM judge 字段: 知识点 / 展现形式(=教育类型) / 亮点 / 机构 (v3.1 新增)
-print(f"knowledge={'empty' if is_empty(props.get('知识点')) else 'filled'}")
+# 4 LLM judge 字段: 关键词 / 展现形式(=教育类型) / 亮点 / 机构 (v3.1 新增, v3.6 知识点→关键词)
+print(f"knowledge={'empty' if is_empty(props.get(keyword_prop)) else 'filled'}")
 print(f"education={'empty' if is_empty(props.get(form_prop)) else 'filled'}")
 print(f"highlights={'empty' if is_empty(props.get('亮点')) else 'filled'}")
 print(f"org={'empty' if is_empty(props.get(org_prop)) else 'filled'}")
