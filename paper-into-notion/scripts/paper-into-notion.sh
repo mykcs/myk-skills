@@ -50,8 +50,8 @@ if [ "${1:-}" = "--verify" ]; then
   else
     echo "    [6] ⚠️ arXiv API 不可达 (rate limit 可能, retry)"
   fi
-  echo "    [7] ✅ 4 个 judge 脚本 (knowledge / education / notes / highlights)"
-  for j in knowledge-tag-judge education-type-judge notes-tldr highlights-judge; do
+  echo "    [7] ✅ 5 个 judge 脚本 (knowledge / growth(v3.7) / notes / highlights / institutions)"
+  for j in knowledge-tag-judge knowledge-growth-judge notes-tldr highlights-judge institutions-judge; do
     bash "$SCRIPT_DIR/${j}.sh" --verify >/dev/null 2>&1 && echo "      ✅ $j.sh" || echo "      ❌ $j.sh"
   done
   echo "    [8] ✅ multi_select 保护 grader (修法 1, 默认路径)"
@@ -153,15 +153,16 @@ else
   echo "[2/4] 非 arXiv 模态, 用 URL 作 fallback title"
 fi
 
-# === 2.5 LLM judge 4 字段 (per ADR-0057 v3.1, schema 8 字段: 页面/状态/平台/link/亮点/关键词/展现形式/机构) ===
+# === 2.5 LLM judge 5 字段 (v3.7 加 growth 知识等级形态) ===
 KNOWLEDGE_TAGS="[]"
-EDUCATION_TAGS="[]"
+GROWTH_TAGS="[]"
 HIGHLIGHTS=""
 INSTITUTIONS="[]"
 if [ -n "$ABSTRACT" ]; then
-  echo "[2.5/4] LLM judge 4 字段..."
-  EDUCATION_TAGS=$(bash "$SCRIPT_DIR/education-type-judge.sh" "$ABSTRACT")
-  echo "    ✅ 教育类型: $EDUCATION_TAGS"
+  echo "[2.5/4] LLM judge 5 字段..."
+  # v3.7: knowledge-growth-judge (multi_select 6 判据 1-2 项)
+  GROWTH_TAGS=$(bash "$SCRIPT_DIR/knowledge-growth-judge.sh" "$ABSTRACT")
+  echo "    ✅ 知识等级形态: $GROWTH_TAGS"
   # 亮点: user override (claudecode 翻译) > LLM judge (v1.8)
   if [ -n "$USER_HIGHLIGHT" ]; then
     HIGHLIGHTS="$USER_HIGHLIGHT"
@@ -205,9 +206,9 @@ if [ "$FORCE_FILL" = "true" ]; then
     EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id // empty')
     if [ -z "$EXISTING_PAGE_ID" ]; then
       echo "❌ --force-fill 模式: 没找到 page '$TITLE', 改用默认模式" >&2
-      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
+      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS" "$GROWTH_TAGS")
     else
-      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" --force "$EXISTING_PAGE_ID" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
+      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" --force "$EXISTING_PAGE_ID" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS" "$GROWTH_TAGS")
     fi
   fi
 else
@@ -218,9 +219,11 @@ else
     echo "[DRY-RUN]   title: $TITLE"
     echo "[DRY-RUN]   modal: $MODAL"
     echo "[DRY-RUN]   source_url: $URL"
+    echo "[DRY-RUN]   knowledge: $KNOWLEDGE_TAGS"
+    echo "[DRY-RUN]   growth (v3.7 新): $GROWTH_TAGS"
     RECORD='{"id":"DRY-RUN-PAGE-ID","url":"https://app.notion.com/p/DRY-RUN"}'
   else
-    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
+    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS" "$GROWTH_TAGS")
   fi
 fi
 

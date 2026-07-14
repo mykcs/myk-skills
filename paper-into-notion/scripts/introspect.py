@@ -38,18 +38,14 @@ def parse_schema(schema: dict) -> dict:
             if opts:
                 out["STATUS_DEFAULT"] = opts[0].get("name", "未开始")
             break
-    # Select: 模态类型 (arXiv / 公众号 / etc)
-    out["MODAL_PROP"] = next(
-        (k for k, v in props.items() if v.get("type") == "select"), "平台"
-    )
-    # Select: 展现形式/教育类型 (form)
-    out["FORM_PROP"] = next(
-        (
-            k for k, v in props.items()
-            if v.get("type") == "select" and k != out["MODAL_PROP"]
-        ),
-        "展现形式",
-    )
+    # Select: 模态类型 (跳过 name 含 "形式" 的字段, 避免撞 "展现形式" 留壳或 "平台形式")
+    select_props = [(k, v) for k, v in props.items() if v.get("type") == "select" and "形式" not in k]
+    out["MODAL_PROP"] = next((k for k, _ in select_props if "平台" in k or "模态" in k), next((k for k, _ in select_props), "平台"))
+    # v3.7: FORM_PROP 弃用 (旧 展现形式 select 已 user UI 删)
+    # v3.7: KB_GROWTH_PROP auto-detect 唯一 multi_select (name 含 知识/形态)
+    multi_select_props = [k for k, v in props.items() if v.get("type") == "multi_select"]
+    kb_growth = next((k for k in multi_select_props if "知识" in k or "形态" in k), None)
+    out["KNOWLEDGE_GROWTH_PROP"] = kb_growth or (multi_select_props[0] if multi_select_props else "知识等级形态")
     return out
 
 
