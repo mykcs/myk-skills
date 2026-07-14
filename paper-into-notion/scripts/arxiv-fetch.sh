@@ -17,16 +17,24 @@ RATE_LIMIT="${ARXIV_RATE_LIMIT_SEC:-3}"
 RESPONSE_FILE=$(mktemp)
 trap 'rm -f "$RESPONSE_FILE"' EXIT
 
+# 错峰启动 (per arXiv TOU: 全局 1 req/3s, 跑前随机 sleep 0-10s 避开累计峰值)
+INITIAL_BACKOFF=$((RANDOM % 10))
+[ "$INITIAL_BACKOFF" -gt 0 ] && sleep "$INITIAL_BACKOFF"
+
+# 重试 3 次, 每次 backoff 5s/10s/20s (指数增长, per arXiv 限速)
+BACKOFF=5
 for i in 1 2 3; do
   if curl -fsSLG "$URL" -o "$RESPONSE_FILE" 2>/dev/null; then
     break
   fi
-  echo "retry $i/3 failed for $ARXIV_ID, sleep ${RATE_LIMIT}s..." >&2
-  sleep "$RATE_LIMIT"
+  echo "retry $i/3 failed for $ARXIV_ID, backoff ${BACKOFF}s..." >&2
+  sleep "$BACKOFF"
+  BACKOFF=$((BACKOFF * 2))
 done
 
 if [ ! -s "$RESPONSE_FILE" ]; then
-  echo "❌ arXiv 抓取失败 (3 次重试): $ARXIV_ID" >&2
+  echo "❌ arXiv 抓取失败 (3 次重试 + 指数 backoff): $ARXIV_ID" >&2
+  echo "💡 建议: wait 30s 后再跑, arXiv 全局限速 1 req/3s" >&2
   exit 1
 fi
 

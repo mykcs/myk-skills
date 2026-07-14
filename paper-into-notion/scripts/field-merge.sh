@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
-# field-merge.sh — 字段级 merge 算法 (per ADR-0057 v1.2 修法 1 扩展到教育类型)
-# 用法: bash field-merge.sh <TITLE> <MODAL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON>
+# field-merge.sh — 字段级 merge 算法 (per ADR-0057 v1.3 修法 1 扩展到 rich_text)
+# 用法: bash field-merge.sh <TITLE> <MODAL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <NOTES_TEXT> <HIGHLIGHTS_TEXT>
 # 输出: ntn POST/PATCH 返的 page JSON {id, url, ...}
-# 铁律 (per ADR-0057 v1.2):
-#   - 新 page POST body 含: 3 auto 字段 + 知识点 + 教育类型 (LLM judge 自动填)
-#   - 已有 page PATCH body 永远不含 multi_select (教育类型/标签/知识点) + rich_text (亮点)
+# 铁律 (per ADR-0057 v1.3):
+#   - 新 page POST body 含: 3 auto 字段 + 知识点 + 教育类型 + 笔记 + 亮点
+#   - 已有 page PATCH body 永远不含 multi_select (教育类型/标签/知识点) + rich_text (笔记/亮点)
 #   - 上次编辑时间: Notion auto, 不传
 
 set -euo pipefail
 TITLE="${1:-}"
 MODAL="${2:-其他}"
 KNOWLEDGE_TAGS="${3:-}"     # JSON 数组字符串, 可选
-EDUCATION_TAGS="${4:-}"     # JSON 数组字符串, 可选 (v1.2 新增)
+EDUCATION_TAGS="${4:-}"     # JSON 数组字符串, 可选 (v1.2)
+NOTES="${5:-}"               # 纯文本, 可选 (v1.3)
+HIGHLIGHTS="${6:-}"          # 纯文本, 可选 (v1.3)
 
 # 加载 .env (NOTION_DATA_SOURCE_ID + NOTION_VERSION)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,9 +48,9 @@ QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/$DS_ID/query" -d "$QUERY_
 
 COUNT=$(echo "$QUERY_RESULT" | jq '.results | length' 2>/dev/null || echo "0")
 
-# Step 2: 0 条 → POST 新 page, body 含 3 auto 字段 + 知识点 + 教育类型 (per ADR-0057 v1.2 修法 1)
+# Step 2: 0 条 → POST 新 page, body 含 3 auto 字段 + 知识点 + 教育类型 + 笔记 + 亮点 (per ADR-0057 v1.3 修法 1)
 if [ "$COUNT" = "0" ]; then
-  echo "→ POST 新 page (含 3 auto 字段 + 知识点 + 教育类型)" >&2
+  echo "→ POST 新 page (含 3 auto 字段 + 知识点 + 教育类型 + 笔记 + 亮点)" >&2
   # 构造知识点 properties 段 (可选, 来自 knowledge-tag-judge.sh)
   KNOWLEDGE_PROP=""
   if [ -n "$KNOWLEDGE_TAGS" ] && [ "$KNOWLEDGE_TAGS" != "[]" ]; then
@@ -79,13 +81,39 @@ except: pass
       EDUCATION_PROP=",\"教育类型\":{\"multi_select\":[${EDUCATION_NAMES}]}"
     fi
   fi
+  # 构造笔记 properties 段 (可选, 来自 notes-tldr.sh, v1.3 新增)
+  NOTES_PROP=""
+  if [ -n "$NOTES" ]; then
+    NOTES_JSON=$(echo "$NOTES" | python3 -c "
+import json, sys
+text = sys.stdin.read().strip()
+if text:
+    print(json.dumps([{'text': {'content': text}}], ensure_ascii=False))
+")
+    if [ -n "$NOTES_JSON" ]; then
+      NOTES_PROP=",\"笔记\":{\"rich_text\":${NOTES_JSON}}"
+    fi
+  fi
+  # 构造亮点 properties 段 (可选, 来自 highlights-judge.sh, v1.3 新增)
+  HIGHLIGHTS_PROP=""
+  if [ -n "$HIGHLIGHTS" ]; then
+    HIGHLIGHTS_JSON=$(echo "$HIGHLIGHTS" | python3 -c "
+import json, sys
+text = sys.stdin.read().strip()
+if text:
+    print(json.dumps([{'text': {'content': text}}], ensure_ascii=False))
+")
+    if [ -n "$HIGHLIGHTS_JSON" ]; then
+      HIGHLIGHTS_PROP=",\"亮点\":{\"rich_text\":${HIGHLIGHTS_JSON}}"
+    fi
+  fi
   POST_BODY=$(cat <<EOF
 {
   "parent": {"type": "data_source_id", "data_source_id": "$DS_ID"},
   "properties": {
     "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
     "状态": {"select": {"name": "未开始"}},
-    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$KNOWLEDGE_PROP$EDUCATION_PROP
+    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$KNOWLEDGE_PROP$EDUCATION_PROP$NOTES_PROP$HIGHLIGHTS_PROP
   }
 }
 EOF
