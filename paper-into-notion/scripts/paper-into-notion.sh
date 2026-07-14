@@ -127,9 +127,10 @@ fi
 MODAL=$(bash "$SCRIPT_DIR/modal-detect.sh" "$URL")
 echo "[1/4] 模态: $MODAL"
 
-# === 2. 抓 title + abstract (仅 arXiv) ===
+# === 2. 抓 title + abstract + authors (仅 arXiv) ===
 TITLE=""
 ABSTRACT=""
+AUTHORS_LINE=""
 if [ "$MODAL" = "arXiv" ]; then
   ARXIV_ID=$(echo "$URL" | grep -oE '[0-9]{4}\.[0-9]{4,5}' | head -1)
   if [ -n "$ARXIV_ID" ]; then
@@ -137,6 +138,7 @@ if [ "$MODAL" = "arXiv" ]; then
     ARXIV_JSON=$(bash "$SCRIPT_DIR/arxiv-fetch.sh" "$ARXIV_ID")
     TITLE=$(echo "$ARXIV_JSON" | jq -r '.title // empty')
     ABSTRACT=$(echo "$ARXIV_JSON" | jq -r '.abstract // empty')
+    AUTHORS_LINE=$(echo "$ARXIV_JSON" | jq -r '.authors // [] | join("; ") // empty')
     if [ -z "$TITLE" ]; then
       echo "❌ arXiv 抓取失败 (per Q4, 不写 fallback record)" >&2
       exit 1
@@ -151,12 +153,13 @@ else
   echo "[2/4] 非 arXiv 模态, 用 URL 作 fallback title"
 fi
 
-# === 2.5 LLM judge 3 字段 (per ADR-0057 v1.4, schema 8 字段: 页面/状态/模态/link/亮点/知识点/教育类型) ===
+# === 2.5 LLM judge 4 字段 (per ADR-0057 v3.1, schema 8 字段: 页面/状态/平台/link/亮点/知识点/展现形式/机构) ===
 KNOWLEDGE_TAGS="[]"
 EDUCATION_TAGS="[]"
 HIGHLIGHTS=""
+INSTITUTIONS="[]"
 if [ -n "$ABSTRACT" ]; then
-  echo "[2.5/4] LLM judge 3 字段..."
+  echo "[2.5/4] LLM judge 4 字段..."
   EDUCATION_TAGS=$(bash "$SCRIPT_DIR/education-type-judge.sh" "$ABSTRACT")
   echo "    ✅ 教育类型: $EDUCATION_TAGS"
   # 亮点: user override (claudecode 翻译) > LLM judge (v1.8)
@@ -181,6 +184,10 @@ print(json.dumps(tags, ensure_ascii=False))
     KNOWLEDGE_TAGS=$(bash "$SCRIPT_DIR/knowledge-tag-judge.sh" "$ABSTRACT")
     echo "    ✅ 知识点: $KNOWLEDGE_TAGS"
   fi
+
+  # 机构: v3.1 新增 (per user 反馈"很多字段没填"), 走 email grep + LLM fallback
+  INSTITUTIONS=$(bash "$SCRIPT_DIR/institutions-judge.sh" "$ABSTRACT" "$AUTHORS_LINE")
+  echo "    ✅ 机构: $INSTITUTIONS"
 fi
 
 # === 3. 字段级 merge ===
@@ -198,9 +205,9 @@ if [ "$FORCE_FILL" = "true" ]; then
     EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id // empty')
     if [ -z "$EXISTING_PAGE_ID" ]; then
       echo "❌ --force-fill 模式: 没找到 page '$TITLE', 改用默认模式" >&2
-      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
     else
-      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" --force "$EXISTING_PAGE_ID" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" --force "$EXISTING_PAGE_ID" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
     fi
   fi
 else
@@ -213,7 +220,7 @@ else
     echo "[DRY-RUN]   source_url: $URL"
     RECORD='{"id":"DRY-RUN-PAGE-ID","url":"https://app.notion.com/p/DRY-RUN"}'
   else
-    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
   fi
 fi
 
@@ -243,4 +250,5 @@ else
   if [ "$KNOWLEDGE_TAGS" != "[]" ]; then echo "✅ 知识点 (新 page 才填): $KNOWLEDGE_TAGS"; fi
   if [ "$EDUCATION_TAGS" != "[]" ]; then echo "✅ 教育类型 (新 page 才填): $EDUCATION_TAGS"; fi
   if [ -n "$HIGHLIGHTS" ]; then echo "✅ 亮点 (新 page 才填, ≤200 字)"; fi
+  if [ "$INSTITUTIONS" != "[]" ]; then echo "✅ 机构 (新 page 才填, v3.1): $INSTITUTIONS"; fi
 fi
