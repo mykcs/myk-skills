@@ -6,6 +6,22 @@
 
 > **历史标 (2026-07-14 ADR-0056 cleanup)**: changelog 内所有 "5-tool" / "5-tool fan-out" 字面是 pre-N-tool 时期描述 (v2.6.30-v2.6.42), 实际执行从 v3.x (host-self-evolve) 起走 N-tool fan-out (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2). 保留旧字面作版本演进证据, 不删.
 
+> **host-self-evolve v3.x changelog** (2026-07-10 立, 跟 rich-audit 拆分后独立编号): host-self-evolve 跟原 rich-audit 合并到同一 SKILL.md, 版本号 v3.x 单独走. v3.0 = host-self-evolve 改名 (重/轻词退役) + 立本体. v3.2.x = ADR-0041/0049/0050/0051/0052 落地 (Phase 1 banner / default decision / 汇报极简化). 后续 v3.2.4 起 N-tool audit 子任务扩展.
+
+    - "**v3.2.4 (2026-07-14)**: 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 落地: ① §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层) 立条, user 原话 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来' 变 sub-task 硬约束 ② §4 8 步修复 SOP (6 件套 grep → AskUserQuestion 拍板 4 项 → worktree → 改 N file → Python 4 维 self-verify → commit + push + PR → gh pr merge + ff + cleanup → 5 字段自检, per ADR-0055) 立条, 命中 P0 必走 ③ §5 drift check 脚本交付 (主仓 commit d94fa91b scripts/check-n-tool-drift.sh, 不挂 settings.json) ④ §6 IF...THEN 规则 + §7 7 协议级反模式 (扩 1 项: 跳 §20 8 步管道) ⑤ description + when_to_use 触发词更新 (加 N-tool audit + 4 路盘点) ⑥ frontmatter version 3.2.3 → 3.2.4 + changelog 段 + tags. 联动: 主仓 PR #54 + 子仓 PR #24 + 3 项目仓 PR (#2/#4/#2) 全 MERGED. 实战跑通: 4 路盘点 → FAIL → §20 8 步管道修复 → 4 PR 全 MERGED → drift check ✅ ALL PASS. 永久失效 '跑 host-self-evolve 不跑 N-tool audit = 字面 drift 漏检' 反模式."
+
+    - "**v3.2.3 (2026-07-10)**: §v3.2.3 汇报极简化段 (per ADR-0052 user-override, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式). v3.2.2 = §v3.2.2 汇报格式段 (废弃, 被 v3.2.3 取代)."
+
+    - "**v3.2.2 (2026-07-10)**: §v3.2.2 汇报格式段 (废弃, per ADR-0051)."
+
+    - "**v3.2.1 (2026-07-10)**: §v3.2.1 default decision 段 (per ADR-0050 user-override, Run 范围 + 执行模式默认自决, 不再 AskUserQuestion)."
+
+    - "**v3.2.0 (2026-07-10)**: §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041)."
+
+    - "**v3.1.0 (2026-07-03)**: 🎯 启动 banner 段协议立 (跑前 UX, 跟 v3.2.0 Phase 1 段协同)."
+
+    - "**v3.0.0 (2026-07-03)**: 改名 rich-audit → host-self-evolve + 立 design philosophy (重/轻词退役). 详见 ADR-0038."
+
 ---
 
     - "2.6.42 (2026-06-29): §I.4 self-evolution cycle #4 + push 谎报修复 + 'When NOT to use' section (Anthropic + ClaudSkills 4 源共识). user 2026-06-29 触发 '对我的 claude 再修一轮（主机自升级）从头到尾' + '以后都是这些范围不要问了' → 落地: ① push 谎报协议 (v2.6.40 教训复发) — git status -sb 显示 'main...origin/main [领先 1]' = smart-push hook 跳过 push 阶段但本地 commit 仍 ahead, Layer 0 必跑 §F.2.0 self-probe (git status -sb + git log @{u}..HEAD 双重检查). 修复: 82c611a orphan commit (memory-bench/SKILL.md 删) 直 git push origin main, 远端从 573dffc → 82c611a 同步. ② 'When NOT to use' section (Anthropic official SKILL.md guide + ClaudSkills 'highest leverage technique') — anti-trigger 减少 false-positive activation, 反模式: 写 description 像 marketing tagline, 缺 trigger phrases. ③ 5-tool 实测可达矩阵更新 (2026-06-29): MiniMax ✅ 10 results status_code:0 + anysearch ✅ 10 results 2034ms + WebFetch ✅ mykcs/myk-skills commit history direct + exa ✅ 4 SKILL.md frontmatter docs (claudskills.com 2026-05-09/05-31) + kimi-webbridge ⚠️ daemon dead (2026-06-29 PID grep 0 命中), §F.1.2 4-tool 降级不 fail-fast. ④ 主仓 Layer 2 cleanup: decision-stream 17d53433 +36 行 (Round 13 reverse-mode 3 修复: revert redirect + paths-ignore + root path) + 新流 soul-v5-2026-06-29.md (mem0 quota exhausted fallback) + 删 orphan MEMORY.md.bak-pre-v5-case-20260629-164017. commit 774081e1 pushed to mykcs/.claude main 5a9a5f61 → 774081e1. ⑤ 主仓 CLAUDE.md 163 行 (Anthropic <200 限 ✅) + CLAUDE.local.md 368 行 + MEMORY.md 63 行 (HOT FACTS 索引完整). 子仓 orphan memory-bench/SKILL.md 82 行删除 (v1→v5 拆分后残留, v5 已迁到 rich-audit/references/memory-bench-design.md + -50q-sample.json). ⑥ ADR-0022 5-tool mandatory 2026-06-29 立 (主仓 process.md §C.3.6.0 HIGHEST PRIORITY, user 原话 '修改《process.md §C.3.6 no-stuck 协议》我要换成 5 重网络搜索'), 跟 v2.6.41 协同. ⑦ '主机自升级默认范围' (user 原话 '以后都是这些范围不要问了'): 默认跑 ~/.claude/ + ~/.agents/skills/ 双仓, 不再 AskUserQuestion scope (4 网站仍按 §11 §C.3.7 4 站 CI 全绿硬规则独立触发). 跟 v2.6.41 关系: v2.6.41 = 'memory-bench v5 + 子仓 orphan + self-evolution 3 升级固化', v2.6.42 = 'push 谎报复发修复 + When NOT to use + 5-tool 实测矩阵更新 + 主仓 Layer 2 cleanup + 主机自升级默认范围固化'. v2.6.43+ 待立 (next 触发). process.md §C.3.6.0 + §I.4 + 反转硬约束 §12 协同. v2.6.32 跳过 (之前 v2.6.31 v3 用了 32 编号). 永久失效 'git status -sb [领先 1] 仍说 push done' 反模式 (跟 §C.1 verification gate 协同: 必 5 commands 验证 + status -sb 双重)."
