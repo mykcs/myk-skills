@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# field-merge.sh — 字段级 merge 算法 (per ADR-0057 v1.4)
+# field-merge.sh — 字段级 merge 算法 (per ADR-0057 v3.1)
 # 用法:
 #   默认 (修法 1, 安全):
-#     bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT>
+#     bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT> [INSTITUTIONS_JSON]
 #   --force (覆盖模式, 慎用):
-#     bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT>
+#     bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT> [INSTITUTIONS_JSON]
 # 输出: ntn POST/PATCH 返的 page JSON {id, url, ...}
-# 铁律 (per ADR-0057 v1.4, schema 8 字段: 页面/状态/模态/link/亮点/知识点/教育类型/上次编辑时间):
-#   - 默认: 新 page POST body 含 全 7 auto 字段 (link 自动填 URL); 已有 page PATCH body 永远不含 multi_select + rich_text + url
-#   - --force: 已有 page PATCH body 含 全 7 字段 (覆盖模式)
+# v3.1 增量: INSTITUTIONS (第 7 参数) 写 机构 multi_select (SZU/PolyU); v3.0 空才填协同
+# 铁律 (per ADR-0057 v1.4, schema 8 字段: 页面/状态/平台/link/亮点/知识点/展现形式/机构):
+#   - 默认: 新 page POST body 含 全 8 auto 字段 (link 自动填 URL); 已有 page PATCH body GET 判空 + LLM 字段空才填
+#   - --force: 已有 page PATCH body 含 全 8 字段 (覆盖模式)
 #   - 上次编辑时间: Notion auto, 不传
 
 set -euo pipefail
@@ -56,21 +57,23 @@ SOURCE_URL="${3:-}"           # v1.4 新增: link url 字段
 KNOWLEDGE_TAGS="${4:-}"      # JSON 数组字符串, 可选
 EDUCATION_TAGS="${5:-}"      # JSON 数组字符串, 可选
 HIGHLIGHTS="${6:-}"           # 纯文本, 可选
+INSTITUTIONS="${7:-}"         # v3.1 新增: JSON 数组字符串 (机构 multi_select)
 
 if [ -z "$TITLE" ]; then
   echo "用法 (默认 修法 1):" >&2
-  echo "  bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS]" >&2
+  echo "  bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS] [INSTITUTIONS]" >&2
   echo "用法 (--force 覆盖, 慎用):" >&2
-  echo "  bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS]" >&2
+  echo "  bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS] [INSTITUTIONS]" >&2
   exit 1
 fi
 
-# === 公共: 构造 7 字段 properties 段 ===
+# === 公共: 构造 8 字段 properties 段 (含 v3.1 INSTITUTIONS) ===
 build_auto_props() {
   local SOURCE_URL="$1"
   local KNOWLEDGE_TAGS="$2"
   local EDUCATION_TAGS="$3"
   local HIGHLIGHTS="$4"
+  local INSTITUTIONS="$5"
 
   local LINK_PROP=""
   if [ -n "$SOURCE_URL" ]; then
@@ -126,7 +129,24 @@ if text:
     fi
   fi
 
-  echo "${LINK_PROP}${KNOWLEDGE_PROP}${EDUCATION_PROP}${HIGHLIGHTS_PROP}"
+  # v3.1: 机构 multi_select (SZU/PolyU 选项)
+  local INSTITUTIONS_PROP=""
+  if [ -n "$INSTITUTIONS" ] && [ "$INSTITUTIONS" != "[]" ]; then
+    local INSTITUTIONS_NAMES
+    INSTITUTIONS_NAMES=$(echo "$INSTITUTIONS" | python3 -c "
+import json, sys
+try:
+    tags = json.loads(sys.stdin.read())
+    if isinstance(tags, list) and len(tags) > 0:
+        print(','.join([json.dumps({'name': t}) for t in tags]))
+except: pass
+")
+    if [ -n "$INSTITUTIONS_NAMES" ]; then
+      INSTITUTIONS_PROP=",\"${ORG_PROP:-机构}\":{\"multi_select\":[${INSTITUTIONS_NAMES}]}"
+    fi
+  fi
+
+  echo "${LINK_PROP}${KNOWLEDGE_PROP}${EDUCATION_PROP}${HIGHLIGHTS_PROP}${INSTITUTIONS_PROP}"
 }
 
 TITLE_PROP="${NOTION_TITLE_PROPERTY:-页面}"
@@ -135,8 +155,8 @@ ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
 
 # === --force 路径 ===
 if [ "$FORCE" = "true" ]; then
-  echo "⚠️ --force 模式: PATCH 已有 page $PAGE_ID 全 7 字段 (覆盖你已有内容)" >&2
-  AUTO_PROPS=$(build_auto_props "$SOURCE_URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+  echo "⚠️ --force 模式: PATCH 已有 page $PAGE_ID 全 8 字段 (覆盖你已有内容)" >&2
+  AUTO_PROPS=$(build_auto_props "$SOURCE_URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
   PATCH_BODY=$(cat <<EOF
 {
   "properties": {
@@ -166,8 +186,8 @@ QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/$DS_ID/query" -d "$QUERY_
 COUNT=$(echo "$QUERY_RESULT" | jq '.results | length' 2>/dev/null || echo "0")
 
 if [ "$COUNT" = "0" ]; then
-  echo "→ POST 新 page (含 7 字段: 3 auto + link + 知识点 + 教育类型 + 亮点)" >&2
-  AUTO_PROPS=$(build_auto_props "$SOURCE_URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+  echo "→ POST 新 page (含 8 字段: 3 auto + link + 知识点 + 展现形式 + 亮点 + 机构)" >&2
+  AUTO_PROPS=$(build_auto_props "$SOURCE_URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
   POST_BODY=$(cat <<EOF
 {
   "parent": {"type": "data_source_id", "data_source_id": "$DS_ID"},
@@ -185,15 +205,16 @@ fi
 
 if [ "$COUNT" = "1" ]; then
   EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id')
-  echo "→ PATCH 已有 page $EXISTING_PAGE_ID (v3.0 空才填: title/status/modal/link 永远写; knowledge/education/highlights 空才填)" >&2
+  echo "→ PATCH 已有 page $EXISTING_PAGE_ID (v3.1 空才填: title/status/modal/link 永远写; knowledge/education/highlights/org 空才填)" >&2
   # v3.0: GET page 字段空判定 → body 包不包 LLM 字段
   PROP_STATUS=$(bash "$SCRIPT_DIR/get-page-props.sh" "$EXISTING_PAGE_ID" 2>/dev/null || echo "")
-  LINK_EMPTY=false; KNOWLEDGE_EMPTY=false; EDUCATION_EMPTY=false; HIGHLIGHTS_EMPTY=false
+  LINK_EMPTY=false; KNOWLEDGE_EMPTY=false; EDUCATION_EMPTY=false; HIGHLIGHTS_EMPTY=false; ORG_EMPTY=false
   if [ -n "$PROP_STATUS" ]; then
     grep -q '^link=empty$' <<<"$PROP_STATUS" && LINK_EMPTY=true
     grep -q '^knowledge=empty$' <<<"$PROP_STATUS" && KNOWLEDGE_EMPTY=true
     grep -q '^education=empty$' <<<"$PROP_STATUS" && EDUCATION_EMPTY=true
     grep -q '^highlights=empty$' <<<"$PROP_STATUS" && HIGHLIGHTS_EMPTY=true
+    grep -q '^org=empty$' <<<"$PROP_STATUS" && ORG_EMPTY=true
   fi
 
   PATCH_LLM_PROPS=""
@@ -238,6 +259,20 @@ if text:
       PATCH_LLM_PROPS+=",\"亮点\":{\"rich_text\":${HIGHLIGHTS_JSON}}"
     fi
   fi
+  # v3.1: 机构 multi_select (SZU/PolyU)
+  if [ -n "$INSTITUTIONS" ] && [ "$INSTITUTIONS" != "[]" ] && [ "$ORG_EMPTY" = "true" ]; then
+    INST_NAMES=$(echo "$INSTITUTIONS" | python3 -c "
+import json, sys
+try:
+    tags = json.loads(sys.stdin.read())
+    if isinstance(tags, list) and len(tags) > 0:
+        print(','.join([json.dumps({'name': t}) for t in tags]))
+except: pass
+")
+    if [ -n "$INST_NAMES" ]; then
+      PATCH_LLM_PROPS+=",\"${ORG_PROP:-机构}\":{\"multi_select\":[${INST_NAMES}]}"
+    fi
+  fi
 
   PATCH_BODY=$(cat <<EOF
 {
@@ -249,8 +284,8 @@ if text:
 }
 EOF
 )
-  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|知识点|'"${FORM_PROP:-展现形式}"'|亮点)"' | wc -l | tr -d ' ')
-  echo "    [v3.0] 字段空判定: link=$LINK_EMPTY knowledge=$KNOWLEDGE_EMPTY education=$EDUCATION_EMPTY highlights=$HIGHLIGHTS_EMPTY" >&2
+  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|知识点|'"${FORM_PROP:-展现形式}"'|亮点|'"${ORG_PROP:-机构}"')"' | wc -l | tr -d ' ')
+  echo "    [v3.1] 字段空判定: link=$LINK_EMPTY knowledge=$KNOWLEDGE_EMPTY education=$EDUCATION_EMPTY highlights=$HIGHLIGHTS_EMPTY org=$ORG_EMPTY" >&2
   echo "    [v3.0] 本次 fill-empty 实际填 $FILLED_COUNT LLM 字段 (非空保留)" >&2
   ntn api --method PATCH "/v1/pages/$EXISTING_PAGE_ID" -d "$PATCH_BODY"
   exit 0
