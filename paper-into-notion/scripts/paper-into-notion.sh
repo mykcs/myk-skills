@@ -106,17 +106,21 @@ else
   echo "[2/4] 非 arXiv 模态, 用 URL 作 fallback title"
 fi
 
-# 2.5 LLM judge 知识点标签 (per ADR-0057 v1.1, 仅 arXiv 有 abstract)
+# 2.5 LLM judge 知识点 + 教育类型 标签 (per ADR-0057 v1.2, 仅 arXiv 有 abstract)
 KNOWLEDGE_TAGS="[]"
+EDUCATION_TAGS="[]"
 if [ -n "$ABSTRACT" ]; then
   echo "[2.5/4] LLM judge 知识点..."
   KNOWLEDGE_TAGS=$(bash "$SCRIPT_DIR/knowledge-tag-judge.sh" "$ABSTRACT")
-  echo "    ✅ tags: $KNOWLEDGE_TAGS"
+  echo "    ✅ tags (知识点): $KNOWLEDGE_TAGS"
+  echo "[2.6/4] LLM judge 教育类型..."
+  EDUCATION_TAGS=$(bash "$SCRIPT_DIR/education-type-judge.sh" "$ABSTRACT")
+  echo "    ✅ tags (教育类型): $EDUCATION_TAGS"
 fi
 
 # 3. 字段级 merge
 echo "[3/4] 字段级 merge..."
-RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$KNOWLEDGE_TAGS")
+RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS")
 RECORD_ID=$(echo "$RECORD" | jq -r '.id // empty')
 PAGE_URL=$(echo "$RECORD" | jq -r '.url // empty')
 
@@ -135,4 +139,7 @@ echo "✅ page_url: $PAGE_URL"
 echo "✅ 3 字段填对 (页面=$TITLE, 状态=未开始, 模态类型=$MODAL)"
 if [ "$KNOWLEDGE_TAGS" != "[]" ]; then
   echo "✅ 知识点 (新 page 才填): $KNOWLEDGE_TAGS"
+fi
+if [ "$EDUCATION_TAGS" != "[]" ]; then
+  echo "✅ 教育类型 (新 page 才填): $EDUCATION_TAGS"
 fi

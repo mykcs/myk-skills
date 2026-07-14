@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# field-merge.sh — 字段级 merge 算法 (per Q2 严格模式 + Q4 自修复 + ADR-0057 v1.1 知识点)
-# 用法: bash field-merge.sh <TITLE> <MODAL> [KNOWLEDGE_TAGS_JSON]
-#       KNOWLEDGE_TAGS_JSON = '["llm","Transformer"]' (per knowledge-tag-judge.sh 输出)
+# field-merge.sh — 字段级 merge 算法 (per ADR-0057 v1.2 修法 1 扩展到教育类型)
+# 用法: bash field-merge.sh <TITLE> <MODAL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON>
 # 输出: ntn POST/PATCH 返的 page JSON {id, url, ...}
-# 铁律 (per ADR-0057 v1.1):
-#   - PATCH body 永远不包含 multi_select (教育类型/标签) + rich_text (亮点)
-#   - 知识点: 新 page POST 才填 (per 修法 1), 已有 page 完全不动
+# 铁律 (per ADR-0057 v1.2):
+#   - 新 page POST body 含: 3 auto 字段 + 知识点 + 教育类型 (LLM judge 自动填)
+#   - 已有 page PATCH body 永远不含 multi_select (教育类型/标签/知识点) + rich_text (亮点)
 #   - 上次编辑时间: Notion auto, 不传
 
 set -euo pipefail
 TITLE="${1:-}"
 MODAL="${2:-其他}"
-KNOWLEDGE_TAGS="${3:-}"  # JSON 数组字符串, 可选
+KNOWLEDGE_TAGS="${3:-}"     # JSON 数组字符串, 可选
+EDUCATION_TAGS="${4:-}"     # JSON 数组字符串, 可选 (v1.2 新增)
 
 # 加载 .env (NOTION_DATA_SOURCE_ID + NOTION_VERSION)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,13 +46,12 @@ QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/$DS_ID/query" -d "$QUERY_
 
 COUNT=$(echo "$QUERY_RESULT" | jq '.results | length' 2>/dev/null || echo "0")
 
-# Step 2: 0 条 → POST 新 page, body 含 3 auto 字段 + 知识点 (per ADR-0057 v1.1 修法 1)
+# Step 2: 0 条 → POST 新 page, body 含 3 auto 字段 + 知识点 + 教育类型 (per ADR-0057 v1.2 修法 1)
 if [ "$COUNT" = "0" ]; then
-  echo "→ POST 新 page (含 3 auto 字段 + 知识点)" >&2
+  echo "→ POST 新 page (含 3 auto 字段 + 知识点 + 教育类型)" >&2
   # 构造知识点 properties 段 (可选, 来自 knowledge-tag-judge.sh)
   KNOWLEDGE_PROP=""
   if [ -n "$KNOWLEDGE_TAGS" ] && [ "$KNOWLEDGE_TAGS" != "[]" ]; then
-    # 转换 JSON 数组 ['llm','Transformer'] → multi_select array [{name:llm},{name:Transformer}]
     KNOWLEDGE_NAMES=$(echo "$KNOWLEDGE_TAGS" | python3 -c "
 import json, sys
 try:
@@ -65,13 +64,28 @@ except: pass
       KNOWLEDGE_PROP=",\"知识点\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
     fi
   fi
+  # 构造教育类型 properties 段 (可选, 来自 education-type-judge.sh)
+  EDUCATION_PROP=""
+  if [ -n "$EDUCATION_TAGS" ] && [ "$EDUCATION_TAGS" != "[]" ]; then
+    EDUCATION_NAMES=$(echo "$EDUCATION_TAGS" | python3 -c "
+import json, sys
+try:
+    tags = json.loads(sys.stdin.read())
+    if isinstance(tags, list) and len(tags) > 0:
+        print(','.join([json.dumps({'name': t}) for t in tags]))
+except: pass
+")
+    if [ -n "$EDUCATION_NAMES" ]; then
+      EDUCATION_PROP=",\"教育类型\":{\"multi_select\":[${EDUCATION_NAMES}]}"
+    fi
+  fi
   POST_BODY=$(cat <<EOF
 {
   "parent": {"type": "data_source_id", "data_source_id": "$DS_ID"},
   "properties": {
     "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
     "状态": {"select": {"name": "未开始"}},
-    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$KNOWLEDGE_PROP
+    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$KNOWLEDGE_PROP$EDUCATION_PROP
   }
 }
 EOF
