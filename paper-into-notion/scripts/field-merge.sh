@@ -27,6 +27,8 @@ TITLE_PROP="${NOTION_TITLE_PROPERTY:-页面}"
 STATUS_DEFAULT="${NOTION_STATUS_DEFAULT:-未开始}"
 LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
 ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
+MODAL_PROP="${NOTION_MODAL_PROPERTY:-平台}"     # v2.9 改 schema: 模态类型 僵尸 → 平台 (新)
+FORM_PROP="${NOTION_FORM_PROPERTY:-展现形式}"    # v2.9 改 schema: 教育类型 multi → 展现形式 select 6 选项
 
 # 解析 --force flag
 FORCE=false
@@ -96,7 +98,8 @@ try:
 except: pass
 ")
     if [ -n "$EDUCATION_NAMES" ]; then
-      EDUCATION_PROP=",\"教育类型\":{\"multi_select\":[${EDUCATION_NAMES}]}"
+      FORM_PROP_LOCAL="${FORM_PROP:-展现形式}"
+      EDUCATION_PROP=",\"${FORM_PROP_LOCAL}\":{\"select\":{\"name\":$(echo "$EDUCATION_NAMES" | python3 -c 'import json,sys; tags=json.loads(sys.stdin.read()); print(json.dumps(tags[0] if tags else \"论文\"))')}}"
     fi
   fi
 
@@ -130,7 +133,7 @@ if [ "$FORCE" = "true" ]; then
   "properties": {
     "$TITLE_PROP": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
     "状态": {"status": {"name": "$STATUS_DEFAULT"}},
-    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
+    "$MODAL_PROP": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
   }
 }
 EOF
@@ -162,7 +165,7 @@ if [ "$COUNT" = "0" ]; then
   "properties": {
     "$TITLE_PROP": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
     "状态": {"status": {"name": "$STATUS_DEFAULT"}},
-    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
+    "$MODAL_PROP": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
   }
 }
 EOF

@@ -38,9 +38,9 @@ echo "[1/5] 标题 ($TITLE_PROP): $TITLE"
 STATUS=$(echo "$PAGE" | jq -r '.properties["状态"].status.name // .properties["状态"].select.name // "❌"')
 echo "[2/5] 状态: $STATUS"
 
-# 3. 模态类型
-MODAL=$(echo "$PAGE" | jq -r '.properties["模态类型"].select.name // "❌"')
-echo "[3/5] 模态类型: $MODAL"
+# 3. 模态类型 (v2.9: 改用 $MODAL_PROP 平台 字段, 旧"模态类型"是僵尸 property)
+MODAL=$(echo "$PAGE" | jq -r --arg p "${MODAL_PROP:-平台}" '.properties[$p].select.name // .properties["模态类型"].select.name // "❌"')
+echo "[3/5] ${MODAL_PROP:-平台} (旧:模态类型): $MODAL"
 
 # 4. multi_select 保护 grader
 EDU=$(echo "$PAGE" | jq -r '.properties["教育类型"].multi_select | length // 0')
