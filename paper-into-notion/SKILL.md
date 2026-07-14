@@ -1,16 +1,30 @@
 ---
 name: paper-into-notion
 description: |
-  URL (arXiv / 微信公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎 / 公众号) → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion database `论文` (data source 398fedee-6267-80d6-92e5-000b54d8821e). multi_select 字段 (教育类型/知识点/标签) + rich_text 亮点 **永远不覆盖已有值** (per Q2 严格模式). PATCH body 仅含 select / title, 不含 multi_select 数组. 触发词: paper 进 Notion / Notion 沉淀 / 论文入库 / 写论文卡片 / "把这个 paper 加到 Notion". 含 6 scripts (主入口 + 模态判定 + arXiv 抓 + field merge + Notion version check + 5 字段验收) + 4 templates + 2 references. 适用 weiying20260624 PhD 申请场景.
+  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 6 scripts + 4 templates + 2 references. weiying20260624 PhD 申请场景.
+when_to_use: |
+  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动. NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v1.0 (2026-07-13)
-  起源: user 2026-07-13 原话 "paper 进 Notion" / "Notion 沉淀" 触发, 立 5 pattern 模态判定 + 字段级 merge 算法保护 multi_select 不被覆盖
+  version: v2.0 (2026-07-14)
+  changelog: |
+    v2.0 (2026-07-14) — description split-in-two + 触发词扩 15+ + 6 字段 → 8 字段 schema 文档 + frontmatter audit 4 字段全过
+    v1.8 (2026-07-13) — 亮点 --highlight user override (claudecode 翻译)
+    v1.7 (2026-07-13) — --knowledge user override + 状态 status type 修
+    v1.6 (2026-07-13) — 亮点 3 层 fallback (mmx 主 + 翻译次 + 中文占位兜底)
+    v1.5 (2026-07-13) — 修教育类型 PR 误判
+    v1.4 (2026-07-13) — --force-fill + schema 8 字段对齐
+    v1.3 (2026-07-13) — notes-tldr + highlights + arxiv backoff
+    v1.2 (2026-07-13) — education-type-judge + 新 page 才填教育类型
+    v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
+    v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
+  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级为 v2.0
   关联 ADR: ADR-0057
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713
-  关联 skill: weekly-report-phd (ntn CLI 用法) / teacher-report (paper card 12 行) / auto-feishu-digest (3 scripts + .env 自含风格)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-20260714
+  关联 skill: weekly-report-phd (ntn CLI) / teacher-report (paper card) / auto-feishu-digest (3 scripts 风格)
+  适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
 ---
 
 # paper-into-notion v1.0
