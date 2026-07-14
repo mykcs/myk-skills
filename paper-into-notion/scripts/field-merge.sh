@@ -2,15 +2,10 @@
 # field-merge.sh — 字段级 merge 算法 (per ADR-0057 v3.1)
 # 用法:
 #   默认 (修法 1, 安全):
-#     bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT> [INSTITUTIONS_JSON]
-#   --force (覆盖模式, 慎用):
-#     bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT> [INSTITUTIONS_JSON]
+#     bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> <KNOWLEDGE_TAGS_JSON> <EDUCATION_TAGS_JSON> <HIGHLIGHTS_TEXT> [INSTITUTIONS_JSON] [KNOWLEDGE_GROWTH_TAGS_JSON]
 # 输出: ntn POST/PATCH 返的 page JSON {id, url, ...}
-# v3.1 增量: INSTITUTIONS (第 7 参数) 写 机构 multi_select (SZU/PolyU); v3.0 空才填协同
-# 铁律 (per ADR-0057 v1.4, schema 8 字段: 页面/状态/平台/link/亮点/关键词/展现形式/机构):
-#   - 默认: 新 page POST body 含 全 8 auto 字段 (link 自动填 URL); 已有 page PATCH body GET 判空 + LLM 字段空才填
-#   - --force: 已有 page PATCH body 含 全 8 字段 (覆盖模式)
-#   - 上次编辑时间: Notion auto, 不传
+# v3.7 增量: KNOWLEDGE_GROWTH_TAGS (第 8 参数) 写 知识等级形态 multi_select, Q8B user 拍板: scripts 不读旧值 (字段新建无历史值), LLM judge 输出直接 PATCH
+#             FORM_PROP 完全弃用 (旧 展现形式 select user UI 删了, 不要再读)
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,8 +19,7 @@ fi
 DS_ID="${NOTION_DATA_SOURCE_ID:?NOTION_DATA_SOURCE_ID unset}"
 VERSION="${NOTION_VERSION:-2026-03-11}"
 
-# === v3.0 introspect mode: 自动读 schema 拿 property 名 + status default ===
-# 优先用 .env 显式配置; 未配则调 introspect.py; 缓存 24h
+# === v3.0 introspect mode ===
 INTROSPECT_OUT=$(python3 "$SCRIPT_DIR/introspect.py" "$DS_ID" "$SKILL_DIR/.introspect-cache.json" 2>/dev/null || true)
 if [ -n "$INTROSPECT_OUT" ]; then
   eval "$INTROSPECT_OUT"
@@ -36,8 +30,8 @@ STATUS_DEFAULT="${NOTION_STATUS_DEFAULT:-${STATUS_DEFAULT:-未开始}}"
 LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
 ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
 MODAL_PROP="${NOTION_MODAL_PROPERTY:-${MODAL_PROP:-平台}}"
-FORM_PROP="${NOTION_FORM_PROPERTY:-${FORM_PROP:-展现形式}}"
-KEYWORD_PROP="${NOTION_KEYWORD_PROPERTY:-${KEYWORD_PROP:-关键词}}"   # v3.6: 旧 知识点 改名
+KEYWORD_PROP="${NOTION_KEYWORD_PROPERTY:-${KEYWORD_PROP:-关键词}}"   # v3.6
+GROWTH_PROP="${NOTION_KNOWLEDGE_GROWTH_PROPERTY:-${KNOWLEDGE_GROWTH_PROP:-知识等级形态}}"   # v3.7
 
 # 解析 --force flag
 FORCE=false
@@ -56,15 +50,16 @@ TITLE="${1:-}"
 MODAL="${2:-其他}"
 SOURCE_URL="${3:-}"           # v1.4 新增: link url 字段
 KNOWLEDGE_TAGS="${4:-}"      # JSON 数组字符串, 可选
-EDUCATION_TAGS="${5:-}"      # JSON 数组字符串, 可选
+EDUCATION_TAGS="${5:-}"      # JSON 数组字符串, 可选 (v3.7 已弃用, scripts 不读)
 HIGHLIGHTS="${6:-}"           # 纯文本, 可选
 INSTITUTIONS="${7:-}"         # v3.1 新增: JSON 数组字符串 (机构 multi_select)
+GROWTH_TAGS="${8:-}"          # v3.7 新增: JSON 数组字符串 (知识等级形态 multi_select)
 
 if [ -z "$TITLE" ]; then
   echo "用法 (默认 修法 1):" >&2
-  echo "  bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS] [INSTITUTIONS]" >&2
+  echo "  bash field-merge.sh <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS] [INSTITUTIONS] [GROWTH_TAGS]" >&2
   echo "用法 (--force 覆盖, 慎用):" >&2
-  echo "  bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS] [INSTITUTIONS]" >&2
+  echo "  bash field-merge.sh --force <PAGE_ID> <TITLE> <MODAL> <SOURCE_URL> [KNOWLEDGE_TAGS] [EDUCATION_TAGS] [HIGHLIGHTS] [INSTITUTIONS] [GROWTH_TAGS]" >&2
   exit 1
 fi
 
