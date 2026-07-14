@@ -19,6 +19,31 @@
 
 set -euo pipefail
 
+# ===== Step 0: ask window 守卫 (v2.9-i, per feedback-adhd-rhythm-ask-window-not-bypass + CASE-CLAUDECODE-ADHD-RHYTHM-BYPASS-20260714) =====
+# 触发: env ASW_PROMPTED_BY_USER 含 7 keyword "顺手 / 直接跑 / 快做 / 拍板 / 帮我做 / judge yourself / 给我答案" 任一命中
+# 4 条件: 跨仓动作 / 不可逆操作 / user 提议 keyword 命中 / Tier 1+2 白名单外
+# 任一命中 → exit 1 + 引导 unset + AskUserQuestion 选项化决定 (不替 user 拍板)
+ASW_PROMPTED_BY_USER="${ASW_PROMPTED_BY_USER:-}"
+if [ -n "$ASW_PROMPTED_BY_USER" ]; then
+  ASW_HIT=0
+  for kw in "顺手" "直接跑" "快做" "拍板" "帮我做" "judge yourself" "给我答案"; do
+    case "$ASW_PROMPTED_BY_USER" in
+      *"$kw"*) ASW_HIT=1; break ;;
+    esac
+  done
+  if [ "$ASW_HIT" = "1" ]; then
+    echo "❌ Step 0 ask window 守卫命中 (v2.9-i)" >&2
+    echo "  user 提议 '$ASW_PROMPTED_BY_USER' 命中 keyword ('顺手' / '直接跑' / '快做' / '拍板' / '帮我做' / 'judge yourself' / '给我答案')" >&2
+    echo "  per feedback-adhd-rhythm-ask-window-not-bypass.md v2 强化 4 条件判定:" >&2
+    echo "    1. 跨仓动作 (push main / rm / reset --hard / Notion API 改) 必问" >&2
+    echo "    2. 不可逆操作 (rm / --force push / Notion Bitable write) 必问" >&2
+    echo "    3. user 提议 keyword 自检命中必问" >&2
+    echo "    4. Tier 1+2 白名单外 (install / commit / e2e test / case file / hook 之外) 必问" >&2
+    echo "  修法: unset ASW_PROMPTED_BY_USER 走 AskUserQuestion 选项化决定 (1-2 选项, A 跑 / B 等)" >&2
+    exit 1
+  fi
+fi
+
 SKILL_NAME="${1:-}"
 WHAT_DID="${2:-}"
 WHAT_FIXED="${3:-}"
