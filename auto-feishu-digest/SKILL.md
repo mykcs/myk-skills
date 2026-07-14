@@ -1,6 +1,6 @@
 ---
 name: auto-feishu-digest
-description: 自动追踪领域重要 articles + tech blogs → 按 7 维评分规整 → 自动推送飞书表格。MVP 跑 5 源 (arXiv + 顶会 + tech blog RSS + HN + GitHub trending) × daily 浅 + weekly 深双轨。立 loop-engineering skill 子方向字段 + Bitable 4 表拆分。
+description: 自动追踪领域重要 articles + tech blogs → 按 7 维评分规整 → 自动推送飞书表格。MVP 跑 **N-tool fan-out (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2)** × 3 大类信息源 (论文会议 / 国内博客 / 国外博主) × daily 浅 + weekly 深双轨。立 loop-engineering skill 子方向字段 + Bitable 4 表拆分。**历史标 (2026-07-14 ADR-0056 cleanup)**: 旧 "5 源 × 5-tool" 是 v0.1.0-v0.1.7 时期协议, 实际跑 N-tool (N 当前 = 6 含 mmx) parallel fan-out.
 metadata:
   type: skill
   project_id: auto-feishu-digest
@@ -126,6 +126,8 @@ metadata:
 ---
 
 ## 🧪 演化历史
+
+> **历史标 (2026-07-14 ADR-0056 cleanup)**: 本 skill v0.1.0-v0.1.6 文字里的 "5-tool" / "5 源 × 5-tool" 是 pre-N-tool 时期描述, 实际执行从 v0.1.7 起走 N-tool fan-out (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2, 含 mmx). 保留旧字面作版本演进证据.
 
 - **v0.1.0** (2026-07-02): 立 MVP 骨架. 4 决策拍板 (5 源 + daily+weekly + MVP + 4 表). 5 pipeline 协议 + 4 templates + 3 scripts 自包含. 待 5 源验证 + Bitable 实跑.
 - **v0.1.1** (2026-07-02): 真 collect 17 records (mcp__MiniMax__web_search + mcp__exa__web_search_exa fan-out, 4 源真抓 + 1 源 hn Algolia API 真接) + Python 旁路 merge 真 composite_score (top 10 全可引 3.9-4.7) + digest-score.sh script bug 发现 (. + {score:3} 覆盖原 7 维), 留 v0.1.2 修. MVP 实质 4/6 (records 5 + 真抓 17 + 真评分 + 真 Bitable base).

@@ -1,6 +1,7 @@
 # Skill Authoring Best Practices (v2.6.7, 2026-06-10)
 
 > ⚠️ [历史快照 2026-06-10] Tri-Search Protocol v2.6 已于 2026-06-12 重命名为 Force-All-Search Protocol v2.7; 本文档保留历史命名作为 audit trail.
+> **历史标 (2026-07-14 ADR-0056 cleanup)**: "4-tool Tri-Search" 是 v2.6.0 命名, 实际跑 N-tool (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2). 保留旧字面作 audit trail.
 > 来源: 4-tool Tri-Search 2026-06-10 找到的 v2.6.1 候选 D
 > 对标: platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 > 检测: `scripts/skill_authoring_checker.py`

@@ -1,6 +1,7 @@
 ## 并行 Agent 策略
 
 > **下沉到 references**：完整 108 行已迁出（含 3 个 Layer Agent 启动模板 + 8 维度加权模型）。
+> **历史标 (2026-07-14 ADR-0056 cleanup)**: 下方任何 "5-tool" 字面是 pre-N-tool 时期描述; 实际跑 N-tool (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2). 保留旧字面作 audit trail.
 > 详见 [`references/agent-strategy.md`](references/agent-strategy.md)
 
 **核心原则**：无依赖关系的任务必须并行启动 Agent，缩短总耗时；有依赖关系的任务必须顺序执行。
