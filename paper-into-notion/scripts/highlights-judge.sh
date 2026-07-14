@@ -41,8 +41,25 @@ EOF
 )
 
 # 跑 LLM (主: 抓 abstract → 中文 takeaway)
+# Per v2.6 fix: mmx v1.0.16 子命令是 `mmx text chat --message --output json`
+# 真用法 (per `mmx --help`: text → chat, --non-interactive 必加避免 TTY prompt, --output json 返可解析 JSON)
 if command -v mmx >/dev/null 2>&1; then
-  LLM_OUTPUT=$(mmx chat "$PROMPT" 2>/dev/null || echo "")
+  LLM_OUTPUT=$(mmx text chat --non-interactive --output json --message "$PROMPT" 2>/dev/null \
+    | python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.stdin.read())
+    content = d.get('content', '')
+    if isinstance(content, list):
+        for item in content:
+            if item.get('type') == 'text':
+                print(item.get('text', '').strip())
+                break
+    elif isinstance(content, str):
+        print(content.strip())
+except Exception:
+    pass
+" || echo "")
 fi
 
 HIGHLIGHT=""
@@ -52,7 +69,22 @@ else
   # Fallback 第 1 层: mmx 翻译 abstract 第 1 句 → 中文
   FIRST_SENTENCE=$(echo "$ABSTRACT_TRIM" | sed -n '1p' | head -c 300)
   if command -v mmx >/dev/null 2>&1; then
-    TRANSLATED=$(mmx chat "Translate this English sentence to Chinese, plain text only: $FIRST_SENTENCE" 2>/dev/null || echo "")
+    TRANSLATED=$(mmx text chat --non-interactive --output json --message "Translate this English sentence to Chinese, plain text only, ≤200 chars, no thinking: $FIRST_SENTENCE" 2>/dev/null \
+      | python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.stdin.read())
+    content = d.get('content', '')
+    if isinstance(content, list):
+        for item in content:
+            if item.get('type') == 'text':
+                print(item.get('text', '').strip())
+                break
+    elif isinstance(content, str):
+        print(content.strip())
+except Exception:
+    pass
+" || echo "")
     if [ -n "$TRANSLATED" ]; then
       HIGHLIGHT="$TRANSLATED"
       echo "⚠️ highlights-judge fallback → mmx 翻译 abstract 第 1 句" >&2

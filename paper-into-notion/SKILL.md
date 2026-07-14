@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.6 (2026-07-14)
+  version: v2.7 (2026-07-14)
   changelog: |
+    v2.7 (2026-07-14) — mmx v1.0.16 真子命令 + status 中文错乱 + .env 真值同步 (per TTHE paper 跑出来 '(需 mmx 翻译: ...)' 占位触发, user 反馈 '亮点直接写明, 不能这样'): 4 个 judge 脚本 (highlights / knowledge / education / notes-tldr) 修 mmx v1.0.16 真用法 = `mmx text chat --non-interactive --output json --message "<prompt>"` + python json 解析提取 text content (不是 `mmx chat` 也不是 `--quiet`, per `mmx --help`: text resource → chat subcommand) + paper-into-notion.sh:182 --force-fill 硬编码 "页面" → ${NOTION_TITLE_PROPERTY:-页面} env (跨 db 兼容) + .env + .env.example 双侧 status 真值同步 "初抓取" (db 实际 options, 旧 "初抓取-ai" 是合字错值, 跟 wiki 默认 "未开始" 不同) + v-bump 触发走 self-evolution 闭环 v2.4 ADR-0057-f + triggers 词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复, per CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714). 跟 v2.5/v2.6 协同不冲突.
     v2.6 (2026-07-14) — subagent FAIL 反馈增量 + 字面 drift 跨 skill 协议位 (per user 2026-07-14 立 v2.5 之后增量): 加触发词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复) + 4 反模式表补 3 条 (28 → 31, 加 #25/26/27: spawn subagent 验证前不 pull main / 字面 drift 跨 skill 协议位 / self-evolution 闭环漏 subagent FAIL 反馈) + 新增 'subagent FAIL 反馈 + 修复' 段 + ADR-0057-h v2.6 + CASE-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714. 跟 v2.5 (user multi-db schema 4 env) 协同不冲突.
     v2.5 (2026-07-14) — 多 db schema 适配 (4 env variables + 2 db property 差异表): field-merge.sh 3 处硬编码 页面 → $TITLE_PROP env + verify-5-fields.sh 1 处 → $TITLE_PROP env + status 默认 未开始 → $STATUS_DEFAULT env + .env.example 加 4 个 NOTION_*_PROPERTY/NOTION_STATUS_DEFAULT env + 新增 "多 db schema 适配" 段 (4 env table + 论文 wiki vs 信息 property 差异表) + 触发词 + 1 (Notion multi-db schema) + 4 反模式表补 4 条 (24 → 28) (per CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 + Notion 2025-09-03 → 2026-03-11 multi-source database 升级)
     v2.4 (2026-07-14) — 经验教训 → 提升 skill 闭环 + skill-self-summary 3 健壮性: 升级 scripts/skill-self-summary.sh v1.0 → v2.0 (session id 3 步 fallback / CLAUDE.local.md hot recall 段带 @v{version} / v-bump 自动触发 4 条件判定) + 新增 references/self-evolution-loop.md (4 步闭环: 总结 → 内化 → commit → bump version) + 触发词 + 2 + 4 反模式表补 5 条 (19 → 24)
@@ -27,9 +28,8 @@ metadata:
     v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
   起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑) → v2.3 (skill 跑完自我总结 + mem0 quota fallback) → v2.4 (经验教训 → 提升 skill 闭环 + 3 健壮性 + v-bump 自动触发, per user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill")
-  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0057-g (v2.5, user multi-db schema 4 env) / ADR-0057-h (v2.6) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714 + CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 (user v2.5) + CASE-PAPER-INTO-NOTION-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714
-  关联 skill: weekly-report-phd (ntn CLI) / teacher-report (paper card) / auto-feishu-digest (3 scripts 风格)
+  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0057-g (v2.5, user multi-db schema 4 env) / ADR-0057-h (v2.6) / ADR-0057-i (v2.7, mmx subcommand + status 真值同步, per TTHE paper user 反馈) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714 + CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 (user v2.5) + CASE-PAPER-INTO-NOTION-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714 + **CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714** (本次, mmx 真子命令 + status 真值 + TTHE paper 修)
   适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
 ---
 
@@ -440,6 +440,17 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 | 18 | **硬编码 status 默认 "未开始"** | 不同 db status options 不同 | 用 `$NOTION_STATUS_DEFAULT` env, 默认 "未开始" 兼容老 db |
 | 19 | **Notion URL 反查失败就反复重试** | 32-char UUID 不携带类型信息, 重试无济于事 | 1 次 `GET /v1/databases/{id}` 拿 `data_sources[]` 即可, 失败用 kimi-webbridge |
 | 20 | **多 db 切来切去但不复盘 schema 差异** | 每次切 db 都踩同一个 property 名不同的坑 | 立 CASE 沉淀 property 差异表 (如本段 §2) |
+
+### 5 反模式 (永久失效, v2.7 新增 — mmx 子命令 + status 中文错乱 + judge fallback silent)
+
+> 起源: CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714 (TTHE paper《Test-Time Harness Evolution》arxiv 2607.08124 跑出'(需 mmx 翻译: ...)'占位 + 后续'初抓取-ai'也是错的, user 原话 '亮点直接写明, 不能这样')
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 28 | **mmx v1.0.16 子命令误写 `mmx chat`** | 跟 mmx 旧版本混淆 (mmx 0.x 用 `mmx chat "<prompt>"`); mmx 1.0.16 改 mmx `<resource> <command>` 模式, 真子命令 = `mmx text chat --message "<prompt>"` (per `mmx --help` Resources) | 凡引用 mmx CLI 子命令必跑 `mmx --help` 验证真名, **禁止凭印象写旧 `mmx chat` 兼容代码** |
+| 29 | **status 中文错乱 (合字 "初抓取-ai") 跟 db 实际 3 选项 "初抓取/ai补充/人类认证" 不匹配** | .env + .env.example 默认值是 SKILL.md v1.4 拍板的 "未开始" (论文 wiki 老 db), .env 改 "初抓取-ai" 是 user 2026-07-14 v2.5 multi-db 适配但 db **没 "初抓取-ai" 选项** (合字错) | PATCH 任何 status 字段前必 `ntn api GET /v1/data_sources/{id}` 拿真实 options 比对, 不要凭 SKILL.md 拍板的默认值猜 db 选项 |
+| 30 | **judge fallback 链隐藏真 bug 不暴露** | judge 脚本 (highlights/knowledge/education) 写 `mmx chat "..."` 失败 → fallback 关键词匹配 → 关键词命中 0 → 留 `(需 mmx 翻译: ...)` 中文占位 → 整条链路只 warn 一行, user 看 Notion page 才发现占位文本 | judge 脚本 fallback 链路必 1 段 stderr 输出 `⚠️ mmx CLI 调用失败: <stderr + exit code>`, 同步 4 fallback 触发段 (mmx 主 → mmx 翻译次 → 关键词次 → 中文占位兜底), 永不静默 silent 失败 |
+| 31 | **--quiet + 没 --output json → mmx 走 TTY 流式纯文本, json.loads 失败** | `mmx text chat --quiet` 不带 `--output json` 时, TTY 路径走 plain text chat mode (`Hello! I'm here and ready...`), json.loads(plain text) 抛 → python pipe `or echo ""` 返空 → 看似 fallback silent 实际 mmx 是好的 | mmx text chat 在 bash 脚本里必 `--non-interactive --output json --message "<prompt>"` 三件套, **不要用 `--quiet`** (它走 TTY chat) |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后

@@ -179,7 +179,7 @@ fi
 echo "[3/4] 字段级 merge..."
 if [ "$FORCE_FILL" = "true" ]; then
   # 覆盖模式: 先 GET 找 page_id, 调 field-merge.sh --force
-  QUERY_BODY="{\"filter\":{\"property\":\"页面\",\"title\":{\"equals\":$(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}},\"page_size\":1}"
+  QUERY_BODY="{\"filter\":{\"property\":\"${NOTION_TITLE_PROPERTY:-页面}\",\"title\":{\"equals\":$(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}},\"page_size\":1}"
   QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/${NOTION_DATA_SOURCE_ID}/query" -d "$QUERY_BODY" 2>&1)
   EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id // empty')
   if [ -z "$EXISTING_PAGE_ID" ]; then

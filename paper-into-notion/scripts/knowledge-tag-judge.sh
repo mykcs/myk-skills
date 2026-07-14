@@ -56,9 +56,25 @@ $ABSTRACT_TRIM
 EOF
 )
 
-# 跑 LLM (优先 mmx MiniMax-M3, fallback 关键词匹配)
+# 跑 LLM (优先 mmx MiniMax-M2.7, fallback 关键词匹配)
+# Per v2.6 fix: mmx text chat 真用法 = --non-interactive --output json
 if command -v mmx >/dev/null 2>&1; then
-  LLM_OUTPUT=$(mmx chat "$PROMPT" 2>/dev/null || echo "")
+  LLM_OUTPUT=$(mmx text chat --non-interactive --output json --message "$PROMPT" 2>/dev/null \
+    | python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.stdin.read())
+    content = d.get('content', '')
+    if isinstance(content, list):
+        for item in content:
+            if item.get('type') == 'text':
+                print(item.get('text', '').strip())
+                break
+    elif isinstance(content, str):
+        print(content.strip())
+except Exception:
+    pass
+" || echo "")
 fi
 
 # 解析 LLM 输出 + 过滤白名单
