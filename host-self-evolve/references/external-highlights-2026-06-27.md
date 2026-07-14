@@ -1,5 +1,7 @@
 # External Highlights — 2026-06-27 §I.1 step 2 (rich-audit self-evolution cycle)
 
+> **历史标 (2026-07-14 ADR-0056 cleanup)**: 下方 "5-tool fan-out" 是 2026-06-27 当时工具集; 实际跑 N-tool (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2). 保留旧字面作 audit trail.
+>
 > 触发: rich-audit v2.6.31 §I self-evolution cycle, Layer 3 必跑 5-tool fan-out
 > 工具: MiniMax (10 results) + WebFetch (Anthropic 官方) + exa (4+8 results) + anysearch (5 results)
 > 状态: 8+ 资源 highlights 已抓, internalize → ADR-0020 + SKILL.md changelog v2.6.32

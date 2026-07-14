@@ -1,5 +1,7 @@
 ## 🚫 No-Deferral Hard Rule (2026-06-12 hardened, 用户原话 "下次也不改 直接解决")
 
+> **历史标 (2026-07-14 ADR-0056 cleanup)**: 下方历史段若提 "5-tool" 是 v2.6.18 时期描述; 实际跑 N-tool (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2). 保留旧字面作 audit trail.
+
 **禁止任何形式的 "剩余 LOW 项 / 下次 audit 会改善" 的尾部短语.** 这种短语是 theater — 下次 audit 也不会自动改善, 因为没人在中间动它.
 
 ### 强制流程

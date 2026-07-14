@@ -1,5 +1,7 @@
 # rich-audit External Highlights — 2026-06-29 (重度审计 #5)
 
+> **历史标 (2026-07-14 ADR-0056 cleanup)**: 下方 "5-tool" / "exa" 字面是 2026-06-29 当时协议位; 实际跑 N-tool (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2). 保留旧字面作 audit trail.
+>
 > **触发**: 重度审计 #5 user 抓 "凭什么跳 exa" → 立刻补跑 exa 5 results, 跟 §C.3.6.0 反模式 "静默跳过任何 1 tool" 对账, v2.6.43 changelog 必补 exa 数据.
 >
 > **完整 8+ 资源清单** (按 Layer 3 跑出顺序):
