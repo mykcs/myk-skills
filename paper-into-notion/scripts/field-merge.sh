@@ -120,7 +120,7 @@ if [ "$FORCE" = "true" ]; then
 {
   "properties": {
     "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
-    "状态": {"select": {"name": "未开始"}},
+    "状态": {"status": {"name": "未开始"}},
     "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
   }
 }
@@ -152,7 +152,7 @@ if [ "$COUNT" = "0" ]; then
   "parent": {"type": "data_source_id", "data_source_id": "$DS_ID"},
   "properties": {
     "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
-    "状态": {"select": {"name": "未开始"}},
+    "状态": {"status": {"name": "未开始"}},
     "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
   }
 }
@@ -169,7 +169,7 @@ if [ "$COUNT" = "1" ]; then
 {
   "properties": {
     "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
-    "状态": {"select": {"name": "未开始"}},
+    "状态": {"status": {"name": "未开始"}},
     "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}
   }
 }

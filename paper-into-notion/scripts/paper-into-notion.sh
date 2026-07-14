@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# paper-into-notion.sh — 主入口 (per ADR-0057 v1.4)
+# paper-into-notion.sh — 主入口 (per ADR-0057 v1.7)
 # 用法:
-#   bash paper-into-notion.sh <URL>           # 修法 1 (默认, 安全)
-#   bash paper-into-notion.sh --force-fill <URL>  # 覆盖模式 (慎用, 覆盖已有 page 全 7 字段)
+#   bash paper-into-notion.sh <URL>                                          # 修法 1 (默认, 安全)
+#   bash paper-into-notion.sh --force-fill <URL>                            # 覆盖模式 (慎用)
+#   bash paper-into-notion.sh --force-fill <URL> --knowledge "tag1 tag2"    # user override 知识点
 #   bash paper-into-notion.sh --verify
 # 流程: 模态判定 → arXiv 抓 (仅 arXiv) → LLM judge 3 字段 → 字段级 merge → POST/PATCH → GET 验证
 # schema (v1.4, 8 字段实际): 页面/状态/模态/link/亮点/知识点/教育类型/上次编辑时间
@@ -68,16 +69,29 @@ fi
 URL="${1:-}"
 if [ -z "$URL" ]; then
   echo "用法:" >&2
-  echo "  bash paper-into-notion.sh <URL>            # 修法 1 (默认, 安全)" >&2
-  echo "  bash paper-into-notion.sh --force-fill <URL>  # 覆盖模式 (慎用)" >&2
+  echo "  bash paper-into-notion.sh <URL>                                            # 修法 1 (默认, 安全)" >&2
+  echo "  bash paper-into-notion.sh --force-fill <URL>                              # 覆盖模式 (慎用)" >&2
+  echo "  bash paper-into-notion.sh --force-fill <URL> --knowledge \"tag1 tag2\"      # user override 知识点" >&2
   echo "  bash paper-into-notion.sh --verify" >&2
   exit 1
+fi
+shift  # shift URL
+
+# === --knowledge "tag1 tag2" 参数 (v1.7, user override 知识点, 在 URL 之后位置) ===
+USER_KNOWLEDGE=""
+if [ "${1:-}" = "--knowledge" ]; then
+  shift
+  # 合并剩余 arg 当 USER_KNOWLEDGE (用 $@ 不用 $*, 排除 shift 副作用)
+  USER_KNOWLEDGE="$@"
 fi
 
 echo "═══ paper-into-notion run ═══"
 echo "URL: $URL"
 if [ "$FORCE_FILL" = "true" ]; then
   echo "⚠️ 模式: --force-fill (覆盖已有 page 全 7 字段, 慎用)"
+fi
+if [ -n "$USER_KNOWLEDGE" ]; then
+  echo "👤 user override 知识点: $USER_KNOWLEDGE"
 fi
 
 # === 1. 模态判定 ===
@@ -114,12 +128,24 @@ EDUCATION_TAGS="[]"
 HIGHLIGHTS=""
 if [ -n "$ABSTRACT" ]; then
   echo "[2.5/4] LLM judge 3 字段..."
-  KNOWLEDGE_TAGS=$(bash "$SCRIPT_DIR/knowledge-tag-judge.sh" "$ABSTRACT")
-  echo "    ✅ 知识点: $KNOWLEDGE_TAGS"
   EDUCATION_TAGS=$(bash "$SCRIPT_DIR/education-type-judge.sh" "$ABSTRACT")
   echo "    ✅ 教育类型: $EDUCATION_TAGS"
   HIGHLIGHTS=$(bash "$SCRIPT_DIR/highlights-judge.sh" "$ABSTRACT")
   echo "    ✅ 亮点 (≤200 字)"
+
+  # 知识点: user override > LLM judge (v1.7)
+  if [ -n "$USER_KNOWLEDGE" ]; then
+    # 把 user 关键词空格分隔 → JSON 数组
+    KNOWLEDGE_TAGS=$(echo "$USER_KNOWLEDGE" | python3 -c "
+import json, sys
+tags = sys.stdin.read().strip().split()
+print(json.dumps(tags, ensure_ascii=False))
+")
+    echo "    ✅ 知识点 (user override): $KNOWLEDGE_TAGS"
+  else
+    KNOWLEDGE_TAGS=$(bash "$SCRIPT_DIR/knowledge-tag-judge.sh" "$ABSTRACT")
+    echo "    ✅ 知识点: $KNOWLEDGE_TAGS"
+  fi
 fi
 
 # === 3. 字段级 merge ===
