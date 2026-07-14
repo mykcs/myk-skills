@@ -1,26 +1,61 @@
-# Skill 经验教训 → 提升 skill 闭环协议 (4 步: 总结 → 内化 → commit → bump version)
+# Skill 经验教训 → 提升 skill 闭环协议 (5 步: Step 0 ask window → 总结 → 内化 → commit → bump version)
 
 > 起源: 2026-07-14 user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，**提升 skill**" (触发 paper-into-notion v2.3 → v2.4 升级)
-> 配套: `scripts/skill-self-summary.sh` v2.0 (3 健壮性 + v-bump 触发) / `references/self-summary-protocol.md` (v2.3 已立, 4 段模板)
-> 案例: CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714
-> ADR: ADR-0057-f
+> 配套: `scripts/skill-self-summary.sh` v2.1 (Step 0 守卫 + 3 健壮性 + v-bump 触发) / `references/self-summary-protocol.md` (v2.3 已立, 4 段模板)
+> 案例: CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714 + CASE-CLAUDECODE-ADHD-RHYTHM-BYPASS-20260714 (v2.9 加 Step 0 触发)
+> ADR: ADR-0057-f (v2.4) / ADR-0057-i (v2.9 ask window 新立)
 
 ---
 
-## §1. 闭环 4 步协议 (per v2.6.30 §I self-evolution 协议位硬约束)
+## §0. Step 0 — Ask window 守卫 (v2.9 新增, 4 条件必问)
+
+**目的**: 在跑总结/内化/commit/bump 4 步之前, **先判定 user 是否已拍板**——避免 "顺手 X / 直接跑 X / 快做 X / 拍板 X" 类 keyword 触发越权自决.
+
+**触发**: 任何 skill 跑完后, 跟 §1 触发条件并列 (= 同列 hard 跑, 不是 optional).
+
+**4 条件任一满足 → 必跑 AskUserQuestion 拍板** (不要 defaults 自决):
+
+| # | 条件 | 判定 | 跑法 |
+|---|------|------|------|
+| 1 | **跨仓动作** (push main / rm / reset --hard / Notion API 写) | git status + 目标路径在 main? 远程? pwd git? | AskUserQuestion A 跑 / B 等 |
+| 2 | **不可逆操作** (rm / --force push / Notion Bitable write / 飞书 Wiki 改) | 是否影响 main / 远程 / 用户身份资源 | AskUserQuestion A 跑 / B 等 |
+| 3 | **user 用 keyword 提议** ("顺手" / "直接跑" / "快做" / "拍板" / "帮我做" / "judge yourself" / "给我答案" 任一命中) | `ASW_PROMPTED_BY_USER` env 自检 | `scripts/skill-self-summary.sh` Step 0 守卫命中 → exit 1, 引导 `unset ASW_PROMPTED_BY_USER` + AskUserQuestion |
+| 4 | **Tier 1+2 白名单外** (install / commit / e2e test / case file / hook 之外的动作 = Notion Bitable / 飞书 wiki / framework config) | 是否触及 main.pwd / 远程 / 用户身份资源 | AskUserQuestion A 跑 / B 等 |
+
+**`scripts/skill-self-summary.sh` Step 0 实现** (per feedback-adhd-rhythm-ask-window-not-bypass.md):
+
+```bash
+ASW_PROMPTED_BY_USER="${ASW_PROMPTED_BY_USER:-}"
+if [ -n "$ASW_PROMPTED_BY_USER" ]; then
+  for kw in "顺手" "直接跑" "快做" "拍板" "帮我做" "judge yourself" "给我答案"; do
+    case "$ASW_PROMPTED_BY_USER" in *"$kw"*)
+      echo "❌ Step 0 ask window 命中"
+      exit 1
+    ;; esac
+  done
+fi
+```
+
+**反模式** (永久失效): ❌ "user 提议顺手 = 自决权限" = 越权; ❌ "X 幂等 = 不需要 ask" = 错误前提; ❌ "ask + run 一次性" = 跳过 ask window, AD 不友好.
+
+---
+
+## §1. 闭环 5 步协议 (per v2.6.30 §I self-evolution 协议位硬约束, v2.9 加 Step 0)
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后
 - skill 跨 db 搬 / 跨 session 任务完成
 - 任何 build + deploy + config 改动完成
 - user 显式说 "总结" / "回顾" / "沉淀" / "提升 skill"
+- **§0 ask window 4 条件任一命中 (v2.9 加)**
 
-**4 步** (缺一不算 "提升 skill"):
+**5 步** (缺一不算 "提升 skill"):
 
 ### 1️⃣ 总结 (Summary)
 - 跑 `scripts/skill-self-summary.sh` 4 段 (做了什么 N / 修了什么 N / 踩坑 1-3 / 避坑 1-3)
 - 4 步 fallback: chat + 本地 case + CLAUDE.local.md hot recall + decision-stream
 - mem0 quota 撞墙时, 3 步 fallback (本地 case + CLAUDE.local.md + decision-stream)
+- **Step 0 ask window 守卫** (per §0): `ASW_PROMPTED_BY_USER` env 自检, 命中 → exit 1, 引导 `unset ASW_PROMPTED_BY_USER` + AskUserQuestion 选项化决定
 
 ### 2️⃣ 内化 (Internalize)
 - 经验教训 → SKILL.md 5 类沉淀:
@@ -42,7 +77,14 @@
 - changelog 段加 v_new_version entry
 - 触发词 + N (扩 when_to_use 段)
 - 反模式 + N (扩 4 反模式表)
-- 5 步 (总结 → 内化 → commit → bump → push, per v2.6.30 §I.1)
+
+### 5️⃣ Push + Auto-merge + Cleanup (v2.9 加)
+- push branch 到 origin (per §C.3.2)
+- gh pr create (base main) → 等 CI green
+- §11.1 auto-merge 4 条件 (ahead=0 / CI=green / mergeable=true / owner=mykcs) 满足 → squash merge
+- 必跑 `bash ~/.omc/hooks/post-pr-merge-ff-verify.sh` 兜底 (防 gh PR 谎报 per v2.6.60 §C.3.7)
+- local main ff merge + cleanup worktree + branch -d
+- 最终 ahead/behind 0 0 验证
 
 ---
 
