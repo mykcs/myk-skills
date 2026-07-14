@@ -23,12 +23,19 @@ fi
 DS_ID="${NOTION_DATA_SOURCE_ID:?NOTION_DATA_SOURCE_ID unset}"
 VERSION="${NOTION_VERSION:-2026-03-11}"
 
-TITLE_PROP="${NOTION_TITLE_PROPERTY:-页面}"
-STATUS_DEFAULT="${NOTION_STATUS_DEFAULT:-未开始}"
+# === v3.0 introspect mode: 自动读 schema 拿 property 名 + status default ===
+# 优先用 .env 显式配置; 未配则调 introspect.py; 缓存 24h
+INTROSPECT_OUT=$(python3 "$SCRIPT_DIR/introspect.py" "$DS_ID" "$SKILL_DIR/.introspect-cache.json" 2>/dev/null || true)
+if [ -n "$INTROSPECT_OUT" ]; then
+  eval "$INTROSPECT_OUT"
+fi
+
+TITLE_PROP="${NOTION_TITLE_PROPERTY:-${TITLE_PROP:-页面}}"
+STATUS_DEFAULT="${NOTION_STATUS_DEFAULT:-${STATUS_DEFAULT:-未开始}}"
 LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
 ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
-MODAL_PROP="${NOTION_MODAL_PROPERTY:-平台}"     # v2.9 改 schema: 模态类型 僵尸 → 平台 (新)
-FORM_PROP="${NOTION_FORM_PROPERTY:-展现形式}"    # v2.9 改 schema: 教育类型 multi → 展现形式 select 6 选项
+MODAL_PROP="${NOTION_MODAL_PROPERTY:-${MODAL_PROP:-平台}}"
+FORM_PROP="${NOTION_FORM_PROPERTY:-${FORM_PROP:-展现形式}}"
 
 # 解析 --force flag
 FORCE=false
@@ -99,7 +106,9 @@ except: pass
 ")
     if [ -n "$EDUCATION_NAMES" ]; then
       FORM_PROP_LOCAL="${FORM_PROP:-展现形式}"
-      EDUCATION_PROP=",\"${FORM_PROP_LOCAL}\":{\"select\":{\"name\":$(echo "$EDUCATION_NAMES" | python3 -c 'import json,sys; tags=json.loads(sys.stdin.read()); print(json.dumps(tags[0] if tags else \"论文\"))')}}"
+      FIRST_EDU=$(echo "$EDUCATION_NAMES" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p' | head -1)
+      FIRST_EDU="${FIRST_EDU:-论文}"
+      EDUCATION_PROP=",\"${FORM_PROP_LOCAL}\":{\"select\":{\"name\":$(printf '%s' "$FIRST_EDU" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}"
     fi
   fi
 
