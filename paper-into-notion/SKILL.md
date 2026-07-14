@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.7 (2026-07-14)
+  version: v2.8 (2026-07-14)
   changelog: |
+    v2.8 (2026-07-14) — db schema 漂移检查 + 9 字段自检表 (含 link url + 机构 multi_select) + 2 反模式 (per《无矩阵乘法LLM》page 39dfedee-...afd8-e51e622da580 体检触发): SKILL.md §7 字段表 8 → 9 字段 (label property db 不存在) + db schema 实测表 (9 字段校对) + 反模式 #32 (schema 拍板跟 db 对不上) + #33 (亮点 url 跟 link 重复) + 跟 v2.7 mmx 三件套 + v2.5 multi-db 4 env 协同不冲突
     v2.7 (2026-07-14) — mmx v1.0.16 真子命令 + status 中文错乱 + .env 真值同步 (per TTHE paper 跑出来 '(需 mmx 翻译: ...)' 占位触发, user 反馈 '亮点直接写明, 不能这样'): 4 个 judge 脚本 (highlights / knowledge / education / notes-tldr) 修 mmx v1.0.16 真用法 = `mmx text chat --non-interactive --output json --message "<prompt>"` + python json 解析提取 text content (不是 `mmx chat` 也不是 `--quiet`, per `mmx --help`: text resource → chat subcommand) + paper-into-notion.sh:182 --force-fill 硬编码 "页面" → ${NOTION_TITLE_PROPERTY:-页面} env (跨 db 兼容) + .env + .env.example 双侧 status 真值同步 "初抓取" (db 实际 options, 旧 "初抓取-ai" 是合字错值, 跟 wiki 默认 "未开始" 不同) + v-bump 触发走 self-evolution 闭环 v2.4 ADR-0057-f + triggers 词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复, per CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714). 跟 v2.5/v2.6 协同不冲突.
     v2.6 (2026-07-14) — subagent FAIL 反馈增量 + 字面 drift 跨 skill 协议位 (per user 2026-07-14 立 v2.5 之后增量): 加触发词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复) + 4 反模式表补 3 条 (28 → 31, 加 #25/26/27: spawn subagent 验证前不 pull main / 字面 drift 跨 skill 协议位 / self-evolution 闭环漏 subagent FAIL 反馈) + 新增 'subagent FAIL 反馈 + 修复' 段 + ADR-0057-h v2.6 + CASE-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714. 跟 v2.5 (user multi-db schema 4 env) 协同不冲突.
     v2.5 (2026-07-14) — 多 db schema 适配 (4 env variables + 2 db property 差异表): field-merge.sh 3 处硬编码 页面 → $TITLE_PROP env + verify-5-fields.sh 1 处 → $TITLE_PROP env + status 默认 未开始 → $STATUS_DEFAULT env + .env.example 加 4 个 NOTION_*_PROPERTY/NOTION_STATUS_DEFAULT env + 新增 "多 db schema 适配" 段 (4 env table + 论文 wiki vs 信息 property 差异表) + 触发词 + 1 (Notion multi-db schema) + 4 反模式表补 4 条 (24 → 28) (per CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 + Notion 2025-09-03 → 2026-03-11 multi-source database 升级)
