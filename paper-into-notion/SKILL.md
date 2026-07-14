@@ -1,15 +1,16 @@
 ---
 name: paper-into-notion
 description: |
-  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 11 scripts + 6 templates + 6 references. weiying20260624 PhD 申请场景.
+  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/关键词/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 11 scripts + 6 templates + 6 references. weiying20260624 PhD 申请场景.
 when_to_use: |
   Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "Notion URL 解读" / "Notion schema 变更" / "Notion cross-db 搬" / "Notion property 改名" / "Notion multi-db schema" / "skill 跑完自我总结" / "任务后总结" / "skill 经验教训内化" / "skill 自我升级" / "**skill 子句 grep 修复**" / "**skill 字面 drift 修复**" / "**skill ask window 守卫**" / "**用户 ADHD 节奏 + ask window**" / "**skill 改 CLAUDE.md 后直接生效**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径 / skill 跑完必跑 skill-self-summary.sh 4 段总结 + mem0 quota fallback 3 步 (per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill") / v-bump 自动触发 (4 条件: 反模式 ≥ 4 / 流程变化 ≥ 1 / 触发词变化 ≥ 1, 任一满足立 v_new_version per v2.6.30 §I self-evolution) / **spawn subagent 验证前必 git pull + ff main** (避免 subagent 看到 stale main, per v2.2 + v2.4 累积第 2 次) / **3 dirty file 走 v-bump 闭环** (subagent 跑测试改 env var 触发 file dirty, 不删, 走 self-evolution 闭环 5 步) / **Step 0 ask window 守卫** (skill-self-summary.sh 7 keyword "顺手/直接跑/快做/拍板/帮我做/judge yourself/给我答案" 命中必 unset + AskUserQuestion 选项化决定, per v2.9-i + CASE-CLAUDECODE-ADHD-RHYTHM-BYPASS-20260714 + feedback-adhd-rhythm-ask-window-not-bypass.md v2 强化 "改完 CLAUDE.md 默认生效, 不二次 ask"). NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v3.5 (2026-07-14)
+  version: v3.6 (2026-07-14)
   changelog: |
+    v3.6 (2026-07-14) — Notion property「知识点」改名「关键词」+ 硬编码换 env var (per user 2026-07-14 "知识点 改名为 关键词", per CASE-PAPER-INTO-NOTION-SELF-SUMMARY-2026-07-14): ntn api PATCH /v1/data_sources rename (值全保留) + 新增 env NOTION_KEYWORD_PROPERTY="关键词" (.env + .env.example) + field-merge.sh 3 处硬编码「知识点」换 ${KEYWORD_PROP} (line 96/235/288) + get-page-props.sh + verify-5-fields.sh jq 换 env + 15 文件字面「知识点」→「关键词」(templates/references/scripts 注释/USER-SETUP) + 反模式 #46 (property 改名后硬编码字面 drift, 必走 env var 不硬编码). 跟 v2.5 4 env override + v3.0 introspect 协同不冲突.
     v3.5 (2026-07-14) — 补 v3.4 changelog 谎报的缺失反模式表格行 (per CASE-PAPER-INTO-NOTION-SELF-SUMMARY-2026-07-14 + 灵魂 v6 self-summary 内化): v3.4 changelog 声称加了反模式 #42/#44/#45 但反模式表格里实际只到 #37 (sub-agent 半成品合并漏表格实体行 = 字面 drift, per 反模式 #26); 本版补齐表格实体行 #42 (multi_select "改为 N 项" 合成 vs 拆分歧义, 必 AskUserQuestion) + #44 (修缮 page 跳 grill) + #45 (查 page 用 URL 当 title 搜). 跟 v3.4 changelog 声明对齐, 无新流程. 跟 v3.0 introspect + v3.1 self-summary + v3.2 LLM 默认写入 协同不冲突.
     v3.4 (2026-07-14) — 合并 sub-agent 半成品 (institutions-judge.sh 加 whitelist 注释 + v3-3 反模式 #42 multi_select 拆 N 项歧义 + llm-fill 反模式 #44/#45 修缮 page + 字段填全), per Layer 2 cleanup SOP 选项 A 全推 (per host-self-evolve Layer 1 audit, per user 拍板): institutions-judge.sh 加 4 option whitelist 注释 (Anthropic / SZU / PolyU / 其他机构) + 反模式 #42 (multi_select "改为 N 项" 默认合成 vs 拆 N 项歧义) + #44 (修缮 page 跳过 grill) + #45 (查 page 用 URL 当 title → PATCH 后找不到) + 触发词 + 1 (skill 改字段先 grill) + 跟 v3.2 LLM 默认写入 + v3.1 self-summary 协同不冲突.
     v3.2 (2026-07-14) — LLM 默认自动写入 + institutions judge + get-page-props 工具 (per zombie worktree feat/paper-into-notion-v3-llm-fill 4 dirty file 拎到 v3.2, per CASE-PAPER-INTO-NOTION-LLM-FILL-ZOMBIE-20260714): scripts/institutions-judge.sh 新立 (abstract + authors → 机构 multi_select SZU/PolyU, 跟 get-page-props.sh 协同) + scripts/get-page-props.sh 新立 (query db 拿现有 properties, 字段级 merge 配套) + field-merge.sh +71 行 (LLM 默认模式, "空才填" 逻辑: PATCH 时只在字段为空时才传) + paper-into-notion.sh +20 行 (调 get-page-props + institutions-judge 接入) + 触发词 + 1 (skill LLM 默认写入) + 反模式 #41 (LLM 默认模式不带 "空才填" 守卫). 跟 v3.0 introspect mode + v3.1 self-summary 协同不冲突.
@@ -32,7 +33,7 @@ metadata:
     v1.4 (2026-07-13) — --force-fill + schema 8 字段对齐
     v1.3 (2026-07-13) — notes-tldr + highlights + arxiv backoff
     v1.2 (2026-07-13) — education-type-judge + 新 page 才填教育类型
-    v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
+    v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填关键词
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
   起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑) → v2.3 (skill 跑完自我总结 + mem0 quota fallback) → v2.4 (经验教训 → 提升 skill 闭环 + 3 健壮性 + v-bump 自动触发, per user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill")
   关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0057-g (v2.5, user multi-db schema 4 env) / ADR-0057-h (v2.6) / ADR-0057-i (v2.7, mmx subcommand + status 真值同步, per TTHE paper user 反馈) / ADR-0057-k (v2.9, db schema 改 + 平台 字段 + 批量回填) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
@@ -43,7 +44,7 @@ metadata:
 
 # paper-into-notion v2.6
 
-> **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/知识点) 永不覆盖已有值 ✅
+> **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/关键词) 永不覆盖已有值 ✅
 > **触发**: user 说 "paper 进 Notion" / "Notion 沉淀" / "把这个 paper 加到 Notion" / "写论文卡片" 时跑
 
 ---
@@ -74,14 +75,14 @@ metadata:
 | 2 | 状态 | **status** | ✅ 默认 "初抓取" (per .env) | 单值安全。⚠️ status ≠ select: option 不能删,只能 UI Archive. PATCH 前必 GET data_source 拿真 options 比对 env 默认值 (per 反模式 #29) |
 | 3 | 模态类型 | select | ✅ 5 pattern grep (arXiv / 微信公众号 / 博客 / Twitter / 其他) | 单值安全 |
 | 4 | 教育类型 | **multi_select** | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** |
-| 5 | 知识点 | **multi_select** | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** |
+| 5 | 关键词 | **multi_select** | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** |
 | 6 | 亮点 | rich_text | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** (你后填) |
 | 7 | link | url | ✅ auto 填 source URL (per v1.4 字段级 merge) | 跟亮点分离 (老 v1.4 page 跟 url 写在亮点, v2.7 起 url 必填 link) |
 | 8 | 机构 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** (新增 v2.7, db 实测有但 v1.4 schema 漏) |
 | 9 | 日期 | created_time | ✅ auto (Notion set) | 永不传 (auto) |
 
 **db schema 实测 (2026-07-14 GET data_source, per CASE-V2-7-SCHEMA-DRIFT + V2-9-SCHEMA-CHANGE 累积第 3 次 schema 漂移, 9 → 12 字段)**:
-- 名称 (title) / 状态 (status, 3 options 初抓取/ai补充/人类认证) / **平台** (select, 6 options arXiv/博客/微信公众号/bilibili/Twitter/其他, v2.9 新建替代 v1.4 "模态类型" 僵尸 property) / 教育类型 (multi_select, 1 option 论文阅读) / 知识点 (multi_select, 7 options) / 亮点 (rich_text) / link (url) / 机构 (multi_select, 2 options SZU+PolyU) / 日期 (created_time) / 创建时间 (created_time) / 上次编辑时间 (last_edited_time) / **展现形式** (select, 6 options 课程/论文/工具/基础知识/博客/帖子, v2.9 新建替代 v1.2 教育类型 multi) = **12 字段实测**
+- 名称 (title) / 状态 (status, 3 options 初抓取/ai补充/人类认证) / **平台** (select, 6 options arXiv/博客/微信公众号/bilibili/Twitter/其他, v2.9 新建替代 v1.4 "模态类型" 僵尸 property) / 教育类型 (multi_select, 1 option 论文阅读) / 关键词 (multi_select, 7 options) / 亮点 (rich_text) / link (url) / 机构 (multi_select, 2 options SZU+PolyU) / 日期 (created_time) / 创建时间 (created_time) / 上次编辑时间 (last_edited_time) / **展现形式** (select, 6 options 课程/论文/工具/基础知识/博客/帖子, v2.9 新建替代 v1.2 教育类型 multi) = **12 字段实测**
 - ❌ db 无 "标签" multi_select (v1.4 8 字段写错, 实际 db 没此 property)
 - ⚠️ 模态类型 select 是僵尸 property (type=None, options=空), 写 PATCH 时不要往里写 (per 反模式 #34)
 
@@ -201,7 +202,7 @@ if [ "$COUNT" = "1" ]; then
         \"模态类型\": {\"select\": {\"name\": \"$MODAL\"}}
       }
     }"
-  # ⚠️ body 永远不包含: 教育类型 / 标签 / 知识点 (multi_select) + 亮点 (rich_text)
+  # ⚠️ body 永远不包含: 教育类型 / 标签 / 关键词 (multi_select) + 亮点 (rich_text)
 fi
 
 # Step 4: 2+ 条 → exit 1 "duplicate title" (需 user 手动 dedup)
@@ -294,7 +295,7 @@ print(entry.find('atom:title', ns).text.strip())
 
 | # | 反模式 | 真因 | 正确做法 |
 |---|---|---|---|
-| 1 | **PATCH multi_select 覆盖已有** | Notion PATCH 数组 = 完整新值 | body **永远不含** 教育类型/标签/知识点 |
+| 1 | **PATCH multi_select 覆盖已有** | Notion PATCH 数组 = 完整新值 | body **永远不含** 教育类型/标签/关键词 |
 | 2 | **凭印象判模态类型** | URL pattern 没列全 | 5 pattern grep + fallback "其他" |
 | 3 | **arXiv 抓失败不报** | rate limit / 网络 | exit 1 + 报错 + 不写 fallback record |
 | 4 | **没 record_id 就算完成** | §C.2 deferred theater | 必须 ntn create 返 id + url |
@@ -440,7 +441,7 @@ bash paper-into-notion.sh --dry-run "https://arxiv.org/abs/1706.03762"
 | 状态 options | `未开始` / `在读` / `已完成` | `初抓取-ai` / `ai补充` / `人类认证` |
 | 模态类型 | `arXiv` / `微信公众号` / ... | 同 |
 | 教育类型 | `论文阅读` | 同 |
-| 知识点 | open | `llm` / `线性注意力` / `超声心动` (既有 tag) |
+| 关键词 | open | `llm` / `线性注意力` / `超声心动` (既有 tag) |
 | 链接 | ❌ 无此字段 | ✅ `link` (url type) |
 | 日期 | ❌ | ✅ `日期` (created_time auto) |
 | 机构 | ❌ | ✅ `机构` (multi_select, SZU/PolyU) |
@@ -511,9 +512,10 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 | 35 | **user 说 "顺手 X / 直接跑 X / 快做 X" 自决跑 (本次返魂句)** | claudecode 把 "user 提议顺手" 误读为 "user 已拍板授权", 跳过 AskUserQuestion 直接跑; 跨仓动作 (push main / rm / reset / Notion API 写) 风险高, AD 不友好 | 必跑 AskUserQuestion (1-2 选项, A 跑 / B 等), 跑前先报 5 行 (动作 / 影响 / 验证). `scripts/skill-self-summary.sh` 加 Step 0 守卫 (env `ASW_PROMPTED_BY_USER` 含 keyword → exit 1) |
 | 36 | **X 幂等 = 不需要 ask (错误前提)** | "git fetch --prune 幂等" != "user 已拍板", 幂等 ≠ 自决授权. 越权跑一次性副作用小, 但建立 "顺手 ≠ 拍板 = 跳过询问" 习惯后, 下次 X 不可逆 (`rm` / `--force push`) 会同样越权 | 副作用表求 = 0 (不触及 main / 远程 / 用户身份) 才能 "自决 + 事后告知"; 否则必跑 ask window (per §12 + §6 calm-flow 8 类必问) |
 | 37 | **总结走 v-bump 闭环漏 ask window Step 0** | v2.4 4 步闭环 / v2.6 5 步闭环 没把 "user 用 keyword 提议" 当 1 步前置守卫; 结果 task 跑完剩 1 步自决残留, 跟 post-task-recommend §6 v3 清理 + 灵魂 v6 协议位 反 | 加 5 步闭环 Step 0 (ask window 4 条件判定), `references/self-evolution-loop.md` §0 立条, 字面跟 script Step 0 一致 (per 反模式 #26 字面 drift 协同) |
-| 42 | **multi_select "改为 N 项" 默认臆断合成还是拆分** | user 说 "知识点改为 X 进阶技巧" 时, "X 进阶技巧" 可能是 1 个合成项也可能是《X》《进阶技巧》2 个拆分项 (TTHE page 2 轮才澄清); claudecode 默认按字面写 1 项 = 猜错语义 = 返工 | multi_select "改为 N 项" 先 `AskUserQuestion` 确认 "合成 1 项" vs "拆 N 项" (2 选项各 1 行人话), 别默认; 改后二次 `ntn pages get` 验证 |
+| 42 | **multi_select "改为 N 项" 默认臆断合成还是拆分** | user 说 "关键词改为 X 进阶技巧" 时, "X 进阶技巧" 可能是 1 个合成项也可能是《X》《进阶技巧》2 个拆分项 (TTHE page 2 轮才澄清); claudecode 默认按字面写 1 项 = 猜错语义 = 返工 | multi_select "改为 N 项" 先 `AskUserQuestion` 确认 "合成 1 项" vs "拆 N 项" (2 选项各 1 行人话), 别默认; 改后二次 `ntn pages get` 验证 |
 | 44 | **修缮已有 page 跳过 grill 直接改** | 对已存在的 page 改字段时, 若不先确认改动语义 (覆盖 vs 追加 / 合成 vs 拆分) 就 PATCH, 易改错已有值 | 修缮 page 前先 GET 现值 + AskUserQuestion 确认改动语义, 再 PATCH + 二次 GET 验证 |
 | 45 | **查 page 用 URL 当 title 搜 → PATCH 后找不到** | 用 URL slug 里的标题去 query db 搜 page, PATCH 改了 property 后 slug 不变但搜索逻辑可能错位; URL 32-char segment 是 page id 不是 title | 查 page 优先用 URL 尾部 32-char page id 直接 `ntn pages get <id>`, 不用 title 模糊搜 |
+| 46 | **property 改名后脚本硬编码字面 drift** | Notion property 改名 (`ntn api PATCH /v1/data_sources`) 后, 脚本里硬编码的旧 property 名 (如 field-merge.sh `,\"知识点\":{...}`) 仍写旧名 → PATCH 静默失败 (写入丢失, HTTP 200 但字段没填) | property 名一律走 env var (NOTION_KEYWORD_PROPERTY 等), 脚本读 `${KEYWORD_PROP:-默认名}`, 不硬编码; 改名后 grep 全仓字面确认 0 残留 |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后

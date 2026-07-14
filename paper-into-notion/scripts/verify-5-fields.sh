@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # verify-5-fields.sh — §H.1 5 字段验收 + multi_select 保护 grader (run-end 必跑)
 # 用法: bash verify-5-fields.sh <PAGE_ID>
-# 验证: 3 auto 字段填对 + multi_select (教育类型/标签/知识点) 全空 (新建) 或保留 (更新)
+# 验证: 3 auto 字段填对 + multi_select (教育类型/标签/关键词) 全空 (新建) 或保留 (更新)
 #        + rich_text (亮点) 空/保留 + 上次编辑时间 = auto (Notion 设置)
 
 set -euo pipefail
@@ -45,11 +45,11 @@ echo "[3/5] ${MODAL_PROP:-平台} (旧:模态类型): $MODAL"
 # 4. multi_select 保护 grader
 EDU=$(echo "$PAGE" | jq -r '.properties["教育类型"].multi_select | length // 0')
 TAG=$(echo "$PAGE" | jq -r '.properties["标签"].multi_select | length // 0')
-KNOW=$(echo "$PAGE" | jq -r '.properties["知识点"].multi_select | length // 0')
+KNOW=$(echo "$PAGE" | jq -r --arg p "${NOTION_KEYWORD_PROPERTY:-关键词}" '.properties[$p].multi_select | length // 0')
 echo "[4/5] multi_select 保护:"
 echo "    教育类型: $EDU 项 (新建 = 0, 更新 = 保留 = $EDU)"
 echo "    标签: $TAG 项"
-echo "    知识点: $KNOW 项"
+echo "    ${NOTION_KEYWORD_PROPERTY:-关键词}: $KNOW 项"
 
 # 5. 上次编辑时间 (auto)
 LAST_EDITED=$(echo "$PAGE" | jq -r '."last_edited_time" // "❌"')

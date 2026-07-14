@@ -88,7 +88,7 @@ bash ~/.agents/skills/paper-into-notion/scripts/paper-into-notion.sh https://arx
 # ✅ record_id: xxx-xxx-xxx
 # ✅ page_url: https://www.notion.so/...
 # ✅ 3 字段填对 (页面=Attention Is All You Need, 状态=未开始, 模态类型=arXiv)
-# ✅ multi_select 保护: 教育类型=[], 标签=[], 知识点=[] (新建 page 全空, 符合预期)
+# ✅ multi_select 保护: 教育类型=[], 标签=[], 关键词=[] (新建 page 全空, 符合预期)
 ```
 
 **回 "跑通" 给 claudecode** → 5 字段验收 + case 立到 `~/.claude/knowledge/cases/wiki/CASE-PAPER-INTO-NOTION-SKILL-V1-20260713.md`

@@ -3,11 +3,11 @@
 # 用法:
 #   bash paper-into-notion.sh <URL>                                                        # 修法 1 (默认, 安全)
 #   bash paper-into-notion.sh --force-fill <URL>                                          # 覆盖模式 (慎用)
-#   bash paper-into-notion.sh --force-fill <URL> --knowledge "tag1 tag2"                  # user override 知识点
+#   bash paper-into-notion.sh --force-fill <URL> --knowledge "tag1 tag2"                  # user override 关键词
 #   bash paper-into-notion.sh --force-fill <URL> --highlight "中文 takeaway"              # user override 亮点 (claudecode 自己翻)
 #   bash paper-into-notion.sh --verify
 # 流程: 模态判定 → arXiv 抓 (仅 arXiv) → LLM judge 3 字段 → 字段级 merge → POST/PATCH → GET 验证
-# schema (v1.4, 8 字段实际): 页面/状态/模态/link/亮点/知识点/教育类型/上次编辑时间
+# schema (v1.4, 8 字段实际): 页面/状态/模态/link/亮点/关键词/教育类型/上次编辑时间
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -79,14 +79,14 @@ if [ -z "$URL" ]; then
   echo "用法:" >&2
   echo "  bash paper-into-notion.sh <URL>                                            # 修法 1 (默认, 安全)" >&2
   echo "  bash paper-into-notion.sh --force-fill <URL>                              # 覆盖模式 (慎用)" >&2
-  echo "  bash paper-into-notion.sh --force-fill <URL> --knowledge \"tag1 tag2\"      # user override 知识点" >&2
+  echo "  bash paper-into-notion.sh --force-fill <URL> --knowledge \"tag1 tag2\"      # user override 关键词" >&2
   echo "  bash paper-into-notion.sh --dry-run <URL>                                 # 验证模式, 不写 Notion" >&2
   echo "  bash paper-into-notion.sh --verify                                       # 环境检查" >&2
   exit 1
 fi
 shift  # shift URL
 
-# === --knowledge "tag1 tag2" 参数 (v1.7, user override 知识点, 在 URL 之后位置) ===
+# === --knowledge "tag1 tag2" 参数 (v1.7, user override 关键词, 在 URL 之后位置) ===
 USER_KNOWLEDGE=""
 if [ "${1:-}" = "--knowledge" ]; then
   shift
@@ -117,7 +117,7 @@ if [ "$FORCE_FILL" = "true" ]; then
   echo "⚠️ 模式: --force-fill (覆盖已有 page 全 7 字段, 慎用)"
 fi
 if [ -n "$USER_KNOWLEDGE" ]; then
-  echo "👤 user override 知识点: $USER_KNOWLEDGE"
+  echo "👤 user override 关键词: $USER_KNOWLEDGE"
 fi
 if [ -n "$USER_HIGHLIGHT" ]; then
   echo "👤 user override 亮点: $USER_HIGHLIGHT"
@@ -153,7 +153,7 @@ else
   echo "[2/4] 非 arXiv 模态, 用 URL 作 fallback title"
 fi
 
-# === 2.5 LLM judge 4 字段 (per ADR-0057 v3.1, schema 8 字段: 页面/状态/平台/link/亮点/知识点/展现形式/机构) ===
+# === 2.5 LLM judge 4 字段 (per ADR-0057 v3.1, schema 8 字段: 页面/状态/平台/link/亮点/关键词/展现形式/机构) ===
 KNOWLEDGE_TAGS="[]"
 EDUCATION_TAGS="[]"
 HIGHLIGHTS=""
@@ -171,7 +171,7 @@ if [ -n "$ABSTRACT" ]; then
     echo "    ✅ 亮点: $HIGHLIGHTS"
   fi
 
-  # 知识点: user override > LLM judge (v1.7)
+  # 关键词: user override > LLM judge (v1.7)
   if [ -n "$USER_KNOWLEDGE" ]; then
     # 把 user 关键词空格分隔 → JSON 数组
     KNOWLEDGE_TAGS=$(echo "$USER_KNOWLEDGE" | python3 -c "
@@ -179,10 +179,10 @@ import json, sys
 tags = sys.stdin.read().strip().split()
 print(json.dumps(tags, ensure_ascii=False))
 ")
-    echo "    ✅ 知识点 (user override): $KNOWLEDGE_TAGS"
+    echo "    ✅ 关键词 (user override): $KNOWLEDGE_TAGS"
   else
     KNOWLEDGE_TAGS=$(bash "$SCRIPT_DIR/knowledge-tag-judge.sh" "$ABSTRACT")
-    echo "    ✅ 知识点: $KNOWLEDGE_TAGS"
+    echo "    ✅ 关键词: $KNOWLEDGE_TAGS"
   fi
 
   # 机构: v3.1 新增 (per user 反馈"很多字段没填"), 走 email grep + LLM fallback
@@ -247,7 +247,7 @@ echo "✅ 3 字段填对 (页面=$TITLE, 状态=未开始, ${MODAL_PROP:-平台}
 if [ "$FORCE_FILL" = "true" ]; then
   echo "⚠️ --force-fill 模式: 7 字段全填 (含 3 LLM judge 字段 + link URL)"
 else
-  if [ "$KNOWLEDGE_TAGS" != "[]" ]; then echo "✅ 知识点 (新 page 才填): $KNOWLEDGE_TAGS"; fi
+  if [ "$KNOWLEDGE_TAGS" != "[]" ]; then echo "✅ 关键词 (新 page 才填): $KNOWLEDGE_TAGS"; fi
   if [ "$EDUCATION_TAGS" != "[]" ]; then echo "✅ 教育类型 (新 page 才填): $EDUCATION_TAGS"; fi
   if [ -n "$HIGHLIGHTS" ]; then echo "✅ 亮点 (新 page 才填, ≤200 字)"; fi
   if [ "$INSTITUTIONS" != "[]" ]; then echo "✅ 机构 (新 page 才填, v3.1): $INSTITUTIONS"; fi

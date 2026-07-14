@@ -53,7 +53,7 @@ fi
 # 截断 abstract 前 1500 字
 ABSTRACT_TRIM=$(echo "$ABSTRACT" | head -c 1500)
 
-# LLM judge prompt: 选 1-2 个 (粒度比知识点粗)
+# LLM judge prompt: 选 1-2 个 (粒度比关键词粗)
 PROMPT=$(cat <<EOF
 You are a paper-type classifier. Read this paper abstract and pick 1-2 most relevant tags from this whitelist ONLY:
 
