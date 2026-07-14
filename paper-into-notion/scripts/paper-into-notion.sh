@@ -158,6 +158,7 @@ KNOWLEDGE_TAGS="[]"
 GROWTH_TAGS="[]"
 HIGHLIGHTS=""
 INSTITUTIONS="[]"
+EDUCATION_TAGS="[]"  # v3.7 弃用 (旧 教育类型 multi_select 走 Notion UI archive), 保留占位防 set -u 撞
 if [ -n "$ABSTRACT" ]; then
   echo "[2.5/4] LLM judge 5 字段..."
   # v3.7: knowledge-growth-judge (multi_select 6 判据 1-2 项)
