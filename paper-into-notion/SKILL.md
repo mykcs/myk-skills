@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.8 (2026-07-14)
+  version: v2.9 (2026-07-14)
   changelog: |
+    v2.9 (2026-07-14) — db schema 改 教育类型 multi → 展现形式 select 6 选项 + 平台 字段 (per user 2026-07-14 原话 '把...教育类型字段名字变为展现形式单选, 课程/论文/工具/基础知识/博客/帖子'): add-property.sh 加 展现形式 (select, 6 options) + 发现 模态类型 是僵尸 property (type=None, options=空) + 真实数据走 平台 (新建, 6 options 含 bilibili) + 批量回填 3 page 旧 教育类型=论文阅读 → 新 展现形式=论文 (TTHE ca9d / 无矩阵乘法LLM afd8 / GDKVM echo b483) + 改 4 script (field-merge.sh 3 处硬编码 模态类型→平台 / verify-5-fields.sh / paper-into-notion.sh / modal-detect.sh 加 bilibili) + .env + .env.example 加 2 新 env (NOTION_MODAL_PROPERTY=平台 / NOTION_FORM_PROPERTY=展现形式) + 反模式 #34 (僵尸 property type=None 误填) + 触发词 +1 (db schema 改字段). 跟 v2.7 mmx 三件套 + v2.5 multi-db 4 env 协同不冲突.
     v2.8 (2026-07-14) — db schema 漂移检查 + 9 字段自检表 (含 link url + 机构 multi_select) + 2 反模式 (per《无矩阵乘法LLM》page 39dfedee-...afd8-e51e622da580 体检触发): SKILL.md §7 字段表 8 → 9 字段 (label property db 不存在) + db schema 实测表 (9 字段校对) + 反模式 #32 (schema 拍板跟 db 对不上) + #33 (亮点 url 跟 link 重复) + 跟 v2.7 mmx 三件套 + v2.5 multi-db 4 env 协同不冲突
     v2.7 (2026-07-14) — mmx v1.0.16 真子命令 + status 中文错乱 + .env 真值同步 (per TTHE paper 跑出来 '(需 mmx 翻译: ...)' 占位触发, user 反馈 '亮点直接写明, 不能这样'): 4 个 judge 脚本 (highlights / knowledge / education / notes-tldr) 修 mmx v1.0.16 真用法 = `mmx text chat --non-interactive --output json --message "<prompt>"` + python json 解析提取 text content (不是 `mmx chat` 也不是 `--quiet`, per `mmx --help`: text resource → chat subcommand) + paper-into-notion.sh:182 --force-fill 硬编码 "页面" → ${NOTION_TITLE_PROPERTY:-页面} env (跨 db 兼容) + .env + .env.example 双侧 status 真值同步 "初抓取" (db 实际 options, 旧 "初抓取-ai" 是合字错值, 跟 wiki 默认 "未开始" 不同) + v-bump 触发走 self-evolution 闭环 v2.4 ADR-0057-f + triggers 词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复, per CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714). 跟 v2.5/v2.6 协同不冲突.
     v2.6 (2026-07-14) — subagent FAIL 反馈增量 + 字面 drift 跨 skill 协议位 (per user 2026-07-14 立 v2.5 之后增量): 加触发词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复) + 4 反模式表补 3 条 (28 → 31, 加 #25/26/27: spawn subagent 验证前不 pull main / 字面 drift 跨 skill 协议位 / self-evolution 闭环漏 subagent FAIL 反馈) + 新增 'subagent FAIL 反馈 + 修复' 段 + ADR-0057-h v2.6 + CASE-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714. 跟 v2.5 (user multi-db schema 4 env) 协同不冲突.
@@ -29,9 +30,10 @@ metadata:
     v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
   起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑) → v2.3 (skill 跑完自我总结 + mem0 quota fallback) → v2.4 (经验教训 → 提升 skill 闭环 + 3 健壮性 + v-bump 自动触发, per user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill")
-  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0057-g (v2.5, user multi-db schema 4 env) / ADR-0057-h (v2.6) / ADR-0057-i (v2.7, mmx subcommand + status 真值同步, per TTHE paper user 反馈) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714 + CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 (user v2.5) + CASE-PAPER-INTO-NOTION-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714 + **CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714** (本次, mmx 真子命令 + status 真值 + TTHE paper 修)
+  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0057-g (v2.5, user multi-db schema 4 env) / ADR-0057-h (v2.6) / ADR-0057-i (v2.7, mmx subcommand + status 真值同步, per TTHE paper user 反馈) / ADR-0057-k (v2.9, db schema 改 + 平台 字段 + 批量回填) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714 + CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 (user v2.5) + CASE-PAPER-INTO-NOTION-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714 + CASE-PAPER-INTO-NOTION-V2-7-MMX-SUBCOMMAND-20260714 + CASE-PAPER-INTO-NOTION-V2-7-SCHEMA-DRIFT-20260714 + **CASE-PAPER-INTO-NOTION-V2-9-SCHEMA-CHANGE-20260714** (本次, 教育类型→展现形式 + 平台 字段 + 批量回填 3 page)
   适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
+  自我进化协议: v2.6.30 §I 8 步循环 (per ADR-0057-f v2.4 + v2.6.30)
 ---
 
 # paper-into-notion v2.6
@@ -73,9 +75,10 @@ metadata:
 | 8 | 机构 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** (新增 v2.7, db 实测有但 v1.4 schema 漏) |
 | 9 | 日期 | created_time | ✅ auto (Notion set) | 永不传 (auto) |
 
-**db schema 实测 (2026-07-14 GET data_source, per CASE-V2-7-SCHEMA-DRIFT)**:
-- 名称 (title) / 状态 (status, 3 options) / 模态类型 (select, 5 options) / 教育类型 (multi_select, 1 option 论文阅读) / 知识点 (multi_select, 7 options) / 亮点 (rich_text) / link (url) / 机构 (multi_select, 2 options SZU+PolyU) / 日期 (created_time) = **9 字段**
+**db schema 实测 (2026-07-14 GET data_source, per CASE-V2-7-SCHEMA-DRIFT + V2-9-SCHEMA-CHANGE 累积第 3 次 schema 漂移, 9 → 12 字段)**:
+- 名称 (title) / 状态 (status, 3 options 初抓取/ai补充/人类认证) / **平台** (select, 6 options arXiv/博客/微信公众号/bilibili/Twitter/其他, v2.9 新建替代 v1.4 "模态类型" 僵尸 property) / 教育类型 (multi_select, 1 option 论文阅读) / 知识点 (multi_select, 7 options) / 亮点 (rich_text) / link (url) / 机构 (multi_select, 2 options SZU+PolyU) / 日期 (created_time) / 创建时间 (created_time) / 上次编辑时间 (last_edited_time) / **展现形式** (select, 6 options 课程/论文/工具/基础知识/博客/帖子, v2.9 新建替代 v1.2 教育类型 multi) = **12 字段实测**
 - ❌ db 无 "标签" multi_select (v1.4 8 字段写错, 实际 db 没此 property)
+- ⚠️ 模态类型 select 是僵尸 property (type=None, options=空), 写 PATCH 时不要往里写 (per 反模式 #34)
 
 **关键铁律** (per plan §核心铁律):
 - multi_select 一旦传数组 = **完整新值覆盖** (Notion API 行为)
@@ -492,6 +495,7 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 |---|---|---|---|
 | 32 | **SKILL.md schema 拍板跟 db 实际字段数对不上 (8 写错 9)** | v1.4 拍板 8 字段 (含"标签" multi_select), db 实测 9 字段 (含"机构" multi_select, 无"标签"); 文档跟 schema drift 后 user 决策 "全自动修" 时容易漏字段 | 任何 PATCH page 前必 `GET /v1/data_sources/{id}` 拿真 schema 跟 SKILL.md 校对, 漂移立 case + 改 SKILL.md |
 | 33 | **亮点字段塞 url 跟 link url 字段重复** | 早期 page 手工创时, paper-into-notion.sh v1.4 还没自动写 link, user 只能把 url 塞进亮点 ("bilibili 视频 (2024-08-17 发布), URL: https://...") | PATCH 时 link url 跟 亮点拆开, link = URL, 亮点 = 1 句中文 takeaway. paper-into-notion.sh v1.4 改 mod-detect 输出 link 同时写 link + 亮点 |
+| 34 | **僵尸 property 误填 (type=None, options=空 字段还往里写)** | v1.4 拍板的 "模态类型" select 实际 type=None, options=空 (db schema 留壳), 真实数据走新建的 "平台" 字段. 写字段 PATCH 时如果硬编码 "模态类型" → Notion API 返 200 但实际不存 (silent loss) | PATCH 前必 GET data_source 拿真 schema, 跳过 type=None 字段. 任何 property 引用必走 env (per v2.9 $NOTION_MODAL_PROPERTY=平台), 禁止硬编码 "模态类型" |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后
