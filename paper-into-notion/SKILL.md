@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v3.1 (2026-07-14)
+  version: v3.2 (2026-07-14)
   changelog: |
+    v3.2 (2026-07-14) — 修缮 page "Field Guide to Fable" + 反模式 #44 (per user 原话 "这种问题为什么要问我"): 修缮实测 4 步 (curl HTML 抓真 title → PATCH 名称 → mmx LLM 算 3 字段 → PATCH 亮点+知识点+展现形式). 污染防御: paper-into-notion.sh [2/4] 非 arXiv 模态用 URL 当 fallback title → [3/4] 字段级 merge 找不到原 page (URL 不等于 PATCH 后的真 title) → 走 COUNT==0 POST 新建 page 污染. 修法方向: 主入口查 page 时 fallback 查 link URL 字段 (page PATCH 后的 link 字段含 URL = 主索引). 反模式 #44 (灵魂 v3 反, 已迫 / 不要 grill 已知答案 / 违反 ADHD 节奏) + 反模式 #45 (paper-into-notion 查 page 用 URL 当 title → PAGE 改 name 后找不到 → 误 POST 污染). 跟 v3.0 GET 判空 + v3.1 机构 + v1.4 multi_select 保护 grader + 灵魂 v3 (Coding Agent 主动引导) 协同. 修缮 8 字段全填 + trash 1 污染 page
     v3.1 (2026-07-14) — 新增「机构」LLM 字段 (per user 原话 "但是还有问题, 里面还有很多字段你都没有填, 为什么没有填? 我希望 skill 能做到把这些信息都填了"): scripts/institutions-judge.sh 新增 (1 file 91 lines, abstract+authors → SZU/PolyU/空, Layer 1 邮箱域名 grep 强信号 / Layer 2 LLM fallback / Layer 3 空数组兜底) + paper-into-notion.sh 主入口 [2.5/4] LLM judge 4 字段 (加机构) + arxiv-fetch.sh:138-140 加 AUTHORS_LINE 提取 .authors → 主入口 → institutions-judge.sh + field-merge.sh v3.1 改造 (build_auto_props 加第 5 参数 INSTITUTIONS, PATCH COUNT==1 加 ORG_EMPTY 判定, FILLED_COUNT 报告段加 机构) + get-page-props.sh v3.1 (8 字段加 org 判定) + 反模式 #41 (机构字段永久不填 / 跟现有 38-40 协同) + 触发词 +1 ("skill 填全所有字段" / "skill 把所有字段都填上" / "机构字段没填") + 关联 ADR ADR-0058-2 (sub-slot per ADR-0027 v1.1). 跟 v3.0 GET 判空 + v2.9 平台 字段 + v2.7 mmx v1.0.16 + v1.4 multi_select 保护 grader 协同不冲突
     v3.0 (2026-07-14) — 默认模式 LLM 自动写入 (per user 原话 "我希望这个 skill 能做到, 使用 llm 能力分析字段, 填入 notion"): field-merge.sh COUNT==1 PATCH 路径从 "body 只含 3 auto 字段" → "GET page.properties 判空 + LLM 字段空才填 + 非空保留" (新增 get-page-props.sh GET /v1/pages/{id} 判 4 LLM 字段空形态: link 永远写 / knowledge 知识点 / education 展现形式 / highlights 亮点 = empty 才 PATCH body 包含) + 联动 v1.4 multi_select 保护 grader (PATCH body 不传非空字段 = Notion 保持原值) + description 行承诺 "LLM 自动分析 + 填 7 字段" + 反模式 #38 (PATCH 时不 GET page 直接覆盖 / 跟 v1.4 多 SELECT 保护 grader 协同) + 跟 v2.9 平台/展现形式 字段 + v2.7 mmx v1.0.16 真子命令 + v2.5 multi-db 4 env 协同不冲突. 跟 v2.9-i 触发词集合保持交集, 跑过新触发词 "用 LLM 自动填 Notion / llm 自动写字段 / skill 跑完 LLM 自动入库"
     v2.9-i (2026-07-14) — ask window 守卫 (灵魂 v4/v6 + feedback-adhd-rhythm-ask-window-not-bypass + CASE-CLAUDECODE-ADHD-RHYTHM-BYPASS-20260714): scripts/skill-self-summary.sh v2.0 → v2.1 Step 0 守卫 (env ASW_PROMPTED_BY_USER 7 keyword 顺手/直接跑/快做/拍板/帮我做/judge yourself/给我答案 命中 → exit 1 + 引导 unset + AskUserQuestion) + references/self-evolution-loop.md §0 4 条件表 (跨仓/不可逆/user keyword 命中/Tier 1+2 白名单外) + §1 闭环 4 → 5 步 (Step 0 ask window + 总结 + 内化 + commit + bump) + SKILL.md 反模式 #35/#36/#37 (顺手 X 自决跑 / X 幂等 ≠ user 拍板 / v-bump 闭环漏 Step 0) (避撞 main v2.9 反模式 #34 僵尸 property, 用 35/36/37) + 触发词 + 2 (skill ask window 守卫 / 用户 ADHD 节奏) + 关联 ADR ADR-0057-l (sub-slot per ADR-0027 v1.1, 跟 main v2.9 ADR-0057-k 区分). 跟 v2.4/v2.5/v2.6/v2.7/v2.8/v2.9 协同不冲突.
@@ -529,6 +530,15 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 | 41 | **机构字段永久不填 (本次修复)** | v3.0 立条只填页面/状态/平台/link/亮点/知识点/展现形式 = 7 字段, db schema 实际还有 机构 multi_select (SZU/PolyU 2 options per v2.7 schema). user v3.1 拍板 "机构字段没填" = v3.0 没在 4 LLM judge 里加机构 | v3.1 加 institutions-judge.sh (abstract+authors → SZU/PolyU JSON 数组). Layer 1 邮箱域名 grep 强信号 (szu.edu.cn / polyu.edu.hk) / Layer 2 LLM fallback / Layer 3 空数组兜底. 字段名走 ${NOTION_ORG_PROPERTY:-机构} env (跨 db 兼容) |
 | 42 | **机构判定 = 单纯 LLM 不用邮箱 grep = 慢 + 浪费 token** | LLM 调一次能拿 SZU/PolyU 答案, 但 abstract+authors 全传 LLM = token 浪费 + 慢. 邮箱域名里 szu.edu/polyu.edu 是 100% 强信号 | Layer 1 优先邮箱域名 grep (grep -qiE szu.edu\|polyu.edu, 命中立即返 SZU/PolyU, 不调 LLM). 仅 Layer 1 没结果才 Layer 2 调 mmx. 降 token + 加速 |
 | 43 | **机构字段 v3.1 PATCH 无 GET 判空 = 跟 v1.4 multi_select 保护 grader 反** | v3.0 GET 判空 4 字段 (knowledge/education/highlights/link), 机构字段 v3.1 加进 PATCH 但忘了 GET 判 org=empty | get-page-props.sh v3.1 加 `org=empty\|filled` 输出. field-merge.sh PATCH COUNT==1 加 ORG_EMPTY 判定 + INSTITUTIONS_PROP 跟其他 3 LLM 字段同等条件 PATCH. count=0 (新 page) POST 全字段直接包含机构 |
+
+### 2 反模式 (永久失效, v3.2 新增 — page 修缮 + 已知答案不 grill)
+
+> 起源: CASE-PAPER-INTO-NOTION-PAGE-FIX-FABLE-20260714 (修缮 page 时 trash 1 污染 page + user 原话 "这种问题为什么要问我"). 编号 #44-#45 (避撞 v3.1 #41-43).
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 44 | **已知答案的问题还 grill 用户 (灵魂 v3 反, ADHD 节奏违反)** | user 问 "修缮 page X" → 给 URL → URL 上有标题 + 显然是 blog → 真答案显然. claudecode 走 AskUserQuestion "标题怎么改?" / "状态怎么改?" = 浪费 ADHD 节奏. user 原话 "这种问题为什么要问我" 直接给出红线 | 判定优先级: (a) 跟 URL/obvious 关联 = 自决, 不问 (b) 跟 user 偏好/路线选择 = 必问 (c) 跟不可逆操作 = 必问. AskUserQuestion 只 grill 真歧义决策. 跟灵魂 v3 (Coding Agent 主动引导) + v4 (节奏放缓) + feedback-auto-recommend-not-ask 协同 |
+| 45 | **paper-into-notion 查 page 用 URL 当 title → PATCH name 后找不到 → 误 POST 污染** | [2/4] 非 arXiv 模态用 URL 当 fallback title, [3/4] 查 page 用 fallback title → PATCH 后真 title ≠ URL → COUNT==0 → 走 POST 新建 page 污染. 修缮 v3.2 实测 trash 1 page | 主入口查 page 时 fallback 用 link URL 字段 (page PATCH 后 link 字段含原 URL = 不变量主索引). 跟 §3 反模式 #44 协同 (已知 URL 含 link 字段, 但 page title 已 PATCH 改名, 查 page 应该用 link 不应该用 title). 修法方向: paper-into-notion.sh [3/4] COUNT==0 时多走 1 步 GET link URL 字段确认不存在再 POST |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后
