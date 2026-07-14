@@ -5,9 +5,10 @@ metadata:
   type: skill
   project_scope: weiying20260624
   skill_id: weekly-report-phd
-  version: v1.0 (2026-07-08)
+  version: v1.1 (2026-07-14)
   起源: user 原话"把这个写成一个 skill, 有必要吗" + 7 件 checklist 散在 4 文件 (CASE-WEEKLY-HUMANIZE-20260627 + CASE-NOTION-NTN-MD-RENDER-FIX-20260708 + ADR-0043 + project-rules.md)
   关联 ADR: ADR-0044
+  changelog: v1.1 (2026-07-14) §9 升级 9.6/9.7/9.8/9.9 — 1 段 user 改写 = N 处 / 改时间点 = 整张表 / callout 整段重写 / 反模式 5→8
 ---
 
 # weekly-report-phd v1.0
@@ -368,7 +369,86 @@ grep -oE '0[。.][0-9]' /tmp/w2_now.txt
 # 1 句话 → 2 处改
 ```
 
-## 联动 (引用既有沉淀)## 联动 (引用既有沉淀)
+### 9.6 1 段 user 改写 = 1:1 grep 找全同关键词 N 处 (per 7/14 user 反馈)
+
+**触发**: user 给 1 句改写 (人话短版 / 信息简化 / 改语气)
+
+**协议**:
+1. **Step 1**: 拿当前 Notion 全文 → grep user 原句关键词 (e.g. "1 周内读 10 篇" / "v0.1 / v0.2")
+2. **Step 2**: 列出 N 个匹配 block (callout P1 + §3 系统定位 = 2 处)
+3. **Step 3**: **必先 AskUserQuestion 1 字母选项** (改 1 处 vs 改 N 处 vs 改信息密度)
+4. **Step 4**: user 拍板后改, 1:1 verify N 处全改 + 其他段保留
+
+**反模式**:
+- ❌ 直接批量改 N 处不 ask (违反 §6 路线选择必问)
+- ❌ 改 1 处后才发现 user 期望 N 处全改 (累积残留)
+- ❌ 改 N 处后忘 verify 其他段保留 (P2/P3 callout 改 P1 时被连带改)
+
+**例子 (7/14 user 第 2 轮 "我干了什么" 短版)**:
+- user 原句: "我这一周阅读了关于自进化智能体的论文, 正在搭建自动论文收集系统"
+- grep "1 周内读 10 篇" + "v0.1" → 2 处 (callout P1 + §3 系统定位)
+- ask 1 字母选项 → user 选"2 处都改"
+- 改 2 处 + verify P2/P3 1:1 保留 ✅
+
+### 9.7 改时间点 = 整张时间表 (per 7/14 user 反馈)
+
+**触发**: user 改 1 处时间点 (e.g. "7/20 → 7 月底")
+
+**协议**:
+1. **Step 1**: 跑 §9.2 Step 1 拿全文
+2. **Step 2**: grep `日期 / 月份 / 范围` pattern 找全所有时间 block:
+   ```bash
+   grep -oE '(\d+月\d+日|\d+\.\d+|\d+月[初中末底]|\d+月\d+-\d+月\d+|\d+-\d+|\d+\.\d+ - \d+\.\d+)' /tmp/w2_now.txt | sort -u
+   ```
+3. **Step 3**: **必先 AskUserQuestion 1 字母选项** (改 1 处 vs 改 N 处含范围)
+4. **Step 4**: user 拍板后批量改, 含联动项:
+   - 改 1 阶段时间范围必查相邻阶段 (e.g. 改阶段一 7.10-7.24 → 阶段二 7.25-8.15 起点必同步)
+   - 改答时间必改答所在阶段 (e.g. 阶段四 10.1-10.20 → 答 10 月底 → 11 月)
+   - 改阶段时间必改总体策略 + h1 §2 + §4 本周计划 (3 处联动)
+5. **Step 5**: 1:1 verify 0 旧时间点残留 + N 处新时间点出现
+
+**反模式**:
+- ❌ 改 1 处时间点不 grep 全 (user 改 7/20 → 阶段四 10.1-10.20 / h1 §2 (7.10-10.20) / §4 7月17-20 全 13 处残留)
+- ❌ 改 1 阶段忘改相邻阶段 (范围错位)
+- ❌ 改阶段时间忘改答时间 (答在雏形交前矛盾)
+
+**例子 (7/14 user 第 4 轮 时间点 7月底/8月底/10月底)**:
+- user 原句: "7 月底之前列详细计划, 8 月底之前给 MVP+slide, 10 月底之前给完整研究雏形"
+- grep 时间 pattern → 13 处 (callout P2 + h1 §2 + 总体策略 + 4 阶段 + 风险备案 + 2 答 + §4 本周计划)
+- ask 1 字母选项 → user 选"同步改所有时间点"
+- 批量改 13 块 + verify 0 旧时间点残留 + 18 处新时间点出现 ✅
+
+### 9.8 callout 整段重写 (per 7/14 user 反馈)
+
+**触发**: 改 callout 内任 1 段 (P1/P2/P3)
+
+**协议**:
+1. **Step 1**: GET callout block 拿全文 (callout 是 1 个 block, rich_text 数组含所有段)
+2. **Step 2**: 整段重写 (改 P1 必保留 P2/P3 1:1)
+3. **Step 3**: PATCH 时必传完整新内容 + icon + color (否则 icon/color 丢失)
+4. **Step 4**: verify callout 其他段 1:1 保留
+
+**反模式**:
+- ❌ PATCH callout 时只传 P1 (rich_text 数组被覆盖, P2/P3 丢失)
+- ❌ 改 P1 后忘 verify P2/P3 (累积残留)
+
+**例子 (7/14 user 第 1 轮 callout P3 改 "3 件" → "1 件")**:
+- GET callout → 全文 3 段
+- 改 P3 (承认老师能力强 + 担心方向 + 请求具体考题)
+- PATCH 完整新内容 + 保留 P1/P2 1:1 + icon 📋 + color yellow_background ✅
+
+### 9.9 §9 永久失效反模式 (升级 5 → 8 条, per 7/14 user 反馈)
+
+1. ❌ verify 只查数量 (5 h1 / 5 h2 / 3 callout) 不查内容
+2. ❌ 改 1 段 漏跑 5 类逐项 (regex grep 5 类)
+3. ❌ 1 句话 user 反馈当 1 个 bug 处理 (可能含多类)
+4. ❌ 1 session 改 > 3 次 (累积残留)
+5. ❌ 改完不 1:1 字符级对比 user 最新原话
+6. ❌ 1 段 user 改写直接批量改 N 处不 ask (per §9.6)
+7. ❌ 改时间点不 grep 全 + 联动项忘改 (per §9.7)
+8. ❌ 改 callout 段不传完整 rich_text + 忘 verify 其他段 (per §9.8)
+
+## 联动 (引用既有沉淀)
 
 - `00-meta/project-rules.md` 规则 1+2+3 (公开 / 真实 / 暴露焦虑)
 - `00-meta/weekly-report-design-v1.md` (W2 49 块 1:1 layout 模板, 写新周报时必先读)
@@ -406,3 +486,4 @@ grep -oE '0[。.][0-9]' /tmp/w2_now.txt
 ## 历史 record
 
 - 2026-07-08 v1.0: 立 (user 原话"把这个写成一个 skill, 有必要吗" + 7 件 checklist 散在 4 文件 → 项目级 skill 收敛)
+- 2026-07-14 v1.1: §9 升级 9.6/9.7/9.8/9.9 — 1 段 user 改写 = N 处 (per 第 3 轮 "我干了什么" 短版 2 处); 改时间点 = 整张表 (per 第 4 轮 7月底/8月底/10月底 13 块); callout 整段重写 (per 第 1 轮 callout P3 改 1 件); 永久失效反模式 5→8 条

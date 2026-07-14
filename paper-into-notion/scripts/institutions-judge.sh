@@ -29,14 +29,37 @@ fi
 
 ABSTRACT="${1:-}"
 AUTHORS="${2:-}"
+ARXIV_ID="${3:-}"  # v3.4 新增: arXiv ID (e.g. 2607.08124), 优先抓真实 affiliations
 if [ -z "$ABSTRACT" ]; then
-  echo "用法: bash institutions-judge.sh <ABSTRACT_TEXT> [<AUTHORS_LINE>]" >&2
+  echo "用法: bash institutions-judge.sh <ABSTRACT_TEXT> [<AUTHORS_LINE>] [<ARXIV_ID>]" >&2
   echo "      bash institutions-judge.sh --verify" >&2
   exit 1
 fi
 
 # 截断 abstract 前 1500 字
 ABSTRACT_TRIM=$(echo "$ABSTRACT" | head -c 1500)
+
+# v3.4 Layer 0: arxiv-affiliations.py 抓 paper 真实机构 (1:1, 不幻觉)
+# 用法: bash institutions-judge.sh <ABSTRACT> <AUTHORS> <ARXIV_ID>
+# 优先抓, 失败/空 fallback LLM
+if [ -n "$ARXIV_ID" ] && command -v python3 >/dev/null 2>&1; then
+  ARXIV_AFF=$(python3 "$SCRIPT_DIR/arxiv-affiliations.py" "$ARXIV_ID" 2>/dev/null || true)
+  if [ -n "$ARXIV_AFF" ] && ! echo "$ARXIV_AFF" | grep -q '"error"'; then
+    # arxiv-affiliations 成功, 直接用真实机构
+    echo "$ARXIV_AFF" | python3 -c "
+import json, sys
+try:
+    arr = json.loads(sys.stdin.read())
+    if isinstance(arr, list) and arr:
+        print(json.dumps(arr, ensure_ascii=False))
+    else:
+        print('[]')
+except: print('[]')
+"
+    exit 0
+  fi
+  # 失败 → fallback LLM
+fi
 
 # Layer 1: email 域名 grep (强信号, 优先) — 不调用 mmx, 立即快
 # v3.3: 邮箱域名只作 signal 提示 LLM, 不写死 whitelist
