@@ -40,17 +40,45 @@ $ABSTRACT_TRIM
 EOF
 )
 
-# 跑 LLM
+# 跑 LLM (主: 抓 abstract → 中文 takeaway)
 if command -v mmx >/dev/null 2>&1; then
   LLM_OUTPUT=$(mmx chat "$PROMPT" 2>/dev/null || echo "")
 fi
 
-# Fallback: 取 abstract 第 1 句 (heuristic)
-if [ -z "$LLM_OUTPUT" ]; then
-  echo "⚠️ highlights-judge fallback → 取 abstract 第 1 句" >&2
-  HIGHLIGHT=$(echo "$ABSTRACT_TRIM" | sed -n '1p' | head -c 100)
-else
+HIGHLIGHT=""
+if [ -n "$LLM_OUTPUT" ]; then
   HIGHLIGHT="$LLM_OUTPUT"
+else
+  # Fallback 第 1 层: mmx 翻译 abstract 第 1 句 → 中文
+  FIRST_SENTENCE=$(echo "$ABSTRACT_TRIM" | sed -n '1p' | head -c 300)
+  if command -v mmx >/dev/null 2>&1; then
+    TRANSLATED=$(mmx chat "Translate this English sentence to Chinese, plain text only: $FIRST_SENTENCE" 2>/dev/null || echo "")
+    if [ -n "$TRANSLATED" ]; then
+      HIGHLIGHT="$TRANSLATED"
+      echo "⚠️ highlights-judge fallback → mmx 翻译 abstract 第 1 句" >&2
+    fi
+  fi
+fi
+
+# Fallback 第 2 层: heuristic 检测, 不可翻译时留中文提示
+if [ -z "$HIGHLIGHT" ]; then
+  FIRST_SENTENCE=$(echo "$ABSTRACT_TRIM" | sed -n '1p' | head -c 100)
+  # 检测中文字符比例 (>30% = 已经是中文, 直接用)
+  CHINESE_RATIO=$(echo "$FIRST_SENTENCE" | python3 -c "
+import sys
+text = sys.stdin.read()
+chinese = sum(1 for c in text if '一' <= c <= '鿿')
+total = len(text.replace(' ', ''))
+print(chinese / total if total > 0 else 0)
+")
+  if [ "$(echo "$CHINESE_RATIO > 0.3" | python3 -c 'import sys; print(sys.stdin.read() and \"yes\" or \"no\")' 2>/dev/null)" = "yes" ]; then
+    HIGHLIGHT="$FIRST_SENTENCE"
+    echo "⚠️ highlights-judge fallback → abstract 第 1 句已是中文" >&2
+  else
+    # 英文 + 无 mmx → 留中文提示, 你后填
+    HIGHLIGHT="(需 mmx 翻译: $FIRST_SENTENCE)"
+    echo "⚠️ highlights-judge fallback → mmx 不可用, 留英文占位待你后填" >&2
+  fi
 fi
 
 # 截断到 200 字符
