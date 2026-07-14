@@ -1,0 +1,42 @@
+# paper-into-notion v4 config (TOML, SSOT 替代 v3.x 4 env + .env)
+# 加载: python -c "import tomllib; print(tomllib.load(open('config.toml','rb')))"
+
+[notion]
+# ntn CLI 调 macOS keychain 拿 token, 不需要 NOTION_TOKEN env
+version = "2026-03-11"
+database_id = "39dfedee-6267-80de-9363-ff13b4404a50"   # 信息 db
+data_source_id = "39dfedee-6267-807a-bcb2-000ba858dff2"
+
+# 字段名映射 (单一来源, 改 db 后改这里 1 处, 不用追 11 script)
+[field_names]
+title = "名称"            # wiki 老 db = "页面"
+status = "状态"
+modal = "平台形式"        # v3.7+ db 真实字段 (旧"平台"/"模态类型" 已重命名/僵尸)
+link = "link"
+highlights = "亮点"
+keyword = "关键词"
+org = "机构"
+knowledge_growth = "知识等级形态"   # v3.7 新字段, multi_select 6 项
+
+[status_default]
+name = "初抓取"           # db 实际 status 第 1 option
+
+[judge]
+enabled = true
+llm_cli = "mmx"
+mmx_subcmd_args = ["text", "chat", "--non-interactive", "--output", "json"]
+prompts_dir = "prompts/"
+max_concurrent = 1        # 串行, 不抢 LLM 配额
+
+[behavior]
+dry_run_default = false
+multi_select_protect = true   # 永不传 multi_select 数组 (PATCH body 强制 strip)
+verify_5_fields = true        # 跑后 GET page 二次 verify
+
+[schema_cache]
+ttl_seconds = 300       # 5 min, 替代 v3.0 introspect 24h cache
+cache_dir = "cache/"
+
+[arxiv]
+rate_limit_sec = 3
+api_url = "https://export.arxiv.org/api/query"
