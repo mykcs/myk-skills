@@ -2,9 +2,45 @@
 
 > 适用场景: 把 source database 的 1+ 行 page 跟 schema 1:1 搬到 target database (target 已建好 + 8 property 就位)
 >
-> 配套: `scripts/add-property.sh` (给 target 加 property) / `references/notion-schema-migration.md` (Notion 2025 API model 速查)
+> 配套: `scripts/add-property.sh` (给 target 加 property) / `references/notion-schema-migration.md` (Notion 2025 API model 速查) / `references/notion-url-parse.md` (URL 4 类 + 修哪一部分 4 决路径) / `templates/notion-fix-cheatsheet.md` (4 类常见问题)
+> v2.2 (2026-07-14) 加 §0 Notion URL 解读段 (per ADR-0057-d)
 >
 > 起源: CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714
+
+---
+
+## §0. Notion URL 解读 (v2.2 新立, 跨 db 搬前必读)
+
+跨 db 搬 paper 前, 必须从 user 给的 URL 拿对 id。Notion URL `https://app.notion.com/p/{32-char-id}?v={view-id}` 32-char id 本身不携带类型信息, 必跑 API 反查:
+
+```bash
+# Step 1: 拿 id
+URL="https://app.notion.com/p/39dfedee6267808fafc7d9b3cc2d43f1"
+ID=$(echo "$URL" | sed 's/.*p\///; s/?.*//; s/-//g')
+ID_DASHED="${ID:0:8}-${ID:8:4}-${ID:12:4}-${ID:16:4}-${ID:20:12}"
+echo "id: $ID_DASHED"
+
+# Step 2: resolve (新 endpoint, 找 id 类型)
+ntn datasources resolve "$ID_DASHED"
+# → 200 + name = database / data source
+# → 404 = id 是 page 不是 database (or integration 没 share)
+
+# Step 3: query (read access 判定)
+ntn datasources query "$ID_DASHED" --limit 1
+# → 200 = 有 read access
+# → 404 = integration 没 share (UI 加 Connections: Notion CLI)
+
+# Step 4: 拿 data source id (跟 database id 可能不同)
+# 真正用于 POST /v1/pages parent 的是 data source id, 不是 database id
+DS_ID=$(ntn datasources resolve "$ID_DASHED" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id', ''))")
+echo "data source id: $DS_ID"
+```
+
+**4 决路径** (改哪一部分, 跨 db 搬相关 2 类):
+- 跨 db 搬 paper 前 target db 缺 schema → 改 schema → `scripts/add-property.sh`
+- 跨 db 搬 paper 单行 cell 值 → 改 page row → `scripts/paper-into-notion.sh`
+
+**更详细**: `references/notion-url-parse.md` §1 §2 §3 (4 类 URL + id 提取 + 4 决路径) / `templates/notion-fix-cheatsheet.md` §2 (1 跳决策树)
 
 ---
 

@@ -1,15 +1,16 @@
 ---
 name: paper-into-notion
 description: |
-  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 10 scripts + 5 templates + 3 references. weiying20260624 PhD 申请场景.
+  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 10 scripts + 6 templates + 4 references. weiying20260624 PhD 申请场景.
 when_to_use: |
-  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "**跨 db 搬 schema**" / "**跨 db 同步**" / "**跨 db 搬运行记录**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 (新建/扩 database property) 走 add-property.sh 独立入口. NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
+  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "**Notion URL 解读**" / "**Notion schema 变更**" / "**Notion cross-db 搬**" / "**Notion property 改名**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 (新建/扩 database property) 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径. NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.1 (2026-07-14)
+  version: v2.2 (2026-07-14)
   changelog: |
+    v2.2 (2026-07-14) — Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑沉淀: 新增 references/notion-url-parse.md (URL 4 类 + id 提取 + 4 决路径 + integration access 3 步判定) + templates/notion-fix-cheatsheet.md (4 类常见问题 + 1 跳决策树 + 4 决路径 quickref) + templates/cross-db-migrate-payload.md 加 §0 Notion URL 解读段 + 触发词 + 4 + 4 反模式表补 6 条 (10 → 16) + subagent 验证协议位
     v2.1 (2026-07-14) — 跨 Notion database 搬 schema 4 踩坑沉淀: 新增 scripts/add-property.sh (PATCH /v1/data_sources/{id} 加 property 独立可用) + templates/cross-db-migrate-payload.md (跨 db strip id 规则) + references/notion-schema-migration.md (Notion 2025 API model 速查 + 4 错误码) + 触发词 + 3 + 4 反模式表独立段
     v2.0 (2026-07-14) — description split-in-two + 触发词扩 15+ + 6 字段 → 8 字段 schema 文档 + frontmatter audit 4 字段全过
     v1.8 (2026-07-13) — 亮点 --highlight user override (claudecode 翻译)
@@ -21,14 +22,14 @@ metadata:
     v1.2 (2026-07-13) — education-type-judge + 新 page 才填教育类型
     v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
-  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级), 2026-07-14 v2.1 (跨 db 搬 schema 协议)
-  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714
+  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑)
+  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714
   关联 skill: weekly-report-phd (ntn CLI) / teacher-report (paper card) / auto-feishu-digest (3 scripts 风格)
   适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
 ---
 
-# paper-into-notion v2.1
+# paper-into-notion v2.2
 
 > **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/知识点) 永不覆盖已有值 ✅
 > **触发**: user 说 "paper 进 Notion" / "Notion 沉淀" / "把这个 paper 加到 Notion" / "写论文卡片" 时跑
@@ -260,6 +261,38 @@ print(entry.find('atom:title', ns).text.strip())
 | 8 | **跨 db 搬 multi_select / select / status option 复制 source id** | Notion 校验 `input id must = target existing id` | payload 永远 strip id 只留 `name` (per `templates/cross-db-migrate-payload.md` §2) |
 | 9 | **PATCH data source `title` 想改 property name** | data source title ≠ property name, API 无 PATCH name endpoint | 接受 1 字段差异 / UI 改 property name |
 | 10 | **workspace-level database 硬试 archive / delete** | Notion API 限制, 必 UI 操作 | 立即 AskUserQuestion 让 user UI 删, 不硬试 N 次 |
+
+---
+
+## 6 反模式 (Notion URL 解读 + 修哪一部分专属, v2.2 新增)
+
+> 起源: CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714, 6 残留踩坑
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 11 | **把 Notion URL 当 1 类** (实际 4 类) | 32-char UUID 字符串本身不携带类型信息 | 必跑 `ntn datasources resolve` / `ntn pages get` 反查, 详见 `references/notion-url-parse.md` §1 |
+| 12 | **`datasources query 200 = write access OK`** | read access 跟 write access 独立 | 3 步判定 (resolve + query + create test), 详见 `references/notion-url-parse.md` §4 |
+| 13 | **`git worktree add` stdout "成功" = 真成功** | macOS bash 复合命令 + race condition, silent 失败 | 必跑 `git worktree list` 二次 verify + `ls <worktree>/<expected-dir>` 二次 verify |
+| 14 | **kimi-webbridge 0 button 跟 Notion 2025** | Notion 2025 button 渲染为 `<div role=button>`, `querySelectorAll("button")` 返 0 | 改用 PATCH /v1/data_sources/{id} API 加 property (实测支持), 不走 UI 路径 |
+| 15 | **测试 property 加到目标 db 不清理** | Notion API 没 delete property endpoint | 跑完测试必 UI 手动删, 不然污染目标 schema (1:1 搬失败) |
+| 16 | **跨 db 搬 payload 字段名跟源 1:1** | Notion API 不支持 PATCH property name, 必有 1 字段差异 | 接受差异 (源「页面」→ 目标「名称」), 必 strip option id |
+
+---
+
+## 「修改哪一部分」4 决路径 (v2.2 新增, per user 原话)
+
+> user v2.1 merge 后原话 "把这一路出现的问题经验教训都总结在 skill 里面，尤其是 notion 链接，怎么修改哪一部分"
+
+**4 决路径表** (1 跳决策):
+
+| 触发场景 | 修哪 | 工具 | endpoint |
+|---|---|---|---|
+| database 缺字段 / 类型不对 | **改 schema** (加 property / 改 type) | `scripts/add-property.sh` | PATCH /v1/data_sources/{id} |
+| 单行 page 字段值错 | **改 page row** (cell value) | `scripts/paper-into-notion.sh` | PATCH /v1/pages/{id} |
+| database 显示名错 | **改 database metadata** (title / icon) | ntn api | PATCH /v1/databases/{id} |
+| page 内文字 / heading / list 错 | **改 page content** (block) | ntn pages edit | PATCH /v1/blocks/{id} |
+
+**详细**: `references/notion-url-parse.md` §3 (4 决路径表 + 例子) / `templates/notion-fix-cheatsheet.md` §2 (1 跳决策树) / `templates/notion-fix-cheatsheet.md` §3 (4 决路径 quickref)
 
 ---
 
