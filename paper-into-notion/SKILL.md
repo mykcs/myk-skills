@@ -56,17 +56,25 @@ metadata:
 
 ---
 
-## 7 字段自检表 (核心铁律: multi_select 不覆盖)
+## 9 字段自检表 (核心铁律: multi_select 不覆盖, v2.7 修 v1.4 误写 8 字段为 9 字段)
+
+> **v2.7 修正** (per CASE-PAPER-INTO-NOTION-V2-7-SCHEMA-DRIFT-20260714): v1.4 拍板 8 字段是错值, db 实测 9 字段 (含 `link` url + `机构` multi_select). page `39dfedee-...afd8-e51e622da580`《无矩阵乘法LLM》体检时 0 link + 0 模态类型发现, 修 SKILL.md schema 漂移.
 
 | # | 字段 | 类型 | 自动填? | 保护机制 |
 |---|---|---|---|---|
-| 1 | 页面 | title | ✅ (抓 `<title>` / arXiv title) | 直接 PATCH 覆盖安全 (title 是单值) |
-| 2 | 状态 | **status** | ✅ 固定 "未开始" | 单值安全。⚠️ status ≠ select: option 不能删,只能 UI Archive |
-| 3 | 模态类型 | select | ✅ 5 pattern grep | 单值安全 |
-| 4 | 教育类型 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** |
-| 5 | 知识点 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** |
-| 6 | 标签 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** |
-| 7 | 亮点 | rich_text | ❌ 后填 | **PATCH body 永远不含此字段** (你后填) |
+| 1 | 名称 | title | ✅ (抓 `<title>` / arXiv title) | 直接 PATCH 覆盖安全 (title 是单值). v2.5 起走 `$NOTION_TITLE_PROPERTY` env (论文 wiki 兼容老 db "页面" / 信息 db "名称") |
+| 2 | 状态 | **status** | ✅ 默认 "初抓取" (per .env) | 单值安全。⚠️ status ≠ select: option 不能删,只能 UI Archive. PATCH 前必 GET data_source 拿真 options 比对 env 默认值 (per 反模式 #29) |
+| 3 | 模态类型 | select | ✅ 5 pattern grep (arXiv / 微信公众号 / 博客 / Twitter / 其他) | 单值安全 |
+| 4 | 教育类型 | **multi_select** | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** |
+| 5 | 知识点 | **multi_select** | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** |
+| 6 | 亮点 | rich_text | ❌ 后填 (新 page 才填) | **PATCH body 永远不含此字段** (你后填) |
+| 7 | link | url | ✅ auto 填 source URL (per v1.4 字段级 merge) | 跟亮点分离 (老 v1.4 page 跟 url 写在亮点, v2.7 起 url 必填 link) |
+| 8 | 机构 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** (新增 v2.7, db 实测有但 v1.4 schema 漏) |
+| 9 | 日期 | created_time | ✅ auto (Notion set) | 永不传 (auto) |
+
+**db schema 实测 (2026-07-14 GET data_source, per CASE-V2-7-SCHEMA-DRIFT)**:
+- 名称 (title) / 状态 (status, 3 options) / 模态类型 (select, 5 options) / 教育类型 (multi_select, 1 option 论文阅读) / 知识点 (multi_select, 7 options) / 亮点 (rich_text) / link (url) / 机构 (multi_select, 2 options SZU+PolyU) / 日期 (created_time) = **9 字段**
+- ❌ db 无 "标签" multi_select (v1.4 8 字段写错, 实际 db 没此 property)
 
 **关键铁律** (per plan §核心铁律):
 - multi_select 一旦传数组 = **完整新值覆盖** (Notion API 行为)
@@ -474,6 +482,15 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 | 29 | **status 中文错乱 (合字 "初抓取-ai") 跟 db 实际 3 选项 "初抓取/ai补充/人类认证" 不匹配** | .env + .env.example 默认值是 SKILL.md v1.4 拍板的 "未开始" (论文 wiki 老 db), .env 改 "初抓取-ai" 是 user 2026-07-14 v2.5 multi-db 适配但 db **没 "初抓取-ai" 选项** (合字错) | PATCH 任何 status 字段前必 `ntn api GET /v1/data_sources/{id}` 拿真实 options 比对, 不要凭 SKILL.md 拍板的默认值猜 db 选项 |
 | 30 | **judge fallback 链隐藏真 bug 不暴露** | judge 脚本 (highlights/knowledge/education) 写 `mmx chat "..."` 失败 → fallback 关键词匹配 → 关键词命中 0 → 留 `(需 mmx 翻译: ...)` 中文占位 → 整条链路只 warn 一行, user 看 Notion page 才发现占位文本 | judge 脚本 fallback 链路必 1 段 stderr 输出 `⚠️ mmx CLI 调用失败: <stderr + exit code>`, 同步 4 fallback 触发段 (mmx 主 → mmx 翻译次 → 关键词次 → 中文占位兜底), 永不静默 silent 失败 |
 | 31 | **--quiet + 没 --output json → mmx 走 TTY 流式纯文本, json.loads 失败** | `mmx text chat --quiet` 不带 `--output json` 时, TTY 路径走 plain text chat mode (`Hello! I'm here and ready...`), json.loads(plain text) 抛 → python pipe `or echo ""` 返空 → 看似 fallback silent 实际 mmx 是好的 | mmx text chat 在 bash 脚本里必 `--non-interactive --output json --message "<prompt>"` 三件套, **不要用 `--quiet`** (它走 TTY chat) |
+
+### 6 反模式 (永久失效, v2.7 新增 — db schema 漂移)
+
+> 起源: CASE-PAPER-INTO-NOTION-V2-7-SCHEMA-DRIFT-20260714 (page《无矩阵乘法LLM》`39dfedee-...afd8-e51e622da580` 体检发现 0 link + 0 模态类型 + db 无"标签" property, v1.4 拍板 8 字段是错值)
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 32 | **SKILL.md schema 拍板跟 db 实际字段数对不上 (8 写错 9)** | v1.4 拍板 8 字段 (含"标签" multi_select), db 实测 9 字段 (含"机构" multi_select, 无"标签"); 文档跟 schema drift 后 user 决策 "全自动修" 时容易漏字段 | 任何 PATCH page 前必 `GET /v1/data_sources/{id}` 拿真 schema 跟 SKILL.md 校对, 漂移立 case + 改 SKILL.md |
+| 33 | **亮点字段塞 url 跟 link url 字段重复** | 早期 page 手工创时, paper-into-notion.sh v1.4 还没自动写 link, user 只能把 url 塞进亮点 ("bilibili 视频 (2024-08-17 发布), URL: https://...") | PATCH 时 link url 跟 亮点拆开, link = URL, 亮点 = 1 句中文 takeaway. paper-into-notion.sh v1.4 改 mod-detect 输出 link 同时写 link + 亮点 |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后
