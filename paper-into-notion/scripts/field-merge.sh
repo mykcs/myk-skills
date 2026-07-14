@@ -130,7 +130,8 @@ if text:
     fi
   fi
 
-  # v3.1: 机构 multi_select (SZU/PolyU 选项)
+  # v3.1: 机构 multi_select (per ADR-0057 v3.3: 不写死 whitelist, auto-add option to schema)
+  # v3.3 增量: PATCH 前 sync 缺失的 institution options 到 schema (否则 Notion API 400 option not found)
   local INSTITUTIONS_PROP=""
   if [ -n "$INSTITUTIONS" ] && [ "$INSTITUTIONS" != "[]" ]; then
     local INSTITUTIONS_NAMES
@@ -143,6 +144,8 @@ try:
 except: pass
 ")
     if [ -n "$INSTITUTIONS_NAMES" ]; then
+      # v3.3: sync 缺失 options 到 schema (auto-add, 不报错, 调独立 Python 脚本)
+      python3 "$SCRIPT_DIR/sync-institution-options.py" "$DS_ID" "$INSTITUTIONS" 2>/dev/null || true
       INSTITUTIONS_PROP=",\"${ORG_PROP:-机构}\":{\"multi_select\":[${INSTITUTIONS_NAMES}]}"
     fi
   fi
