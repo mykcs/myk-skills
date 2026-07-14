@@ -19,10 +19,13 @@ fi
 DS_ID="${NOTION_DATA_SOURCE_ID:?NOTION_DATA_SOURCE_ID unset}"
 VERSION="${NOTION_VERSION:-2026-03-11}"
 
-# === v3.0 introspect mode ===
-INTROSPECT_OUT=$(python3 "$SCRIPT_DIR/introspect.py" "$DS_ID" "$SKILL_DIR/.introspect-cache.json" 2>/dev/null || true)
-if [ -n "$INTROSPECT_OUT" ]; then
-  eval "$INTROSPECT_OUT"
+# === v3.0 introspect mode (v3.7+ disabled by default, .env wins, cache stale risk) ===
+INTROSPECT_OUT=""
+if [ "${NOTION_INTROSPECT:-false}" = "true" ]; then
+  INTROSPECT_OUT=$(python3 "$SCRIPT_DIR/introspect.py" "$DS_ID" "$SKILL_DIR/.introspect-cache.json" 2>/dev/null || true)
+  if [ -n "$INTROSPECT_OUT" ]; then
+    eval "$INTROSPECT_OUT"
+  fi
 fi
 
 TITLE_PROP="${NOTION_TITLE_PROPERTY:-${TITLE_PROP:-页面}}"
