@@ -102,6 +102,17 @@ bash ~/.agents/skills/paper-into-notion/scripts/paper-into-notion.sh "https://li
 # ✅ 3 字段填对 (页面=Attention Is All You Need, 状态=未开始, 模态类型=arXiv)
 ```
 
+### 子命令 flag (v2.6)
+
+| Flag | 行为 | 用途 | 是否写 Notion |
+|---|---|---|---|
+| `<URL>` (默认) | 跑 4 步 + 写 Notion + verify-5-fields | 实际写 paper | ✅ 写 |
+| `--verify` | 跑 9 步环境检查 | 部署前/装后 sanity check | ❌ 不写 |
+| `--dry-run <URL>` | 跑 4 步 + 跳过 ntn api + 返 `DRY-RUN-PAGE-ID` | schema 验证 / 字段预览 | ❌ 不写 |
+| `--force-fill <URL>` | 跑 4 步 + 覆盖已有 page 全 7 字段 | 已知 page 想重填 | ✅ 写 (慎用) |
+
+**何时用 --dry-run**: ① 第一次给一个 db 跑, 验证 schema 适配 (per v2.5 multi-db) ② 改 SKILL.md 后想看 LLM judge 怎么判 ③ 给 user 预览会自动填什么字段. **永远不**用主入口 URL 形式做 schema 验证 — 会污染 Notion (per CASE-PAPER-INTO-NOTION-DRY-RUN-FLAG-20260714).
+
 ---
 
 ## 架构 (5 scripts + 4 templates + 2 references)
@@ -377,6 +388,18 @@ print(entry.find('atom:title', ns).text.strip())
 ## 「经验教训 → 提升 skill」4 步闭环协议 (v2.4 新增, per user 原话 "提升 skill")
 
 ## 多 db schema 适配 (v2.5 新增, per user 2026-07-14 拍板 A 方案)
+
+### --dry-run flag (v2.6 加成)
+
+> **触发**: 任何 schema 验证 / 字段预览场景必跑 `--dry-run` 而不是主入口 URL 形式. 主入口会真写 Notion, 跟 verify 副作用污染.
+> **行为**: 跑全 4 步 (模态 + arXiv + LLM judge + field-merge 算法), 但**不调 ntn api 写 Notion** + 跳过 verify-5-fields, 返 `DRY-RUN-PAGE-ID` 占位 + 输出 `[DRY-RUN] ⚠️ 不会真写 Notion` 提示.
+> **修法起源 (CASE-PAPER-INTO-NOTION-DRY-RUN-FLAG-20260714)**: v2.5 我用 arXiv 1706.03762 (Transformer) 验证多 db schema adapter 是否生效, **实际真写了 1 条 paper 到 信息 db** — schema verify 副作用污染 Notion. 之后 trash + 立 P1 case + 立 --dry-run flag.
+
+```bash
+# 用法: 验证 schema 适配, 不污染 Notion
+bash paper-into-notion.sh --dry-run "https://arxiv.org/abs/1706.03762"
+# 期望输出: 4 步流程 + [DRY-RUN] 提示 + record_id=DRY-RUN-PAGE-ID + 跳过 verify-5-fields
+```
 
 > **触发**: user paste Notion URL, 目标 database 跟 skill 默认配置 (论文 wiki) 不同 (e.g. 信息 db property 叫 "名称" 不是 "页面", status 选项是 "初抓取-ai" 不是 "未开始")
 > **v2.5 quick fix**: 4 env variables override 默认值, 兼容任一 Notion db

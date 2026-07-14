@@ -67,13 +67,21 @@ if [ "${1:-}" = "--force-fill" ]; then
   shift
 fi
 
+# === --dry-run 子命令 (v2.6 验证模式, 不写 Notion) ===
+DRY_RUN=false
+if [ "${1:-}" = "--dry-run" ]; then
+  DRY_RUN=true
+  shift
+fi
+
 URL="${1:-}"
 if [ -z "$URL" ]; then
   echo "用法:" >&2
   echo "  bash paper-into-notion.sh <URL>                                            # 修法 1 (默认, 安全)" >&2
   echo "  bash paper-into-notion.sh --force-fill <URL>                              # 覆盖模式 (慎用)" >&2
   echo "  bash paper-into-notion.sh --force-fill <URL> --knowledge \"tag1 tag2\"      # user override 知识点" >&2
-  echo "  bash paper-into-notion.sh --verify" >&2
+  echo "  bash paper-into-notion.sh --dry-run <URL>                                 # 验证模式, 不写 Notion" >&2
+  echo "  bash paper-into-notion.sh --verify                                       # 环境检查" >&2
   exit 1
 fi
 shift  # shift URL
@@ -179,18 +187,34 @@ fi
 echo "[3/4] 字段级 merge..."
 if [ "$FORCE_FILL" = "true" ]; then
   # 覆盖模式: 先 GET 找 page_id, 调 field-merge.sh --force
-  QUERY_BODY="{\"filter\":{\"property\":\"${NOTION_TITLE_PROPERTY:-页面}\",\"title\":{\"equals\":$(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}},\"page_size\":1}"
-  QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/${NOTION_DATA_SOURCE_ID}/query" -d "$QUERY_BODY" 2>&1)
-  EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id // empty')
-  if [ -z "$EXISTING_PAGE_ID" ]; then
-    echo "❌ --force-fill 模式: 没找到 page '$TITLE', 改用默认模式" >&2
-    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+  if [ "$DRY_RUN" = "true" ]; then
+    echo "[DRY-RUN] ⚠️ 不会真写 Notion, 仅模拟完整流程"
+    echo "[DRY-RUN]   会调: ntn api POST /v1/data_sources/\$DS/query (查 page)"
+    echo "[DRY-RUN]   会调: field-merge.sh --force <page_id> (PATCH)"
+    RECORD='{"id":"DRY-RUN-PAGE-ID","url":"https://app.notion.com/p/DRY-RUN"}'
   else
-    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" --force "$EXISTING_PAGE_ID" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+    QUERY_BODY="{\"filter\":{\"property\":\"${NOTION_TITLE_PROPERTY:-页面}\",\"title\":{\"equals\":$(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}},\"page_size\":1}"
+    QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/${NOTION_DATA_SOURCE_ID}/query" -d "$QUERY_BODY" 2>&1)
+    EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id // empty')
+    if [ -z "$EXISTING_PAGE_ID" ]; then
+      echo "❌ --force-fill 模式: 没找到 page '$TITLE', 改用默认模式" >&2
+      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+    else
+      RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" --force "$EXISTING_PAGE_ID" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+    fi
   fi
 else
   # 修法 1 (默认, 安全)
-  RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+  if [ "$DRY_RUN" = "true" ]; then
+    echo "[DRY-RUN] ⚠️ 不会真写 Notion, 仅模拟完整流程"
+    echo "[DRY-RUN]   会调: field-merge.sh (POST 新 page 或 PATCH 已有)"
+    echo "[DRY-RUN]   title: $TITLE"
+    echo "[DRY-RUN]   modal: $MODAL"
+    echo "[DRY-RUN]   source_url: $URL"
+    RECORD='{"id":"DRY-RUN-PAGE-ID","url":"https://app.notion.com/p/DRY-RUN"}'
+  else
+    RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS")
+  fi
 fi
 
 RECORD_ID=$(echo "$RECORD" | jq -r '.id // empty')
@@ -203,7 +227,11 @@ fi
 
 # === 4. 跑后 GET 验证 ===
 echo "[4/4] 跑后 GET 验证..."
-bash "$SCRIPT_DIR/verify-5-fields.sh" "$RECORD_ID"
+if [ "$DRY_RUN" = "true" ]; then
+  echo "[DRY-RUN] 跳过 verify-5-fields.sh (无真 page ID 可验)"
+else
+  bash "$SCRIPT_DIR/verify-5-fields.sh" "$RECORD_ID"
+fi
 
 echo "═══ result ═══"
 echo "✅ record_id: $RECORD_ID"
