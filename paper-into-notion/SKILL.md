@@ -1,15 +1,16 @@
 ---
 name: paper-into-notion
 description: |
-  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 11 scripts + 6 templates + 5 references. weiying20260624 PhD 申请场景.
+  URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 11 scripts + 6 templates + 6 references. weiying20260624 PhD 申请场景.
 when_to_use: |
-  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "Notion URL 解读" / "Notion schema 变更" / "Notion cross-db 搬" / "Notion property 改名" / "**skill 跑完自我总结**" / "**任务后总结**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径 / **skill 跑完必跑 skill-self-summary.sh 4 段总结 + mem0 quota fallback 3 步** (per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结"). NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
+  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "Notion URL 解读" / "Notion schema 变更" / "Notion cross-db 搬" / "Notion property 改名" / "skill 跑完自我总结" / "任务后总结" / "**skill 经验教训内化**" / "**skill 自我升级**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径 / **skill 跑完必跑 skill-self-summary.sh 4 段总结 + mem0 quota fallback 3 步** (per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill") / **v-bump 自动触发** (4 条件: 反模式 ≥ 4 / 流程变化 ≥ 1 / 触发词变化 ≥ 1, 任一满足立 v_new_version per v2.6.30 §I self-evolution). NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.3 (2026-07-14)
+  version: v2.4 (2026-07-14)
   changelog: |
+    v2.4 (2026-07-14) — 经验教训 → 提升 skill 闭环 + skill-self-summary 3 健壮性: 升级 scripts/skill-self-summary.sh v1.0 → v2.0 (session id 3 步 fallback / CLAUDE.local.md hot recall 段带 @v{version} / v-bump 自动触发 4 条件判定) + 新增 references/self-evolution-loop.md (4 步闭环: 总结 → 内化 → commit → bump version) + 触发词 + 2 + 4 反模式表补 5 条 (19 → 24)
     v2.3 (2026-07-14) — skill 跑完自我总结协议 + mem0 quota fallback: 新增 scripts/skill-self-summary.sh (跑完自动 4 段 + mem0 fallback 3 步) + references/self-summary-protocol.md (4 段模板 + fallback 决策树 + decision-stream schema) + 触发词 + 2 + 4 反模式表补 3 条 (16 → 19) + CLAUDE.local.md §19 段 hot recall
     v2.2 (2026-07-14) — Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑沉淀: 新增 references/notion-url-parse.md (URL 4 类 + id 提取 + 4 决路径 + integration access 3 步判定) + templates/notion-fix-cheatsheet.md (4 类常见问题 + 1 跳决策树 + 4 决路径 quickref) + templates/cross-db-migrate-payload.md 加 §0 Notion URL 解读段 + 触发词 + 4 + 4 反模式表补 6 条 (10 → 16) + subagent 验证协议位
     v2.1 (2026-07-14) — 跨 Notion database 搬 schema 4 踩坑沉淀: 新增 scripts/add-property.sh (PATCH /v1/data_sources/{id} 加 property 独立可用) + templates/cross-db-migrate-payload.md (跨 db strip id 规则) + references/notion-schema-migration.md (Notion 2025 API model 速查 + 4 错误码) + 触发词 + 3 + 4 反模式表独立段
@@ -23,14 +24,14 @@ metadata:
     v1.2 (2026-07-13) — education-type-judge + 新 page 才填教育类型
     v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
-  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑) → v2.3 (skill 跑完自我总结 + mem0 quota fallback, per user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结")
-  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714
+  起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑) → v2.3 (skill 跑完自我总结 + mem0 quota fallback) → v2.4 (经验教训 → 提升 skill 闭环 + 3 健壮性 + v-bump 自动触发, per user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill")
+  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714
   关联 skill: weekly-report-phd (ntn CLI) / teacher-report (paper card) / auto-feishu-digest (3 scripts 风格)
   适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
 ---
 
-# paper-into-notion v2.3
+# paper-into-notion v2.4
 
 > **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/知识点) 永不覆盖已有值 ✅
 > **触发**: user 说 "paper 进 Notion" / "Notion 沉淀" / "把这个 paper 加到 Notion" / "写论文卡片" 时跑
@@ -334,6 +335,70 @@ print(entry.find('atom:title', ns).text.strip())
 **完整实现**: `scripts/skill-self-summary.sh` (4 步: chat + 本地 case + CLAUDE.local.md + decision-stream) + `references/self-summary-protocol.md` (4 段模板 + mem0 quota 决策树 + decision-stream schema + 案例)
 
 **mem0 quota fallback** (per `references/self-summary-protocol.md` §2): 撞墙立即 3 步 fallback (本地 case + CLAUDE.local.md hot recall + decision-stream append), 不反问 user "要不要 add", 不重试 3+ 次
+
+---
+
+## 5 反模式 (skill 经验教训内化 + v-bump 自动触发专属, v2.4 新增)
+
+> 起源: CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714, per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill"
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 20 | **session id 缺失走 unknown 字面** (实测) | `CLAUDE_SESSION_ID` env 未设, self-summary.sh 硬编码 fallback "unknown" | 3 步 fallback (env → `git rev-parse --short HEAD` → `date +%Y%m%d-%H%M%S`), 全缺失抛 exit 1 (per ADR-0057-f 残留 1) |
+| 21 | **hot recall 段缺版本号 (多次跑同名段堆叠)** (实测) | 段标题只含 date + skill_name, 不含 skill version, 同日多次跑同名段堆叠, 难追溯 | 段标题含 `@v{version}`, e.g. `## §self-summary-2026-07-14-paper-into-notion@v2.4` (per ADR-0057-f 残留 2) |
+| 22 | **v-bump 不自动 (经验教训不内化到 skill)** (实测) | self-summary.sh 缺 v-bump 自动触发逻辑, 只沉淀经验教训不内化到 SKILL.md changelog / 触发词 / 反模式 | 跑完自检 4 条件 (反模式 ≥ 4 / 流程变化 ≥ 1 / 触发词变化 ≥ 1), 任一满足触发立 v_new_version (per v2.6.30 §I self-evolution) |
+| 23 | **总结不内化到 skill (跟 v2.6.30 §I self-evolution 反)** | 跑完 4 段总结只落本地 case + CLAUDE.local.md + decision-stream, 不更新 SKILL.md changelog / 触发词 / 反模式 | 4 步闭环 (总结 → 内化 → commit → bump version, per `references/self-evolution-loop.md` §1) |
+| 24 | **跑完不验证 (subagent 跳过)** | 立协议不实测, 3 健壮性 (session id / 版本号 / v-bump) 实测才发现 | 立 skill 协议位必跑 1 轮实测 (per §C.1 verification gate), 实测失败立新 v-bump |
+
+---
+
+## 「经验教训 → 提升 skill」4 步闭环协议 (v2.4 新增, per user 原话 "提升 skill")
+
+**触发条件** (满足任一就必跑):
+- skill 升级 commit 后
+- skill 跨 db 搬 / 跨 session 任务完成
+- 任何 build + deploy + config 改动完成
+- user 显式说 "总结" / "回顾" / "沉淀" / "提升 skill"
+
+**4 步** (缺一不算 "提升 skill", 反 v2.6.30 §I self-evolution 协议位硬约束):
+
+```text
+1. 总结 (Summary)
+   ↓ 跑 skill-self-summary.sh 4 段 (做了什么 N / 修了什么 N / 踩坑 1-3 / 避坑 1-3)
+   ↓ 4 步 fallback: chat + 本地 case + CLAUDE.local.md (段带 @v{version}) + decision-stream
+   ↓ mem0 quota 撞墙时, 3 步 fallback (本地 case + CLAUDE.local.md + decision-stream)
+   ↓
+2. 内化 (Internalize)
+   ↓ 经验教训 → SKILL.md 5 类沉淀:
+   ↓   - changelog 段 (新立 v_new_version entry)
+   ↓   - 触发词 (扩 when_to_use 段)
+   ↓   - 反模式 (扩 4 反模式表)
+   ↓   - ADR (新立 sub-slot, per ADR-0027 v1.1)
+   ↓   - case (新立 ~/.claude/knowledge/cases/wiki/CASE-*.md)
+   ↓
+3. Commit (Atomic)
+   ↓ worktree 立新分支 (per §C.3.1, 必跑 verify 2 次: git worktree list + ls)
+   ↓ atomic commit (5 file 单 commit, 1 unit 原则 per §C.3.2)
+   ↓ commit message 含 changelog / 触发词 / 反模式 / 关联 ADR / 关联 case
+   ↓
+4. Bump version (v-bump)
+   ↓ v2.x → v2.(x+1) bump (per v2.6.49 description split 触发条件)
+   ↓ frontmatter 4 字段保留合规 (per v2.6.47 audit)
+   ↓ changelog 段加 v_new_version entry
+   ↓ 触发词 + N / 反模式 + N
+   ↓ 5 步 (总结 → 内化 → commit → bump → push, per v2.6.30 §I.1)
+```
+
+**v-bump 自动触发 4 条件** (任一满足即触发, per `references/self-evolution-loop.md` §2):
+
+| # | 条件 | 判定方法 | 触发 v-bump |
+|---|------|---------|--------------|
+| 1 | **反模式 ≥ 4** | 解析 SKILL.md 4 反模式表, 数条数 ≥ 4 | ✅ |
+| 2 | **流程变化 ≥ 1** | git diff vs 上次 commit, 流程类代码 (scripts/ + run-card.md) 改 ≥ 1 文件 | ✅ |
+| 3 | **触发词变化 ≥ 1** | 解析 frontmatter when_to_use, 跟上次 commit 字符串比对, diff ≥ 1 触发词 | ✅ |
+| 4 | **hot recall 新增段** | CLAUDE.local.md 跑完 self-summary 后段数比跑前 +1 | ✅ |
+
+**完整实现**: `scripts/skill-self-summary.sh` v2.0 (3 健壮性 + v-bump 触发判定) + `references/self-evolution-loop.md` (4 步闭环协议) + `references/self-summary-protocol.md` (4 段模板 + mem0 quota 决策树)
 
 ---
 
