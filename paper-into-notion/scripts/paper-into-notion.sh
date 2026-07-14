@@ -81,13 +81,16 @@ echo "URL: $URL"
 MODAL=$(bash "$SCRIPT_DIR/modal-detect.sh" "$URL")
 echo "[1/4] 模态: $MODAL"
 
-# 2. 抓 title (arXiv 走 API, 其他模态用 URL 当 fallback title)
+# 2. 抓 title + abstract (arXiv 走 API, 其他模态用 URL 当 fallback title)
 TITLE=""
+ABSTRACT=""
 if [ "$MODAL" = "arXiv" ]; then
   ARXIV_ID=$(echo "$URL" | grep -oE '[0-9]{4}\.[0-9]{4,5}' | head -1)
   if [ -n "$ARXIV_ID" ]; then
     echo "[2/4] 抓 arXiv: $ARXIV_ID"
-    TITLE=$(bash "$SCRIPT_DIR/arxiv-fetch.sh" "$ARXIV_ID" | jq -r '.title // empty')
+    ARXIV_JSON=$(bash "$SCRIPT_DIR/arxiv-fetch.sh" "$ARXIV_ID")
+    TITLE=$(echo "$ARXIV_JSON" | jq -r '.title // empty')
+    ABSTRACT=$(echo "$ARXIV_JSON" | jq -r '.abstract // empty')
     if [ -z "$TITLE" ]; then
       echo "❌ arXiv 抓取失败 (per Q4, 不写 fallback record)" >&2
       exit 1
@@ -103,9 +106,17 @@ else
   echo "[2/4] 非 arXiv 模态, 用 URL 作 fallback title"
 fi
 
+# 2.5 LLM judge 知识点标签 (per ADR-0057 v1.1, 仅 arXiv 有 abstract)
+KNOWLEDGE_TAGS="[]"
+if [ -n "$ABSTRACT" ]; then
+  echo "[2.5/4] LLM judge 知识点..."
+  KNOWLEDGE_TAGS=$(bash "$SCRIPT_DIR/knowledge-tag-judge.sh" "$ABSTRACT")
+  echo "    ✅ tags: $KNOWLEDGE_TAGS"
+fi
+
 # 3. 字段级 merge
 echo "[3/4] 字段级 merge..."
-RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL")
+RECORD=$(bash "$SCRIPT_DIR/field-merge.sh" "$TITLE" "$MODAL" "$KNOWLEDGE_TAGS")
 RECORD_ID=$(echo "$RECORD" | jq -r '.id // empty')
 PAGE_URL=$(echo "$RECORD" | jq -r '.url // empty')
 
@@ -122,3 +133,6 @@ echo "═══ result ═══"
 echo "✅ record_id: $RECORD_ID"
 echo "✅ page_url: $PAGE_URL"
 echo "✅ 3 字段填对 (页面=$TITLE, 状态=未开始, 模态类型=$MODAL)"
+if [ "$KNOWLEDGE_TAGS" != "[]" ]; then
+  echo "✅ 知识点 (新 page 才填): $KNOWLEDGE_TAGS"
+fi
