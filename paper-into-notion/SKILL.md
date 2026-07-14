@@ -59,7 +59,7 @@ metadata:
 | # | 字段 | 类型 | 自动填? | 保护机制 |
 |---|---|---|---|---|
 | 1 | 页面 | title | ✅ (抓 `<title>` / arXiv title) | 直接 PATCH 覆盖安全 (title 是单值) |
-| 2 | 状态 | select | ✅ 固定 "未开始" | 单值安全 |
+| 2 | 状态 | **status** | ✅ 固定 "未开始" | 单值安全。⚠️ status ≠ select: option 不能删,只能 UI Archive |
 | 3 | 模态类型 | select | ✅ 5 pattern grep | 单值安全 |
 | 4 | 教育类型 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** |
 | 5 | 知识点 | **multi_select** | ❌ 后填 | **PATCH body 永远不含此字段** |
@@ -71,6 +71,12 @@ metadata:
 - 唯一安全方案 = **body 不传 multi_select 字段** → Notion 保持原值
 - 新 page 没 multi_select 时 POST 只含 3 auto 字段 (页面/状态/模态类型)
 - 已有 page 时 PATCH 只含 3 auto 字段 (含 title update) → multi_select / rich_text 保留
+
+### status 字段 vs select 字段 (2026-07-14 补, per CASE-CROSS-DB-SCHEMA-MIGRATION §5)
+- **API 差异**: select option 可 PATCH 加/删, status option **只能加不能删** (Notion API 限制, 2025-09 release 后仍如此)
+- **UI 差异**: select option 可 Archive 隐藏, status option 在 database 视图 → 状态列下拉 → 3 点 Archive
+- **batch page 改 status**: 先 PATCH schema 加新 option, 再 PATCH /v1/pages/{id} x N
+- **残留旧 option 处理**: API 删不掉, 走 Notion UI 手动 Archive (browser 或 Claude in Chrome)
 
 ---
 
