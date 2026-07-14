@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# paper-into-notion.sh — 主入口 (per ADR-0057 v1.7)
+# paper-into-notion.sh — 主入口 (per ADR-0057 v1.8)
 # 用法:
-#   bash paper-into-notion.sh <URL>                                          # 修法 1 (默认, 安全)
-#   bash paper-into-notion.sh --force-fill <URL>                            # 覆盖模式 (慎用)
-#   bash paper-into-notion.sh --force-fill <URL> --knowledge "tag1 tag2"    # user override 知识点
+#   bash paper-into-notion.sh <URL>                                                        # 修法 1 (默认, 安全)
+#   bash paper-into-notion.sh --force-fill <URL>                                          # 覆盖模式 (慎用)
+#   bash paper-into-notion.sh --force-fill <URL> --knowledge "tag1 tag2"                  # user override 知识点
+#   bash paper-into-notion.sh --force-fill <URL> --highlight "中文 takeaway"              # user override 亮点 (claudecode 自己翻)
 #   bash paper-into-notion.sh --verify
 # 流程: 模态判定 → arXiv 抓 (仅 arXiv) → LLM judge 3 字段 → 字段级 merge → POST/PATCH → GET 验证
 # schema (v1.4, 8 字段实际): 页面/状态/模态/link/亮点/知识点/教育类型/上次编辑时间
@@ -81,8 +82,25 @@ shift  # shift URL
 USER_KNOWLEDGE=""
 if [ "${1:-}" = "--knowledge" ]; then
   shift
-  # 合并剩余 arg 当 USER_KNOWLEDGE (用 $@ 不用 $*, 排除 shift 副作用)
-  USER_KNOWLEDGE="$@"
+  # 合并所有非 --flag 起始的 arg, 遇 --xxx 停 (跟 --highlight 互不干扰)
+  USER_KNOWLEDGE=""
+  while [ $# -gt 0 ] && [ "${1#--}" = "${1}" ]; do
+    if [ -n "$USER_KNOWLEDGE" ]; then USER_KNOWLEDGE+=" "; fi
+    USER_KNOWLEDGE+="$1"
+    shift
+  done
+fi
+
+# === --highlight "中文 takeaway" 参数 (v1.8, claudecode 自己翻) ===
+USER_HIGHLIGHT=""
+if [ "${1:-}" = "--highlight" ]; then
+  shift
+  USER_HIGHLIGHT=""
+  while [ $# -gt 0 ] && [ "${1#--}" = "${1}" ]; do
+    if [ -n "$USER_HIGHLIGHT" ]; then USER_HIGHLIGHT+=" "; fi
+    USER_HIGHLIGHT+="$1"
+    shift
+  done
 fi
 
 echo "═══ paper-into-notion run ═══"
@@ -92,6 +110,9 @@ if [ "$FORCE_FILL" = "true" ]; then
 fi
 if [ -n "$USER_KNOWLEDGE" ]; then
   echo "👤 user override 知识点: $USER_KNOWLEDGE"
+fi
+if [ -n "$USER_HIGHLIGHT" ]; then
+  echo "👤 user override 亮点: $USER_HIGHLIGHT"
 fi
 
 # === 1. 模态判定 ===
@@ -130,8 +151,14 @@ if [ -n "$ABSTRACT" ]; then
   echo "[2.5/4] LLM judge 3 字段..."
   EDUCATION_TAGS=$(bash "$SCRIPT_DIR/education-type-judge.sh" "$ABSTRACT")
   echo "    ✅ 教育类型: $EDUCATION_TAGS"
-  HIGHLIGHTS=$(bash "$SCRIPT_DIR/highlights-judge.sh" "$ABSTRACT")
-  echo "    ✅ 亮点 (≤200 字)"
+  # 亮点: user override (claudecode 翻译) > LLM judge (v1.8)
+  if [ -n "$USER_HIGHLIGHT" ]; then
+    HIGHLIGHTS="$USER_HIGHLIGHT"
+    echo "    ✅ 亮点 (user override / claudecode 翻译): $HIGHLIGHTS"
+  else
+    HIGHLIGHTS=$(bash "$SCRIPT_DIR/highlights-judge.sh" "$ABSTRACT")
+    echo "    ✅ 亮点: $HIGHLIGHTS"
+  fi
 
   # 知识点: user override > LLM judge (v1.7)
   if [ -n "$USER_KNOWLEDGE" ]; then
