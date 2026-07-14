@@ -52,7 +52,7 @@ fi
 # ===== skill version 读 (从 SKILL.md frontmatter 提取) =====
 SKILL_VERSION="unknown"
 if [ -f "SKILL.md" ]; then
-  SKILL_VERSION=$(grep -E "^version: " SKILL.md | head -1 | sed 's/^version: //; s/[[:space:]]*$//' | tr -d '()')
+  SKILL_VERSION=$(grep -E "^[[:space:]]*version: " SKILL.md | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//; s/[[:space:]]*$//' | tr -d '()')
 fi
 if [ -z "$SKILL_VERSION" ]; then
   SKILL_VERSION="unknown"
