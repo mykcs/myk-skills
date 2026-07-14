@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v3.6 (2026-07-14)
+  version: v3.7 (2026-07-14)
   changelog: |
+    v3.7 (2026-07-14) — worktree 生命周期守卫 (per user 2026-07-14 "总结经验写入 skill 下次不要再犯", per CASE-PAPER-INTO-NOTION-SELF-SUMMARY-2026-07-14): 反模式 #47 (worktree 中途被后台清掉 → 编辑丢失 + main 被别 session 推进; 修法: 每次编辑前 git worktree list 确认存在 + 建好尽快 commit+push 缩短窗口 + 丢了先 fetch main 看是否被推进再重建). 本次实战 v3.5/v3.6 两轮 worktree 各被清一次, 重做 2 次浪费 ~10 min. 跟 v3.6 property 改名 + v3.0 introspect 协同不冲突.
     v3.6 (2026-07-14) — Notion property「知识点」改名「关键词」+ 硬编码换 env var (per user 2026-07-14 "知识点 改名为 关键词", per CASE-PAPER-INTO-NOTION-SELF-SUMMARY-2026-07-14): ntn api PATCH /v1/data_sources rename (值全保留) + 新增 env NOTION_KEYWORD_PROPERTY="关键词" (.env + .env.example) + field-merge.sh 3 处硬编码「知识点」换 ${KEYWORD_PROP} (line 96/235/288) + get-page-props.sh + verify-5-fields.sh jq 换 env + 15 文件字面「知识点」→「关键词」(templates/references/scripts 注释/USER-SETUP) + 反模式 #46 (property 改名后硬编码字面 drift, 必走 env var 不硬编码). 跟 v2.5 4 env override + v3.0 introspect 协同不冲突.
     v3.5 (2026-07-14) — 补 v3.4 changelog 谎报的缺失反模式表格行 (per CASE-PAPER-INTO-NOTION-SELF-SUMMARY-2026-07-14 + 灵魂 v6 self-summary 内化): v3.4 changelog 声称加了反模式 #42/#44/#45 但反模式表格里实际只到 #37 (sub-agent 半成品合并漏表格实体行 = 字面 drift, per 反模式 #26); 本版补齐表格实体行 #42 (multi_select "改为 N 项" 合成 vs 拆分歧义, 必 AskUserQuestion) + #44 (修缮 page 跳 grill) + #45 (查 page 用 URL 当 title 搜). 跟 v3.4 changelog 声明对齐, 无新流程. 跟 v3.0 introspect + v3.1 self-summary + v3.2 LLM 默认写入 协同不冲突.
     v3.4 (2026-07-14) — 合并 sub-agent 半成品 (institutions-judge.sh 加 whitelist 注释 + v3-3 反模式 #42 multi_select 拆 N 项歧义 + llm-fill 反模式 #44/#45 修缮 page + 字段填全), per Layer 2 cleanup SOP 选项 A 全推 (per host-self-evolve Layer 1 audit, per user 拍板): institutions-judge.sh 加 4 option whitelist 注释 (Anthropic / SZU / PolyU / 其他机构) + 反模式 #42 (multi_select "改为 N 项" 默认合成 vs 拆 N 项歧义) + #44 (修缮 page 跳过 grill) + #45 (查 page 用 URL 当 title → PATCH 后找不到) + 触发词 + 1 (skill 改字段先 grill) + 跟 v3.2 LLM 默认写入 + v3.1 self-summary 协同不冲突.
@@ -516,6 +517,7 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 | 44 | **修缮已有 page 跳过 grill 直接改** | 对已存在的 page 改字段时, 若不先确认改动语义 (覆盖 vs 追加 / 合成 vs 拆分) 就 PATCH, 易改错已有值 | 修缮 page 前先 GET 现值 + AskUserQuestion 确认改动语义, 再 PATCH + 二次 GET 验证 |
 | 45 | **查 page 用 URL 当 title 搜 → PATCH 后找不到** | 用 URL slug 里的标题去 query db 搜 page, PATCH 改了 property 后 slug 不变但搜索逻辑可能错位; URL 32-char segment 是 page id 不是 title | 查 page 优先用 URL 尾部 32-char page id 直接 `ntn pages get <id>`, 不用 title 模糊搜 |
 | 46 | **property 改名后脚本硬编码字面 drift** | Notion property 改名 (`ntn api PATCH /v1/data_sources`) 后, 脚本里硬编码的旧 property 名 (如 field-merge.sh `,\"知识点\":{...}`) 仍写旧名 → PATCH 静默失败 (写入丢失, HTTP 200 但字段没填) | property 名一律走 env var (NOTION_KEYWORD_PROPERTY 等), 脚本读 `${KEYWORD_PROP:-默认名}`, 不硬编码; 改名后 grep 全仓字面确认 0 残留 |
+| 47 | **worktree 中途被后台清掉, 编辑丢失 + main 被别 session 推进** | 手动 `git worktree add` 后, 编辑到一半 worktree 目录被 background/hook 清掉 (`worktree list` 只剩主仓), 已改文件全丢; 且期间别的 session 把 origin/main 推进 → 白干 + 基于 stale main | (1) 每次编辑前先 `git worktree list` 确认 worktree 还在; (2) worktree 建好后**尽快** commit + push (缩短窗口, 别攒一大批改动); (3) worktree 若丢, 先 `git fetch origin main` + `git log origin/main -3` 看是否被别 session 推进, 基于最新 main 重建 |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后
