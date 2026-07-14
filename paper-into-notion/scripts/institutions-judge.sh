@@ -96,24 +96,34 @@ except Exception:
     PARSED=$(echo "$LLM_OUTPUT" | python3 -c "
 import json, sys, re
 text = sys.stdin.read().strip()
-# 直接 json.loads 看是不是纯 JSON 格式
+VALID = {'Anthropic','SZU','PolyU','其他机构'}
+# 1. 直接 json.loads 看是不是纯 JSON 格式
 try:
     d = json.loads(text)
     if isinstance(d, dict) and 'institutions' in d:
-        VALID = {'Anthropic','SZU','PolyU','其他机构'}
         inst = [i for i in d['institutions'] if i in VALID]
-        # v3.2: 接受 其他机构 fallback (paper 不在前 3 个 whitelist 但 LLM 判定有机构)
         if inst:
             print(','.join(inst))
         raise SystemExit(0)
 except: pass
-# fallback: 在 text 里 grep 'SZU' / 'PolyU' / 'Anthropic' / '其他机构'
+# 2. strip markdown code fence (\`\`\`json ... \`\`\`) 后再 parse
+m = re.search(r'\`\`\`(?:json)?\s*(\{.*?\})\s*\`\`\`', text, re.DOTALL)
+if m:
+    try:
+        d = json.loads(m.group(1))
+        if isinstance(d, dict) and 'institutions' in d:
+            inst = [i for i in d['institutions'] if i in VALID]
+            if inst:
+                print(','.join(inst))
+            raise SystemExit(0)
+    except: pass
+# 3. fallback: 在 text 里 grep VALID 关键词
 out = []
-if re.search(r'\bAnthropic\b', text): out.append('Anthropic')
-if re.search(r'\bSZU\b', text): out.append('SZU')
-if re.search(r'\bPolyU\b', text): out.append('PolyU')
-# text fallback 命中任一关键词 (机构相关) → 其他机构 fallback
-if out and '其他机构' not in out and 'SZU' not in out and 'PolyU' not in out and 'Anthropic' not in out:
+for kw in ['Anthropic','SZU','PolyU','其他机构']:
+    if re.search(r'\b' + re.escape(kw) + r'\b', text):
+        out.append(kw)
+# v3.2: 都没匹配 + text 含机构相关词 → 其他机构 fallback
+if not out and re.search(r'(University|Institute|Polytechnic|理工|大学|学院|AI Lab|Research)', text):
     out.append('其他机构')
 print(','.join(out))
 " 2>/dev/null || echo "")
