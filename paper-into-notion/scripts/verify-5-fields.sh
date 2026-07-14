@@ -29,12 +29,13 @@ echo "PAGE_ID: $PAGE_ID"
 # GET page
 PAGE=$(ntn api --method GET "/v1/pages/$PAGE_ID" 2>&1)
 
-# 1. 页面 (title)
-TITLE=$(echo "$PAGE" | jq -r '.properties["页面"].title[0].text.content // "❌"')
-echo "[1/5] 页面: $TITLE"
+# 1. 标题 (title, 默认 "页面" 兼容老 db)
+TITLE_PROP="${NOTION_TITLE_PROPERTY:-页面}"
+TITLE=$(echo "$PAGE" | jq -r --arg p "$TITLE_PROP" '.properties[$p].title[0].text.content // "❌"')
+echo "[1/5] 标题 ($TITLE_PROP): $TITLE"
 
 # 2. 状态
-STATUS=$(echo "$PAGE" | jq -r '.properties["状态"].select.name // "❌"')
+STATUS=$(echo "$PAGE" | jq -r '.properties["状态"].status.name // .properties["状态"].select.name // "❌"')
 echo "[2/5] 状态: $STATUS"
 
 # 3. 模态类型

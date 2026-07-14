@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.4 (2026-07-14)
+  version: v2.5 (2026-07-14)
   changelog: |
+    v2.5 (2026-07-14) — 多 db schema 适配 (4 env variables + 2 db property 差异表): field-merge.sh 3 处硬编码 页面 → $TITLE_PROP env + verify-5-fields.sh 1 处 → $TITLE_PROP env + status 默认 未开始 → $STATUS_DEFAULT env + .env.example 加 4 个 NOTION_*_PROPERTY/NOTION_STATUS_DEFAULT env + 新增 "多 db schema 适配" 段 (4 env table + 论文 wiki vs 信息 property 差异表) + 触发词 + 1 (Notion multi-db schema) + 4 反模式表补 4 条 (24 → 28) (per CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 + Notion 2025-09-03 → 2026-03-11 multi-source database 升级)
     v2.4 (2026-07-14) — 经验教训 → 提升 skill 闭环 + skill-self-summary 3 健壮性: 升级 scripts/skill-self-summary.sh v1.0 → v2.0 (session id 3 步 fallback / CLAUDE.local.md hot recall 段带 @v{version} / v-bump 自动触发 4 条件判定) + 新增 references/self-evolution-loop.md (4 步闭环: 总结 → 内化 → commit → bump version) + 触发词 + 2 + 4 反模式表补 5 条 (19 → 24)
     v2.3 (2026-07-14) — skill 跑完自我总结协议 + mem0 quota fallback: 新增 scripts/skill-self-summary.sh (跑完自动 4 段 + mem0 fallback 3 步) + references/self-summary-protocol.md (4 段模板 + fallback 决策树 + decision-stream schema) + 触发词 + 2 + 4 反模式表补 3 条 (16 → 19) + CLAUDE.local.md §19 段 hot recall
     v2.2 (2026-07-14) — Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑沉淀: 新增 references/notion-url-parse.md (URL 4 类 + id 提取 + 4 决路径 + integration access 3 步判定) + templates/notion-fix-cheatsheet.md (4 类常见问题 + 1 跳决策树 + 4 决路径 quickref) + templates/cross-db-migrate-payload.md 加 §0 Notion URL 解读段 + 触发词 + 4 + 4 反模式表补 6 条 (10 → 16) + subagent 验证协议位
@@ -214,6 +215,20 @@ esac
 
 ## arXiv 抓取 (重试 3 次 + exit 1, per Q4)
 
+### Notion 2025-09-03 → 2026-03-11 multi-source database 升级背景
+
+| 概念 | 2022-06-28 旧 | 2025-09-03+ 新 | paper-into-notion 现状 |
+|---|---|---|---|
+| **database** | 1 个 db = 1 个 schema | 1 个 db = N 个 data sources (容器) | 接受任一, 用 `GET /v1/databases/{id}` 反查 `data_sources[].id` |
+| **data source** | 隐式 | 1 个 schema/table | DS_ID 必存, 用 `GET /v1/data_sources/{id}` 拿 schema |
+| **URL segment** | 32-char db_id | 第 1 段 = database_id, 第 2 段 = view_id, data_source_id **不在 URL** | 必 introspect |
+| **property schema** | per database | per data source (每个 ds 独立 property 名/类型) | introspect 模式待 v2.6, 当前 v2.5 env variable override |
+
+**关键 URL 解读规则** (per CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714):
+- 32-char UUID 不携带类型信息, 必跑 `ntn datasources resolve` 或 `GET /v1/databases/{id}` 反查
+- `?v=` 后 32-char 是 **view_id**, 不是 data_source_id
+- 用户 paste URL 时通常只 paste database_id, 没给 data_source_id
+
 ```bash
 # scripts/arxiv-fetch.sh: curl + ElementTree + 重试 3 次 (等 3s)
 # 输入: arXiv ID (e.g. 1706.03762)
@@ -359,6 +374,61 @@ print(entry.find('atom:title', ns).text.strip())
 ---
 
 ## 「经验教训 → 提升 skill」4 步闭环协议 (v2.4 新增, per user 原话 "提升 skill")
+
+## 多 db schema 适配 (v2.5 新增, per user 2026-07-14 拍板 A 方案)
+
+> **触发**: user paste Notion URL, 目标 database 跟 skill 默认配置 (论文 wiki) 不同 (e.g. 信息 db property 叫 "名称" 不是 "页面", status 选项是 "初抓取-ai" 不是 "未开始")
+> **v2.5 quick fix**: 4 env variables override 默认值, 兼容任一 Notion db
+> **v2.6 follow-up**: introspect mode (auto-detect property name + status options, per Notion 2025-09-03+ 最佳实践)
+
+### 4 env variables 表
+
+| env | 默认 (论文 wiki) | 信息 db | 用途 |
+|---|---|---|---|
+| `NOTION_TITLE_PROPERTY` | `页面` | `名称` | 标题 property 名 |
+| `NOTION_STATUS_DEFAULT` | `未开始` | `初抓取-ai` | 状态默认值 |
+| `NOTION_LINK_PROPERTY` | `link` (可选) | `link` | 链接 property 名 (db 没此字段则跳过) |
+| `NOTION_ORG_PROPERTY` | `机构` (可选) | `机构` | 机构 property 名 (db 没此字段则跳过) |
+
+### 2 db property 差异表 (v2.5 实测)
+
+| Property | 论文 wiki db | 信息 db |
+|---|---|---|
+| 标题 property 名 | `页面` | `名称` |
+| 状态 property 名 | `状态` | `状态` (同) |
+| 状态 options | `未开始` / `在读` / `已完成` | `初抓取-ai` / `ai补充` / `人类认证` |
+| 模态类型 | `arXiv` / `微信公众号` / ... | 同 |
+| 教育类型 | `论文阅读` | 同 |
+| 知识点 | open | `llm` / `线性注意力` / `超声心动` (既有 tag) |
+| 链接 | ❌ 无此字段 | ✅ `link` (url type) |
+| 日期 | ❌ | ✅ `日期` (created_time auto) |
+| 机构 | ❌ | ✅ `机构` (multi_select, SZU/PolyU) |
+
+### 切换 db 操作 SOP
+
+```bash
+# 1. .env 改 4 env (paper-into-notion/.env)
+NOTION_DATABASE_ID="<新 db id>"
+NOTION_DATA_SOURCE_ID="<新 ds id>"  # GET /v1/databases/{db_id} 拿 data_sources[].id
+NOTION_TITLE_PROPERTY="名称"
+NOTION_STATUS_DEFAULT="初抓取-ai"
+
+# 2. 跑 dry-run 验 (推荐先 --verify, 再跑一次实际 URL)
+bash paper-into-notion.sh --verify
+bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
+
+# 3. bonus test: PATCH 已有 page 不覆盖 multi_select
+# (脚本默认已含 multi_select 保护, 见 verify-5-fields.sh §4 字段级 merge)
+```
+
+### 4 反模式 (永久失效, v2.5 新增)
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 17 | **硬编码 property 名 "页面"** | 跨 db property 名不同 (页面 vs 名称) | 用 `$NOTION_TITLE_PROPERTY` env, 默认 "页面" 兼容老 db |
+| 18 | **硬编码 status 默认 "未开始"** | 不同 db status options 不同 | 用 `$NOTION_STATUS_DEFAULT` env, 默认 "未开始" 兼容老 db |
+| 19 | **Notion URL 反查失败就反复重试** | 32-char UUID 不携带类型信息, 重试无济于事 | 1 次 `GET /v1/databases/{id}` 拿 `data_sources[]` 即可, 失败用 kimi-webbridge |
+| 20 | **多 db 切来切去但不复盘 schema 差异** | 每次切 db 都踩同一个 property 名不同的坑 | 立 CASE 沉淀 property 差异表 (如本段 §2) |
 
 **触发条件** (满足任一就必跑):
 - skill 升级 commit 后

@@ -23,6 +23,11 @@ fi
 DS_ID="${NOTION_DATA_SOURCE_ID:?NOTION_DATA_SOURCE_ID unset}"
 VERSION="${NOTION_VERSION:-2026-03-11}"
 
+TITLE_PROP="${NOTION_TITLE_PROPERTY:-页面}"
+STATUS_DEFAULT="${NOTION_STATUS_DEFAULT:-未开始}"
+LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
+ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
+
 # 解析 --force flag
 FORCE=false
 if [ "${1:-}" = "--force" ]; then
@@ -112,6 +117,10 @@ if text:
   echo "${LINK_PROP}${KNOWLEDGE_PROP}${EDUCATION_PROP}${HIGHLIGHTS_PROP}"
 }
 
+TITLE_PROP="${NOTION_TITLE_PROPERTY:-页面}"
+LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
+ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
+
 # === --force 路径 ===
 if [ "$FORCE" = "true" ]; then
   echo "⚠️ --force 模式: PATCH 已有 page $PAGE_ID 全 7 字段 (覆盖你已有内容)" >&2
@@ -119,8 +128,8 @@ if [ "$FORCE" = "true" ]; then
   PATCH_BODY=$(cat <<EOF
 {
   "properties": {
-    "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
-    "状态": {"status": {"name": "未开始"}},
+    "$TITLE_PROP": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
+    "状态": {"status": {"name": "$STATUS_DEFAULT"}},
     "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
   }
 }
@@ -134,7 +143,7 @@ fi
 QUERY_BODY=$(cat <<EOF
 {
   "filter": {
-    "property": "页面",
+    "property": "$TITLE_PROP",
     "title": {"equals": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}
   },
   "page_size": 2
@@ -151,8 +160,8 @@ if [ "$COUNT" = "0" ]; then
 {
   "parent": {"type": "data_source_id", "data_source_id": "$DS_ID"},
   "properties": {
-    "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
-    "状态": {"status": {"name": "未开始"}},
+    "$TITLE_PROP": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
+    "状态": {"status": {"name": "$STATUS_DEFAULT"}},
     "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$AUTO_PROPS
   }
 }
@@ -168,8 +177,8 @@ if [ "$COUNT" = "1" ]; then
   PATCH_BODY=$(cat <<EOF
 {
   "properties": {
-    "页面": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
-    "状态": {"status": {"name": "未开始"}},
+    "$TITLE_PROP": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
+    "状态": {"status": {"name": "$STATUS_DEFAULT"}},
     "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}
   }
 }
