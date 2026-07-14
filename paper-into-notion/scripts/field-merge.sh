@@ -185,17 +185,73 @@ fi
 
 if [ "$COUNT" = "1" ]; then
   EXISTING_PAGE_ID=$(echo "$QUERY_RESULT" | jq -r '.results[0].id')
-  echo "→ PATCH 已有 page $EXISTING_PAGE_ID (body 只含 3 auto 字段, 修法 1)" >&2
+  echo "→ PATCH 已有 page $EXISTING_PAGE_ID (v3.0 空才填: title/status/modal/link 永远写; knowledge/education/highlights 空才填)" >&2
+  # v3.0: GET page 字段空判定 → body 包不包 LLM 字段
+  PROP_STATUS=$(bash "$SCRIPT_DIR/get-page-props.sh" "$EXISTING_PAGE_ID" 2>/dev/null || echo "")
+  LINK_EMPTY=false; KNOWLEDGE_EMPTY=false; EDUCATION_EMPTY=false; HIGHLIGHTS_EMPTY=false
+  if [ -n "$PROP_STATUS" ]; then
+    grep -q '^link=empty$' <<<"$PROP_STATUS" && LINK_EMPTY=true
+    grep -q '^knowledge=empty$' <<<"$PROP_STATUS" && KNOWLEDGE_EMPTY=true
+    grep -q '^education=empty$' <<<"$PROP_STATUS" && EDUCATION_EMPTY=true
+    grep -q '^highlights=empty$' <<<"$PROP_STATUS" && HIGHLIGHTS_EMPTY=true
+  fi
+
+  PATCH_LLM_PROPS=""
+  if [ -n "$SOURCE_URL" ] && [ "$LINK_EMPTY" = "true" ]; then
+    PATCH_LLM_PROPS+=",\"link\":{\"url\":$(echo "$SOURCE_URL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}"
+  fi
+  if [ -n "$KNOWLEDGE_TAGS" ] && [ "$KNOWLEDGE_TAGS" != "[]" ] && [ "$KNOWLEDGE_EMPTY" = "true" ]; then
+    KNOWLEDGE_NAMES=$(echo "$KNOWLEDGE_TAGS" | python3 -c "
+import json, sys
+try:
+    tags = json.loads(sys.stdin.read())
+    if isinstance(tags, list) and len(tags) > 0:
+        print(','.join([json.dumps({'name': t}) for t in tags]))
+except: pass
+")
+    if [ -n "$KNOWLEDGE_NAMES" ]; then
+      PATCH_LLM_PROPS+=",\"知识点\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
+    fi
+  fi
+  if [ -n "$EDUCATION_TAGS" ] && [ "$EDUCATION_TAGS" != "[]" ] && [ "$EDUCATION_EMPTY" = "true" ]; then
+    FORM_PROP_LOCAL="${FORM_PROP:-展现形式}"
+    FIRST_EDU=$(echo "$EDUCATION_TAGS" | python3 -c "
+import json, sys
+try:
+    tags = json.loads(sys.stdin.read())
+    if isinstance(tags, list) and len(tags) > 0:
+        print(tags[0])
+except: pass
+")
+    if [ -n "$FIRST_EDU" ]; then
+      PATCH_LLM_PROPS+=",\"${FORM_PROP_LOCAL}\":{\"select\":{\"name\":$(printf '%s' "$FIRST_EDU" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}"
+    fi
+  fi
+  if [ -n "$HIGHLIGHTS" ] && [ "$HIGHLIGHTS_EMPTY" = "true" ]; then
+    HIGHLIGHTS_JSON=$(echo "$HIGHLIGHTS" | python3 -c "
+import json, sys
+text = sys.stdin.read().strip()
+if text:
+    print(json.dumps([{'text': {'content': text}}], ensure_ascii=False))
+")
+    if [ -n "$HIGHLIGHTS_JSON" ]; then
+      PATCH_LLM_PROPS+=",\"亮点\":{\"rich_text\":${HIGHLIGHTS_JSON}}"
+    fi
+  fi
+
   PATCH_BODY=$(cat <<EOF
 {
   "properties": {
     "$TITLE_PROP": {"title": [{"text": {"content": $(echo "$TITLE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}]},
     "状态": {"status": {"name": "$STATUS_DEFAULT"}},
-    "模态类型": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}
+    "$MODAL_PROP": {"select": {"name": $(echo "$MODAL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}$PATCH_LLM_PROPS
   }
 }
 EOF
 )
+  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|知识点|'"${FORM_PROP:-展现形式}"'|亮点)"' | wc -l | tr -d ' ')
+  echo "    [v3.0] 字段空判定: link=$LINK_EMPTY knowledge=$KNOWLEDGE_EMPTY education=$EDUCATION_EMPTY highlights=$HIGHLIGHTS_EMPTY" >&2
+  echo "    [v3.0] 本次 fill-empty 实际填 $FILLED_COUNT LLM 字段 (非空保留)" >&2
   ntn api --method PATCH "/v1/pages/$EXISTING_PAGE_ID" -d "$PATCH_BODY"
   exit 0
 fi
