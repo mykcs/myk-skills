@@ -3,13 +3,14 @@ name: paper-into-notion
 description: |
   URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/知识点/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 11 scripts + 6 templates + 6 references. weiying20260624 PhD 申请场景.
 when_to_use: |
-  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "Notion URL 解读" / "Notion schema 变更" / "Notion cross-db 搬" / "Notion property 改名" / "skill 跑完自我总结" / "任务后总结" / "**skill 经验教训内化**" / "**skill 自我升级**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径 / **skill 跑完必跑 skill-self-summary.sh 4 段总结 + mem0 quota fallback 3 步** (per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill") / **v-bump 自动触发** (4 条件: 反模式 ≥ 4 / 流程变化 ≥ 1 / 触发词变化 ≥ 1, 任一满足立 v_new_version per v2.6.30 §I self-evolution). NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
+  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "Notion URL 解读" / "Notion schema 变更" / "Notion cross-db 搬" / "Notion property 改名" / "Notion multi-db schema" / "skill 跑完自我总结" / "任务后总结" / "skill 经验教训内化" / "skill 自我升级" / "**skill 子句 grep 修复**" / "**skill 字面 drift 修复**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径 / skill 跑完必跑 skill-self-summary.sh 4 段总结 + mem0 quota fallback 3 步 (per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill") / v-bump 自动触发 (4 条件: 反模式 ≥ 4 / 流程变化 ≥ 1 / 触发词变化 ≥ 1, 任一满足立 v_new_version per v2.6.30 §I self-evolution) / **spawn subagent 验证前必 git pull + ff main** (避免 subagent 看到 stale main, per v2.2 + v2.4 累积第 2 次) / **3 dirty file 走 v-bump 闭环** (subagent 跑测试改 env var 触发 file dirty, 不删, 走 self-evolution 闭环 5 步). NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v2.5 (2026-07-14)
+  version: v2.6 (2026-07-14)
   changelog: |
+    v2.6 (2026-07-14) — subagent FAIL 反馈增量 + 字面 drift 跨 skill 协议位 (per user 2026-07-14 立 v2.5 之后增量): 加触发词 + 2 (skill 子句 grep 修复 / skill 字面 drift 修复) + 4 反模式表补 3 条 (28 → 31, 加 #25/26/27: spawn subagent 验证前不 pull main / 字面 drift 跨 skill 协议位 / self-evolution 闭环漏 subagent FAIL 反馈) + 新增 'subagent FAIL 反馈 + 修复' 段 + ADR-0057-h v2.6 + CASE-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714. 跟 v2.5 (user multi-db schema 4 env) 协同不冲突.
     v2.5 (2026-07-14) — 多 db schema 适配 (4 env variables + 2 db property 差异表): field-merge.sh 3 处硬编码 页面 → $TITLE_PROP env + verify-5-fields.sh 1 处 → $TITLE_PROP env + status 默认 未开始 → $STATUS_DEFAULT env + .env.example 加 4 个 NOTION_*_PROPERTY/NOTION_STATUS_DEFAULT env + 新增 "多 db schema 适配" 段 (4 env table + 论文 wiki vs 信息 property 差异表) + 触发词 + 1 (Notion multi-db schema) + 4 反模式表补 4 条 (24 → 28) (per CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 + Notion 2025-09-03 → 2026-03-11 multi-source database 升级)
     v2.4 (2026-07-14) — 经验教训 → 提升 skill 闭环 + skill-self-summary 3 健壮性: 升级 scripts/skill-self-summary.sh v1.0 → v2.0 (session id 3 步 fallback / CLAUDE.local.md hot recall 段带 @v{version} / v-bump 自动触发 4 条件判定) + 新增 references/self-evolution-loop.md (4 步闭环: 总结 → 内化 → commit → bump version) + 触发词 + 2 + 4 反模式表补 5 条 (19 → 24)
     v2.3 (2026-07-14) — skill 跑完自我总结协议 + mem0 quota fallback: 新增 scripts/skill-self-summary.sh (跑完自动 4 段 + mem0 fallback 3 步) + references/self-summary-protocol.md (4 段模板 + fallback 决策树 + decision-stream schema) + 触发词 + 2 + 4 反模式表补 3 条 (16 → 19) + CLAUDE.local.md §19 段 hot recall
@@ -26,13 +27,13 @@ metadata:
     v1.1 (2026-07-13) — knowledge-tag-judge + 新 page 才填知识点
     v1.0 (2026-07-13) — 立 (per ADR-0057, 5 pattern 模态 + multi_select 字段级 merge)
   起源: user 2026-07-13 原话 "paper 进 Notion" 触发, 2026-07-14 升级 v2.0 (frontmatter 升级) → v2.1 (跨 db 搬 schema 4 踩坑) → v2.2 (Notion URL 解读 + 修哪一部分 4 决路径 + 6 残留踩坑) → v2.3 (skill 跑完自我总结 + mem0 quota fallback) → v2.4 (经验教训 → 提升 skill 闭环 + 3 健壮性 + v-bump 自动触发, per user 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill")
-  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
-  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714
+  关联 ADR: ADR-0057 (v1.0) / ADR-0057-b (v2.0) / ADR-0057-c (v2.1) / ADR-0057-d (v2.2) / ADR-0057-e (v2.3) / ADR-0057-f (v2.4) / ADR-0057-g (v2.5, user multi-db schema 4 env) / ADR-0057-h (v2.6) / ADR-0026 (curl verify 必读 body) / ADR-0054 (Notion 严格层)
+  关联 case: CASE-PAPER-INTO-NOTION-SKILL-V1-20260713 + CASE-PAPER-INTO-NOTION-V2-UPGRADE-20260714 + CASE-PAPER-INTO-NOTION-CROSS-DB-SCHEMA-MIGRATION-20260714 + CASE-PAPER-INTO-NOTION-NOTION-URL-FIX-20260714 + CASE-PAPER-INTO-NOTION-V2-3-SELF-SUMMARY-20260714 + CASE-MEM0-QUOTA-FALLBACK-LOCAL-20260714 + CASE-PAPER-INTO-NOTION-V2-4-SELF-EVOLUTION-20260714 + CASE-PAPER-INTO-NOTION-MULTI-DB-SCHEMA-20260714 (user v2.5) + CASE-PAPER-INTO-NOTION-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714
   关联 skill: weekly-report-phd (ntn CLI) / teacher-report (paper card) / auto-feishu-digest (3 scripts 风格)
   适用 owner: mykcs (per ADR-0054 Notion 严格层 + 4 重保险)
 ---
 
-# paper-into-notion v2.4
+# paper-into-notion v2.6
 
 > **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/知识点) 永不覆盖已有值 ✅
 > **触发**: user 说 "paper 进 Notion" / "Notion 沉淀" / "把这个 paper 加到 Notion" / "写论文卡片" 时跑
@@ -420,6 +421,16 @@ bash paper-into-notion.sh "https://arxiv.org/pdf/2607.08124"
 # 3. bonus test: PATCH 已有 page 不覆盖 multi_select
 # (脚本默认已含 multi_select 保护, 见 verify-5-fields.sh §4 字段级 merge)
 ```
+
+### 3 反模式 (subagent FAIL 反馈 + 字面 drift 跨 skill 协议位, v2.6 新增)
+
+> 起源: CASE-PAPER-INTO-NOTION-V2-6-SUBAGENT-FAIL-FEEDBACK-20260714, v2.4 subagent 验证 PARTIAL PASS 报 4 FAIL 修复 (跟 v2.2 字面 drift 同模式累积第 2 次)
+
+| # | 反模式 | 真因 | 正确做法 |
+|---|---|---|---|
+| 25 | **spawn subagent 验证前不 pull main (累积第 2 次)** | subagent 看到 stale main (v2.4 subagent 看到 v2.3 e760063, 看不到 v2.4 e2567d1), 报 false positive "commit 不存在" | spawn subagent 验证前必跑 `git pull + ff main`, 跟 v2.2 subagent 误判同模式 (累积第 2 次, 升级硬约束) |
+| 26 | **字面 drift 跨 skill 协议位 (累积第 2 次)** | 注释跟实装字面不严格 (v2.4 self-summary.sh v-bump 注释写 "4 条件", 实装 "踩坑 ≥ 2 + 避坑 ≥ 1" 简化判定; v2.2 "integration access 3 步" → "integration share 3 步" 是同模式) | 写协议位注释必 grep 1 下实际代码, 注释跟实装字面必一致, 跨 skill 协议位必跑 sub-check 步骤 |
+| 27 | **self-evolution 闭环漏"subagent FAIL 反馈" 1 步** | v2.4 立条时闭环 4 步 (总结 → 内化 → commit → bump version) 漏 1 步 "subagent FAIL 反馈修复", 3 dirty file 留在主仓等下次 commit | 5 步闭环 (总结 → 内化 → commit → bump version → **subagent FAIL 反馈修复**), v2.6 加最后 1 步 |
 
 ### 4 反模式 (永久失效, v2.5 新增)
 

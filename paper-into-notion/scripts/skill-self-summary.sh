@@ -51,8 +51,11 @@ fi
 
 # ===== skill version 读 (从 SKILL.md frontmatter 提取) =====
 SKILL_VERSION="unknown"
-if [ -f "SKILL.md" ]; then
-  SKILL_VERSION=$(grep -E "^[[:space:]]*version: " SKILL.md | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//; s/[[:space:]]*$//' | tr -d '()')
+# 自动定位 SKILL.md (从脚本位置反推 skill 根, 兼容 worktree 跑)
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SKILL_FILE="$SCRIPT_DIR/SKILL.md"
+if [ -f "$SKILL_FILE" ]; then
+  SKILL_VERSION=$(grep -E "^[[:space:]]*version: " "$SKILL_FILE" | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//; s/[[:space:]]*$//' | tr -d '()')
 fi
 if [ -z "$SKILL_VERSION" ]; then
   SKILL_VERSION="unknown"
