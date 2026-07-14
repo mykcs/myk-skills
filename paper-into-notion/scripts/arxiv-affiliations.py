@@ -26,6 +26,7 @@
   - 2512.10252 (GDKVM) → 3: SZU + PolyU
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -168,6 +169,21 @@ def main() -> int:
     if not affiliations:
         print(json.dumps({"error": "no affiliations parsed", "arxiv_id": arxiv_id}))
         return 0
+
+    # v3.5: canonicalize (full name → 简写, per institution-canonical.md)
+    # 避免 group by 拆成 "Hong Kong Baptist University" / "HKBU" 多个 group
+    try:
+        import subprocess
+        canon_result = subprocess.run(
+            ["python3", f"{os.path.dirname(os.path.abspath(__file__))}/institution-canonical.py",
+             "canonicalize-batch", json.dumps(affiliations, ensure_ascii=False)],
+            capture_output=True, text=True, timeout=10,
+        )
+        if canon_result.returncode == 0 and canon_result.stdout.strip():
+            affiliations = json.loads(canon_result.stdout)
+    except Exception:
+        # 失败 → 用原 full name (graceful degrade)
+        pass
 
     print(json.dumps(affiliations, ensure_ascii=False, indent=2))
     return 0
