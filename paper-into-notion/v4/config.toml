@@ -24,7 +24,7 @@ name = "初抓取"           # db 实际 status 第 1 option
 [judge]
 enabled = true
 llm_cli = "mmx"
-mmx_subcmd_args = ["text", "chat", "--non-interactive", "--output", "json", "--max-tokens", "4096"]
+mmx_subcmd_args = ["text", "chat", "--non-interactive", "--output", "json", "--max-tokens", "4096", "--timeout", "60"]  # v4.3 加 timeout 60 防 mmx API Request timed out (实测 2026-07-16 exit 5)
 prompts_dir = "prompts/"
 max_concurrent = 1        # 串行, 不抢 LLM 配额
 

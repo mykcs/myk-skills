@@ -14,9 +14,16 @@
 - 用 1-3 字短词, 不要长句
 - 优先 db 已有 options (避免新选项, Notion API 不能删 option 只能 archive)
 
-### org (0-2 个 multi_select 选项)
-- 通讯作者机构 (e.g. ["SZU", "PolyU", "Anthropic"])
-- 4 白名单: SZU / PolyU / Anthropic / 其他 (没匹配返空 [])
+### org (0-4 个 multi_select 选项)
+- 通讯作者机构 (last author / corresponding author), 用 **标准化短词**
+  - 通用映射: Tsinghua University → **Tsinghua** / Peking University → **PKU** /
+    Stanford University → **Stanford** / MIT → **MIT** / Microsoft Research → **MSR** /
+    DeepMind → **DeepMind** / OpenAI → **OpenAI** / Anthropic → **Anthropic** /
+    AI2 → **AI2** / Google Research → **Google** / Meta AI → **Meta** /
+    智谱 AI → **Zhipu** / 浙江大学 → **ZJU** / 上海交通大学 → **SJTU**
+- **优先用业内公认英文短词**, 没把握返空 []
+- **不要 LLM 幻觉**: 不确定的机构不写 (e.g. 作者列表里只出现 "Wang Lab" 不猜 "Stanford")
+- 0-2 项最常见, ≤4 项 (per Notion multi_select schema 上限)
 
 ### knowledge_growth (0-2 个 multi_select 选项, 6 判据)
 - **开创新领域**: 提出全新任务 / 范式 / benchmark (e.g. ChatGPT 开对话 LLM)
