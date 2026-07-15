@@ -1,3 +1,8 @@
+---
+name: loop-engineering
+description: pipeline = 决策树 + 4-stage 串行 + 自决矩阵 + 5 字段验收。把"调研一个领域 / 沉淀一份 paper / 跑完一组 8 决策"这种有终点、有阶段、有可验证交付物的任务, 变成可复用 SOP。触发版本 v1.0 (从 weiying20260624 week2 全谱系奠基 paper 抽取, 2026-06-30)。
+---
+
 # Loop Engineering Skill
 
 > **pipeline = 决策树 + 4-stage 串行 + 自决矩阵 + 5 字段验收**

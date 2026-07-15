@@ -1,4 +1,8 @@
-```markdown
+---
+name: myk-skills-development-patterns
+description: Auto-generated skill from repository analysis. Teaches core development patterns and workflows used in the myk-skills repository. Python codebase focused on schema migration, documentation synchronization, audit automation, and protocol management.
+---
+
 # myk-skills Development Patterns
 
 > Auto-generated skill from repository analysis
