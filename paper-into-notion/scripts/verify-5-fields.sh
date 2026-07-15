@@ -38,9 +38,10 @@ echo "[1/5] 标题 ($TITLE_PROP): $TITLE"
 STATUS=$(echo "$PAGE" | jq -r '.properties["状态"].status.name // .properties["状态"].select.name // "❌"')
 echo "[2/5] 状态: $STATUS"
 
-# 3. 模态类型 (v2.9: 改用 $MODAL_PROP 平台 字段, 旧"模态类型"是僵尸 property)
-MODAL=$(echo "$PAGE" | jq -r --arg p "${MODAL_PROP:-平台}" '.properties[$p].select.name // .properties["模态类型"].select.name // "❌"')
-echo "[3/5] ${MODAL_PROP:-平台} (旧:模态类型): $MODAL"
+# 3. 模态字段 (动态 MODAL_PROP, NOTION_MODAL_PROPERTY > MODAL_PROP > "平台形式" fallback)
+MODAL_PROP="${NOTION_MODAL_PROPERTY:-${MODAL_PROP:-平台形式}}"
+MODAL=$(echo "$PAGE" | jq -r --arg p "$MODAL_PROP" '.properties[$p].select.name // "❌"')
+echo "[3/5] $MODAL_PROP: $MODAL"
 
 # 4. multi_select 保护 grader
 EDU=$(echo "$PAGE" | jq -r '.properties["教育类型"].multi_select | length // 0')
@@ -58,7 +59,7 @@ echo "[5/5] 上次编辑时间 (Notion auto): $LAST_EDITED"
 # 总结
 echo "═══ result ═══"
 if [ "$TITLE" != "❌" ] && [ "$STATUS" != "❌" ] && [ "$MODAL" != "❌" ]; then
-  echo "✅ 3 auto 字段填对 (页面 + 状态 + 模态类型)"
+  echo "✅ 3 auto 字段填对 (页面 + 状态 + $MODAL_PROP)"
   echo "✅ multi_select 未被覆盖 (per 字段级 merge 算法)"
   echo "✅ 上次编辑时间 Notion auto 设置"
   exit 0

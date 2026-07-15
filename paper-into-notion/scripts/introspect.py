@@ -38,9 +38,18 @@ def parse_schema(schema: dict) -> dict:
             if opts:
                 out["STATUS_DEFAULT"] = opts[0].get("name", "未开始")
             break
-    # Select: 模态类型 (跳过 name 含 "形式" 的字段, 避免撞 "展现形式" 留壳或 "平台形式")
-    select_props = [(k, v) for k, v in props.items() if v.get("type") == "select" and "形式" not in k]
-    out["MODAL_PROP"] = next((k for k, _ in select_props if "平台" in k or "模态" in k), next((k for k, _ in select_props), "平台"))
+    # Select: 模态字段 (db 字段真名"平台形式" 必含"形式", 不能再 filter 掉)
+    select_props = [(k, v) for k, v in props.items() if v.get("type") == "select"]
+    # 优先: options 含 "arXiv" 的 select 字段 (canonical modal source)
+    def _modal_options_match(item):
+        k, v = item
+        opts = v.get("select", {}).get("options", [])
+        return any(o.get("name") == "arXiv" for o in opts)
+    out["MODAL_PROP"] = next(
+        (k for k, _ in select_props if _modal_options_match((k, v))),
+        next((k for k, _ in select_props if "平台" in k or "模态" in k),
+             next((k for k, _ in select_props), "平台形式"))
+    )
     # v3.7: FORM_PROP 弃用 (旧 展现形式 select 已 user UI 删)
     # v3.7: KB_GROWTH_PROP auto-detect 唯一 multi_select (name 含 知识/形态)
     multi_select_props = [k for k, v in props.items() if v.get("type") == "multi_select"]

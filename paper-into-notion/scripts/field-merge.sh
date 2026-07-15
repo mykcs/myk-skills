@@ -32,7 +32,7 @@ TITLE_PROP="${NOTION_TITLE_PROPERTY:-${TITLE_PROP:-页面}}"
 STATUS_DEFAULT="${NOTION_STATUS_DEFAULT:-${STATUS_DEFAULT:-未开始}}"
 LINK_PROP="${NOTION_LINK_PROPERTY:-link}"
 ORG_PROP="${NOTION_ORG_PROPERTY:-机构}"
-MODAL_PROP="${NOTION_MODAL_PROPERTY:-${MODAL_PROP:-平台}}"
+MODAL_PROP="${NOTION_MODAL_PROPERTY:-${MODAL_PROP:-平台形式}}"
 KEYWORD_PROP="${NOTION_KEYWORD_PROPERTY:-${KEYWORD_PROP:-关键词}}"   # v3.6
 GROWTH_PROP="${NOTION_KNOWLEDGE_GROWTH_PROPERTY:-${KNOWLEDGE_GROWTH_PROP:-知识等级形态}}"   # v3.7
 
@@ -96,23 +96,8 @@ except: pass
   fi
 
   local EDUCATION_PROP=""
-  if [ -n "$EDUCATION_TAGS" ] && [ "$EDUCATION_TAGS" != "[]" ]; then
-    local EDUCATION_NAMES
-    EDUCATION_NAMES=$(echo "$EDUCATION_TAGS" | python3 -c "
-import json, sys
-try:
-    tags = json.loads(sys.stdin.read())
-    if isinstance(tags, list) and len(tags) > 0:
-        print(','.join([json.dumps({'name': t}) for t in tags]))
-except: pass
-")
-    if [ -n "$EDUCATION_NAMES" ]; then
-      FORM_PROP_LOCAL="${FORM_PROP:-展现形式}"
-      FIRST_EDU=$(echo "$EDUCATION_NAMES" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p' | head -1)
-      FIRST_EDU="${FIRST_EDU:-论文}"
-      EDUCATION_PROP=",\"${FORM_PROP_LOCAL}\":{\"select\":{\"name\":$(printf '%s' "$FIRST_EDU" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}"
-    fi
-  fi
+  # v3.7: FORM_PROP 弃用 (旧 展现形式 select user UI 删, scripts 不再 POST 该字段)
+  # EDUCATION_TAGS 参数保留兼容, 但不写入 PATCH body
 
   local HIGHLIGHTS_PROP=""
   if [ -n "$HIGHLIGHTS" ]; then
@@ -188,7 +173,7 @@ QUERY_RESULT=$(ntn api --method POST "/v1/data_sources/$DS_ID/query" -d "$QUERY_
 COUNT=$(echo "$QUERY_RESULT" | jq '.results | length' 2>/dev/null || echo "0")
 
 if [ "$COUNT" = "0" ]; then
-  echo "→ POST 新 page (含 8 字段: 3 auto + link + 关键词 + 展现形式 + 亮点 + 机构)" >&2
+  echo "→ POST 新 page (含 7 字段: 3 auto + link + 关键词 + 知识等级形态 + 亮点 + 机构)" >&2
   AUTO_PROPS=$(build_auto_props "$SOURCE_URL" "$KNOWLEDGE_TAGS" "$EDUCATION_TAGS" "$HIGHLIGHTS" "$INSTITUTIONS")
   POST_BODY=$(cat <<EOF
 {
@@ -236,20 +221,7 @@ except: pass
       PATCH_LLM_PROPS+=",\"${KEYWORD_PROP}\":{\"multi_select\":[${KNOWLEDGE_NAMES}]}"
     fi
   fi
-  if [ -n "$EDUCATION_TAGS" ] && [ "$EDUCATION_TAGS" != "[]" ] && [ "$EDUCATION_EMPTY" = "true" ]; then
-    FORM_PROP_LOCAL="${FORM_PROP:-展现形式}"
-    FIRST_EDU=$(echo "$EDUCATION_TAGS" | python3 -c "
-import json, sys
-try:
-    tags = json.loads(sys.stdin.read())
-    if isinstance(tags, list) and len(tags) > 0:
-        print(tags[0])
-except: pass
-")
-    if [ -n "$FIRST_EDU" ]; then
-      PATCH_LLM_PROPS+=",\"${FORM_PROP_LOCAL}\":{\"select\":{\"name\":$(printf '%s' "$FIRST_EDU" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))')}}"
-    fi
-  fi
+  # v3.7: FORM_PROP 弃用 (旧 展现形式 select user UI 删), EDUCATION_TAGS 不写入 PATCH body
   if [ -n "$HIGHLIGHTS" ] && [ "$HIGHLIGHTS_EMPTY" = "true" ]; then
     HIGHLIGHTS_JSON=$(echo "$HIGHLIGHTS" | python3 -c "
 import json, sys
@@ -286,7 +258,7 @@ except: pass
 }
 EOF
 )
-  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|'"${KEYWORD_PROP:-关键词}"'|'"${FORM_PROP:-展现形式}"'|亮点|'"${ORG_PROP:-机构}"')"' | wc -l | tr -d ' ')
+  FILLED_COUNT=$(echo "$PATCH_LLM_PROPS" | grep -oE ',"(link|'"${KEYWORD_PROP:-关键词}"'|'"${GROWTH_PROP:-知识等级形态}"'|亮点|'"${ORG_PROP:-机构}"')"' | wc -l | tr -d ' ')
   echo "    [v3.1] 字段空判定: link=$LINK_EMPTY knowledge=$KNOWLEDGE_EMPTY education=$EDUCATION_EMPTY highlights=$HIGHLIGHTS_EMPTY org=$ORG_EMPTY" >&2
   echo "    [v3.0] 本次 fill-empty 实际填 $FILLED_COUNT LLM 字段 (非空保留)" >&2
   ntn api --method PATCH "/v1/pages/$EXISTING_PAGE_ID" -d "$PATCH_BODY"

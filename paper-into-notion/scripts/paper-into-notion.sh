@@ -247,7 +247,7 @@ fi
 echo "═══ result ═══"
 echo "✅ record_id: $RECORD_ID"
 echo "✅ page_url: $PAGE_URL"
-echo "✅ 3 字段填对 (页面=$TITLE, 状态=未开始, ${MODAL_PROP:-平台}=$MODAL)"
+echo "✅ 3 字段填对 (页面=$TITLE, 状态=未开始, ${MODAL_PROP:-平台形式}=$MODAL)"
 if [ "$FORCE_FILL" = "true" ]; then
   echo "⚠️ --force-fill 模式: 7 字段全填 (含 3 LLM judge 字段 + link URL)"
 else
