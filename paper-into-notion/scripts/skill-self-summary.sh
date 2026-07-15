@@ -160,6 +160,27 @@ echo "✅ 写本地 case file: ${CASE_FILE}"
 # ===== 3. CLAUDE.local.md hot recall 段 (per v2.4 段带 @v{version}) =====
 CLAUDE_LOCAL="$HOME/.claude/CLAUDE.local.md"
 if [ -f "$CLAUDE_LOCAL" ]; then
+
+  # ── 3.0 stale 段检测 (per ADR-0058 + 2026-07-15 doctor check 4 fix) ──
+  # 检测 + 报告 7 天前的 §self-summary 段. 不自动 trim: hot recall 是 user 显式
+  # hot facts, silent trim = 误删风险. user 显式说"清掉"才真删 (走 doctor-cleanup 路径).
+  # 联动: ~/.claude/scripts/check-doctor-cleanup.sh check 4 (本 run 出口化脚本)
+  if grep -q '^## §self-summary-' "$CLAUDE_LOCAL" 2>/dev/null; then
+    SEVEN_DAYS_AGO=$(date -v-7d +%Y-%m-%d 2>/dev/null || date -d "7 days ago" +%Y-%m-%d)
+    STALE=$(awk -v cutoff="$SEVEN_DAYS_AGO" '
+      /^## §self-summary-/ {
+        match($0, /[0-9]{4}-[0-9]{2}-[0-9]{2}/)
+        date = substr($0, RSTART, 10)
+        if (date != "" && date < cutoff) print "    - " $0 " (line " NR ")"
+      }' "$CLAUDE_LOCAL")
+    if [ -n "$STALE" ]; then
+      echo "ℹ️  stale §self-summary 段 (>7天, 留最新3+§pref, per doctor check 4 fix):"
+      echo "$STALE"
+      echo "  → 删法: bash ~/.claude/scripts/check-doctor-cleanup.sh --trim-stale"
+    fi
+  fi
+
+
   # 检查是否已存在同名段 (避免堆叠, per ADR-0057-f 残留 2)
   if grep -qF "$HOT_RECALL_TITLE" "$CLAUDE_LOCAL"; then
     echo "⚠️  CLAUDE.local.md 已存在同名段 '$HOT_RECALL_TITLE', 跳过 append (避免堆叠)"
