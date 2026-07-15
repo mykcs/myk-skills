@@ -36,7 +36,7 @@ def is_empty(prop):
 
 import os
 title_prop = os.environ.get("NOTION_TITLE_PROPERTY") or os.environ.get("TITLE_PROP") or "页面"
-modal_prop = os.environ.get("NOTION_MODAL_PROPERTY") or os.environ.get("MODAL_PROP") or "平台"
+modal_prop = os.environ.get("NOTION_MODAL_PROPERTY") or os.environ.get("MODAL_PROP") or "平台形式"
 org_prop = os.environ.get("NOTION_ORG_PROPERTY") or os.environ.get("ORG_PROP") or "机构"
 keyword_prop = os.environ.get("NOTION_KEYWORD_PROPERTY") or os.environ.get("KEYWORD_PROP") or "关键词"  # v3.6
 growth_prop = os.environ.get("NOTION_KNOWLEDGE_GROWTH_PROPERTY") or os.environ.get("KNOWLEDGE_GROWTH_PROP") or "知识等级形态"  # v3.7
