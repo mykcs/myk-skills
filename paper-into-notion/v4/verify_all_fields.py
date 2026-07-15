@@ -1,4 +1,4 @@
-"""verify_all_fields.py — 跑后全字段必填检查 (v4 永久防范机制).
+"""verify_all_fields.py — 跑后全字段必填检查 (v4.1 永久防范机制).
 
 user 2026-07-15 反馈 "page 里所有字段都应该填上" 后立. 任何字段空都报警.
 
@@ -9,26 +9,9 @@ user 2026-07-15 反馈 "page 里所有字段都应该填上" 后立. 任何字�
 """
 from __future__ import annotations
 
-import json
-import subprocess
 import sys
 
-
-def ntn_api(method: str, path: str) -> dict:
-    """ntn api GET with retry (per Notion API 偶发 30s timeout 实测 2026-07-15)."""
-    last_err = None
-    for attempt in range(3):
-        try:
-            cmd = ["ntn", "api", "--method", method, path]
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-            if r.returncode != 0:
-                last_err = r.stderr[:200]
-                continue
-            return json.loads(r.stdout) if r.stdout.strip() else {}
-        except (subprocess.TimeoutExpired, json.JSONDecodeError) as e:
-            last_err = str(e)
-            continue
-    raise RuntimeError(f"ntn api {method} {path} 失败 (3 次重试): {last_err}")
+from ntn_client import ntn_call as ntn_api
 
 
 def check_all_fields_filled(page_id: str) -> tuple[str, list[str]]:
