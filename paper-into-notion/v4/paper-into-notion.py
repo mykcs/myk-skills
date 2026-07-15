@@ -29,6 +29,7 @@ except ModuleNotFoundError:
 from schema import FieldMap, SchemaCache, ntn_query_latest_page
 from judge import judge_5_fields, JudgeResult
 from verify_all_fields import check_all_fields_filled
+from ntn_client import ntn_call as ntn_api
 
 
 SCRIPT_DIR = Path(__file__).parent
@@ -120,16 +121,6 @@ def run_judge(paper: Paper, config: dict) -> JudgeResult:
 
 
 # === Phase 4: 字段级 merge + 写 Notion ===
-
-def ntn_api(method: str, path: str, body: dict | None = None) -> dict:
-    cmd = ["ntn", "api", "--method", method, path]
-    if body is not None:
-        cmd += ["-d", json.dumps(body, ensure_ascii=False)]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    if r.returncode != 0:
-        raise RuntimeError(f"ntn api {method} {path} 失败: {r.stderr}")
-    return json.loads(r.stdout) if r.stdout.strip() else {}
-
 
 def find_existing_page(ds_id: str, title: str, title_prop: str) -> str | None:
     """query db 找 title 匹配的 page."""
