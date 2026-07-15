@@ -28,6 +28,7 @@ except ModuleNotFoundError:
 # 同包 import
 from schema import FieldMap, SchemaCache, ntn_query_latest_page
 from judge import judge_5_fields, JudgeResult
+from verify_all_fields import check_all_fields_filled
 
 
 SCRIPT_DIR = Path(__file__).parent
@@ -279,10 +280,18 @@ def main() -> int:
     if config["behavior"]["verify_5_fields"]:
         page_id = result.get("id") or existing
         if verify_page(page_id, props):
-            print("✅ verify PASS")
+            print("✅ verify_5_fields PASS")
         else:
-            print("⚠️ verify 部分失败")
+            print("⚠️ verify_5_fields 部分失败")
             return 1
+
+    # 全字段必填检查 (user 2026-07-15 反馈 "page 里所有字段都应该填上" 后立)
+    page_id = result.get("id") or existing
+    status, missing = check_all_fields_filled(page_id)
+    if missing:
+        print(f"❌ {status}: 缺字段 {missing}")
+        return 1
+    print(f"✅ {status}: 全字段已填 (亮点/关键词/知识等级形态 必填, 机构 LLM 0 候选允许空)")
     return 0
 
 
