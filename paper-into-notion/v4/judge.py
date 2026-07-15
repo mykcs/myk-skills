@@ -89,6 +89,6 @@ if __name__ == "__main__":
         print("用法: python judge.py <abstract> <authors>", file=sys.stderr)
         sys.exit(1)
     prompts_dir = Path(__file__).parent / "prompts"
-    mmx_args = ["text", "chat", "--non-interactive", "--output", "json"]
+    mmx_args = ["text", "chat", "--non-interactive", "--output", "json", "--max-tokens", "4096"]
     result = judge_5_fields(sys.argv[1], sys.argv[2], prompts_dir, mmx_args)
     print(json.dumps(result.__dict__, ensure_ascii=False, indent=2))

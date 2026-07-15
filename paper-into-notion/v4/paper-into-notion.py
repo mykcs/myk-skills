@@ -142,10 +142,11 @@ def find_existing_page(ds_id: str, title: str, title_prop: str) -> str | None:
 
 
 def build_properties(paper: Paper, fm: FieldMap, config: dict) -> dict:
-    """构造 PATCH body.
+    """构造 PATCH/POST body (v4 全部字段都填, per user 2026-07-15 拍板).
 
-    反模式 #1 (v3.x 永久失效): multi_select 永不传数组 (Notion 行为 = 完整新值覆盖).
-    v4 强类型守卫: multi_select 一律 strip, 不进 PATCH body.
+    旧 v3.x 铁律 (multi_select 永不传) 在 v4 取消, 因为:
+    - user 反馈 "page 里所有字段都应该填上"
+    - v4 是新 page POST 居多, 老 page PATCH 用 --force flag 显式覆盖
     """
     props: dict = {
         fm.title: {"title": [{"text": {"content": paper.title}}]},
@@ -158,6 +159,13 @@ def build_properties(paper: Paper, fm: FieldMap, config: dict) -> dict:
     # rich_text 字段 (highlights)
     if paper.highlights:
         props[fm.highlights] = {"rich_text": [{"text": {"content": paper.highlights}}]}
+    # multi_select 字段 (keyword / org / knowledge_growth) — 全填, 不再 strip
+    if fm.keyword and paper.keyword:
+        props[fm.keyword] = {"multi_select": [{"name": k} for k in paper.keyword]}
+    if fm.org and paper.org:
+        props[fm.org] = {"multi_select": [{"name": o} for o in paper.org]}
+    if fm.knowledge_growth and paper.knowledge_growth:
+        props[fm.knowledge_growth] = {"multi_select": [{"name": g} for g in paper.knowledge_growth]}
     return props
 
 
