@@ -628,6 +628,8 @@ paper-into-notion.sh <URL>
 - **§H.1 5 字段验收**: `~/.claude/rules/process.md §H.1`
 - **worktree + PR**: `~/.claude/rules/process.md §C.3.1 + §C.3.2`
 - **新 skill 跨 5 协议位**: `~/.claude/docs/adr/0057-paper-into-notion-skill.md` (本 skill 立条 ADR)
+- **weiying 域 Notion 主入口 (verify 协议位 SSOT)**: `~/.claude/memory/weiying20260624-notion-operations-master.md` §2 rule #8 (verify 必 HTTP GET Notion API, 不可信 backup). 适用 introspect.py / verify_all_fields.py / patch-markdown-block.sh 等所有 verify 场景, 不复制内容, 1 行 pointer.
+- **跨域 verify ground truth 通则 (rule #8 起源)**: `~/.claude/knowledge/cases/wiki/CASE-VERIFY-TRUST-GROUND-TRUTH-NOT-CACHE-20260716.md` + `~/.claude/rules/claudecode-verify-before-act.md` §4 IF...THEN (verify 改完必拿 ground truth, 不依赖 cache/backup/snapshot, 2026-07-16 立)
 
 ---
 
