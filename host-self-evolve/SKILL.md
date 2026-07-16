@@ -1,10 +1,10 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 🔍 N-tool 协议位 audit 子任务, 4 路盘点 + 4 维 grep + §20 8 步管道修复) / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3) / **🔍 N-tool 协议位 audit** (4 路盘点 + 4 维 grep + 命中 P0 走 §20 8 步管道修复, per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713).
@@ -24,14 +24,52 @@ when_to_use: |
   反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1) / ❌ 跑完汇报用 table markdown (per ADR-0051 v3.2.2 废弃) / ❌ 跑完汇报 > 80 行 (per ADR-0052 v3.2.3) 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
 license: MIT
 metadata:
-  version: "3.2.4"
+  version: "3.2.5"
   author: mykcs
   category: self-evolution
-  changelog: "v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
-  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline]
+  changelog: "v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
+  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline, v3.2.5, cwd-guard, adr-0059, deja-vu-fix]
 ---
 
-# 主机自升级 Skill (host-self-evolve v3.2.1)
+# 主机自升级 Skill (host-self-evolve v3.2.5)
+
+## 🔒 §cwd-guard 段 (v3.2.5 立, 2026-07-17, per ADR-0059 + §E Deja Vu Fix Protocol)
+
+> **触发**: CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 (本 run 摸底阶段 cwd drift, 第 2 次同类 30 天阈值到硬约束, 跟 CASE-PATH-DRIFT-20260714 同根因)
+>
+> **协议位**: host-self-evolve v3.2.5+ 跑前**必跑** cwd 验证硬规则, 不通过则**立即 STOP + AskUserQuestion**, 不继续执行 Layer 0-3 摸底.
+
+**硬规则 (5 条, per ADR-0059 §2.1)**:
+
+1. **Rule 1**: 跑前第 1 行命令必跑 cwd 验证:
+   ```bash
+   pwd  # 期望: /Users/myk/.claude (主仓) 或 /Users/myk/.claude/.worktrees/<branch>/ (worktree 模式)
+   ```
+
+2. **Rule 2**: pwd 输出 ≠ `/Users/myk/.claude` AND ≠ `/Users/myk/.claude/.worktrees/*` → 立即 STOP + AskUserQuestion 拍板 2 选项:
+   - **A**: `cd ~/.claude && pwd` 切主仓 (推荐, 99% case)
+   - **B**: user 显式说"跑子仓 X" 才切子仓
+
+3. **Rule 3**: pwd 输出 = `/Users/myk/.claude/.worktrees/<branch>/` → 算合规 (worktree 模式), 继续.
+
+4. **Rule 4**: 后续所有 `git status` / `git log` / `git remote` / `git rev-list` 命令**禁用** `git -C` 强切, 改直接 `git status` 走 cwd (因为 cwd 已合规). 避免主仓 / 子仓 / worktree 混层.
+
+5. **Rule 5**: §H 5 字段自检表升级 6 字段 (path / cwd / commit / push / CI / owner), cwd 字段必填 `~/.claude` 主仓绝对路径, 不填子仓 / worktree / 项目仓路径.
+
+**反模式 (永久失效, 5 条, per ADR-0059 §2.3)**:
+
+1. ❌ host-self-evolve 跑前不 verify cwd = 摸底混层 (本 case 真因)
+2. ❌ 5 字段自检用 `git -C ~/.claude` 强切主仓就够了 = 不够, 摸底阶段已混层
+3. ❌ 跑完汇报不察觉 cwd 错 = 跑完自检缺 cwd 字段
+4. ❌ cwd drift 当单次 bug 修, 不立 §E Deja Vu = 同类会再出现
+5. ❌ 立 ADR 不 grep 现状 6 件套 = 重复劳动
+
+**联动**: ADR-0059 (本段协议位) + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 (本段起源) + CASE-PATH-DRIFT-20260714 (同类源) + §E Deja Vu Fix Protocol (per `rules/process.md` §E) + §A.4.1 #1 Repository Context Verification + §A.4.2 #4 Path Validation + §H Acceptance Protocol 5 字段 → 6 字段升级
+
+**历史 record**:
+- 2026-07-17 v3.2.5: 立 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 + §E Deja Vu Fix Protocol 第 2 次触发 + 整数 slot 0059)
+
+---
 
 ## 🎯 v3.2.1 default decision 段 (2026-07-10 立, per ADR-0050)
 
