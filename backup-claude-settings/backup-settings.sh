@@ -82,8 +82,13 @@ if [ -z "$LAST_BACKUP" ]; then
 else
     echo ""
     echo "--- diff vs 上一次备份 ($(basename "$LAST_BACKUP")) ---"
-    DIFF_OUTPUT=$(diff -u "$LAST_BACKUP" "$CURRENT_FILE" 2>&1 || true)
-    DIFF_EXIT=$?
+    # 修法: 用 if 直接捕获 diff 退出码 (原 `|| true` 抹码 + `$?` 拿赋值退出码 = 永远 0 = 永远谎报"无差异")
+    # per CASE-BACKUP-CLAUDE-SETTINGS-DIFF-FALSE-NEGATIVE-20260716
+    if DIFF_OUTPUT=$(diff -u "$LAST_BACKUP" "$CURRENT_FILE" 2>&1); then
+        DIFF_EXIT=0
+    else
+        DIFF_EXIT=$?
+    fi
 
     if [ "$DIFF_EXIT" -eq 0 ]; then
         echo "✅ 与上一次备份（$(basename "$LAST_BACKUP")）对比：无差异"
