@@ -8,8 +8,9 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v4.1.1 (2026-07-16)
+  version: v4.2 (2026-07-16)
   changelog: |
+    v4.2 (2026-07-16) — Notion block 布局 + verify 协议位抽离 (per weekly-report-phd v1.1 §X + §9, 周报项目 30+ 次反馈累积): 新增 2 个 references/notion-*.md (notion-block-layout.md 元素位置 + 分隔线 + h1 层级 + IF...THEN 6 + 反模式 5; notion-content-verify.md 5 类逐项 grep + 5 步流程 + 4 类触发协议 + 8 条反模式). 起源 weekly-report-phd 移到 _archive/ + 触发词全删, 跨项目稳定. 跟 v4.1 introspect MODAL_PROP 修复 + v4.0 Python 单入口 协同不冲突.
     v4.1.1 (2026-07-16) — v3.x shell 残留子集 introspect MODAL_PROP 修复 + 5 处 stale-site 闭环 (per PR #51 retro + ADR-0057-o): introspect.py 选字段策略改 options 内容识别 (select 含 arXiv option 优先, substring 退化, "平台形式" 字面兜底; 旧 `"形式" not in k` filter 误排真字段 "平台形式" → fallback "平台" → POST 400) + verify-5-fields.sh 动态 MODAL_PROP 解析 + .env.example NOTION_MODAL_PROPERTY 平台→平台形式 + field-merge.sh:35 + get-page-props.sh:39 fallback "平台"→"平台形式" + paper-into-notion.sh POST body 删所有 "展现形式" 引用 (db 已删 per v3.7, FORM_PROP 弃用) + 反模式 #55 (v3.x introspect substring filter 误排含"形式"字段) + 反模式 #56 (v3.x shell fallback 硬编码字段名 + POST body 引用废弃字段 → POST 400 silent loss). 4 维 verify 12/12 PASS. 触发词 +1 (v3.x shell 残留字面 drift).
     v4.1 (2026-07-15) — 全字段必填 verify 兜底 (per user 2026-07-15 "page 里所有字段都应该填上" 反馈 2 次, v4.0 + fix #49 没根治): 新增 verify_all_fields.py (~80 行, GET page 全 properties 检查 + LLM 必填 vs 允许空分类判定) + paper-into-notion.py main 跑后必调 (exit 1 if missing, 返缺字段名 list) + SKILL.md 反模式 #53 (跑完 page 字段漏填不报警 = 永久失效; 修复: 必填 = 名称/状态/平台/link/亮点/关键词/知识等级形态; 允许空 = 机构 等 LLM 0 候选字段) + 反模式 #54 (v4 "multi_select 全填" 未立默认行为明文, 防 contributor 看旧文档回退). 跟 v3.x #1 (multi_select 保护) 协同反转: v3.x 一律不传, v4 默认必填 + verify 兜底. 实测 arXiv 2606.08656 verify PASS. 触发词 +1 (skill 全字段必填 verify).
     v4.0 (2026-07-14) — Python 单入口重写 (替代 v3.x 11 shell + 4 env), per user 2026-07-14 原话 "为什么这么困难 重新设计 skill 更优雅达成我的目的": paper-into-notion/v4/ 立 (paper-into-notion.py 单入口 282 行 + schema.py pydantic 风格 FieldMap + config.toml 替 .env + judge.py 单次 mmx call 输出 JSON + prompts/judge-5-fields.md TOML-driven prompt + cache/ 5min TTL 替 introspect 24h + .gitignore 排除 cache). 端到端跑通 arXiv 2603.26188 (OSA paper) verify PASS. 反模式 #51 根因根治 (build_properties 强类型函数 vs v3.x positional 8 参数, IDE 能查, 漏参数 SyntaxError). 反模式 #50 根因根治 (schema 自动 query page 反推 5min TTL, drift 自动恢复 vs v3.x introspect cache 24h silent loss). 反模式 #52 仍待 (verify-5-fields.sh 是 v3.x 残留, v4 verify_page 内置, 但 v3.x 暂保留兼容). 跟 v2.5 multi-db + v3.0 introspect + v3.7 knowledge-growth + v3.8 introspect guard 协同不冲突. ADR-0057-n 待立 (Python 重写决策). 触发词 +1 (skill Python 重写).
@@ -163,12 +164,20 @@ templates/
 └── flow-diagram.md             # ASCII 全流程图 (URL → 抓 → merge → POST/PATCH → GET)
 ```
 
-### 2 references
+### 10 references (v4.2 加 2)
 
 ```
 references/
 ├── field-merge-algorithm.md    # 字段级 merge 算法详解 (GET 空形态 + PATCH 流程)
-└── arxiv-fetch-protocol.md     # arXiv API + ElementTree 解析 + rate limit 1 req/3s
+├── arxiv-fetch-protocol.md     # arXiv API + ElementTree 解析 + rate limit 1 req/3s
+├── notion-schema-migration.md  # Notion 2025 API model 速查 + 4 错误码
+├── notion-url-parse.md         # Notion URL 4 类 + id 提取 + 4 决路径
+├── gh-worktree-cwd-compat.md   # git worktree + cwd 兼容 (sub-agent 不踩坑)
+├── institution-canonical.md    # 机构名 canonical 化 (arXiv affiliation)
+├── self-evolution-loop.md      # skill self-evolution 4 步闭环 + 5 步闭环
+├── self-summary-protocol.md    # 跑完自我总结 4 段模板 + mem0 quota fallback
+├── notion-block-layout.md      # v4.2 Notion 元素位置 + 分隔线 + h1 层级 + IF...THEN 6 + 反模式 5
+└── notion-content-verify.md    # v4.2 Notion 5 类逐项 verify + 4 类触发协议 + 8 条反模式
 ```
 
 ---
