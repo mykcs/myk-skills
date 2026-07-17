@@ -1,7 +1,7 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 🔍 N-tool 协议位 audit 子任务, 4 路盘点 + 4 维 grep + §20 8 步管道修复) / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
   必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
@@ -24,7 +24,7 @@ when_to_use: |
   反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1) / ❌ 跑完汇报用 table markdown (per ADR-0051 v3.2.2 废弃) / ❌ 跑完汇报 > 80 行 (per ADR-0052 v3.2.3) 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
 license: MIT
 metadata:
-  version: "3.2.5"
+  version: "3.2.6"
   author: mykcs
   category: self-evolution
   changelog: "v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
@@ -81,6 +81,7 @@ metadata:
 **默认决策 (per ADR-0050 user-override)**:
 - ✅ **Run 范围**: 默认全套 (Phase 1.1 → 1.4), user 显式说"只跑 X" 才拆 sub-task
 - ✅ **执行模式**: 默认三段串行 (plan / execute / verify 物理隔离, per v2.6.59 + §C.3.7)
+- ✅ **遗留 dirty 改动收口 (v3.2.6 新增, per user 2026-07-17 拍板)**: 摸底 Layer 0 发现工作树有未提交改动 (M / ?? untracked, 上个 session 收尾残留) → **默认纳入本轮一起收口, 不再 AskUserQuestion "怎么处理遗留改动"**. user 原话 "这批遗留改动本来就是这次自升级要处理的, 直接纳入本轮一起收口, 不要再停下来问". 例外: 遗留改动里含 4 类必问白名单 (framework config / user 偏好 / 不可逆 / user 显式说) 时, 仅对该子项走 AskUserQuestion, 其余 dirty 项照常纳入.
 - ✅ **判定流程**:
   1. user 触发 host-self-evolve → 立即加载 v3.2.0 banner 段 + v3.2.0 Phase 1 段 + v3.2.1 default decision 段 (本段)
   2. **不再 AskUserQuestion** "Run 范围" + "执行模式" 2 类问题
@@ -101,6 +102,7 @@ metadata:
 4. ❌ user 显式说"只跑 X" 还跑全套 = 违反 user override 优先级
 5. ❌ 把本段"不再问"推广到所有 AskUserQuestion = 违反 4 类必问硬约束保留
 6. ❌ 跑完不输出 v3.1.0 §✅ 3 段 detailed = 违反 v3.1.0 硬约束
+7. ❌ 摸底 Layer 0 发现工作树 dirty 就停下问 "怎么处理遗留改动" = 违反 v3.2.6 user-override (直接纳入本轮收口)
 
 **联动**:
 - 跟 v3.1.0 banner UX (跑前) + v3.2.0 Phase 1 段 (跑前) 协同: 三段顺序 = banner → Phase 1 → v3.2.1 default decision → execute
@@ -112,6 +114,7 @@ metadata:
 
 **历史 record**:
 - 2026-07-10 v3.2.1: 立 (ADR-0050 整数 slot 0050 + user-override 落点 + 本段嵌入 SKILL.md)
+- 2026-07-17 v3.2.6: 加第 3 条默认决策 (遗留 dirty 改动纳入本轮收口, 不再问) + 反模式 #7 (per user 2026-07-17 拍板)
 
 ---
 
