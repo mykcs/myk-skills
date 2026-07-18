@@ -19,6 +19,7 @@ memory_bench_runner.py - host-self-evolve memory-bench 50 题跑分主逻辑
   拆 50 session 是为防污染, 但每个 session 必须能读到本地文件; 若用子 agent, 需把相关源文件作为 context 传入。
 """
 import argparse
+import concurrent.futures
 import json
 import os
 import re
@@ -134,6 +135,7 @@ def build_report_card(run_id: str, timestamp: str, n: int, recall_total: float,
 def main() -> int:
     parser = argparse.ArgumentParser(description="host-self-evolve memory-bench runner")
     parser.add_argument("--questions", type=int, default=50, help="本次跑几题 (默认 50)")
+    parser.add_argument("--parallel", type=int, default=1, help="并行 session 数 (默认 1, 建议 ≤5)")
     parser.add_argument("--judge-opus", action="store_true", help="启用 opus-as-judge (需外部 Agent 支持)")
     args = parser.parse_args()
 
@@ -150,8 +152,14 @@ def main() -> int:
     selected = questions[:n]
 
     results = []
-    for q in selected:
-        results.append(run_single_question(q, args.judge_opus))
+    if args.parallel > 1:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.parallel) as ex:
+            futures = [ex.submit(run_single_question, q, args.judge_opus) for q in selected]
+            for fut in concurrent.futures.as_completed(futures):
+                results.append(fut.result())
+    else:
+        for q in selected:
+            results.append(run_single_question(q, args.judge_opus))
 
     recall_total = compute_recall_total(results)
     # consistency / compliance 在本 skeleton 中暂缺, 用 0 占位
