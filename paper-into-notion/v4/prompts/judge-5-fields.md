@@ -4,15 +4,26 @@
 
 ## 字段定义
 
-### highlights (1 句话 ≤ 60 字)
+### highlights (1 句话 ≤ 80 字, v4.5 放宽自 60)
 - 用 1 句中文说清这篇 paper 做了什么 (方法 + 结果 + 意义)
+- **必含 4 组件 (v4.5 立, per CASE-PAPER-INTO-NOTION-V4-5-KEYWORD-OBJECTIVITY-20260718)**:
+  - 核心方法 / 框架 (e.g. "统一框架" / "OSA 框架" / "Stiefel 流形约束")
+  - 核心对象 (e.g. "现代智能体" / "左心室超声" / "LLM")
+  - 核心组件 (e.g. "基础模型 / 记忆 / 工具" / "prompts / memory / tools")
+  - 评估 / 结果 (e.g. "经验驱动的适应系统" / "高精度 + 实时效率")
 - 公式符号可保留 (e.g. Stiefel 流形 / KL 散度 / 注意力机制)
 - 避免抽象词 ("提出新方法" / "取得好效果" 没具体内容)
 
-### keyword (3-5 个 multi_select 选项)
-- 核心方法 / 任务 / 数据集 (e.g. ["超声心动", "分割", "医学图像"])
+### keyword (3-5 个 multi_select 选项, **v4.5 必从 abstract 抓高频词**)
+- **硬约束 (v4.5 立, per CASE-PAPER-INTO-NOTION-V4-5-KEYWORD-OBJECTIVITY-20260718)**:
+  - **必须从 abstract 高频核心词中选 (出现 ≥ 2 次优先, ≥ 1 次可用)** — 不允许凭 general knowledge
+  - 严禁填 abstract 里没出现的宽泛词 (e.g. abstract 没 "llm" 字面, 严禁填 "llm")
+  - 严禁填通用学术词 (e.g. "机器学习" / "深度学习" / "AI") 除非 abstract 出现 ≥ 2 次
+  - **最低命中要求**: 3 个 keyword 中至少 2 个在 abstract 出现 ≥ 1 次 (verify-5-fields 0 命中报警)
+- 选词规则:
+  - 核心方法 / 任务 / 数据集 (e.g. abstract 出现 "agent" 6 次 → 选 "agent")
+  - 优先 db 已有 options (避免新选项, Notion API 不能删 option 只能 archive)
 - 用 1-3 字短词, 不要长句
-- 优先 db 已有 options (避免新选项, Notion API 不能删 option 只能 archive)
 
 ### org (0-N 个 multi_select 选项)
 - 通讯作者机构 (从 abstract + authors 推断)

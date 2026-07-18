@@ -28,7 +28,7 @@ except ModuleNotFoundError:
 # 同包 import
 from schema import FieldMap, SchemaCache, ntn_query_latest_page
 from judge import judge_5_fields, JudgeResult
-from verify_all_fields import check_all_fields_filled
+from verify_all_fields import check_all_fields_filled, check_keyword_objective
 from ntn_client import ntn_call as ntn_api
 
 
@@ -334,6 +334,17 @@ def main() -> int:
         print(f"❌ {status}: 缺字段 {missing}")
         return 1
     print(f"✅ {status}: 全字段已填 (亮点/关键词/知识等级形态 必填, 机构 LLM 0 候选允许空)")
+
+    # v4.5 keyword abstract 命中检查 (per CASE-PAPER-INTO-NOTION-V4-5-KEYWORD-OBJECTIVITY-20260718)
+    # 防 LLM judge 凭 general knowledge 瞎填, 必须 abstract 命中 ≥ 2/3 keyword
+    if paper.abstract:
+        kw_status, non_hitting = check_keyword_objective(page_id, paper.abstract)
+        if kw_status == "FAIL":
+            print(f"❌ keyword_objective: 关键词 0 命中 abstract ({len(non_hitting)} 项): {non_hitting}")
+            print(f"   → LLM judge 凭 general knowledge 填了非 abstract 词, 请人工重跑或手动 PATCH")
+            return 1
+        elif kw_status == "PASS":
+            print(f"✅ keyword_objective: 关键词命中 abstract 通过")
     return 0
 
 
