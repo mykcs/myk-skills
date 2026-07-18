@@ -86,7 +86,7 @@ score = 0.35 × recall + 0.25 × consistency + 0.30 × compliance + 0.10 × toke
 | `~/.claude/docs/adr/0008-memory-bench-path.md` | ~30 | ADR-0008: 路径选择 |
 | `~/.claude/docs/adr/0009-compliance-weight.md` | ~30 | ADR-0009: compliance 0.30 > recall 接近权重 |
 | `~/.claude/docs/adr/0010-task-soul-subweights.md` | ~30 | ADR-0010: task 0.6 + soul 0.4 sub-weights |
-| `~/.agents/skills/rich-audit/reports/memory-bench/2026-06-26-v1.md` | 跑分结果 (后续) | 11 行总表 + 细节 |
+| `~/.agents/skills/host-self-evolve/reports/memory-bench/2026-06-26-v1.md` | 跑分结果 (后续) | 11 行总表 + 细节 |
 
 ## 6. 触发协议 (按 12 + 16 决议)
 

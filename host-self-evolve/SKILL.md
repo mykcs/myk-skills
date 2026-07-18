@@ -83,7 +83,7 @@ metadata:
 - ✅ **执行模式**: 默认三段串行 (plan / execute / verify 物理隔离, per v2.6.59 + §C.3.7)
 - ✅ **遗留 dirty 改动收口 (v3.2.6 新增, per user 2026-07-17 拍板)**: 摸底 Layer 0 发现工作树有未提交改动 (M / ?? untracked, 上个 session 收尾残留) → **默认纳入本轮一起收口, 不再 AskUserQuestion "怎么处理遗留改动"**. user 原话 "这批遗留改动本来就是这次自升级要处理的, 直接纳入本轮一起收口, 不要再停下来问". 例外: 遗留改动里含 4 类必问白名单 (framework config / user 偏好 / 不可逆 / user 显式说) 时, 仅对该子项走 AskUserQuestion, 其余 dirty 项照常纳入.
 - ✅ **跑完摸底默认继续跑剩余 sub-task (v3.2.7 新增, per user 2026-07-18 拍板)**: 跑完单次摸底收口后**默认继续跑剩余 sub-task** (Phase 1.2 / 1.3 + Layer 1-3), **不再 AskUserQuestion "要不要继续"**. user 原话 "修改技能以后，不要出现这个情况，都是默认继续跑". 跟 v3.2.6 user-override 同根因, 跑后不主动停下问 user. 4 类必问白名单保留 (不可逆 / framework config / user 偏好 / user 显式说).
-- ✅ **memory-bench 50 题必跑 (v3.2.8 新增, per user 2026-07-18 拍板)**: host-self-evolve run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56 强约束), **不允许 PENDING 跳过**. user 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跑分结果 (weighted score) 必落 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md`. score < 60 target 立即修协议. 4 类必问白名单保留 (跑分中途 token 限制 / opus API 失败 / 跑分发现 P0 安全问题 / user 显式说 走 AskUserQuestion).
+- ✅ **memory-bench 50 题必跑 (v3.2.8 新增, per user 2026-07-18 拍板)**: host-self-evolve run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56 强约束), **不允许 PENDING 跳过**. user 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跑分结果 (weighted score) 必落 `~/.agents/skills/host-self-evolve/reports/memory-bench/{date}-v{n}.md`. score < 60 target 立即修协议. 4 类必问白名单保留 (跑分中途 token 限制 / opus API 失败 / 跑分发现 P0 安全问题 / user 显式说 走 AskUserQuestion).
 - ✅ **report-card 模板 11 行总表标准化 (v3.2.9 新增, per user 2026-07-18 拍板)**: memory-bench 跑分报告 (per ADR-0065 + §C.3.3 v2.6.56) **必走 11 行总表 report-card 标准模板**, 字段顺序 + 单位 + 加权方法 100% 一致 (便于 baseline v1 vs SOTA v8 vs ablation-5 横向对比). user 原话 "把 §memory-bench 必跑段扩展为 report-card 模板". 11 行字段: run_id / timestamp / host / skill_version / model / judge / recall_total / consistency_total / compliance_total / weighted_score / target_met. 4 类必问白名单保留 (格式争议 / 字段命名冲突 / user 显式说 / 跑分失败 走 AskUserQuestion).
 - ✅ **判定流程**:
   1. user 触发 host-self-evolve → 立即加载 v3.2.0 banner 段 + v3.2.0 Phase 1 段 + v3.2.1 default decision 段 (本段)
@@ -202,19 +202,19 @@ metadata:
 
 > **触发**: user 2026-07-18 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跟 §C.3.3 v2.6.56 强约束 + §C.3.3 v2.6.46 重版约束 + §C.3.6.1 no-stuck + §H 5 字段自检 协同.
 >
-> **协议位**: host-self-evolve v3.2.8+ run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56), **不允许 PENDING 跳过**, 跑分结果 (weighted score) 必落 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md`.
+> **协议位**: host-self-evolve v3.2.8+ run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56), **不允许 PENDING 跳过**, 跑分结果 (weighted score) 必落 `~/.agents/skills/host-self-evolve/reports/memory-bench/{date}-v{n}.md`.
 
 **跑分流程** (per §C.3.3, 7 步):
 
 | Step | 行为 | 输出 |
 |------|------|------|
-| 1 | 读 `~/.agents/skills/rich-audit/references/memory-bench-50q-sample.json` | 50 题题库 |
+| 1 | 读 `~/.agents/skills/host-self-evolve/references/memory-bench-50q-sample.json` | 50 题题库 |
 | 2 | 50 题拆 50 个 sonnet session, 每题独立 (防前后题污染) | 50 session 报告 |
 | 3 | opus-as-judge 评分 (5 级: 0 / 0.5 / 1.0 / 1.5 / 2.0) | 评分报告 |
 | 4 | 15 consistency 跨源 grep + opus-judge 语义 | consistency 报告 |
 | 5 | 12 compliance 触发场景, 跑对应 hook/script | compliance 报告 |
 | 6 | 4 metric 加权求和 → total score | total score |
-| 7 | 写 11 行总表到 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md` | 报告文件 |
+| 7 | 写 11 行总表到 `~/.agents/skills/host-self-evolve/reports/memory-bench/{date}-v{n}.md` | 报告文件 |
 
 **失败处理** (per §C.3.6.1 no-stuck 协同):
 - 跑分中途 token 限制 / opus API 失败 → 暂停 + 报告 user + AskUserQuestion (走 4 类必问白名单)
@@ -228,7 +228,7 @@ metadata:
 2. ❌ 跑分报告不写 weighted total score / 不写 11 行总表 = 违反 §C.3.3 v2.6.56 强约束
 3. ❌ 跑分中途 token 限制不报 user 不 AskUserQuestion = 违反 §C.3.6.1 no-stuck
 4. ❌ 跑分 score < 60 target 不立即修协议 = 违反 §C.3.3 v2.6.56
-5. ❌ 跑分报告写到非 `~/.agents/skills/rich-audit/reports/memory-bench/` 路径 = 违反 §C.3.3 路径规约
+5. ❌ 跑分报告写到非 `~/.agents/skills/host-self-evolve/reports/memory-bench/` 路径 = 违反 §C.3.3 路径规约
 
 **联动**:
 - 跟 §C.3.3 v2.6.56 强约束 + §C.3.3 v2.6.46 重版约束 协同
