@@ -1,10 +1,10 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.8 memory-bench 必跑 + v3.2.7 默认继续跑 + v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.9 report-card 模板 + v3.2.8 memory-bench 必跑 + v3.2.7 默认继续跑 + v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 🔍 N-tool 协议位 audit 子任务, 4 路盘点 + 4 维 grep + §20 8 步管道修复) / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + **§v3.2.8 memory-bench 必跑段 (v3.2.8 新立, per ADR-0065, 50 题必跑不允许 PENDING 跳过, per §C.3.3 v2.6.56 强约束)** + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + **§v3.2.8 memory-bench 必跑段 (v3.2.8 新立, per ADR-0065, 50 题必跑不允许 PENDING 跳过, per §C.3.3 v2.6.56 强约束)** + **§v3.2.9 report-card 模板段 (v3.2.9 新立, per ADR-0066, 跑分报告 11 行总表标准化, 字段顺序 + 单位 + 加权方法 100% 一致)** + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3) / **🔍 N-tool 协议位 audit** (4 路盘点 + 4 维 grep + 命中 P0 走 §20 8 步管道修复, per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713).
@@ -84,6 +84,7 @@ metadata:
 - ✅ **遗留 dirty 改动收口 (v3.2.6 新增, per user 2026-07-17 拍板)**: 摸底 Layer 0 发现工作树有未提交改动 (M / ?? untracked, 上个 session 收尾残留) → **默认纳入本轮一起收口, 不再 AskUserQuestion "怎么处理遗留改动"**. user 原话 "这批遗留改动本来就是这次自升级要处理的, 直接纳入本轮一起收口, 不要再停下来问". 例外: 遗留改动里含 4 类必问白名单 (framework config / user 偏好 / 不可逆 / user 显式说) 时, 仅对该子项走 AskUserQuestion, 其余 dirty 项照常纳入.
 - ✅ **跑完摸底默认继续跑剩余 sub-task (v3.2.7 新增, per user 2026-07-18 拍板)**: 跑完单次摸底收口后**默认继续跑剩余 sub-task** (Phase 1.2 / 1.3 + Layer 1-3), **不再 AskUserQuestion "要不要继续"**. user 原话 "修改技能以后，不要出现这个情况，都是默认继续跑". 跟 v3.2.6 user-override 同根因, 跑后不主动停下问 user. 4 类必问白名单保留 (不可逆 / framework config / user 偏好 / user 显式说).
 - ✅ **memory-bench 50 题必跑 (v3.2.8 新增, per user 2026-07-18 拍板)**: host-self-evolve run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56 强约束), **不允许 PENDING 跳过**. user 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跑分结果 (weighted score) 必落 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md`. score < 60 target 立即修协议. 4 类必问白名单保留 (跑分中途 token 限制 / opus API 失败 / 跑分发现 P0 安全问题 / user 显式说 走 AskUserQuestion).
+- ✅ **report-card 模板 11 行总表标准化 (v3.2.9 新增, per user 2026-07-18 拍板)**: memory-bench 跑分报告 (per ADR-0065 + §C.3.3 v2.6.56) **必走 11 行总表 report-card 标准模板**, 字段顺序 + 单位 + 加权方法 100% 一致 (便于 baseline v1 vs SOTA v8 vs ablation-5 横向对比). user 原话 "把 §memory-bench 必跑段扩展为 report-card 模板". 11 行字段: run_id / timestamp / host / skill_version / model / judge / recall_total / consistency_total / compliance_total / weighted_score / target_met. 4 类必问白名单保留 (格式争议 / 字段命名冲突 / user 显式说 / 跑分失败 走 AskUserQuestion).
 - ✅ **判定流程**:
   1. user 触发 host-self-evolve → 立即加载 v3.2.0 banner 段 + v3.2.0 Phase 1 段 + v3.2.1 default decision 段 (本段)
   2. **不再 AskUserQuestion** "Run 范围" + "执行模式" 2 类问题
@@ -107,6 +108,7 @@ metadata:
 7. ❌ 摸底 Layer 0 发现工作树 dirty 就停下问 "怎么处理遗留改动" = 违反 v3.2.6 user-override (直接纳入本轮收口)
 8. ❌ 跑完单次摸底收口后 AskUserQuestion "要不要继续跑 Layer 1-3" = 违反 v3.2.7 user-override (默认继续跑剩余 sub-task, per ADR-0064)
 9. ❌ host-self-evolve 跑分 PENDING 跳过 memory-bench 50 题 = 违反 v3.2.8 user-override (memory-bench 必跑不跳过, per ADR-0065)
+10. ❌ memory-bench 跑分报告缺 11 行总表任一字段 / 字段顺序错乱 / score 用百分制 / target_met 不填 = 违反 v3.2.9 report-card 模板 (per ADR-0066)
 
 **联动**:
 - 跟 v3.1.0 banner UX (跑前) + v3.2.0 Phase 1 段 (跑前) 协同: 三段顺序 = banner → Phase 1 → v3.2.1 default decision → execute
@@ -121,6 +123,78 @@ metadata:
 - 2026-07-17 v3.2.6: 加第 3 条默认决策 (遗留 dirty 改动纳入本轮收口, 不再问) + 反模式 #7 (per user 2026-07-17 拍板)
 - 2026-07-18 v3.2.7: 加第 4 条默认决策 (跑完摸底默认继续跑剩余 sub-task, 不再问) + 反模式 #8 (per user 2026-07-18 拍板 + ADR-0064 整数 slot)
 - 2026-07-18 v3.2.8: 加第 5 条默认决策 (memory-bench 50 题必跑, 不允许 PENDING 跳过) + 反模式 #9 (per user 2026-07-18 拍板 + ADR-0065 整数 slot)
+- 2026-07-18 v3.2.9: 加第 6 条默认决策 (memory-bench 跑分报告 11 行总表 report-card 模板标准化) + 反模式 #10 (per user 2026-07-18 拍板 + ADR-0066 整数 slot)
+
+---
+
+## 🎯 v3.2.9 report-card 模板段 (2026-07-18 立, per ADR-0066)
+
+> **触发**: user 2026-07-18 拍板 "把 §memory-bench 必跑段扩展为 report-card 模板 (跑分报告 11 行总表标准化)". 跟 §C.3.3 v2.6.56 强约束 + §H 5 字段自检 + ADR-0016 memory-bench 归属决策 协同.
+>
+> **协议位**: memory-bench 跑分报告 (per ADR-0065 + §C.3.3 v2.6.56) **必走 11 行总表 report-card 标准模板**, 字段顺序 + 单位 + 加权方法 100% 一致.
+
+**11 行总表标准模板**:
+
+| # | 字段 | 格式 | 单位 |
+|---|------|------|------|
+| 1 | run_id | `memory-bench-{YYYY-MM-DD}-v{n}` | string |
+| 2 | timestamp | ISO 8601 + timezone | string |
+| 3 | host | `mykcs/{local-path}` | string |
+| 4 | skill_version | `v{X.Y.Z}` | semver |
+| 5 | model | `claude-{sonnet\|opus\|haiku}` + version | string |
+| 6 | judge | `opus-as-judge` + version | string |
+| 7 | recall_total | N/50 (sum) | 整数 |
+| 8 | consistency_total | N/15 (sum) | 整数 |
+| 9 | compliance_total | N/12 (sum) | 整数 |
+| 10 | weighted_score | `0.0 - 2.0` 5 级 (opus-as-judge) | float |
+| 11 | target_met | `✅ ≥ 60 / ❌ < 60` | boolean |
+
+**模板示例** (per §C.3.3 v2.6.56 实战):
+
+```markdown
+| # | 字段 | 值 |
+|---|------|-----|
+| 1 | run_id | memory-bench-2026-07-18-v1 |
+| 2 | timestamp | 2026-07-18T15:30:00+08:00 |
+| 3 | host | mykcs@/Users/myk/.claude |
+| 4 | skill_version | v3.2.9 |
+| 5 | model | sonnet 4.6 |
+| 6 | judge | opus-as-judge v4.5 |
+| 7 | recall_total | 42/50 |
+| 8 | consistency_total | 13/15 |
+| 9 | compliance_total | 11/12 |
+| 10 | weighted_score | 0.93 |
+| 11 | target_met | ✅ ≥ 60 |
+```
+
+**失败处理** (per §C.3.6.1 no-stuck 协同):
+- 跑分报告缺 11 行总表任一字段 → 报告无效, 立即重跑
+- 跑分报告字段顺序错乱 → 报告无效, 立即重排
+- weighted_score 用百分制 (0-100) 而非 5 级 (0-2.0) → 报告无效, 立即改回
+- target_met 字段不填 / 填 "YES" / 填 "是" → 报告无效, 必用 ✅/❌
+- score < 60 target + 11 行总表完整 → 走 §v3.2.8 立即修协议
+
+**横向对比协议** (per §C.3.3 v2.6.56 baseline compare):
+- baseline v1 vs SOTA v8 vs ablation-5: 11 行总表字段顺序 100% 一致才能对比
+- weighted_score 差异 ≥ 0.1 = 实质改善 (跨版本提交决策依据)
+- target_met ❌ → 不接受新版本 (除非 user 显式 override)
+
+**反模式 (永久失效, 5 条, per ADR-0066 §4)**:
+1. ❌ 跑分报告缺 11 行总表任一字段 = 违反 v3.2.9 段
+2. ❌ 跑分报告字段顺序错乱 (e.g. recall_total 在 consistency_total 前) = 违反 report-card 模板
+3. ❌ weighted_score 用百分制 (0-100) 而非 5 级 (0-2.0) = 违反 §C.3.3 v2.6.56
+4. ❌ target_met 字段不填 / 填 "YES" / 填 "是" = 违反 report-card 模板 (必用 ✅/❌)
+5. ❌ 跑分报告跑通后不跟 baseline / SOTA 横向对比 = 违反 §C.3.3 v2.6.56 baseline compare
+
+**联动**:
+- 跟 ADR-0065 (memory-bench 必跑) 协同 — 本 ADR 立 report-card 模板 = 必跑段的下一步标准化
+- 跟 §C.3.3 v2.6.56 (memory-bench 强约束) + §C.3.3 v2.6.46 (重版约束) 协同
+- 跟 ADR-0016 (memory-bench into rich-audit, 归属决策) 协同
+- 跟 §C.3.6.1 no-stuck 协议 协同
+- 跟 §H Acceptance Protocol (5 字段自检 → 7 字段新增 row 7 format) 协同
+
+**历史 record**:
+- 2026-07-18 v3.2.9: 立 (per user 2026-07-18 拍板 "把 §memory-bench 必跑段扩展为 report-card 模板" + ADR-0066 整数 slot 0066)
 
 ---
 
