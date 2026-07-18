@@ -98,10 +98,12 @@ def compute_recall_total(results: list[dict]) -> float:
 def next_report_version() -> str:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    existing = [p.name for p in REPORT_DIR.iterdir() if p.name.startswith(today)]
+    pattern = re.compile(re.escape(today) + r"-v(\d+)")
     max_v = 0
-    for name in existing:
-        m = re.search(rf"{today}-v(\\d+)", name)
+    for p in REPORT_DIR.iterdir():
+        if not p.name.startswith(today):
+            continue
+        m = pattern.search(p.name)
         if m:
             max_v = max(max_v, int(m.group(1)))
     return f"{today}-v{max_v + 1}"
