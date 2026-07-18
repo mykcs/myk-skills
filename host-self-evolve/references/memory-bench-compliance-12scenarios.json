@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "date": "2026-07-19",
+  "source": "ADR-0067 §3 step 2 internalize (per memory-bench-llm-judge-design-2026-07-19.md §2.3)",
+  "description": "memory-bench compliance 12 场景 — 触发对应 hook/script 验证协议位落地",
+  "scenarios": [
+    {
+      "id": "L01",
+      "command": "bash ~/.claude/scripts/check-n-tool-drift.sh 2>&1 | tail -1",
+      "description": "N-tool 协议位 drift check (per ADR-0056 + check-n-tool-drift.sh)"
+    },
+    {
+      "id": "L02",
+      "command": "python3 ~/.claude/scripts/shell-unified-check.py 2>&1 | tail -1",
+      "description": "shell-unified-check (per shell-unify-checklist v1.1)"
+    },
+    {
+      "id": "L03",
+      "command": "test -f ~/.claude/rules/protocols/N-tool-search.md && echo OK || echo FAIL",
+      "description": "N-tool-search.md 主 SSOT 存在性"
+    },
+    {
+      "id": "L04",
+      "command": "test -f ~/.agents/skills/host-self-evolve/SKILL.md && echo OK || echo FAIL",
+      "description": "host-self-evolve SKILL.md 主入口存在性"
+    },
+    {
+      "id": "L05",
+      "command": "test -f ~/.claude/CLAUDE.local.md && echo OK || echo FAIL",
+      "description": "CLAUDE.local.md hot recall 锚点存在性"
+    },
+    {
+      "id": "L06",
+      "command": "test -f ~/.claude/rules/soul.md && echo OK || echo FAIL",
+      "description": "soul.md 单文件主入口存在性"
+    },
+    {
+      "id": "L07",
+      "command": "test -d ~/.agents/skills/ && echo OK || echo FAIL",
+      "description": "skills 子仓主目录存在性"
+    },
+    {
+      "id": "L08",
+      "command": "ls ~/.claude/docs/adr/ | wc -l",
+      "description": "ADR 目录文件数 (期望 ≥ 60)"
+    },
+    {
+      "id": "L09",
+      "command": "ls ~/.claude/knowledge/cases/wiki/ | wc -l",
+      "description": "case 文件数 (期望 ≥ 500)"
+    },
+    {
+      "id": "L10",
+      "command": "ls ~/.claude/memory/ | wc -l",
+      "description": "memory 文件数 (期望 ≥ 25)"
+    },
+    {
+      "id": "L11",
+      "command": "test -f ~/.claude/scripts/inject-hot-facts.sh && echo OK || echo FAIL",
+      "description": "SessionStart hot-facts 注入脚本存在性"
+    },
+    {
+      "id": "L12",
+      "command": "test -f ~/.claude/docs/adr/0067-memory-bench-runner-llm-judge-upgrade.md && echo OK || echo FAIL",
+      "description": "ADR-0067 (本 run 立) 存在性"
+    }
+  ]
+}
