@@ -1,10 +1,10 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.7 默认继续跑 + v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.2.8 memory-bench 必跑 + v3.2.7 默认继续跑 + v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 🔍 N-tool 协议位 audit 子任务, 4 路盘点 + 4 维 grep + §20 8 步管道修复) / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + memory-bench 50 题 (per §C.3.3) + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + **§v3.2.8 memory-bench 必跑段 (v3.2.8 新立, per ADR-0065, 50 题必跑不允许 PENDING 跳过, per §C.3.3 v2.6.56 强约束)** + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3) / **🔍 N-tool 协议位 audit** (4 路盘点 + 4 维 grep + 命中 P0 走 §20 8 步管道修复, per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713).
@@ -83,6 +83,7 @@ metadata:
 - ✅ **执行模式**: 默认三段串行 (plan / execute / verify 物理隔离, per v2.6.59 + §C.3.7)
 - ✅ **遗留 dirty 改动收口 (v3.2.6 新增, per user 2026-07-17 拍板)**: 摸底 Layer 0 发现工作树有未提交改动 (M / ?? untracked, 上个 session 收尾残留) → **默认纳入本轮一起收口, 不再 AskUserQuestion "怎么处理遗留改动"**. user 原话 "这批遗留改动本来就是这次自升级要处理的, 直接纳入本轮一起收口, 不要再停下来问". 例外: 遗留改动里含 4 类必问白名单 (framework config / user 偏好 / 不可逆 / user 显式说) 时, 仅对该子项走 AskUserQuestion, 其余 dirty 项照常纳入.
 - ✅ **跑完摸底默认继续跑剩余 sub-task (v3.2.7 新增, per user 2026-07-18 拍板)**: 跑完单次摸底收口后**默认继续跑剩余 sub-task** (Phase 1.2 / 1.3 + Layer 1-3), **不再 AskUserQuestion "要不要继续"**. user 原话 "修改技能以后，不要出现这个情况，都是默认继续跑". 跟 v3.2.6 user-override 同根因, 跑后不主动停下问 user. 4 类必问白名单保留 (不可逆 / framework config / user 偏好 / user 显式说).
+- ✅ **memory-bench 50 题必跑 (v3.2.8 新增, per user 2026-07-18 拍板)**: host-self-evolve run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56 强约束), **不允许 PENDING 跳过**. user 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跑分结果 (weighted score) 必落 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md`. score < 60 target 立即修协议. 4 类必问白名单保留 (跑分中途 token 限制 / opus API 失败 / 跑分发现 P0 安全问题 / user 显式说 走 AskUserQuestion).
 - ✅ **判定流程**:
   1. user 触发 host-self-evolve → 立即加载 v3.2.0 banner 段 + v3.2.0 Phase 1 段 + v3.2.1 default decision 段 (本段)
   2. **不再 AskUserQuestion** "Run 范围" + "执行模式" 2 类问题
@@ -105,6 +106,7 @@ metadata:
 6. ❌ 跑完不输出 v3.1.0 §✅ 3 段 detailed = 违反 v3.1.0 硬约束
 7. ❌ 摸底 Layer 0 发现工作树 dirty 就停下问 "怎么处理遗留改动" = 违反 v3.2.6 user-override (直接纳入本轮收口)
 8. ❌ 跑完单次摸底收口后 AskUserQuestion "要不要继续跑 Layer 1-3" = 违反 v3.2.7 user-override (默认继续跑剩余 sub-task, per ADR-0064)
+9. ❌ host-self-evolve 跑分 PENDING 跳过 memory-bench 50 题 = 违反 v3.2.8 user-override (memory-bench 必跑不跳过, per ADR-0065)
 
 **联动**:
 - 跟 v3.1.0 banner UX (跑前) + v3.2.0 Phase 1 段 (跑前) 协同: 三段顺序 = banner → Phase 1 → v3.2.1 default decision → execute
@@ -118,6 +120,51 @@ metadata:
 - 2026-07-10 v3.2.1: 立 (ADR-0050 整数 slot 0050 + user-override 落点 + 本段嵌入 SKILL.md)
 - 2026-07-17 v3.2.6: 加第 3 条默认决策 (遗留 dirty 改动纳入本轮收口, 不再问) + 反模式 #7 (per user 2026-07-17 拍板)
 - 2026-07-18 v3.2.7: 加第 4 条默认决策 (跑完摸底默认继续跑剩余 sub-task, 不再问) + 反模式 #8 (per user 2026-07-18 拍板 + ADR-0064 整数 slot)
+- 2026-07-18 v3.2.8: 加第 5 条默认决策 (memory-bench 50 题必跑, 不允许 PENDING 跳过) + 反模式 #9 (per user 2026-07-18 拍板 + ADR-0065 整数 slot)
+
+---
+
+## 🎯 v3.2.8 memory-bench 必跑段 (2026-07-18 立, per ADR-0065)
+
+> **触发**: user 2026-07-18 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跟 §C.3.3 v2.6.56 强约束 + §C.3.3 v2.6.46 重版约束 + §C.3.6.1 no-stuck + §H 5 字段自检 协同.
+>
+> **协议位**: host-self-evolve v3.2.8+ run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56), **不允许 PENDING 跳过**, 跑分结果 (weighted score) 必落 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md`.
+
+**跑分流程** (per §C.3.3, 7 步):
+
+| Step | 行为 | 输出 |
+|------|------|------|
+| 1 | 读 `~/.agents/skills/rich-audit/references/memory-bench-50q-sample.json` | 50 题题库 |
+| 2 | 50 题拆 50 个 sonnet session, 每题独立 (防前后题污染) | 50 session 报告 |
+| 3 | opus-as-judge 评分 (5 级: 0 / 0.5 / 1.0 / 1.5 / 2.0) | 评分报告 |
+| 4 | 15 consistency 跨源 grep + opus-judge 语义 | consistency 报告 |
+| 5 | 12 compliance 触发场景, 跑对应 hook/script | compliance 报告 |
+| 6 | 4 metric 加权求和 → total score | total score |
+| 7 | 写 11 行总表到 `~/.agents/skills/rich-audit/reports/memory-bench/{date}-v{n}.md` | 报告文件 |
+
+**失败处理** (per §C.3.6.1 no-stuck 协同):
+- 跑分中途 token 限制 / opus API 失败 → 暂停 + 报告 user + AskUserQuestion (走 4 类必问白名单)
+- 跑分发现 P0 安全问题 → 立即停止 + 报告 user
+- 跑分时间长 (3h) → 拆多 session, 进度写 decision-stream
+
+**score < 60 target** → 立即修协议 (per §C.3.3 v2.6.56 强约束).
+
+**反模式 (永久失效, 5 条, per ADR-0065 §4)**:
+1. ❌ host-self-evolve 跑分 PENDING 跳过 memory-bench 50 题 = 违反 v3.2.8 段
+2. ❌ 跑分报告不写 weighted total score / 不写 11 行总表 = 违反 §C.3.3 v2.6.56 强约束
+3. ❌ 跑分中途 token 限制不报 user 不 AskUserQuestion = 违反 §C.3.6.1 no-stuck
+4. ❌ 跑分 score < 60 target 不立即修协议 = 违反 §C.3.3 v2.6.56
+5. ❌ 跑分报告写到非 `~/.agents/skills/rich-audit/reports/memory-bench/` 路径 = 违反 §C.3.3 路径规约
+
+**联动**:
+- 跟 §C.3.3 v2.6.56 强约束 + §C.3.3 v2.6.46 重版约束 协同
+- 跟 ADR-0016 (memory-bench into rich-audit, user 立的归属决策) 协同
+- 跟 ADR-0065 (本 ADR, 整数 slot 0065) 协同
+- 跟 §C.3.6.1 no-stuck 协议 协同
+- 跟 §H Acceptance Protocol 5 字段自检表 (新增第 6 字段: score) 协同
+
+**历史 record**:
+- 2026-07-18 v3.2.8: 立 (per user 2026-07-18 拍板 "把 memory-bench 50 题作为 host-self-evolve 必跑" + ADR-0065 整数 slot 0065)
 
 ---
 
