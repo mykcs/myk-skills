@@ -1,13 +1,13 @@
 ---
 name: auto-feishu-digest
-description: 自动追踪领域重要 articles + tech blogs → 按 7 维评分规整 → 自动推送飞书表格。MVP 跑 **N-tool fan-out (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2)** × 3 大类信息源 (论文会议 / 国内博客 / 国外博主) × daily 浅 + weekly 深双轨。立 loop-engineering skill 子方向字段 + Bitable 4 表拆分。**历史标 (2026-07-14 ADR-0056 cleanup)**: 旧 "5 源 × 5-tool" 是 v0.1.0-v0.1.7 时期协议, 实际跑 N-tool (N 当前 = 6 含 mmx) parallel fan-out.
+description: '自动追踪领域重要 articles + tech blogs → 按 7 维评分规整 → 自动推送飞书表格。MVP 跑 **N-tool fan-out (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2)** × 3 大类信息源 (论文会议 / 国内博客 / 国外博主) × daily 浅 + weekly 深双轨。立 loop-engineering skill 子方向字段 + Bitable 4 表拆分。**历史标 (2026-07-14 ADR-0056 cleanup)**: 旧 "5 源 × 5-tool" 是 v0.1.0-v0.1.7 时期协议, 实际跑 N-tool (N 当前 = 6 含 mmx) parallel fan-out.'
 metadata:
   type: skill
   project_id: auto-feishu-digest
   version: v0.2.2
   作者: claudecode (2026-07-02)
   状态: MVP 真闭环 (Run Card 同步 v0.2.2 + N-tool 7 + paper-search-mcp fallback + lint 规则立)
-  触发词: "auto digest" / "daily digest" / "weekly digest" / "飞书表格" / "Bitable" / "自动追踪"
+  触发词: ["auto digest", "daily digest", "weekly digest", "飞书表格", "Bitable", "自动追踪"]
 ---
 
 # Auto Feishu Digest Skill

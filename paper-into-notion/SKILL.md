@@ -154,6 +154,7 @@ scripts/
 ├── arxiv-fetch.sh              # curl + ElementTree + 重试 3 次 (等 3s) → title/authors/abstract
 ├── field-merge.sh              # GET 现有 properties → 字段级 merge 算法 (永远不写 multi_select)
 ├── check-notion-version.sh     # ntn doctor + Notion-Version: 2026-03-11 header 验证
+├── ntn-call.sh                 # 公共 client (GET/POST/PATCH), 修 ntn 0 字节 + 参数顺序 bug (per CASE-NTN-CLI-SILENT-BUFFER-20260719)
 └── verify-5-fields.sh          # §H.1 5 字段验收 + multi_select 保护 grader (跑后 GET 比对)
 ```
 
