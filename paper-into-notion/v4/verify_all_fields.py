@@ -1,14 +1,17 @@
 """verify_all_fields.py — 跑后全字段必填检查 (v4.1 永久防范机制).
 
 user 2026-07-15 反馈 "page 里所有字段都应该填上" 后立. 任何字段空都报警.
+v4.5 (2026-07-18) 加 keyword abstract 命中检查 (per CASE-PAPER-INTO-NOTION-V4-5-KEYWORD-OBJECTIVITY):
+  - keyword 3 个中至少 2 个必须在 abstract 出现 ≥ 1 次
+  - 否则报 "0 命中" silent loss, 走 v4.5 keyword objective 反模式永久失效
 
-用法: python verify_all_fields.py <PAGE_ID>
-返: (status, missing_list)
-  - status: "PASS" (全填) / "FAIL" (有字段空)
-  - missing_list: 空字段名 list
+用法: python verify_all_fields.py <PAGE_ID> [<ABSTRACT>]
+  - PAGE_ID: Notion page id (必填)
+  - ABSTRACT: paper abstract 文本 (可选, 提供时跑 keyword objective 检查)
 """
 from __future__ import annotations
 
+import re
 import sys
 
 from ntn_client import ntn_call as ntn_api
@@ -73,15 +76,64 @@ def check_all_fields_filled(page_id: str) -> tuple[str, list[str]]:
     return status, missing
 
 
+def check_keyword_objective(page_id: str, abstract: str) -> tuple[str, list[str]]:
+    """v4.5 立: 检查 Notion 关键词跟 abstract 命中度 (防止 LLM judge 凭 general knowledge 瞎填).
+
+    判定:
+    - GET page 拿 关键词 multi_select
+    - 每个 keyword 在 abstract 出现次数 (lowercase, 中英文混查)
+    - 3 个 keyword 中至少 2 个在 abstract 出现 ≥ 1 次 → PASS
+    - 否则 FAIL, 返 missing list = keyword name (没命中的)
+
+    Returns: (status_str, non_hitting_keyword_names_list)
+
+    用法: paper-into-notion.py main 跑后 verify_page 后立即调 (auto-check)
+    """
+    if not abstract:
+        return "SKIP", []
+    data = ntn_api("GET", f"/v1/pages/{page_id}")
+    keywords_raw = data.get("properties", {}).get("关键词", {}).get("multi_select", [])
+    keywords = [k["name"] for k in keywords_raw]
+    if not keywords:
+        return "FAIL", ["关键词 (全空)"]
+
+    abstract_lower = abstract.lower()
+    non_hitting = []
+    for kw in keywords:
+        # 中英文混查 (中文走字面, 英文走 lowercase)
+        kw_lower = kw.lower()
+        hit = kw_lower in abstract_lower or kw in abstract
+        if not hit:
+            non_hitting.append(kw)
+    # 硬规则: 3 个 keyword 中 ≥ 2 命中 (允许 1 个漏, 防止过严)
+    if len(keywords) >= 3 and len(non_hitting) >= max(2, len(keywords) - 1):
+        return "FAIL", non_hitting
+    if len(keywords) < 3 and len(non_hitting) > 0:
+        return "FAIL", non_hitting
+    return "PASS", []
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("用法: python verify_all_fields.py <PAGE_ID>", file=sys.stderr)
+        print("用法: python verify_all_fields.py <PAGE_ID> [<ABSTRACT>]", file=sys.stderr)
         sys.exit(1)
     page_id = sys.argv[1]
+    abstract = sys.argv[2] if len(sys.argv) >= 3 else ""
     status, missing = check_all_fields_filled(page_id)
     if missing:
-        print(f"❌ {status}: 缺 {len(missing)} 个字段: {missing}")
+        print(f"❌ check_all_fields_filled: {status}: 缺 {len(missing)} 个字段: {missing}")
         sys.exit(1)
     else:
-        print(f"✅ {status}: 全字段已填")
-        sys.exit(0)
+        print(f"✅ check_all_fields_filled: {status}: 全字段已填")
+    # v4.5 加: keyword abstract 命中检查
+    if abstract:
+        kw_status, non_hitting = check_keyword_objective(page_id, abstract)
+        if kw_status == "FAIL":
+            print(f"❌ check_keyword_objective: 关键词 0 命中 abstract ({len(non_hitting)} 项): {non_hitting}")
+            print(f"   → 反模式 #58 (v4.5): LLM judge 凭 general knowledge 填了非 abstract 词")
+            sys.exit(1)
+        elif kw_status == "PASS":
+            print(f"✅ check_keyword_objective: 关键词全命中 abstract")
+        else:
+            print(f"⚠️ check_keyword_objective: SKIP (无 abstract)")
+    sys.exit(0)
