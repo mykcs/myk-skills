@@ -64,47 +64,68 @@ def score_answer_keyword(answer: str, expected_keywords: list[str]) -> float:
 
 
 def score_answer_llm_judge(question: str, expected: str, actual: str,
-                           judge_cmd: str = "claude") -> float:
-    """LLM-as-judge 评分, 5 级: 0 / 0.25 / 0.5 / 0.75 / 1.0 (per design §2.1)."""
+                           judge_cmd: str = "mmx", verbose: bool = False) -> float:
+    """LLM-as-judge 评分, 5 级: 0 / 0.25 / 0.5 / 0.75 / 1.0 (per design §2.1).
+
+    Bug v4 fix: 加宽容 regex + verbose 模式.
+    Bug v6 fix (CLI session 未登录 claude -p): 改用 mmx text chat (MiniMax 全平台 CLI, 不依赖 Claude 登录, per v1.1.3 mmx 必跑硬约束).
+    """
     prompt = (
         "You are evaluating a memory-bench answer. Score 0-1.0 based on correctness:\n"
-        "1.0 = 完全正确, 0.75 = 大部分对 (缺 1 关键事实), 0.5 = 一半对, 0.25 = 少量对, 0 = 不对\n\n"
+        "1.0 = completely correct, 0.75 = mostly correct (1 key fact missing), "
+        "0.5 = half correct, 0.25 = slightly correct, 0.0 = wrong\n\n"
         f"Question: {question}\n"
         f"Expected: {expected}\n"
         f"Actual: {actual}\n\n"
-        "Score (only the number):"
+        "Reply with ONLY the numeric score (e.g. '0.75' or '1.0'), no other text:"
     )
     try:
+        # Bug v6 fix: 用 mmx text chat (per ADR-0062 + N-tool-search v1.1.3 mmx 必跑)
         proc = subprocess.run(
-            [judge_cmd, "-p", "--bare"],
-            input=prompt,
+            ["mmx", "text", "chat", "--message", prompt,
+             "--non-interactive", "--quiet", "--output", "text"],
             capture_output=True,
             text=True,
             timeout=30,
         )
         score_text = proc.stdout.strip()
-        m = re.search(r"\b(0(?:\.\d+)?|0\.25|0\.5|0\.75|1(?:\.0+)?)\b", score_text)
+        # Bug v4 fix: 宽容 regex — 匹配任何 0.x / 1.0 / 0 / 1 的浮点
+        m = re.search(r"\b(?:1(?:\.0+)?|0(?:\.\d+)?)\b", score_text)
         if m:
-            return float(m.group(1))
+            score = float(m.group(0))
+            if verbose:
+                print(f"  [LLM-judge {judge_cmd}] score={score} from text={score_text[:80]!r}", file=sys.stderr)
+            return score
+        # fallback 2: 第一行的第一个数字
+        first_line = score_text.split("\n")[0].strip()
+        m2 = re.search(r"\d+(?:\.\d+)?", first_line)
+        if m2:
+            score = min(1.0, float(m2.group(0)))
+            if verbose:
+                print(f"  [LLM-judge fallback-2] score={score} from line={first_line[:80]!r}", file=sys.stderr)
+            return score
+        if verbose:
+            print(f"  [LLM-judge] NO MATCH in: {score_text[:200]!r}", file=sys.stderr)
     except Exception as e:
         print(f"  WARN: LLM judge error: {e}", file=sys.stderr)
     return 0.0
 
 
-def evaluate_with_position_bias_mitigation(question: str, expected: str, actual: str) -> float:
+def evaluate_with_position_bias_mitigation(question: str, expected: str, actual: str,
+                                            verbose: bool = False) -> float:
     """Position bias 缓解: 随机化 + 双评取均值 (per design §2.4)."""
     # 第 1 次评
-    score_a = score_answer_llm_judge(question, expected, actual)
+    score_a = score_answer_llm_judge(question, expected, actual, verbose=verbose)
     # 第 2 次评: 随机 shuffle expected/actual 顺序 (text-level swap)
     if random.random() < 0.5:
         actual_b, expected_b = expected, actual  # swap 触发 position bias 检测
     else:
         actual_b, expected_b = actual, expected
-    score_b = score_answer_llm_judge(question, expected_b, actual_b)
+    score_b = score_answer_llm_judge(question, expected_b, actual_b, verbose=verbose)
     return (score_a + score_b) / 2.0
 
 
-def run_single_question(q: dict, use_keyword_fallback: bool) -> dict:
+def run_single_question(q: dict, use_keyword_fallback: bool, verbose: bool = False) -> dict:
     """跑单题: 调用本地 claude -p 独立 session 作答, 再评分."""
     question = q.get("question", "")
     expected = q.get("expected_keywords", [])
@@ -116,10 +137,10 @@ def run_single_question(q: dict, use_keyword_fallback: bool) -> dict:
         "Answer concisely in Chinese or English.\n\nQuestion: " + question
     )
     try:
+        # Bug v6 fix: 答案生成也走 mmx text chat (CLI session 未登录 claude -p)
         proc = subprocess.run(
-            ["claude", "-p", "--bare", "--allowed-tools", "Read",
-             "--add-dir", str(Path.home() / ".claude")],
-            input=prompt,
+            ["mmx", "text", "chat", "--message", prompt,
+             "--non-interactive", "--quiet", "--output", "text"],
             capture_output=True,
             text=True,
             timeout=60,
@@ -138,7 +159,7 @@ def run_single_question(q: dict, use_keyword_fallback: bool) -> dict:
         score = score_answer_keyword(answer, expected)
         judge_mode = "keyword-fallback"
     else:
-        score = evaluate_with_position_bias_mitigation(question, expected_str, answer)
+        score = evaluate_with_position_bias_mitigation(question, expected_str, answer, verbose=verbose)
         judge_mode = "llm-judge+position-bias"
 
     return {
@@ -151,7 +172,10 @@ def run_single_question(q: dict, use_keyword_fallback: bool) -> dict:
 
 
 def run_consistency_questions(consistency_path: Optional[Path]) -> tuple[int, int]:
-    """跑 consistency 15 题: 跨源 grep + LLM-judge 语义判定 (per design §2.2)."""
+    """跑 consistency 15 题: 跨源 grep + LLM-judge 语义判定 (per design §2.2).
+
+    Bug v4 fix: os.path.expanduser(s) 先展开 ~ 再 Path(s).exists().
+    """
     if not consistency_path or not consistency_path.exists():
         return 0, 15  # stub
     questions = json.loads(consistency_path.read_text(encoding="utf-8")).get("questions", [])
@@ -159,10 +183,15 @@ def run_consistency_questions(consistency_path: Optional[Path]) -> tuple[int, in
     for q in questions[:15]:
         sources = q.get("sources", [])
         pattern = q.get("grep_pattern", "")
+        # Bug v4 fix: expanduser 必须
+        expanded_sources = [os.path.expanduser(s) for s in sources]
         # 跨源 grep
-        grep_hits = sum(1 for s in sources if Path(s).exists() and pattern in Path(s).read_text(errors="ignore"))
+        grep_hits = sum(
+            1 for s in expanded_sources
+            if Path(s).exists() and pattern in Path(s).read_text(errors="ignore")
+        )
         # LLM-judge 语义判定 (简化: 命中 ≥ 50% sources 算 1 分)
-        if sources and grep_hits / len(sources) >= 0.5:
+        if expanded_sources and grep_hits / len(expanded_sources) >= 0.5:
             score += 1
     return score, 15
 
