@@ -56,20 +56,37 @@ def score_answer_keyword(answer: str, expected_keywords: list[str]) -> float:
 
 
 def run_single_question(q: dict, use_opus_judge: bool) -> dict:
-    """跑单题: 调用本地 claude session 或 keyword 评分。"""
+    """跑单题: 调用本地 claude -p 独立 session 作答, 再 keyword 评分。"""
     question = q.get("question", "")
     expected = q.get("expected_keywords", [])
-    # 默认使用 keyword scoring; opus judge 通过外部 Agent 调用后再回填
-    answer = ""
-    score = 0.0
-    if not use_opus_judge:
-        score = score_answer_keyword(answer, expected)
+
+    prompt = (
+        "You are answering a memory-bench question about the local ~/.claude/ "
+        "configuration repository. Use only facts from ~/.claude/ and ~/.agents/skills/. "
+        "Answer concisely in Chinese or English.\n\nQuestion: " + question
+    )
+    try:
+        proc = subprocess.run(
+            ["claude", "-p", "--bare", "--allowed-tools", "Read", "--add-dir", str(Path.home() / ".claude")],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        answer = proc.stdout.strip()
+        # 去掉可能的权限警告前缀
+        lines = [ln for ln in answer.split("\n") if not ln.strip().startswith("Permission allow rule")]
+        answer = "\n".join(lines).strip()
+    except Exception as e:
+        answer = f"ERROR: {e}"
+
+    score = score_answer_keyword(answer, expected)
     return {
         "id": q.get("id"),
         "question": question,
         "answer": answer,
         "score": score,
-        "judge": "keyword-fallback" if not use_opus_judge else "opus-as-judge",
+        "judge": "claude-sonnet-keyword" if not use_opus_judge else "opus-as-judge",
     }
 
 
