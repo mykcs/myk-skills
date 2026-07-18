@@ -110,6 +110,50 @@ def extract_arxiv_id(url: str) -> str:
     return parts[-1]
 
 
+def fetch_arxiv_affiliations(arxiv_id: str) -> list[str]:
+    """调 scripts/arxiv-affiliations.py 抓 paper 真实 5 机构 (per v3.4 ADR-0057).
+
+    Why: v4 judge_5_fields prompt 让 LLM 自由判 org, 容易幻觉 + 漏 (e.g. 实测 2607.13104
+    5 机构只填 2 个). Layer 0 走 arxiv HTML 实验版 1:1 抓 sup 标 1-N 真机构, 优先用.
+
+    Returns:
+        [] if arxiv-affiliations.py 失败 / 空 / 报错 (fallback LLM judge org).
+        deduped affiliation list if 成功 (覆盖 paper.org).
+    """
+    arxiv_affiliations_script = SCRIPT_DIR.parent / "scripts" / "arxiv-affiliations.py"
+    if not arxiv_affiliations_script.exists():
+        return []
+    try:
+        r = subprocess.run(
+            ["python3", str(arxiv_affiliations_script), arxiv_id],
+            capture_output=True, text=True, timeout=90,
+        )
+        if r.returncode != 0 or not r.stdout.strip():
+            return []
+        affiliations = json.loads(r.stdout)
+        if isinstance(affiliations, dict) and "error" in affiliations:
+            return []
+        if not isinstance(affiliations, list):
+            return []
+        # Post-filter: arxiv-affiliations.py v3.4 在 author 用 <br class="ltx_break">
+        # 拆名时会漏 personname 进 affiliation list (实测 2607.13104 返 "R.B. Xiong"
+        # / "Mingchen Zhuge" 错判). 这里加启发式 filter: 含机构关键词 → 保留, 否则 drop.
+        org_keywords = ("University", "Institute", "Lab", "Center", "Research",
+                        "College", "Department", "School", "Inc", "Corp",
+                        "Google", "MIT", "CMU", "HKUST", "HKBU", "SZU", "PolyU",
+                        "KAUST", "IDSIA", "USI", "SUPSI", "Alberta")
+        cleaned = []
+        for aff in affiliations:
+            text = aff.strip()
+            if not text:
+                continue
+            if any(kw in text for kw in org_keywords):
+                cleaned.append(text)
+        return cleaned
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+        return []
+
+
 # === Phase 3: LLM judge (5 字段) ===
 
 def run_judge(paper: Paper, config: dict) -> JudgeResult:
@@ -227,6 +271,13 @@ def main() -> int:
         paper = fetch_arxiv(arxiv_id, config["arxiv"]["rate_limit_sec"])
         paper.modal = modal
         print(f"[2/4] arXiv {arxiv_id}: {paper.title[:60]}...")
+
+        # Phase 2.6: 抓真实 5 机构 (Layer 0, per ADR-0057 v3.4 + CASE-V4-4-5-AFFILIATIONS-20260718)
+        # 实测 arxiv-affiliations.py 抓 sup 标 1-N, 比 LLM judge 准 (LLM 容易幻觉 + 漏)
+        real_orgs = fetch_arxiv_affiliations(arxiv_id)
+        if real_orgs:
+            paper.org = real_orgs
+            print(f"[2.6/4] 真实机构 (Layer 0 arxiv HTML): {len(real_orgs)} 项")
     else:
         # 非 arXiv 暂只填 URL 当 title
         paper = Paper(

@@ -14,9 +14,11 @@
 - 用 1-3 字短词, 不要长句
 - 优先 db 已有 options (避免新选项, Notion API 不能删 option 只能 archive)
 
-### org (0-2 个 multi_select 选项)
-- 通讯作者机构 (e.g. ["SZU", "PolyU", "Anthropic"])
-- 4 白名单: SZU / PolyU / Anthropic / 其他 (没匹配返空 [])
+### org (0-N 个 multi_select 选项)
+- 通讯作者机构 (从 abstract + authors 推断)
+- v4.3 (2026-07-18): v4 paper-into-notion.py Layer 0 优先调 scripts/arxiv-affiliations.py 抓真实 sup 1-N 机构 (per ADR-0057 v3.4), Layer 0 成功则直接用 (覆盖 LLM judge). Layer 0 失败 (fetch html fail / 无 affiliation 段) fallback LLM judge 自由判, **不限制白名单** (4 白名单 SZU/PolyU/Anthropic/其他 是 v4 之前错设计, 实际机构多样, 不该写死).
+- LLM judge 自由判机构名 (paper 真实机构名入库, group by 时 Notion 自动归类)
+- LLM 判空 → []
 
 ### knowledge_growth (0-2 个 multi_select 选项, 6 判据)
 - **开创新领域**: 提出全新任务 / 范式 / benchmark (e.g. ChatGPT 开对话 LLM)
