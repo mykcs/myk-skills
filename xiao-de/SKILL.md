@@ -22,6 +22,9 @@ metadata:
     - economics
     - psychology
     - motivation
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # 小德（xiao-de） · 认知操作系统

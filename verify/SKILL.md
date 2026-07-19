@@ -1,6 +1,10 @@
 ---
 name: verify
 description: Runs comprehensive verification on the current codebase (build, types, lint, tests, secrets, console.log, git status) and produces a PASS/FAIL report.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

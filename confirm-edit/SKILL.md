@@ -4,6 +4,10 @@ description: Confirm target repository and branch before multi-file edits
 metadata:
   type: skill
   version: 1.0.0
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # confirm-edit

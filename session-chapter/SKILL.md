@@ -3,6 +3,10 @@ name: session-chapter
 description: |
   上下文章节管理：在压缩前保存分层状态，并支持新窗口无缝恢复。
   触发词：上下文满了、保存章节、新窗口继续、待会再继续、chapter resume、继续任务。
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Session Chapter v2 — 上下文章节保存与恢复
