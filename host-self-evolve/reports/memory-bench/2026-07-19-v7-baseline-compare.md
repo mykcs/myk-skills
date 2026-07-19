@@ -4,6 +4,9 @@
 |---|------|--------------|---------------|--------------------|----------------------------|----------------------------------------|
 | 1 | run_id | memory-bench-2026-07-18-v2 | memory-bench-2026-07-18-v3 | memory-bench-2026-07-18-v4 | memory-bench-2026-07-18-v6 | **memory-bench-2026-07-18-v7** |
 | 2 | timestamp | 2026-07-18T16:53:09+00:00 | 2026-07-18T17:03:42+00:00 | 2026-07-18T17:14:53+00:00 | 2026-07-18T18:03:43+00:00 | **2026-07-18T18:08:01+00:00** |
+| 3 | host | mykcs@/Users/myk/.claude | mykcs@/Users/myk/.claude | mykcs@/Users/myk/.claude | mykcs@/Users/myk/.claude | **mykcs@/Users/myk/.claude** |
+| 4 | skill_version | — (pre-v3.3.0) | — (pre-v3.3.0) | — (pre-v3.3.0) | — (pre-v3.3.0) | **v3.3.0** |
+| 5 | model | keyword fallback (无 LLM) | keyword fallback (无 LLM) | claude -p (未登录→fallback) | claude -p (未登录→fallback) | **mmx text chat** |
 | 6 | judge | opus-as-judge v4.5 (keyword fallback) | 同 | llm-judge+position-bias (claude -p 子进程) | llm-judge+position-bias (宽容 regex) | **llm-judge+position-bias (mmx text chat)** |
 | 7 | **recall_total** | **23.8/50** | **4.0/50** | **0.0/50** | **0.0/50** | **5.2/50** ✅ |
 | 8 | consistency_total | 0/15 (stub) | 0/15 (stub) | 0/15 (tilde bug) | **14/15** (expanduser fix) | **14/15** ✅ |
