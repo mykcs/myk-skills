@@ -1,7 +1,7 @@
 ---
 name: pdf
 description: Use when the user wants to read, edit, merge, split, or create PDF files.
-license: Proprietary. LICENSE.txt has complete terms
+license: Proprietary
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"

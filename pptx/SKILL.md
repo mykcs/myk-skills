@@ -1,7 +1,7 @@
 ---
 name: pptx
 description: Use when the user wants to create, edit, or extract content from PowerPoint presentations (.pptx).
-license: Proprietary. LICENSE.txt has complete terms
+license: Proprietary
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
