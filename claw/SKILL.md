@@ -1,6 +1,10 @@
 ---
 name: claw
 description: Starts NanoClaw v2 — ECC's persistent zero-dependency REPL with model routing, skill hot-load, branching, compaction, export, and metrics.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # claw

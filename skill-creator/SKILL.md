@@ -1,6 +1,10 @@
 ---
 name: skill-creator
 description: Use when creating, editing, or optimizing skills, or running skill evals and benchmarks.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Skill Creator

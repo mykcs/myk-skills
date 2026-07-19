@@ -5,6 +5,9 @@ description: "创建 lark-cli 的自定义 Skill。当用户需要把飞书 API 
 metadata:
   requires:
     bins: ["lark-cli"]
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Skill Maker

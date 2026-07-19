@@ -1,6 +1,10 @@
 ---
 name: model-route
 description: Recommends the best model tier (haiku, sonnet, opus) for a task by complexity and budget, with a fallback model if the first attempt fails.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

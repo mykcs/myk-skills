@@ -6,6 +6,10 @@ metadata:
   version: 1.0.0
   author: myk
   source: insights-friction-2026-06-03
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # /parallel-fix-explorer — 并行 fix 探索

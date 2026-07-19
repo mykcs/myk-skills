@@ -16,6 +16,10 @@ description: >
 metadata:
   openclaw:
     homepage: https://github.com/Panniantong/Agent-Reach
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Agent Reach — Usage Guide

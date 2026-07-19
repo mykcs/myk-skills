@@ -35,6 +35,9 @@ metadata:
     - deep-archive
     - pattern
     - decision
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # Record Case — 统一知识归档 v3.0

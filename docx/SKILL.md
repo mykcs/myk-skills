@@ -2,6 +2,9 @@
 name: docx
 description: Use when the user wants to create, edit, or manipulate Word documents (.docx).
 license: Proprietary. LICENSE.txt has complete terms
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # DOCX creation, editing, and analysis

@@ -1,6 +1,10 @@
 ---
 name: context-budget
 description: Optimizes Claude Code context window usage — runs an inventory, detects issues, and outputs a prioritized savings report. Assumes a 200K context window unless the user specifies otherwise.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # context-budget

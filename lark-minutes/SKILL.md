@@ -6,6 +6,9 @@ metadata:
   requires:
     bins: ["lark-cli"]
   cliHelp: "lark-cli minutes --help"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # minutes (v1)

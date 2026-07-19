@@ -1,6 +1,10 @@
 ---
 name: code-review
 description: Reviews uncommitted changes for security vulnerabilities, code-quality issues, and best-practice violations, then blocks the commit if CRITICAL or HIGH issues are present.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

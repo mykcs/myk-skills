@@ -7,6 +7,9 @@ metadata:
     bins: ["lark-cli"]
     siblings: ["lark-shared"]
   cliHelp: "lark-cli sheets --help"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # sheets

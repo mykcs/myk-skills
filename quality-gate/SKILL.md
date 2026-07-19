@@ -1,6 +1,10 @@
 ---
 name: quality-gate
 description: Runs the ECC quality pipeline (formatter, lint, type checks) on a file or directory on demand, with optional --fix and --strict flags.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

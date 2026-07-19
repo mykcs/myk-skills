@@ -1,6 +1,10 @@
 ---
 name: setup-pm
 description: Configures the preferred package manager (npm/pnpm/yarn/bun) globally or per-project using scripts/setup-package-manager.js. Does not auto-invoke; user runs it explicitly.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # setup-pm

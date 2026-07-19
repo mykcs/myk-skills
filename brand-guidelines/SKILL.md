@@ -2,6 +2,9 @@
 name: brand-guidelines
 description: Use when applying brand colors, typography, or design standards to artifacts.
 license: Complete terms in LICENSE.txt
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # Anthropic Brand Styling

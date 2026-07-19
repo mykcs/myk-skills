@@ -22,6 +22,9 @@ metadata:
     - claude-code
     - settings
     - git
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # Backup Claude Settings

@@ -9,6 +9,9 @@ credentials:
     required: false
     description: "API key for higher rate limits. Anonymous access available with lower rate limits."
     storage: ".env file, environment variable, or --api_key CLI flag"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 ## Installation Guide for AI Agents

@@ -8,6 +8,10 @@ metadata:
   作者: claudecode (2026-07-02)
   状态: MVP 真闭环 (Run Card 同步 v0.2.2 + N-tool 7 + paper-search-mcp fallback + lint 规则立)
   触发词: ["auto digest", "daily digest", "weekly digest", "飞书表格", "Bitable", "自动追踪"]
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Auto Feishu Digest Skill

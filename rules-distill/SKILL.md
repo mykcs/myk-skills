@@ -1,6 +1,10 @@
 ---
 name: rules-distill
 description: Distills rules by reading project rules, cross-referencing, and emitting a verdict (keep / consolidate / deprecate / move). Operates per the rules-distill inventory + cross-read + verdict workflow.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # rules-distill

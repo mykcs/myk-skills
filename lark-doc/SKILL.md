@@ -6,6 +6,9 @@ metadata:
   requires:
     bins: ["lark-cli"]
   cliHelp: "lark-cli docs --help;lark-cli mindnotes --help"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # docs

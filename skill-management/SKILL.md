@@ -5,6 +5,10 @@ metadata:
   type: convention
   project_id: myk
   source: CASE-SKILL-DIR-UNIFICATION-CONSOLIDATED
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Skills 管理规范

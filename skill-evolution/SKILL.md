@@ -7,6 +7,10 @@ metadata:
   author: myk
   source: insights-friction-2026-06-03
   schedule: "weekly (cron: 0 9 * * 0)"
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # /skill-evolution — Skill 自演化引擎

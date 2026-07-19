@@ -6,6 +6,9 @@ metadata:
   requires:
     bins: ["lark-cli"]
   cliHelp: "lark-cli approval --help"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 **CRITICAL — 开始前 MUST 先用 Read 工具读取 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)，其中包含认证、权限处理**

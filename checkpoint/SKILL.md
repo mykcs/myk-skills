@@ -1,6 +1,10 @@
 ---
 name: checkpoint
 description: Creates or verifies named checkpoints in a workflow by stashing or committing state and logging the git SHA to .claude/checkpoints.log.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

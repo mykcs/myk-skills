@@ -6,6 +6,9 @@ metadata:
   requires:
     bins: ["lark-cli"]
   cliHelp: "lark-cli im --help"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # im (v1)

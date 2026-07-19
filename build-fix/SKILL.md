@@ -1,6 +1,10 @@
 ---
 name: build-fix
 description: Incrementally fixes build and type errors one at a time with minimal, safe edits, grouping errors by file and dependency order.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

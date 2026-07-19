@@ -42,6 +42,9 @@ metadata:
     - evidence
     - healer-paradox
 user-invocable: true
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # 医者不可自医 — Session 急诊室

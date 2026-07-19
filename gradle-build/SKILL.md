@@ -1,6 +1,10 @@
 ---
 name: gradle-build
 description: Fixes Gradle build errors for Android and KMP projects incrementally — detects build config, groups errors, applies minimal fixes, and re-runs the build to verify.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # gradle-build

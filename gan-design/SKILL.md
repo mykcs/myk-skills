@@ -1,6 +1,10 @@
 ---
 name: gan-design
 description: Runs a two-agent Generator + Evaluator loop focused on frontend design quality, with a brief parsed from $ARGUMENTS and a design-weighted eval rubric.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 
