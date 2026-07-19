@@ -1,7 +1,7 @@
 ---
 name: algorithmic-art
 description: Use when the user wants to create generative art, algorithmic art, or particle systems with code.
-license: Complete terms in LICENSE.txt
+license: Apache-2.0
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"

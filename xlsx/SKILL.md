@@ -1,7 +1,7 @@
 ---
 name: xlsx
 description: Use when the user wants to open, edit, create, or convert spreadsheet files (.xlsx, .csv, .tsv).
-license: Proprietary. LICENSE.txt has complete terms
+license: Proprietary
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
