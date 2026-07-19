@@ -1,6 +1,7 @@
 ---
 name: verify-change
-description: 验证 CLAUDE.md / 规则文件 / 任何改动是否真生效。原窗口生成可复制 prompt (混入探针诱导反模式) → 新窗口不知情跑 → 复制结果回原窗口 → 5 维评分 (3 客观 + 2 主观) → 归档 case。trigger: "验证这个改动 / 暗测 / verify-change / 测一下 ADHD 友好 / 测一下 XX 规则".
+description: |
+  验证 CLAUDE.md / 规则文件 / 任何改动是否真生效。原窗口生成可复制 prompt (混入探针诱导反模式) → 新窗口不知情跑 → 复制结果回原窗口 → 5 维评分 (3 客观 + 2 主观) → 归档 case。trigger: "验证这个改动 / 暗测 / verify-change / 测一下 ADHD 友好 / 测一下 XX 规则".
 version: "1.0.0"
 author: "mykcs"
 license: "MIT"
