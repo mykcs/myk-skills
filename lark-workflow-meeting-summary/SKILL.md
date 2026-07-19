@@ -5,6 +5,9 @@ description: "会议纪要整理工作流：汇总指定时间范围内的会议
 metadata:
   requires:
     bins: ["lark-cli"]
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # 会议纪要汇总工作流

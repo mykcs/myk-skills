@@ -5,6 +5,9 @@ description: "飞书/Lark 原生 OpenAPI 探索：从官方文档库中挖掘未
 metadata:
   requires:
     bins: ["lark-cli"]
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # OpenAPI Explorer

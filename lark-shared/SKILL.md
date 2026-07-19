@@ -2,6 +2,9 @@
 name: lark-shared
 version: 1.0.0
 description: "Use for lark-cli setup/auth tasks: auth login/status/logout, user vs bot identity, business-domain permissions (--domain, including all/docs/drive), missing scopes, revoking authorization, or handling _notice JSON."
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # lark-cli 共享规则

@@ -5,6 +5,9 @@ description: "日程待办摘要：编排 calendar +agenda 和 task +get-my-task
 metadata:
   requires:
     bins: ["lark-cli"]
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # 日程待办摘要工作流

@@ -8,6 +8,9 @@ metadata:
   requires:
     bins: ["lark-cli"]
   cliHelp: "lark-cli whiteboard --help"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 > [!IMPORTANT]
