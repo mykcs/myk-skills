@@ -1,6 +1,10 @@
 ---
 name: harness-audit
 description: Runs a deterministic repository harness audit and returns a prioritized scorecard across 7 fixed categories (tool coverage, context efficiency, etc.).
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

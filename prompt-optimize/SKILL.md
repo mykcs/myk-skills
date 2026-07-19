@@ -1,6 +1,10 @@
 ---
 name: prompt-optimize
 description: Analyzes a draft prompt and outputs an optimized, ECC-enriched version ready to paste and run. Does NOT execute the task — outputs advisory analysis only.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # prompt-optimize

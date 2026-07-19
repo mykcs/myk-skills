@@ -2,6 +2,9 @@
 name: canvas-design
 description: Use when the user wants to create visual art, posters, or designs as PNG/PDF.
 license: Complete terms in LICENSE.txt
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 These are instructions for creating design philosophies - aesthetic movements that are then EXPRESSED VISUALLY. Output only .md files, .pdf files, and .png files.

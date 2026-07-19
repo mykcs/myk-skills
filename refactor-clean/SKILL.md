@@ -1,6 +1,10 @@
 ---
 name: refactor-clean
 description: Identifies and removes dead code with test verification at every step, categorized by safety tier (SAFE / CAUTION / DANGER) before deletion.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

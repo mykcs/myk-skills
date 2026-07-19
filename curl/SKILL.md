@@ -2,6 +2,10 @@
 name: curl
 description: Curated curl examples and managed-agents HTTP integration guide. Use when debugging API calls, exploring HTTP behavior, or working with managed LLM agents.
 when_to_use: curl examples, managed-agents API calls, HTTP debugging
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Curl Skill

@@ -1,6 +1,10 @@
 ---
 name: test-coverage
 description: Analyzes test coverage, identifies gaps below 80%, and generates missing unit tests for happy path, error handling, edge cases, and branch coverage.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

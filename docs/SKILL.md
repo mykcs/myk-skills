@@ -1,6 +1,10 @@
 ---
 name: docs
 description: Looks up current documentation for a library or topic via Context7 MCP (resolve-library-id + query-docs) and returns a summarized answer with code snippets.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # docs

@@ -1,6 +1,10 @@
 ---
 name: update-docs
 description: Syncs documentation with the codebase by generating from sources of truth (package.json, .env.example, openapi.yaml) and flagging stale files.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 

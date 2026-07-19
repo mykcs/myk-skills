@@ -6,6 +6,10 @@ metadata:
   version: 1.0
   created: 2026-06-30
   source_of_truth: ~/.claude/memory/connect-202-gpu.md (87 行, 2026-06-08 立)
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # gdkvm-train-launcher (v1.0)

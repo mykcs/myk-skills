@@ -1,6 +1,10 @@
 ---
 name: doc-coauthoring
 description: Use when the user wants to write or co-author documentation, proposals, or technical specs.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Doc Co-Authoring Workflow

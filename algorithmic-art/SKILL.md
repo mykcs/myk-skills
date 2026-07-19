@@ -2,6 +2,9 @@
 name: algorithmic-art
 description: Use when the user wants to create generative art, algorithmic art, or particle systems with code.
 license: Complete terms in LICENSE.txt
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 Algorithmic philosophies are computational aesthetic movements that are then expressed through code. Output .md files (philosophy), .html files (interactive viewer), and .js files (generative algorithms).

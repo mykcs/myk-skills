@@ -2,6 +2,10 @@
 name: eval-viewer
 description: Generate and view evaluation review sessions for LLM agent outputs. Use when reviewing batches of agent traces, comparing runs, or annotating eval results.
 when_to_use: Review LLM agent eval results, generate shareable review pages, annotate trace outputs
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Eval Viewer

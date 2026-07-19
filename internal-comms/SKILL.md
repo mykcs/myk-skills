@@ -2,6 +2,9 @@
 name: internal-comms
 description: Use when writing internal communications like status reports, newsletters, or incident reports.
 license: Complete terms in LICENSE.txt
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 ## When to use this skill
