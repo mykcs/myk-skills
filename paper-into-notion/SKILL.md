@@ -3,13 +3,15 @@ name: paper-into-notion
 description: |
   URL → 自动填 3 字段 (页面 / 状态 / 模态类型) 到 Notion `论文` database. multi_select (教育类型/关键词/标签) + rich_text 亮点 **永不覆盖**已有值 (PATCH body 只含 select/title). 适用 arXiv / 公众号 / 博客 / Twitter / GitHub / bilibili / youtube / 小红书 / 知乎. 11 scripts + 6 templates + 6 references. weiying20260624 PhD 申请场景.
 when_to_use: |
-  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion" / "跨 db 搬 schema" / "跨 db 同步" / "跨 db 搬运行记录" / "Notion URL 解读" / "Notion schema 变更" / "Notion cross-db 搬" / "Notion property 改名" / "Notion multi-db schema" / "skill 跑完自我总结" / "任务后总结" / "skill 经验教训内化" / "skill 自我升级" / "**skill 子句 grep 修复**" / "**skill 字面 drift 修复**" / "**skill ask window 守卫**" / "**用户 ADHD 节奏 + ask window**" / "**skill 改 CLAUDE.md 后直接生效**". Also: weekly-report-phd v0.7+ 跑周报时 paper card 联动 / Notion schema 变更 走 add-property.sh 独立入口 / Notion 修 bug 看 notion-fix-cheatsheet.md 4 决路径 / skill 跑完必跑 skill-self-summary.sh 4 段总结 + mem0 quota fallback 3 步 (per user 2026-07-14 原话 "修改技能，每次运行完，要对这次任务的经验教训进行总结，提升 skill") / v-bump 自动触发 (4 条件: 反模式 ≥ 4 / 流程变化 ≥ 1 / 触发词变化 ≥ 1, 任一满足立 v_new_version per v2.6.30 §I self-evolution) / **spawn subagent 验证前必 git pull + ff main** (避免 subagent 看到 stale main, per v2.2 + v2.4 累积第 2 次) / **3 dirty file 走 v-bump 闭环** (subagent 跑测试改 env var 触发 file dirty, 不删, 走 self-evolution 闭环 5 步) / **Step 0 ask window 守卫** (skill-self-summary.sh 7 keyword "顺手/直接跑/快做/拍板/帮我做/judge yourself/给我答案" 命中必 unset + AskUserQuestion 选项化决定, per v2.9-i + CASE-CLAUDECODE-ADHD-RHYTHM-BYPASS-20260714 + feedback-adhd-rhythm-ask-window-not-bypass.md v2 强化 "改完 CLAUDE.md 默认生效, 不二次 ask") / **skill introspect cache stale** (MODAL_PROP cache 推断撞 db 改名, NOTION_INTROSPECT=false 守卫 + 改 db 后 rm .introspect-cache.json, per v3.8 + 反模式 #50). NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report) / **v3.x shell 残留字面 drift** (v3.x scripts/ 目录 fallback 硬编码字段名 + POST body 引用废弃字段 → POST 400 silent loss; 走 v4 paper-into-notion.py 单入口, 不跑 v3.x scripts) / **papers.cool arxiv 镜像** (paper 卡片美观 / 公众号分享常见路径, modal-detect 加 papers.cool/arxiv 分支 → arXiv, v4.3 立).
+  Trigger when user says: "paper 进 Notion" / "论文入库" / "Notion 沉淀" / "写论文卡片" / "把这个 paper 加到 Notion" / "收藏这个 arXiv" / "收藏这个公众号" / "reading list 同步" / "沉淀 paper" / "把 URL 加到 Notion" / "把链接写到 Notion" / "把 paper 同步到 Notion" / "新 paper 提醒" / "我看了一篇 paper 想存下来" / "URL 写 Notion". 高级触发词见 references/triggers-advanced.md。
+  NOT: 查 Notion schema (用 Notion UI) / 批量导出 (用 Notion UI export) / 写 paper card 给老师 (用 teacher-report).
 metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v4.5 (2026-07-18)
+  version: v4.6 (2026-07-19)
   changelog: |
+    v4.6 (2026-07-19) — PER Workflow 统一抽象；新增 PER Workflow 总览节；frontmatter 触发词拆分；高级触发词下沉到 references/triggers-advanced.md；技能版本号与 frontmatter 对齐为 v4.6。
     v4.5 (2026-07-18) — keyword abstract 命中检查 + highlights 80 字 + 必含 4 组件 (per CASE-PAPER-INTO-NOTION-V4-5-KEYWORD-OBJECTIVITY-20260718 + arXiv 2607.13104 实测): 关键词 0 命中 abstract 是 silent loss 经典反模式 (LLM judge 凭 general knowledge 瞎填 "llm/机器学习/深度学习", abstract 全无这 3 词); 新增 verify_all_fields.check_keyword_objective() 拿 abstract 跟 page 关键词比对, 3 个 keyword 中至少 2 个必须在 abstract 出现 ≥ 1 次否则 FAIL + exit 1. prompts/judge-5-fields.md keyword 段加硬约束 (必须从 abstract 高频核心词中选, ≥ 2 次优先; 严禁填通用学术词; 严禁填 abstract 0 出现的宽泛词). highlights 60 → 80 字限制 + 必含 4 组件清单 (核心方法/对象/组件/评估). paper-into-notion.py main 跑后自动调 check_keyword_objective, FAIL 报警 + exit 1. 端到端 4 bonus test 全 PASS (2607.13104 真实 keyword [llm, 机器学习, 深度学习] FAIL + 报全 3 个 non_hitting [预期行为]; Transformer 1706.03762 keyword [attention, transformer] PASS; 错误 page id 报 network error; skip path 无 abstract 返 SKIP). 反模式 #58 v4.5 立 (v4 LLM judge 凭 general knowledge 瞎填, 不读 abstract = 关键词 0 命中 silent loss, 永久失效). 触发词 +1 (skill keyword abstract 命中). 跟 v4.4 arxiv-affiliations Layer 0 协同不冲突 (Layer 0 抓 sup 1-N 机构, 关键词仍走 LLM judge 但现在有客观性兜底).
     v4.4 (2026-07-18) — arxiv-affiliations Layer 0 + 反作者名 post-filter (per CASE-PAPER-INTO-NOTION-V4-3-5-AFFILIATIONS-20260718 + arXiv 2607.13104 实测): 新增 fetch_arxiv_affiliations() 调 scripts/arxiv-affiliations.py 抓 sup 标 1-N 真实机构 (per v3.4 ADR-0057), Layer 0 成功覆盖 LLM judge org (实测 LLM judge 只填 2/5 机构 → Layer 0 填 5/5); 加启发式 post-filter 含 University/Institute/Lab/Center/School/Research/KAUST/IDSIA/USI/SUPSI/Alberta 等关键词过滤 author 名 false positive (实测 arxiv-affiliations.py v3.4 在 <br class="ltx_break"> 拆名时 personname 漏判, 返 "R.B. Xiong" / "Mingchen Zhuge" 错). prompts/judge-5-fields.md 移除 4 白名单 (SZU/PolyU/Anthropic/其他) 限制 → LLM judge 自由判 + fallback Layer 0 失败时才生效. 端到端 3 bonus test 全 PASS (2607.13104 = 5/5, 1706.03762 = 2/3 [Google Research 被 "Research" filter 误命中, 待 v4.5], 错误 arxiv_id = [] 不 crash). 反模式 #58 (v4 paper-into-notion.py 漏接 v3.4 Layer 0 arxiv-affiliations.py 导致 org 字段漏抓 = 永久失效). 触发词 +1 (skill affiliations Layer 0). 跟 v3.4 立 arxiv-affiliations.py 协同不冲突 (v3.4 立 Layer 0, v4.4 接入 v4 paper-into-notion.py).
     v4.3 (2026-07-17) — modal-detect 加 papers.cool/arxiv 镜像分支 (per CASE-PAPER-INTO-NOTION-PAPERS-COOL-MIRROR-20260717, arXiv 2607.13104《Self-Improvements in Modern Agentic Systems: A Survey》实测踩坑): modal-detect.sh case pattern 从 5 加到 6 (`*arxiv.org*|*papers.cool/arxiv*` → arXiv). papers.cool 是 arxiv 论文卡片美观化 + 公众号常见分享路径, 之前 fallback "其他" → 标题写 URL + LLM judge 拿不到 title/abstract 整条失败. 触发词 +1 (papers.cool arxiv 镜像) + 反模式 #57 (modal-detect 5 pattern grep 漏 arxiv 镜像域名 papers.cool/huggingface/alphaxiv 等). 联动 v2.7 schema + v3.7 knowledge-growth + v4.1 verify-all-fields + v4.2 notion-block-layout 协同不冲突. 端到端 8 URL sanity PASS + bonus test papers.cool → arXiv PASS.
@@ -56,7 +58,7 @@ license: "MIT"
 last_updated: "2026-07-19"
 ---
 
-# paper-into-notion v2.6
+# paper-into-notion v4.6
 
 > **核心承诺**: 任何 URL 进来 → 自动写 Notion database 论文 → multi_select 字段 (教育类型/标签/关键词) 永不覆盖已有值 ✅
 > **触发**: user 说 "paper 进 Notion" / "Notion 沉淀" / "把这个 paper 加到 Notion" / "写论文卡片" 时跑
@@ -76,6 +78,39 @@ last_updated: "2026-07-19"
 | user 要查 Notion database schema / 改字段定义 | ❌ (手工到 Notion UI) |
 | user 要批量导出 paper (反向操作) | ❌ (用 Notion UI export) |
 | 写 paper card 给老师 (feishu docx) | ❌ (用 teacher-report) |
+
+高级触发词见 `references/triggers-advanced.md`。
+
+---
+
+## PER Workflow
+
+> 统一 workflow 抽象见 `~/.agents/skills/website-improve/references/per-workflow-framework.md`（Source of truth）。本 skill 所有复杂任务默认按 Plan → Execute → Verify 三段执行，artifact 文件 handoff，禁止口头传话。
+
+### 角色映射
+
+| 角色 | 职责 | 产出 artifact |
+|------|------|---------------|
+| **Planner** | 解析 user URL / 自然语言；跑 `modal-detect.sh` 判定模态（arXiv / 公众号 / 博客 / Twitter / 其他）；根据目标 db 选 Notion db/page；识别 schema drift / multi-db 风险；输出 scope + acceptance criteria + risk list | `plan.json` / `plan.md` |
+| **Executor** | 按 plan 执行：arXiv 抓 metadata → LLM judge 5 字段 → `field-merge.sh` 字段级 merge → `ntn api` POST/PATCH page；必要时在写 Notion 后触发 Executor-stage 可选子流 `scripts/skill-self-summary.sh`（4 段总结 + mem0 fallback）；输出 exec log | `exec-log.json` / `exec-log.md` |
+| **Verifier** | 读 plan + exec log；跑 `verify-5-fields.sh` / `verify_all_fields.py` 5 字段自检；检查 Notion block layout（`references/notion-block-layout.md`）；patch recovery 验证（GET page 二次确认）；FAIL 则 reject 回 Executor 重做 | `verdict.json` / `verdict.md` |
+
+### 3 条核心反模式（来自 PER 框架）
+
+- ❌ 1 个 sub-agent 跑完 3 角色。
+- ❌ Executor 自己标 done。
+- ❌ Verifier FAIL 还强行 ship。
+
+完整反模式列表见 `~/.agents/skills/website-improve/references/per-workflow-framework.md` §反模式。
+
+### Executor-stage 可选子流：跑完自我总结
+
+当任务满足以下任一条件时，Executor 在 Notion 写入后应调用 `scripts/skill-self-summary.sh`：
+- skill 升级 / config 改动后
+- 跨 db / 跨 session 任务完成
+- user 显式说 "总结" / "回顾" / "沉淀"
+
+完整闭环协议见 `references/self-evolution-loop.md`。
 
 ---
 

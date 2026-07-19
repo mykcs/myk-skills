@@ -1,0 +1,63 @@
+{
+  "skill": "website-improve",
+  "version": "4.1.0",
+  "description": "PER Workflow eval cases for website-improve",
+  "cases": [
+    {
+      "id": "per-normal-flow",
+      "name": "Normal flow triggers full PER 3-stage workflow",
+      "prompt": "audit mykcs",
+      "expected": {
+        "stages_run": ["plan", "execute", "verify"],
+        "planner_outputs": ["plan.json", "7 段 pre-flight declaration"],
+        "executor_outputs": ["exec-log.json", "actual fixes", "smart-push"],
+        "verifier_outputs": ["verdict.json", "5 字段自检"],
+        "done_declared_by": "verifier",
+        "artifacts_handoff": "JSON files only, no oral context sharing"
+      }
+    },
+    {
+      "id": "per-verifier-fail-retry",
+      "name": "Verifier FAIL on 4-site CI red triggers executor redo",
+      "prompt": "sync all sites",
+      "simulation": {
+        "executor_first_pass": {
+          "files_changed": ["src/layouts/BaseLayout.astro"],
+          "push_status": "pushed",
+          "ci_status": "red on GDKVM"
+        },
+        "verdict_first_pass": "FAIL",
+        "verifier_evidence": "GDKVM gh run list conclusion=failure"
+      },
+      "expected": {
+        "verdict": "FAIL",
+        "executor_self_declares_done": false,
+        "executor_redo": true,
+        "final_state": "BLOCKED on GDKVM CI red or rerun until PASS",
+        "no_done_without_verifier_pass": true
+      }
+    },
+    {
+      "id": "per-role-isolation",
+      "name": "Planner does not edit files; executor does not self-declare done",
+      "prompt": "3 role workflow improve mykcs SEO",
+      "expected": {
+        "planner": {
+          "edits_files": false,
+          "runs_commands": false,
+          "outputs": "plan.json only"
+        },
+        "executor": {
+          "edits_files": true,
+          "declares_done": false,
+          "outputs": "exec-log.json only"
+        },
+        "verifier": {
+          "edits_files": false,
+          "declares_done_only_on_pass": true,
+          "outputs": "verdict.json only"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "host-self-evolve",
+  "version": "3.3.0",
+  "evals": [
+    {
+      "id": "host-self-evolve-normal-flow",
+      "name": "Normal flow: banner → Phase 1 → PER 3-stage workflow",
+      "trigger": "user says 'host-self-evolve' or '整理记忆'",
+      "expected": [
+        "输出 🎯 banner 段 (含 Layer 0-3 + Layer A 检查/修复/提升/完成标准)",
+        "输出 🌱 Phase 1 — Life/Setup 段 (4 子模块 1.1-1.4)",
+        "进入 PER Workflow: Planner 输出 plan → Executor 跑 Layer 0-3 → Verifier 跑 Layer A",
+        "Planner 产出 plan artifact (plan.json / plan.md) 含 scope、acceptance criteria、risk list",
+        "Executor 产出 exec-log artifact (exec-log.json / exec-log.md) 含实际改动、命令输出、git commits",
+        "Verifier 产出 verdict artifact (verdict.json / verdict.md), PASS 才 done"
+      ],
+      "checks": [
+        "output contains '🎯 host-self-evolve'",
+        "output contains '🌱 Phase 1'",
+        "output contains 'Planner' or 'Executor' or 'Verifier' or 'PER Workflow'",
+        "no AskUserQuestion for 'Run 范围' / '执行模式' (per v3.2.1 user-override)"
+      ]
+    },
+    {
+      "id": "host-self-evolve-verifier-fail-retry",
+      "name": "Verifier FAIL retry: memory-bench < 60 or N-tool audit P0",
+      "trigger": "Verifier 发现 memory-bench weighted_score < 60 或 N-tool 协议位 audit 命中 🔴 P0",
+      "expected": [
+        "Verifier  verdict = FAIL, 明确列出 FAIL 项 + 复现证据",
+        "FAIL  verdict 必须打回 Executor, 不打给用户标 done",
+        "Executor 重做整轮 (重新跑相关 Layer 1/1.0 子任务 + 修协议 + 更新 artifact)",
+        "只有 Verifier 重新 PASS 后才能输出最终 done"
+      ],
+      "checks": [
+        "verdict.json verdict == 'FAIL'",
+        "Executor re-runs at least one sub-task after FAIL",
+        "final done only emitted after second verdict == 'PASS'",
+        "no false completion before retry PASS"
+      ]
+    },
+    {
+      "id": "host-self-evolve-role-isolation",
+      "name": "Role isolation: Planner 不跑命令, Executor 不自标 done",
+      "trigger": "任意 host-self-evolve run 进入 PER Workflow",
+      "expected": [
+        "Planner 只写 plan artifact, 不直接改文件、不跑构建/命令、不自己标 done",
+        "Executor 只读 plan + 改文件/跑命令/写 exec log, 不自己标 done, 不绕过 verifier",
+        "Verifier 只读 plan + exec log + 跑验收/出 verdict, 不改文件、不替 Executor 修 bug",
+        "sub-agent 之间通过 artifact 文件 handoff, 不口头传话或共享 context window"
+      ],
+      "checks": [
+        "Planner step contains no Bash/Edit/Write tool calls (only plan artifact output)",
+        "Executor step does not emit 'done' / '完成' before Verifier verdict",
+        "Verifier step contains no file-modifying tool calls",
+        "artifact files (plan.json / exec-log.json / verdict.json) exist and are referenced in handoff"
+      ]
+    }
+  ]
+}

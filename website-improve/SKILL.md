@@ -1,7 +1,7 @@
 ---
 name: website-improve
 description: |
-  一站式网站改进 skill (v4.0.7 — §L27 3-role workflow 立, 跟 PR #6 §L21 默认反转 协同).
+  一站式网站改进 skill (v4.1.0 — PER Workflow 统一抽象).
   触发: 改网页 / 提升网站 / site-improve / multi-site / 4 站 / sites≥2.
   Sub-mode A/B/C/D, 默认 4 sites (multi-site fan-out).
   L19-L27: 4 站 CI 全绿 / fix-validate-build / pre-flight / ToolSearch / recovery / heartbeat / deployed-layer curl / 验收 / 3-role workflow.
@@ -11,11 +11,12 @@ when_to_use: |
   3-role workflow 触发词: 3 role / workflow / planner / executor / verifier / 计划者 / 执行者 / 检查验收者 / handoff.
   3 sub-agent 独立: planner 跑 plan_json_gen.py → executor 跑 exec_log_gen.py → verifier 跑 verdict_json_gen.py, verifier PASS 才 done, FAIL → executor 重做整轮. JSON schema 脚本立 ~/.claude/scripts/website-improve/.
 metadata:
-  version: "4.0.8"
+  version: "4.1.0"
   author: mykcs
   category: web-development
   changelog: |
-    see references/changelog.md for full history (v3.x-v4.0.7)
+    see references/changelog.md for full history (v3.x-v4.0.8)
+    4.1.0 (2026-07-19): PER Workflow 统一抽象；新增 references/per-workflow-framework.md；L19-L26 明确归属 Executor/Verifier/Planner.
     4.0.1 (2026-06-27): L19 (网站类 Run CI 4 站全绿硬规则) + L20 (fix-validate-build 防 lockfile 漂移). Source: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM CI red 因 fix agent 改 package.json exact pin 但未重生成 lockfile. §L20 硬规则: 改 package.json 后必跑 `npm install` + 二次 build verify. §L19 硬规则: 任何 website-improve run 4 站 (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done, 任一 red → BLOCKED on fix, 禁止声明完成. Sites 列表 v3.x 3 站 → v4.0.0 4 站, 移除 score=87 (GDKVM) 旧值同步到 Round 3 P1+lockfile 修复后实际分.
   tags: [website, improve, multi-site, astro]
 version: "1.0.0"
@@ -32,17 +33,19 @@ last_updated: "2026-07-19"
 
 ### 启动声明 — Pre-flight Declaration (§L21, v4.0.2 立, v4.0.6 默认反转)
 
-> **强制**: 每次 website-improve run 启动时, claudecode **必**先输出 7 段 pre-flight declaration (audit trail). **v4.0.6 默认反转**: 输完 pre-flight 后, claudecode **直接进 Phase 1**, 不再等 user 回 OK (跟 v4.0.5 默认「等 OK」相反). Round 18 user 原话: "选 1 修改 skill 以后默认 1" = 默认行为 = 反转.
+> **强制**: 每次 website-improve run 启动时, claudecode **必**先输出 7 段 pre-flight declaration (audit trail). **v4.1.0 默认反转** (继承 v4.0.6 PR #6): 输完 pre-flight 后, claudecode **直接进 Phase 1**, 不再等 user 回 OK (跟 v4.0.5 默认「等 OK」相反). Round 18 user 原话: "选 1 修改 skill 以后默认 1" = 默认行为 = 反转.
 >
 > **可逆**: user 显式说 "恢复 pre-flight 等 OK" / "回到等待模式" / "stop 自决" → 反转回 v4.0.5 默认 (等 OK).
 >
 > **禁止**: 不输 pre-flight 就直接跑 = 违反 §L21 (audit trail 必留), 同违反 §L19 (4 站 CI 全绿硬规则).
+>
+> **PER 角色归属**: **Planner** 负责输出 7 段 pre-flight declaration 并生成 `plan.json`；**Executor** 启动时读取 `plan.json` 的 pre-flight 字段并执行后续阶段。
 
-**7 段模板** (claudecode 启动时复制 + 填充, 末尾明确"v4.0.6 默认 = 直接进 Phase 1", user 可显式 "等 OK" 反转回 v4.0.5 默认):
+**7 段模板** (claudecode 启动时复制 + 填充, 末尾明确"v4.1.0 默认 = 直接进 Phase 1", user 可显式 "等 OK" 反转回 v4.0.5 默认):
 
 ```
 ═══════════════════════════════════════════════════════════
-🚀 website-improve v4.0.6 启动 — Pre-flight Declaration (默认反转模式)
+🚀 website-improve v4.1.0 启动 — Pre-flight Declaration (默认反转模式)
 ═══════════════════════════════════════════════════════════
 
 📌 审计目标 (What I will audit):
@@ -90,7 +93,7 @@ last_updated: "2026-07-19"
       每次自决必追加 (auto-decide / must-ask / risk / reversible)
 
 ═══════════════════════════════════════════════════════════
-              预声明结束 — v4.0.6 默认 = 直接进 Phase 1 (反转模式)
+              预声明结束 — v4.1.0 默认 = 直接进 Phase 1 (反转模式)
               可反转: user 说"恢复 pre-flight 等 OK" / "回到等待模式" → 回 v4.0.5 默认
 ═══════════════════════════════════════════════════════════
 ```
@@ -160,6 +163,50 @@ last_updated: "2026-07-19"
 - `改进网站` / `优化网站` / `audit website`
 - `project page` / `项目页`
 - `create astro` / `deploy astro`
+
+---
+
+## PER Workflow（Plan → Execute → Verify）
+
+> 本 skill 统一采用 PER Workflow 框架。完整框架见 [`references/per-workflow-framework.md`](references/per-workflow-framework.md)。
+> 核心思想：把每次 website-improve run 拆成 **Plan → Execute → Verify** 三段，三段之间通过 JSON artifact 文件 handoff，禁止口头传话或共享 context window。
+
+### 角色映射
+
+| 角色 | 在 website-improve 中的职责 | 产出 artifact |
+|------|---------------------------|---------------|
+| **Planner** | 输出 7 段 pre-flight declaration + sub-mode 路由（A/B/C/D）+ 风险识别 + `plan.json` | `plan.json` / `plan.md` |
+| **Executor** | 按 plan 跑 audit、fix、smart-push；改 `package.json` 后重跑 `npm install` + build；写 `exec-log.json` | `exec-log.json` / `exec-log.md` |
+| **Verifier** | 读 plan + exec-log，验证 4 站 CI green、5 字段自检全过、live curl deployed-layer；输出 `verdict.json` | `verdict.json` / `verdict.md` |
+
+### 三段 handoff
+
+1. **Planner → Executor**：交付 `plan.json`，含 scope、acceptance criteria、risk list、sub-mode 路由。
+2. **Executor → Verifier**：交付 `exec-log.json`，含实际改动、命令输出、git commits、deferred/blockers。
+3. **Verifier → Executor（FAIL）**：指出具体 FAIL 项 + 复现证据，Executor **重做整轮**。
+4. **Verifier → User（PASS）**：附 5 字段自检表（path / commit / push / CI / owner）。
+
+### 反模式（永久失效）
+
+- ❌ 1 个 sub-agent 跑完 3 角色。
+- ❌ Executor 自己标 done。
+- ❌ Verifier FAIL 还强行 ship。
+- ❌ sub-agent 之间口头传话，不走 artifact。
+- ❌ Planner 直接改文件或跑命令。
+- ❌ Verifier 改文件替 Executor 修 bug。
+
+### L19-L26 角色归属速查
+
+| § | 规则 | 主责角色 |
+|---|------|---------|
+| §L19 | 4 站 CI 全绿硬规则 | Verifier |
+| §L20 | fix-validate-build（改 package.json 后 npm install + build） | Executor |
+| §L21 | pre-flight declaration + 默认反转 | Planner |
+| §L22 | ToolSearch 预加载基础 5 tool | Executor（orchestrator 端为各 sub-agent 执行） |
+| §L23 | Orchestrator Recovery SOP（subagent stall） | Executor/Planner（orchestrator 角色） |
+| §L24 | Stall Heartbeat Check（5min 检测） | Executor/Verifier（监控 sub-agent 存活） |
+| §L25 | Deployed-Layer curl 验证 | Verifier |
+| §L26 | "CI 全绿" 5 字段自检表 | Verifier |
 
 ---
 
@@ -326,6 +373,8 @@ src/pages/zh/paper/2606.18246/slide.astro:
 ### ⚠️ §L19 4-Site CI 全绿硬规则 (v4.0.1, 强制, 适用所有 sub-mode)
 
 > **Source**: user 2026-06-27 原话 "把这个四站全绿, 或者是你, 就是只要你提升网页的站, 都都要保持这个运行成功". CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 验证 v4.0.0 4 站 fan-out 可达 CI 全绿.
+>
+> **PER 角色归属**: **Verifier** 负责判定 4 站 CI 状态并输出 verdict；CI red 时 **Executor** 重做 fix 整轮；**Planner** 在 pre-flight 中将 §L19 列为验收标准。
 
 **硬规则 (Hard Rule)**: 任何 website-improve run (单 sub-mode 或 v4 sweep) 涉及 **4 active sites = mykcs.github.io / GDKVM / OSA / content2html** 中任一站 → **4 站 CI 必须全部 `conclusion: success` 才算 done**.
 
@@ -366,6 +415,8 @@ done
 ### ⚠️ §L20 Fix-Validate-Build 防 Lockfile 漂移 (v4.0.1, 强制, 适用 Phase 3 fix agent)
 
 > **Source**: CASE-MULTI-SITE-FULL-AUDIT-V4-20260627 — GDKVM fix agent 改 `package.json` exact pin (`^4.1.18` → `4.1.18`) 但**未跑 `npm install` 重生成 `package-lock.json`** → CI `npm ci` 拒绝 (lockfile 含 `tailwindcss@4.3.0` caret 解析, 与 package.json 4.1.18 exact pin 冲突) → CI red → 二次 commit `72294b3` 修复. 根因: fix agent 改 package.json 后口头报 "已 fix", 未跑 build verify.
+>
+> **PER 角色归属**: **Executor** 负责在改 `package.json` 后执行 `npm install` + `npm run build` 验证；**Verifier** 验收时检查 exec-log 中是否包含该验证命令输出。
 
 **硬规则 (Hard Rule)**: 任何 Phase 3 fix agent 修改 `package.json` 或 `package-lock.json` 后 → **必跑 `npm install` (重生成 lockfile) + `npm run build` (验证 build pass)** → 才算 commit 完成. 禁止口头报 "改完" 无 verify.
 
@@ -401,6 +452,8 @@ echo "exit=$?"  # 必须 0
 ### ⚠️ §L22 Subagent Tool Provisioning (v4.0.4, 治本 subagent stall)
 
 > **Source**: Round 10 (2026-06-27) 4 fix agents 全部 stalled on 6 retries × 180s each (`workflowProgress[].error = "stalled — no progress for 180000ms"`). 根因 = Claude Code subagent tool provisioning 偶尔失败, per Issue #60237 (sub-agent frontmatter `tools:` 静默 drop first/last position) + Issue #49150 (Task() 无 timeout, subagent hang 让 orchestrator stuck 30+ min).
+>
+> **PER 角色归属**: **Executor**（orchestrator 角色）在启动任何 sub-agent 前执行 Phase 0 ToolSearch，并验证 sub-agent tool count > 0。
 
 **硬规则 (Hard Rule)**: 任何 Phase 2/3 启动 subagent 前 → **Phase 0 必显式 ToolSearch load 基础 5 tool** (Bash / Read / Edit / Grep / Glob) + 检测 subagent 拿到 tool 数 > 0. 若 tool count = 0 → subagent 必 retry (with retry attempt counter, max 3).
 
@@ -427,6 +480,8 @@ ToolSearch(query="select:Bash,Read,Edit,Grep,Glob")
 ### ⚠️ §L23 Orchestrator Recovery SOP (v4.0.4, 治标 subagent stall)
 
 > **Source**: Round 10 (2026-06-27) 4 fix agents stalled, 但磁盘 work product 已存在 (gdkvm 35678df committed, osa 36fe9c4 committed, mysite/content2html edited 但未 commit). claudecode 接管 push 4 站全成功. 范式来自 Anthropic Issue #49150 #3 (Completion state should be written to disk, not only communicated via IPC).
+>
+> **PER 角色归属**: **Executor**（orchestrator 角色）在检测到 sub-agent stall 时执行 recovery SOP；**Verifier** 不介入 recovery，仅在最终验收时检查 recovery 是否留下未验证的 commit。
 
 **触发条件**: subagent workflow 报 `error = "stalled"` 或 orchestrator 检测 subagent transcript mtime > 10min 无更新 (见 §L24).
 
@@ -477,6 +532,8 @@ done
 ### ⚠️ §L24 Stall Heartbeat Check (v4.0.4, subagent 静默检测)
 
 > **Source**: Round 10 (2026-06-27) subagent stalled 总耗时 ~9h (5023s+ × N retries), 期间 orchestrator 无任何信号显示 subagent 静默. 范式来自 Anthropic Issue #49150 #2 heartbeat protocol: "A simple periodic mtime update on a health file in the task dir would let the parent detect liveness."
+>
+> **PER 角色归属**: **Executor**（orchestrator 角色）负责每 5 min 写 health marker 并检测 mtime；**Verifier** 在验收时可抽查 health file 存在性作为 orchestrator 监控证据。
 
 **硬规则**: orchestrator 启动 subagent 后, 每 5 min 跑 1 次 heartbeat check. 检测 subagent transcript mtime + last tool call.
 
@@ -518,6 +575,8 @@ fi
 > 2. **content2html**: `public/_headers` 文件 17 行 (X-Frame-Options / CSP / X-Content-Type-Options), 但 `curl -sI https://mykcs.github.io/content2html/` 返 HTTP 200, **无任何 security header** — GH Pages user/org site 不 serve `_headers` 文件 (仅 Project Pages 支持).
 >
 > 文件存在 ≠ deployed. 治本 = §A.5 sub-provision #2 deployed behavior check 必跑.
+>
+> **PER 角色归属**: **Verifier** 负责在 fix commit 后 curl live URL 并记录到 verdict；**Executor** 在 exec-log 中提供已修改 `public/` 文件列表供 Verifier 使用。
 
 **硬规则 (Hard Rule)**: 任何 Phase 3 fix commit 包含下列类型文件时, 必跑 deployed-layer verify (curl live URL) 才算 fix 完成:
 
@@ -559,6 +618,8 @@ done
 > **触发**: user 2026-06-29 原话 "把《CI 全绿》这个标准加入 skill 里面". "CI 全绿" 是 website-improve run 的最终验收标准 — 不只是 4 站 CI 状态, 是 5 字段自检表全过.
 >
 > **跟 §L19 区别**: §L19 是 "4 站 CI 必 success" (硬规则, 否决 done 声明); §L26 是 "CI 全绿 = 5 字段自检全过" (验收协议, 给完成报告模板). §L19 是门, §L26 是收尾.
+>
+> **PER 角色归属**: **Verifier** 负责在 run 末段执行 5 字段自检并输出 `verdict.json`；**Executor** 在 `exec-log.json` 中提供 path/commit/push/owner 证据。
 
 **验收标准** ("CI 全绿" 5 字段自检表, 任何 website-improve run 末段必跑):
 
@@ -628,14 +689,7 @@ done
 | **executor** | oh-my-claudecode:executor | Opus | git apply + smart-push.sh + decision-stream + 写 exec-log.json |
 | **verifier** | oh-my-claudecode:verifier | Opus | 4 站 CI curl + 5 字段自检 + PASS/FAIL verdict + reject → executor 重做 |
 
-**3 sub-agent 独立硬规则 (claudecode 必背)**:
-
-1. 3 sub-agent 互相**不共享 context window**（灵魂 v4 黑话: "3 个师傅互相看不到对方工作笔记"）
-2. handoff 唯一通道 = JSON artifact 文件（planner → plan.json → executor，executor → exec-log.json → verifier，verifier → verdict.json → executor 重做或 done）
-3. **verifier PASS 才算 done** — executor 不能自己标 done（per §A.6 升级）
-4. **verifier reject → executor 重做整轮**（user 2026-07-01 选 A 失败 1 次 reject 整轮）
-5. 3 sub-agent 各自跑 Phase 0 ToolSearch（§L22 保留）
-6. 任一 sub-agent stall → 触发 §L23 Orchestrator Recovery + §L24 Heartbeat Check（保留）
+> 通用 PER 规则（handoff / anti-patterns / 失败处理）见顶部 `## PER Workflow` 段落。本段只保留 website-improve 特有的角色分配与 JSON schema 示例。
 
 **JSON artifact schema 必跑**（per plan / exec-log / verdict 各自 schema）:
 
@@ -696,15 +750,11 @@ PATH=$HOME/.claude/scripts/website-improve/.venv/bin:$PATH \
 - IF verifier FAIL 2 次 → AskUserQuestion 拍板（no-stuck §C.3.6.1）
 - IF 3 role workflow 跟 PR #6 §L21 默认反转冲突 → 以 PR #6 为准（默认反转优先，PR #6 merged commit f702ba8）
 
-**反模式 (新立, v4.0.7)**:
+**反模式 (website-improve 特有, v4.0.7)**:
 
-- ❌ 1 个 sub-agent 自己跑完 3 角色工作（违反"独立"原则，user 原话 "subagent 的, 要分开"）
-- ❌ executor 自己标 done（绕过 verifier, 违反 §A.6 升级）
-- ❌ verifier FAIL 还强行 ship（违反 §L19 4 站 CI gate）
-- ❌ sub-agent 之间口头传话不走 JSON artifact（违反 handoff 硬规则）
-- ❌ 跳过 §L22 ToolSearch 让 sub-agent 0 tool uses（违反 §L22）
-- ❌ verifier FAIL → executor 不重做（违反 user 选 A 失败 1 次 reject 整轮）
-- ❌ plan.json / exec-log.json / verdict.json 写完不校验（fail-fast 缺失, jsonschema strict 校验立竿见影抓 case-sensitive bug）
+- ❌ 跳过 §L22 ToolSearch 让 sub-agent 0 tool uses
+- ❌ plan.json / exec-log.json / verdict.json 写完不校验（fail-fast 缺失）
+- 通用 PER 反模式（1 个 sub-agent 跑 3 角色 / executor 自标 done / verifier FAIL 仍 ship / 口头传话）见顶部 `## PER Workflow`。
 
 **联动**:
 

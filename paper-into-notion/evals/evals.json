@@ -1,0 +1,63 @@
+{
+  "skill": "paper-into-notion",
+  "version": "v4.6",
+  "evals": [
+    {
+      "name": "normal-arxiv-flow",
+      "description": "User gives an arXiv URL; expect full PER 3-stage workflow ending in Notion write.",
+      "prompt": "https://arxiv.org/abs/1706.03762",
+      "expected": {
+        "stages": ["plan", "execute", "verify"],
+        "plan_artifact": "plan.json with modal=arXiv and target Notion db/page",
+        "executor_actions": [
+          "modal-detect.sh → arXiv",
+          "arxiv-fetch.sh → title/authors/abstract",
+          "judge-5-fields → page/status/modal + highlights/keywords",
+          "ntn api POST/PATCH page"
+        ],
+        "verifier_checks": [
+          "5-field validation",
+          "Notion block layout check",
+          "patch recovery verify (GET page after PATCH)"
+        ],
+        "final_state": "PASS",
+        "done_declared_by": "verifier"
+      }
+    },
+    {
+      "name": "verifier-fail-retry",
+      "description": "Simulate 5-field validation FAIL; expect executor redo, not done.",
+      "prompt": "https://arxiv.org/abs/2607.13104 (simulate keyword objective FAIL: keywords not found in abstract)",
+      "expected": {
+        "first_verdict": "FAIL",
+        "fail_fields": ["keyword_objective"],
+        "executor_response": "redo full round (re-judge keywords from abstract)",
+        "final_state": "PASS after redo",
+        "done_declared_by": "verifier only"
+      }
+    },
+    {
+      "name": "role-isolation",
+      "description": "Planner must not call Notion API; executor must not self-declare done.",
+      "prompt": "paper 进 Notion https://arxiv.org/abs/1706.03762",
+      "expected": {
+        "planner_forbidden": [
+          "call ntn api",
+          "write Notion page",
+          "self-declare done"
+        ],
+        "executor_forbidden": [
+          "self-declare done",
+          "skip verifier",
+          "modify plan artifact"
+        ],
+        "verifier_forbidden": [
+          "edit Notion page",
+          "edit script",
+          "modify exec log"
+        ],
+        "handoff_artifacts": ["plan.json", "exec-log.json", "verdict.json"]
+      }
+    }
+  ]
+}

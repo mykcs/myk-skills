@@ -4,7 +4,7 @@ description: |
   本地主机 Claude Code 协调 + 自我进化 (v3.2.9 report-card 模板 + v3.2.8 memory-bench 必跑 + v3.2.7 默认继续跑 + v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 🔍 N-tool 协议位 audit 子任务, 4 路盘点 + 4 维 grep + §20 8 步管道修复) / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + **§v3.2.8 memory-bench 必跑段 (v3.2.8 新立, per ADR-0065, 50 题必跑不允许 PENDING 跳过, per §C.3.3 v2.6.56 强约束)** + **§v3.2.9 report-card 模板段 (v3.2.9 新立, per ADR-0066, 跑分报告 11 行总表标准化, 字段顺序 + 单位 + 加权方法 100% 一致)** + 三段 sub-agent (v2.6.59) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + **§v3.2.8 memory-bench 必跑段 (v3.2.8 新立, per ADR-0065, 50 题必跑不允许 PENDING 跳过, per §C.3.3 v2.6.56 强约束)** + **§v3.2.9 report-card 模板段 (v3.2.9 新立, per ADR-0066, 跑分报告 11 行总表标准化, 字段顺序 + 单位 + 加权方法 100% 一致)** + PER Workflow (plan/execute/verify, per references/per-workflow-framework.md) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
   sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3) / **🔍 N-tool 协议位 audit** (4 路盘点 + 4 维 grep + 命中 P0 走 §20 8 步管道修复, per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713).
@@ -24,17 +24,17 @@ when_to_use: |
   反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1) / ❌ 跑完汇报用 table markdown (per ADR-0051 v3.2.2 废弃) / ❌ 跑完汇报 > 80 行 (per ADR-0052 v3.2.3) 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
 license: MIT
 metadata:
-  version: "3.2.6"
+  version: "3.3.0"
   author: mykcs
   category: self-evolution
-  changelog: "v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
-  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline, v3.2.5, cwd-guard, adr-0059, deja-vu-fix]
+  changelog: "v3.3.0 (2026-07-19): PER Workflow 统一抽象；新增 PER Workflow 总览节；Layer 0-3/A 明确归属 Executor/Verifier。 v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
+  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline, v3.2.5, cwd-guard, adr-0059, deja-vu-fix, per-workflow, v3.3.0]
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
 ---
 
-# 主机自升级 Skill (host-self-evolve v3.2.5)
+# 主机自升级 Skill (host-self-evolve v3.3.0)
 
 ## 🔒 §cwd-guard 段 (v3.2.5 立, 2026-07-17, per ADR-0059 + §E Deja Vu Fix Protocol)
 
@@ -71,6 +71,44 @@ last_updated: "2026-07-19"
 
 **历史 record**:
 - 2026-07-17 v3.2.5: 立 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 + §E Deja Vu Fix Protocol 第 2 次触发 + 整数 slot 0059)
+
+---
+
+## 🔁 PER Workflow 总览 (v3.3.0 立, per references/per-workflow-framework.md)
+
+> **来源**: 本技能统一采用 `~/.agents/skills/website-improve/references/per-workflow-framework.md` 的 Plan → Execute → Verify (PER) 三段抽象。
+> **协议位**: host-self-evolve v3.3.0+ 把原先"三段 sub-agent (plan/execute/verify)"提升为**具名 PER Workflow**, 角色/产物/反模式全部对齐框架, 不另起炉灶。
+
+### PER 与 host-self-evolve 的映射
+
+| PER 角色 | 在 host-self-evolve 中负责 | 产出 artifact |
+|----------|---------------------------|---------------|
+| **Planner** | 输出 🎯 banner + 🌱 Phase 1 (Life/Setup) 段; 将 Layer 0-3 拆成可执行任务; 识别风险并决定 scope (默认全套 / 只跑 X) | `plan.json` / `plan.md` |
+| **Executor** | 跑 Layer 0 (5 commands gate) → Layer 1 (7 sub-tasks, 含 N-tool 协议位 audit) → Layer 2 (cleanup orphan) → Layer 3 (N-tool fan-out) | `exec-log.json` / `exec-log.md` |
+| **Verifier** | 跑 Layer A 5/6 字段自检 (path / cwd / commit / push / CI / owner) + memory-bench score gate + 4 站 CI gate; FAIL 则打回 Executor 重做 | `verdict.json` / `verdict.md` |
+
+### Layer → PER 归属
+
+| Layer | PER 归属 | 说明 |
+|-------|----------|------|
+| Phase 1 (Life/Setup) | **Planner 输出** | 跑前必输协议位, 属于 plan 阶段 |
+| Layer 0-3 | **Executor 任务** | 实际执行摸底/修复/进化 |
+| Layer A | **Verifier 任务** | 验收与自检, 与执行物理隔离 |
+
+### 核心反模式 (从 PER 框架引入, 永久失效)
+
+1. ❌ **1 个 sub-agent 跑完 3 角色**
+2. ❌ **Executor 自己标 done**
+3. ❌ **Verifier FAIL 还强行 ship**
+
+> 完整 6 条反模式见 `references/per-workflow-framework.md` §反模式。
+
+**联动**:
+- `references/per-workflow-framework.md` (SSOT)
+- v3.1.0 banner 段 / v3.2.0 Phase 1 段 (Planner 产出)
+- v3.2.1 default decision 段 (Planner scope/risk 决策, user-override, 不变)
+- Layer 0-3 详细协议 (Executor 执行范围)
+- v3.2.8 memory-bench 必跑段 + v3.2.9 report-card 模板段 (Verifier 验收项)
 
 ---
 
@@ -557,7 +595,7 @@ bash ~/.claude/scripts/check-n-tool-drift.sh /path/to/repo  # 扫指定仓
   - **Layer 1.0 N-tool 协议位 drift audit 全跑通** (4 维 grep + 命中 P0 走 §20 8 步管道修, 不允许 PENDING 跳过)
   - N-tool fan-out 抓 8+ 资源 internalize (per §I.4 8 步循环)
   - Layer A.4 5 字段自检表全过 (path / commit / push / CI / owner)
-  - 三段 sub-agent 协议位 (plan / execute / verify 物理隔离, per v2.6.59)
+  - PER Workflow 协议位 (plan / execute / verify 物理隔离, per references/per-workflow-framework.md)
   - 跑完必输出 ## ✅ 做了 (N 项) + ## ❌ 没做 (M 项) + ## 🔧 修了 (K 项) 3 段 (per v3.1.0 §✅ 执行后段)
   - ❌ 没做项 = 立即修, 不卸载给 user (per §✅ 修没做到 协议)
 
@@ -730,7 +768,7 @@ test -f ~/.agents/skills/host-self-evolve/references/force-all-search-protocol.m
   - 7 项体检全跑通 (含记忆题库 50 题, 不能跳过)
   - 上网查到 8 条以上资料并写进记忆
   - Layer A 5 项检查全过
-  - 用三段 sub-agent 跑 (计划 / 执行 / 验收 三个人独立)
+  - 用 PER Workflow 跑 (计划 / 执行 / 验收 三个人独立)
   - 跑完输出 ## ✅ 做了 + ## ❌ 没做 + ## 🔧 修了 三段
 
 ═══════════════════════════════════════
@@ -920,7 +958,7 @@ banner 结束 — 立即接 Phase 1 段
 - 跟 v3.1.0 banner UX (跑前) 协同: banner → §Phase 1 → Layer 0-3 顺序固定
 - 跟 v3.1.0 ✅ 执行后 3 段 detailed (跑后) 协同: §Phase 1 → Layer 0-3 → 3 段 detailed
 - 跟 v2.6.46 wall-clock 改名实测硬约束协同: Phase 1 段含 wall clock 字段必填实测值
-- 跟 v2.6.59 三段 sub-agent 协议位 (plan / execute / verify) 协同: Phase 1 跑前属于 plan 段
+- 跟 PER Workflow (plan / execute / verify) 协同: Phase 1 跑前属于 plan 段
 - 跟 ADR-0041 协同: 本段是 ADR-0041 §协议位架构图 的 SKILL.md 落地
 - 跟 shell-unify-checklist v1.1 §2 4 步 SOP 协同: Phase 1.1 主入口
 - 跟 memory-strategy.md v2 §F.4.4 协同: Phase 1.2 主入口
@@ -1006,7 +1044,7 @@ banner 结束 — 立即接 Phase 1 段
 **联动**:
 - 跟 v2.6.55 (做什么/修了什么, 短) 协同: v2.6.55 简化, v3.1.0 详 3 段
 - 跟 v2.6.57 (banner, 跑前) 协同: 跑前 banner + 跑后 3 段 = 完整 UX
-- 跟 v2.6.59 (三段 sub-agent) 协同: verify 段必跑 3 段 detailed 输出 (per §C.3.7)
+- 跟 PER Workflow 协同: verify 段必跑 3 段 detailed 输出 (per §C.3.7)
 - 跟 §C.3.6.1 (no-stuck) 协同: 修没做到失败 ≤ 3 次重试, 不循环
 - 跟 §C.5 (false completion) 协同: ❌ 没做 = 0 才是真 done
 - 跟 §H (Acceptance Protocol) 协同: 5 字段自检在 3 段后
