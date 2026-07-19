@@ -7,6 +7,10 @@ metadata:
   version: "1.0"
   author: mykcs
   category: research
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Loop Engineering Skill

@@ -42,6 +42,9 @@ metadata:
     - paper slide
     - 周报 slide
     - 进度报告
+version: "1.0.0"
+author: "mykcs"
+last_updated: "2026-07-19"
 ---
 
 # content2html Skill

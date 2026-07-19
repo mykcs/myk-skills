@@ -1,6 +1,10 @@
 ---
 name: sync-skill
 description: Maintain directory symlinks from ~/.claude/skills and ~/.mavis/skills to ~/.agents/skills (source of truth). Use when ~/.claude/skills is in the legacy per-skill symlink state, or to verify the symlinks are correctly set up after a fresh machine setup. Safe to invoke by agents in verify-only mode.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 <what-to-do>

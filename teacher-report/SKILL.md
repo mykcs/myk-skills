@@ -10,6 +10,10 @@ description: |
   Do NOT use for: batch processing many teachers (→ phd-scout Bitable), single paper deep-dive, lab summary.
 
   详见 CHANGELOG.md (v0.8.0 → v0.13.6 evolution).
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # Teacher Report

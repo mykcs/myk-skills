@@ -1,6 +1,10 @@
 ---
 name: devfleet
 description: Orchestrates parallel Claude Code agents via Claude DevFleet — plans projects from natural language, dispatches agents in isolated worktrees, monitors progress, and reads structured reports.
+version: "1.0.0"
+author: "mykcs"
+license: "MIT"
+last_updated: "2026-07-19"
 ---
 
 # devfleet
