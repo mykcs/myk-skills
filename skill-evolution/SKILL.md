@@ -98,6 +98,21 @@ cp "$SKILL_PATH" "${SKILL_PATH}.new"
 
 ### Step 5: 沙箱 A/B test
 
+> **🔥 硬约束 (v1.0.1 立, 2026-07-20)**: **Step 5 之前必 baseline spot-check** (per CASE-SKILL-EVOLUTION-VBUMP-DEFER-20260719 + ADR-0069). 否则浪费 ≥ 30 min 跑完整循环才发现 M'=M 持平.
+>
+> **基线 spot-check 协议** (≤ 5s):
+> ```bash
+> # 跑目标 skill 的 5 维评分 / validate-frontmatter.py 拿 baseline rate
+> python3 ~/.agents/skills/skill-creator/scripts/validate-frontmatter.py 2>/dev/null \
+>   || python3 /tmp/verify_skill_frontmatter.py
+> # baseline rate = N 完整 / N 总. 记录到 ~/.agents/skills/EVOLUTION_LOG.md
+> ```
+>
+> **判定**:
+> - baseline < 95% → v-bump 能 improve, 跑 8 步循环
+> - baseline = 100% → v-bump DEFER (M'=M 持平), 走 rejected/ 归档
+> - baseline 95-99% → grill user (AskUserQuestion), 是 critical fix 还是 minor?
+
 ```bash
 # 找 1 个 sandbox 站点（不能用主站破坏用户）
 SANDBOX=~/Repo/webs/arch/wangrui2025.github.io
