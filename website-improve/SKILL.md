@@ -77,7 +77,7 @@ last_updated: "2026-07-19"
 🎯 完成标准 (Definition of Done):
   ├─ 1. Sub-mode A+B+C+D sweep 全跑 (或按 user override 跳过)
   ├─ 2. P0/P1/P2 全修或显式 BLOCKED (无 silent defer, §C.2 零容忍)
-  ├─ 3. **§L19 4 站 CI 全绿** (`gh run list` × 4 全 success)
+  ├─ 3. **§L19 4 站 CI 全绿** (`gh api .../check-runs` × 4 全 success, /check-runs 优先 per process.md §H.1 + ADR-0070)
   ├─ 4. **§L20 fix-validate-build** (改 package.json 后 `npm install` + `npm run build`)
   ├─ 5. 5 commands verification (commit / push / CI / owner / case file)
   └─ 6. 报告输出前 deferred-detector exit 0
@@ -385,13 +385,16 @@ src/pages/zh/paper/2606.18246/slide.astro:
 
 **强制流程** (Phase 4 末段 + 任何 fix 之后):
 ```bash
-# 4 站 CI 5 commands verification (per site)
+# 4 站 CI 5 commands verification (per site, /check-runs 优先 per process.md §H.1 + ADR-0070)
 for owner_repo in "mykcs/mykcs.github.io" "wangrui2025/GDKVM" "wangrui2025/osa" "mykcs/content2html"; do
-  gh run list --repo "$owner_repo" --limit 1 --json conclusion,status,name,headSha
+  gh api "repos/$owner_repo/commits/HEAD/check-runs" \
+    | python3 -c "import json,sys; d=json.load(sys.stdin); [print(r['name'], r['conclusion'] or r['status']) for r in d.get('check_runs',[])]"
 done
 
-# 4/4 success → 输出 "✅ 4 站 CI 全绿", 写 case file + decision-stream
-# < 4 success → 输出 "❌ BLOCKED on <site> CI red", 走 fix 路径或 AskUserQuestion
+# 4/4 check-runs 全 conclusion=success → 输出 "✅ 4 站 CI 全绿", 写 case file + decision-stream
+# < 4 success → 输出 "❌ BLOCKED on <site> CI red/queued", 走 fix 路径或 AskUserQuestion
+# 注: gh run list 也可用 (拉 workflow run 视角), 但 /check-runs 直接拉 commit-级 check, 更接近"commit 通过 CI"语义
+# 反模式 (per CASE-WEBSITE-IMPROVE-4SITE-20260719 v2): ❌ 用 /status endpoint 返 pending + 空 statuses 误判 green
 ```
 
 **触发判断**:
@@ -409,7 +412,7 @@ done
 **反模式 (claudecode 历史反复踩)**:
 - ❌ 报 "完成" 但 1+ 站 CI red / pending → 违反 §C verification gate
 - ❌ "CI 大概会过" / "应该 OK" → 违反 §H acceptance protocol
-- ❌ 不跑 gh run list 直接声明 done → 违反 CLAUDE.local.md §5.2 5 commands verification
+- ❌ 不跑 `/check-runs` 直接声明 done → 违反 CLAUDE.local.md §5.2 5 commands verification + ADR-0070
 - ❌ "我只跑 X 站, 其他站不用管" → 违反 v4.0.0 default 4-site scope
 
 ### ⚠️ §L20 Fix-Validate-Build 防 Lockfile 漂移 (v4.0.1, 强制, 适用 Phase 3 fix agent)
@@ -515,9 +518,10 @@ for site in $SITES; do
   git push origin main 2>&1 | tail -5
 done
 
-# Step 3: CI verify (4 站 L19 硬规则)
+# Step 3: CI verify (4 站 L19 硬规则, /check-runs 优先 per ADR-0070)
 for owner_repo in "mykcs/mykcs.github.io" "wangrui2025/GDKVM" "wangrui2025/osa" "mykcs/content2html"; do
-  gh run list --repo "$owner_repo" --limit 1 --json conclusion,status,name,headSha
+  gh api "repos/$owner_repo/commits/HEAD/check-runs" \
+    | python3 -c "import json,sys; d=json.load(sys.stdin); [print(r['name'], r['conclusion'] or r['status']) for r in d.get('check_runs',[])]"
 done
 ```
 
@@ -628,14 +632,15 @@ done
 | 1 | **path** | 4 站文件绝对路径已输出 | `ls -d ~/Claude/Projects/webs/{mysite,gdkvm,osa,content2html}` |
 | 2 | **commit** | `git log -1` 4 站都有新 commit (or 显式标 "no fix needed" + 上次 commit hash) | `for s in mysite gdkvm osa content2html; do git -C ~/Claude/Projects/webs/$s log -1 --format='%h %s'; done` |
 | 3 | **push** | `git log @{u}..HEAD` 4 站全空 | `for s in mysite gdkvm osa content2html; do git -C ~/Claude/Projects/webs/$s rev-list --left-right --count @{u}...HEAD; done` |
-| 4 | **CI** | `gh run list` 4 站 conclusion=success | `for r in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/content2html; do gh run list --repo $r --limit 1 --json conclusion,headSha; done` |
+| 4 | **CI** | `gh api .../check-runs` 4 站全 conclusion=success | `for r in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/content2html; do gh api repos/$r/commits/HEAD/check-runs; done` |
 | 5 | **owner 隔离 + 验收证据** | 4 站 owner 正确 (mykcs/* vs wangrui2025/* 不交叉) + 1+ 行可执行命令证据 (build/test/curl/grep) | `git -C ~/Claude/Projects/webs/$s remote get-url origin` + live curl evidence |
 
-**4 站 CI 验证模板** (per §C.3.7 硬规则, 必跑):
+**4 站 CI 验证模板** (per §C.3.7 硬规则, 必跑, /check-runs 优先 per ADR-0070):
 ```bash
 echo "=== Round 15 example 4 站 CI 验证 ==="
 for owner_repo in "mykcs/mykcs.github.io" "wangrui2025/GDKVM" "wangrui2025/osa" "mykcs/content2html"; do
-  c=$(gh run list --repo "$owner_repo" --limit 1 --json conclusion,headSha,name --jq '.[0] | "\(.conclusion) | \(.headSha[:7]) | \(.name)"' 2>/dev/null)
+  c=$(gh api "repos/$owner_repo/commits/HEAD/check-runs" \
+      | python3 -c "import json,sys; d=json.load(sys.stdin); [print(r['name'], r['conclusion'] or r['status']) for r in d.get('check_runs',[])]" 2>/dev/null)
   echo "$owner_repo: $c"
 done
 # expected: 4 行全 "success | <sha> | <workflow>"
@@ -819,8 +824,9 @@ PATH=$HOME/.claude/scripts/website-improve/.venv/bin:$PATH \
 7. **CSS 跨浏览器验证**：涉及 grid/flex/图片尺寸时，必须双端验证（Chromium + WebKit）
 8. **视觉布局协议**：修改前 FULL_AUDIT → 变更批处理 → 修改后重新 FULL_AUDIT → 零溢出才报告 done
 9. **CI 门禁**：push 后必须检查 GitHub Actions 状态。run fail → 修复 → 重新 push → 确认 `conclusion: success`
-   - 检查：`gh run list --repo=<owner>/<repo> --limit=1 --json conclusion,status,headSha`
-   - 诊断：`gh run view <run-id> --log-failed`
+   - **主检查**：`gh api repos/<owner>/<repo>/commits/HEAD/check-runs` （/check-runs 优先, per ADR-0070, 30 天内第 2 次同源 /status 假阳性触发 record-case §9 升级硬约束）
+   - **辅助**：`gh run list --repo=<owner>/<repo> --limit=1 --json conclusion,status,headSha` (workflow run 视角, 仅排查用, 不替代 /check-runs)
+   - **诊断**：`gh run view <run-id> --log-failed`
    - **§L19 4 站全绿硬规则 (v4.0.1)**: 4 active sites (mykcs/GDKVM/OSA/content2html) 任一站 CI red → 禁止声明 done, 必走 BLOCKED + fix 路径. 详见 §L19.
    - **§L20 Fix-Validate-Build (v4.0.1)**: 改 `package.json` 后必跑 `npm install` 重 lockfile + `npm run build` 验证. 详见 §L20.
    - **§L21 Pre-flight Declaration (v4.0.2)**: 每次 run 启动时必输 7 段 pre-flight declaration, 等用户回 OK 才进 Phase 1. 详见 §L21.
