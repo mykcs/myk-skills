@@ -110,8 +110,8 @@
         "~/.claude/memory/MEMORY.md",
         "~/.claude/memory/MEMORY-cases-active.md"
       ],
-      "grep_pattern": "soul-v6",
-      "description": "MEMORY.md + MEMORY-cases-active.md 都引用灵魂 v6"
+      "grep_pattern": "灵魂 v6",
+      "description": "MEMORY.md + MEMORY-cases-active.md 都引用灵魂 v6 (2026-07-19 修: pattern soul-v6 → 灵魂 v6, 对齐仓内实际字眼)"
     },
     {
       "id": "C13",

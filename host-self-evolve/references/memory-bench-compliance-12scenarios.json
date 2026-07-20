@@ -36,8 +36,8 @@
     },
     {
       "id": "L06",
-      "command": "ls ~/.claude/docs/adr/006*-*.md 2>/dev/null | wc -l | grep -qE '^[6-9][0-9]?$' && echo OK",
-      "description": "ADR 编号 ≥ 60 (反映协议位沉淀数量)",
+      "command": "ls ~/.claude/docs/adr/ | sed -nE 's/^([0-9]{4}).*/\\1/p' | sort -n | tail -1 | awk '{exit !($1+0>=60)}' && echo OK",
+      "description": "ADR 编号 ≥ 60 (反映协议位沉淀数量) (2026-07-19 修: wc -l 前导空格致 grep 锚定失败, 加 tr -d) (2026-07-20 再修: 006x 文件数随 ADR 增长突破个位数, 改为直接判定最大编号 >= 60, 语义对齐描述)",
       "expected_in_output": "OK"
     },
     {
