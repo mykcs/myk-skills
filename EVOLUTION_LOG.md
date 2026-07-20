@@ -124,3 +124,5 @@ python3 normalize_v0.3.0.py --doc <DOC_TOKEN>             # append to doc
 | `devfleet/SKILL.md` | +新增 §Self-Heal on CI Failure (5-step 协议 + 硬规则 + 反模式) + §Shared State via /tmp/fleet-state.json (POSIX atomic mv + flock 协议 + 硬规则) |
 | `skill-evolution/SKILL.md` | +新增 §Statistical Significance Guardrail (Wilcoxon 3-run + n=3 caveat + sign-test fallback) + §User Confirm Step (AskUserQuestion ONCE top-3 + label 字面量避 deferred-detector) |
 | `EVOLUTION_LOG.md` | 本条目 |
+
+2026-07-19 | skill-creator | v1.0 → v1.1 (DEFERRED) | M=100%, M'=100% (持平) | user-confirm A: 等 baseline 退步或新 skill 创建 ≥ 5 时启用 (per CASE-SKILL-EVOLUTION-VBUMP-DEFER-20260719)
