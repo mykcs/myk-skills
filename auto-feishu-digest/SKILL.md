@@ -200,6 +200,6 @@ last_updated: "2026-07-19"
 ## 🔗 相关
 
 - `~/.agents/skills/loop-engineering/` (本 skill 字段源头, paper-note-v2.1 §3 7 维评分模板)
-- `~/.claude/rules/process.md §F Force-All-Search Protocol` (5-tool fan-out 复用)
+- `~/.claude/rules/protocols/N-tool-search.md` (N-tool fan-out 复用, N 当前 = 6 含 mmx; 旧名 Force-All-Search/5-tool, per ADR-0056/0062)
 - `~/.claude/rules/process.md §H Acceptance Protocol` (5 字段自检表)
 - weiying20260624 飞书表格调研 (claudecode sub-agent, 2026-07-02)

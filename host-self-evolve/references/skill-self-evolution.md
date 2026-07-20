@@ -4,6 +4,8 @@
 > **范围**: 仅 rich-audit skill (不连带其他 skill, 除非 user 显式要求).
 > **完整 SOP**: §F.1 失败案例自审 + §F.2 反模式沉淀 + §F.3 changelog 更新 + §F.4 ADR 落地 + §F.5 实战命令模板 + §F.6 反模式 + §F.7 流程图
 
+> **历史标 (2026-07-19 host-self-evolve P1 cleanup)**: 本文 §F.2 等处 "5-tool" / "Force-All-Search" 字面无 SSOT pointer 的段落是 v2.6.x 时期历史协议描述, 保留作演进证据; 当前实际执行走 N-tool fan-out (N 当前 = 6 含 mmx), SSOT = `~/.claude/rules/protocols/N-tool-search.md` v1.1+ (per ADR-0056/0062).
+
 ## 为什么需要本 Layer (背景)
 
 rich-audit 是"自我进化系统":
