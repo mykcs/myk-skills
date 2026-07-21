@@ -1,27 +1,16 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.2.9 report-card 模板 + v3.2.8 memory-bench 必跑 + v3.2.7 默认继续跑 + v3.2.6 遗留 dirty 收口 default + v3.2.5 cwd-guard 硬约束 + v3.2.3 汇报极简化 + v3.2.1 default decision + Phase 1 阶段化): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
-  5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit (含 🔍 N-tool 协议位 audit 子任务, 4 路盘点 + 4 维 grep + §20 8 步管道修复) / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
+  本地主机 Claude Code 协调 + 自我进化 (v3.3.1 cross-reference + v3.3.0 PER Workflow): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: 跑前 **§cwd-guard 硬规则 (v3.2.5 新立, per ADR-0059)** + banner + §Phase 1 Life/Setup 段 (4 子模块 1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化, per ADR-0041) + §v3.2.1 default decision 段 (per ADR-0050) + §v3.2.3 汇报极简化段 (per ADR-0052, 跑完汇报 ≤ §Phase 1 段同长度, 完全模仿 user 给的格式) + **§v3.2.8 memory-bench 必跑段 (v3.2.8 新立, per ADR-0065, 50 题必跑不允许 PENDING 跳过, per §C.3.3 v2.6.56 强约束)** + **§v3.2.9 report-card 模板段 (v3.2.9 新立, per ADR-0066, 跑分报告 11 行总表标准化, 字段顺序 + 单位 + 加权方法 100% 一致)** + PER Workflow (plan/execute/verify, per references/per-workflow-framework.md) + 实测 wall-clock. 详见 [N-tool-search SSOT §1](~/.claude/rules/protocols/N-tool-search.md) + [changelog](references/changelog.md).
+  必跑: §cwd-guard (v3.2.5/ADR-0059) + banner + §Phase 1 (ADR-0041) + §memory-bench 50 题 (ADR-0065) + PER Workflow (v2.6.59/§C.3.7) + 实测 wall-clock.
+  🆕 v3.3.1 cross-reference 5 维 (per ADR-0078): CSS → [CLAUDE.local.md §6.1](~/.claude/CLAUDE.local.md) | smart-push → [MEMORY.md §7](~/.claude/memory/MEMORY.md) | calm-flow → [soul.md §3](~/.claude/rules/soul.md) | N-tool → [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) | auto-commit → [ADR-0063](~/.claude/docs/adr/0063-claudecode-auto-commit-policy.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
-  sub-task 触发: frontmatter audit (15 fields / 1,536 cap) / shell unified check / memory-bench 50 题 (per §C.3.3) / **🔍 N-tool 协议位 audit** (4 路盘点 + 4 维 grep + 命中 P0 走 §20 8 步管道修复, per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713).
-  范围: ~/.claude/ + ~/.agents/skills/ 双仓.
-  不适用: 单文件 typo / 文档微调 / 非 ~/.claude/ 项目 (用 website-improve).
-  🆕 v3.2.3 汇报极简化 (per ADR-0052 user-override):
-    - 跑完汇报长度 ≤ §Phase 1 段 (~80 行)
-    - 严格 1:1 复刻: 目的 + N 件事 (一句话 + 现状 + 干什么 + 验收) + 整体验收 (5 项)
-    - 删 v3.2.2 扩展: BLOCKED 段 / ⏱️ 段 / 任务后建议段 / 自检 emoji
-  🆕 v3.2.1 default decision (per ADR-0050 user-override):
-    - Run 范围: 默认全套 (Phase 1.1 → 1.4), user 显式说"只跑 X" 才拆 sub-task
-    - 执行模式: 默认三段串行 (plan/execute/verify 物理隔离, per v2.6.59 + §C.3.7)
-    - AskUserQuestion 触发白名单 (以下才问): 不可逆操作 / framework config 改字段 / user 偏好变更 / user 显式说"立刻决策"
-  🆕 v3.2.2 汇报格式 (per ADR-0051 user-override):
-    - 跑完汇报必走 §Phase 1 段同款大白话 (现状 + 干什么 + 验收, 不用 table markdown)
-    - 整体验收段必填 5 项 (path / commit / push / CI / owner)
-  反模式: ❌ 标 PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock (per CASE-HOST-SELF-EVOLVE-V2-7-0) / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑前 banner 后缺 §Phase 1 段 (per ADR-0041 v3.2.0) / ❌ 跑完不写 ## ✅/## ❌/## 🔧 3 段 / ❌ 跑 host-self-evolve 还问"Run 范围"/"执行模式" (per ADR-0050 v3.2.1) / ❌ 跑完汇报用 table markdown (per ADR-0051 v3.2.2 废弃) / ❌ 跑完汇报 > 80 行 (per ADR-0052 v3.2.3) 完整见 [skill-authoring-best-practices.md](references/skill-authoring-best-practices.md).
+  sub-task 触发: frontmatter audit / shell unified check / memory-bench 50 题 / N-tool 协议位 audit (per ADR-0056). 详见 references/per-workflow-framework.md.
+  范围: ~/.claude/ + ~/.agents/skills/ 双仓. 不适用: 单文件 typo / 文档微调.
+  反模式: ❌ PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ✅/❌/🔧 3 段 / ❌ 跑完汇报 > 80 行 / ❌ 跨域规则不引 SSOT (v3.3.1). 历史 → [archive](references/changelog-v3-2-1-3-archive.md).
 license: MIT
 metadata:
   version: "3.3.0"
