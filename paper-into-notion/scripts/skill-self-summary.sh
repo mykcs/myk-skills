@@ -222,6 +222,11 @@ fi
 # ===== 5. decision-stream append (per calm-flow §4, session id 3 步 fallback) =====
 DECISION_STREAM_DIR="$HOME/.claude/decision-stream"
 DECISION_STREAM_FILE="$DECISION_STREAM_DIR/${SESSION_ID}.md"
+# Dedup check (per ADR-0068-c): 若 SESSION_ID 已含 .md 后缀 (e.g. 来自 date fallback 错配 / 老路径复用), 去一个避免 .md.md 双后缀 silent loss
+if [[ "$DECISION_STREAM_FILE" == *.md.md ]]; then
+  DECISION_STREAM_FILE="${DECISION_STREAM_FILE%.md}"
+  echo "[decision-stream-append] WARN: .md.md detected, dedup to ${DECISION_STREAM_FILE}" >&2
+fi
 mkdir -p "$DECISION_STREAM_DIR" 2>/dev/null || true
 if [ ! -f "$DECISION_STREAM_FILE" ]; then
   touch "$DECISION_STREAM_FILE"
