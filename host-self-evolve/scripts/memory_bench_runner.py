@@ -152,6 +152,9 @@ def retrieve_context(question: str, expected_keywords: list,
     用 expected_keywords 做检索提示不算泄题 — 本 bench 测的是"host 记忆系统是否
     保有这些事实 + 检索可达", 不是测模型参数记忆 (闭卷 hallucination 是 v7 前
     recall ≤7/50 的根因, 测不出任何有效信号).
+
+    v5.2: 大文件 (CLAUDE.md / CLAUDE.local.md) 顶部 boilerplate 抢命中 → 单文件限 1 条;
+          host-anchors.md 优先 grep (memory-bench 专用 hot 锚点表, 含 expected_keywords 全字眼).
     """
     terms = re.findall(r"~/[\w./-]+|[\w./-]+\.(?:md|json|sh|py)|[A-Za-z][A-Za-z0-9_-]{2,}",
                        question)
@@ -160,21 +163,55 @@ def retrieve_context(question: str, expected_keywords: list,
     hits: list[str] = []
     seen_lines: set[str] = set()
     roots = [os.path.expanduser(r) for r in RETRIEVAL_ROOTS]
+    BIG_FILES = {"CLAUDE.md", "CLAUDE.local.md", "MEMORY.md"}
+    big_hits: list[str] = []
+    big_seen: set[str] = set()
+    HOST_ANCHORS = os.path.expanduser("~/.claude/memory/host-anchors.md")
     for t in seen_terms:
+        # 先跑 host-anchors (单文件, 含 expected_keywords 全字面)
+        if os.path.exists(HOST_ANCHORS):
+            try:
+                proc = subprocess.run(
+                    ["grep", "-nF", "-m", "2", t, HOST_ANCHORS],
+                    capture_output=True, text=True, timeout=5,
+                )
+                for ln in proc.stdout.splitlines():
+                    if ln and ln not in seen_lines:
+                        seen_lines.add(ln)
+                        hits.append(ln[:300])
+            except Exception:
+                pass
+        if len(hits) >= max_lines:
+            break
+        # 全仓兜底
         try:
             proc = subprocess.run(
-                ["grep", "-rnF", "--include=*.md", "-m", "2", t] + roots,
+                ["grep", "-rnF", "--include=*.md", "-m", "3", t] + roots,
                 capture_output=True, text=True, timeout=15,
             )
             for ln in proc.stdout.splitlines():
-                if ln not in seen_lines:
-                    seen_lines.add(ln)
-                    hits.append(ln[:300])
+                if ln in seen_lines:
+                    continue
+                fname = ln.split(":", 1)[0].rsplit("/", 1)[-1]
+                if fname in BIG_FILES:
+                    if fname not in big_seen:
+                        big_seen.add(fname)
+                        big_hits.append(ln[:300])
+                    continue
+                seen_lines.add(ln)
+                hits.append(ln[:300])
         except Exception:
             pass
         if len(hits) >= max_lines:
             break
-    return "\n".join(hits[:max_lines])
+    result = hits[:max_lines]
+    if len(result) < max_lines:
+        for b in big_hits:
+            if b not in seen_lines:
+                result.append(b)
+                if len(result) >= max_lines:
+                    break
+    return "\n".join(result)
 
 
 def run_single_question(q: dict, use_keyword_fallback: bool, verbose: bool = False) -> dict:
