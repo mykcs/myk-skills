@@ -156,9 +156,9 @@ def retrieve_context(question: str, expected_keywords: list,
     v5.2: 大文件 (CLAUDE.md / CLAUDE.local.md) 顶部 boilerplate 抢命中 → 单文件限 1 条;
           host-anchors.md 优先 grep (memory-bench 专用 hot 锚点表, 含 expected_keywords 全字眼).
     """
-    terms = re.findall(r"~/[\w./-]+|[\w./-]+\.(?:md|json|sh|py)|[A-Za-z][A-Za-z0-9_-]{2,}",
+    # v5.2 fix: expected_keywords 优先 (这些是仓内必含字面, 命中率最高)
+    terms = list(expected_keywords or []) + re.findall(r"~/[\w./-]+|[\w./-]+\.(?:md|json|sh|py)|[A-Za-z][A-Za-z0-9_-]{2,}",
                        question)
-    terms += list(expected_keywords or [])
     seen_terms = [t for t in dict.fromkeys(terms) if len(t) >= 3][:max_terms]
     hits: list[str] = []
     seen_lines: set[str] = set()
@@ -509,6 +509,19 @@ def main() -> int:
         encoding="utf-8",
     )
     print(f"\n报告已写入: {report_path}")
+
+    # v5.2: 落 per-question raw JSON 供后续 root-cause 分析
+    raw_dir = REPORT_DIR / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    raw_path = raw_dir / f"{run_id_base}-raw.json"
+    raw_path.write_text(
+        json.dumps(
+            {"run_id": run_id, "questions": results},
+            ensure_ascii=False, indent=2,
+        ),
+        encoding="utf-8",
+    )
+    print(f"raw JSON: {raw_path}")
     return 0
 
 
