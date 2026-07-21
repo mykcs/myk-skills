@@ -334,6 +334,16 @@ def compute_recall_total(results: list[dict]) -> float:
     return sum(r["score"] for r in results)
 
 
+def normalize_weighted(raw: float) -> float:
+    """per ADR-0068-b: linear 0-2.0 → 0-100.
+
+    raw weighted_score 范围 [0, 2.0], raw=0.76 → normalized=38.0; raw=1.00 (50% 全对) → 50.0.
+    commit message 跟 report 双字段同算, 防字面漂移 (per v5.1 commit "0.78" 跟 v1 报告 "0.76"
+    字面漂移根因).
+    """
+    return raw / 2.0 * 100
+
+
 def next_report_version() -> str:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -357,6 +367,8 @@ def build_report_card(run_id: str, timestamp: str, n: int, recall_total: float,
     model = "sonnet 4.6"
     judge = f"{judge_mode} (opus-as-judge v4.5)"
     deviation_str = f"{deviation_pct:.1%}" if deviation_pct is not None else "N/A"
+    raw_score = weighted_score
+    normalized_weighted = normalize_weighted(weighted_score)
     return f"""# memory-bench report-card — {run_id}
 
 | # | 字段 | 值 |
@@ -370,8 +382,9 @@ def build_report_card(run_id: str, timestamp: str, n: int, recall_total: float,
 | 7 | recall_total | {recall_total:.1f}/{n} |
 | 8 | consistency_total | {consistency_total}/15 |
 | 9 | compliance_total | {compliance_total}/12 |
-| 10 | weighted_score | {weighted_score:.2f} |
-| 11 | target_met | {'✅ ≥ 60' if target_met else '❌ < 60'} |
+| 10 | raw_score | {raw_score:.2f} (range 0-2.0) |
+| 11 | normalized_weighted | {normalized_weighted:.1f} (range 0-100, per ADR-0068-b linear) |
+| 12 | target_met | {'✅ ≥ 60 (normalized)' if target_met else '❌ < 60 (normalized)'} |
 
 ## Baseline Compare (per ADR-0067 §4 #2)
 
