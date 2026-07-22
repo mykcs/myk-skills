@@ -1,0 +1,105 @@
+{
+  "run_id": "memory-bench-2026-07-22-v1",
+  "questions": [
+    {
+      "id": "Q001",
+      "question": "~/.claude/skills/ 这个路径的物理性质是什么？它指向哪里？",
+      "answer": "**物理性质**：directory symlink（目录符号链接）\n\n**指向**：`~/.agents/skills/`（即 `mykcs/myk-skills` 的 git clone 仓库）",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 821,
+      "output_tokens": 224,
+      "prompt_chars": 2429
+    },
+    {
+      "id": "Q002",
+      "question": "skills 单一来源（source of truth）在哪里？git remote 是什么？",
+      "answer": "**位置**：`~/.agents/skills/`\n\n**git remote**：`mykcs/myk-skills`\n\n（`~/.claude/skills/` 和 `~/.mavis/skills/` 均为指向该目录的 symlink）",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 849,
+      "output_tokens": 160,
+      "prompt_chars": 2459
+    },
+    {
+      "id": "Q003",
+      "question": "用户的 GitHub 账号有几个？各自负责什么仓库？",
+      "answer": "根据上下文，用户有 **2 个 GitHub 账号**：\n\n1. **mykcs** — 负责主站 `mykcs.github.io`、`myk-skills` 及相关仓库\n2. **wangrui2025** — 负责 `papers` 仓库及 `GDKVM` 仓库（仓 owner 必须为 wangrui2025）\n\n双账号隔离铁律：`wangrui2025/*` 推送到 wangrui2025...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 850,
+      "output_tokens": 369,
+      "prompt_chars": 2207
+    },
+    {
+      "id": "Q005",
+      "question": "用户提了 bug 修复任务，claudecode 应该问还是直接做？为什么？",
+      "answer": "**直接做**，不问。\n\n根据仓库规则：\n\n1. `CASE-COMMIT-PR-DEFAULT-NOTION-FEISHU-STRICT-20260713.md` 明确记录：\"bug 修复类**直接做**，改 config/字段先问\"\n2. `process-section-C.7-cascade-kill.md` 确认：\"bug fix 类 kill 是**直接做**\"\n\n**原因**：bug...",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 959,
+      "output_tokens": 294,
+      "prompt_chars": 2409
+    },
+    {
+      "id": "Q006",
+      "question": "改 framework config 字段时，claudecode 应该问还是直接做？",
+      "answer": "根据 `~/.claude/memory/user.md §边界`：\n\n**改 framework config 字段属于「容易引起歧义」的任务**，应走 `universal.md §D` scope discipline，即**先列建议清单，等用户决定**，不能直接做。\n\n理由：config 改动可能导致行为变化或兼容性问题，用户决策权应保留。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 810,
+      "output_tokens": 223,
+      "prompt_chars": 2250
+    },
+    {
+      "id": "Q007",
+      "question": "claudecode 写反向提问句时，必须以什么词开头？",
+      "answer": "反向提问必须以「**用户 / claudecode**」开头（具名固定字符串），禁用「你/您/请问你/你看」。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 815,
+      "output_tokens": 180,
+      "prompt_chars": 1966
+    },
+    {
+      "id": "Q004",
+      "question": "用户 2026 年申请什么学校的 PhD？导师是谁？",
+      "answer": "用户正在申请 **浙江大学（ZJU）** PhD（2027 入学），目标导师是 **Ying Wei（魏颖）**，隶属于 CompLife Lab。",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 979,
+      "output_tokens": 154,
+      "prompt_chars": 2412
+    },
+    {
+      "id": "Q009",
+      "question": "跨 3+ 文件修改前，claudecode 应该跑什么协议？",
+      "answer": "**Repo Confirmation Protocol（仓库确认协议）**\n\n跨 3+ 文件修改前，必须运行：\n\n1. `git remote -v` 三次确认 owner\n2. `cd <path> && git status`\n\n（来源：`process.md §A.1`）",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 693,
+      "output_tokens": 151,
+      "prompt_chars": 1985
+    },
+    {
+      "id": "Q010",
+      "question": "改 CSS 后给用户的强制提示是什么？",
+      "answer": "**改 CSS 后给用户的强制提示**：执行硬刷新 — `Cmd+Shift+R` (macOS) / `Ctrl+Shift+R` (Windows/Linux)；并建议在浏览器 DevTools 中关闭 CSS 缓存。\n\n来源：`tooling.md §A.4 CSS Hard Refresh`。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 851,
+      "output_tokens": 150,
+      "prompt_chars": 2230
+    },
+    {
+      "id": "Q008",
+      "question": "灵魂 v3 要求 claudecode 解释技术时应该怎么做？",
+      "answer": "根据 `soul.md §2.1` 及相关记忆：\n\n**技术解释时：**\n\n1. **首次出现的专业术语** → 立即用大白话翻译\n2. **周边保留专业词** → 除非首次出现，否则不强制全部翻译\n3. **给选择时** → A vs B + 推荐 + 1 句理由\n4. **结尾** → 明确\"请回 X\"",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 958,
+      "output_tokens": 310,
+      "prompt_chars": 2169
+    }
+  ]
+}
