@@ -171,8 +171,10 @@ def retrieve_context(question: str, expected_keywords: list,
         # 先跑 host-anchors (单文件, 含 expected_keywords 全字面)
         if os.path.exists(HOST_ANCHORS):
             try:
+                # Bug v10 fix: 加 `--` end-of-options 分隔符, 防止 keyword 以 `--` 开头
+                # (e.g. `--print-`, `--screen-`, `--theme-`) 被 grep 当成 long option.
                 proc = subprocess.run(
-                    ["grep", "-nF", "-m", "2", t, HOST_ANCHORS],
+                    ["grep", "-nF", "-m", "2", "--", t, HOST_ANCHORS],
                     capture_output=True, text=True, timeout=5,
                 )
                 for ln in proc.stdout.splitlines():
@@ -185,8 +187,9 @@ def retrieve_context(question: str, expected_keywords: list,
             break
         # 全仓兜底
         try:
+            # Bug v10 fix: 加 `--` end-of-options 分隔符, 防 `--` keyword 被 grep 当 long option.
             proc = subprocess.run(
-                ["grep", "-rnF", "--include=*.md", "-m", "3", t] + roots,
+                ["grep", "-rnF", "--include=*.md", "-m", "3", "--", t] + roots,
                 capture_output=True, text=True, timeout=15,
             )
             for ln in proc.stdout.splitlines():
