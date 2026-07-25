@@ -61,10 +61,10 @@ bash ~/.omc/hooks/post-pr-merge-ff-verify.sh <repo_path>
 - 跑 5 字段自检 (path/commit/push/CI/owner) + 第 6 字段 FF status (per v2.6.60 §C.3.7)
 - decision-stream 流追加 (per calm-flow §4)
 
-## 3. hook 实现 (`~/.omc/hooks/post-pr-merge-ff-verify.sh` v3.0)
+## 3. hook 实现 (`~/.omc/hooks/post-pr-merge-ff-verify.sh` v2.0)
 
-> **位置**: `~/.omc/hooks/post-pr-merge-ff-verify.sh` (30+ lines bash, 2026-07-02 立, v2.0/v3.0 协议位迁移)
-> **⚠️ v3.0 重生 (2026-07-26)**: v1.0/v2.0 源码在 git/worktree 皆失踪 (per CASE-FF-VERIFY-SCRIPT-LOST-20260726), v3.0 最小实现现场重建 (4 维自检 + exit 0/1/2, 1162B, 模拟跑通 exit 0). v2.0 upgrade ADR 标 ADR-0073 实为 session-file-manifest-6th-field, 标注有误待下次 lib 清理
+> **位置**: `~/.omc/hooks/post-pr-merge-ff-verify.sh` (148 lines bash, v2.0 完整 source)
+> **⚠️ v2.0 真相 (2026-07-26 立 CASE 修正)**: v2.0 完整 source 在 `~/.omc/` 独立 git 仓库活着 (commit 7cec24a, 2026-07-21, `feat(hooks): post-pr-merge-ff-verify.sh v2.0 + reset-helper.sh v1.0`). CASE-FF-VERIFY-SCRIPT-LOST-20260726 误判为失踪, 实为 v2.0 没 checkout 到 .omc/hooks/ working tree. v3.0 缩水版已撤回, v2.0 完整 source (148 行, 4 维自检 + 3 选 1 diverged 恢复 + 5 IF...THEN 决策矩阵 + 4 反模式) 重新挂载
 > **退出码**: 0 = in sync / 1 = 落后需 ff / 2 = diverged
 > **触发机制**: 通过 `~/.claude/settings.json` 的 `hooks.PostToolUse[matcher="Bash"]` inline 过滤 `gh pr merge` 子串, 命中后 background 跑本脚本 (per §3.2)
 
@@ -76,7 +76,7 @@ bash ~/.omc/hooks/post-pr-merge-ff-verify.sh <repo_path>
 
 ## 3.2 挂载 (settings.json PostToolUse[Bash] inline, 2026-07-25 迁移)
 
-> **⚠️ 历史**: v1.0 (2026-07-02) 用 `hooks.PostPRMerge`, 2026-07-16 启动日志报 `Unknown hook event "PostPRMerge" was ignored` → 整段静默失效 (per CASE-HOOK-EVENT-NAME-20260716). v3 (2026-07-25) 迁移到 PostToolUse + Bash matcher. v3.0 (2026-07-26) 脚本实现重生 (per §3 重生注).
+> **⚠️ 历史**: v1.0 (2026-07-02) 用 `hooks.PostPRMerge`, 2026-07-16 启动日志报 `Unknown hook event "PostPRMerge" was ignored` → 整段静默失效 (per CASE-HOOK-EVENT-NAME-20260716). v3 (2026-07-25) 迁移到 PostToolUse + Bash matcher. v2.0 脚本 (2026-07-21 commit 7cec24a) 完整存活在 .omc 独立 git 仓, working tree 未 checkout 历史误判为失踪.
 
 ```json
 {
