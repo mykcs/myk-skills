@@ -4,7 +4,7 @@ description: |
   本地主机 Claude Code 协调 + 自我进化 (v3.3.1 cross-reference + v3.3.0 PER Workflow): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: §cwd-guard (v3.2.5/ADR-0059) + banner + §Phase 1 (ADR-0041) + §memory-bench 50 题 (ADR-0065) + PER Workflow (v2.6.59/§C.3.7) + 实测 wall-clock.
+  必跑: §cwd-guard (v3.2.5/ADR-0059) + §doctor-check (v3.3.4) + banner + §Phase 1 (ADR-0041) + §memory-bench 50 题 (ADR-0065) + PER Workflow (v2.6.59/§C.3.7) + 实测 wall-clock.
   🆕 v3.3.1 cross-reference 5 维 (per ADR-0078): CSS → [CLAUDE.local.md §6.1](~/.claude/CLAUDE.local.md) | smart-push → [MEMORY.md §7](~/.claude/memory/MEMORY.md) | calm-flow → [soul.md §3](~/.claude/rules/soul.md) | N-tool → [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) | auto-commit → [ADR-0063](~/.claude/docs/adr/0063-claudecode-auto-commit-policy.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
@@ -13,17 +13,17 @@ when_to_use: |
   反模式: ❌ PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ✅/❌/🔧 3 段 / ❌ 跑完汇报 > 80 行 / ❌ 跨域规则不引 SSOT (v3.3.1). 历史 → [archive](references/changelog-v3-2-1-3-archive.md).
 license: MIT
 metadata:
-  version: "3.3.3"
+  version: "3.3.4"
   author: mykcs
   category: self-evolution
-  changelog: "v3.3.3 (2026-07-25): 本 run @ Kimi Work (user 显式解除 sub-agent 限制) 实跑收口 5 件事 — ① Layer 0 主仓 push 67f80059 (decision-stream ×2 收口) ② Layer 1.0 audit P0=5 → 子仓 PR #72 MERGED 50f1f6b (README v2.9 协议段整段 redirect + 4 file 1 行 pointer, per ADR-0056 §20 管道) ③ Layer 3 fan-out 12 highlights → 主仓 memory/external-highlights-2026-07-25.md (b4ac2224) ④ memory-bench 50 题 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅ target (题库 v0.1.0 过时 3 处: 铁律作废/路径迁移/mem0 删除, 建议升 v0.2.0) ⑤ 观察项未动: 8/10 skill 缺 when_to_use + ~/Repo/webs/active/* 4 项目仓路径失效 (已迁 ~/Claude/Projects/webs/). v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — ① CLAUDE.local.md §6.1 CSS var context 专题瘦身 (-16/+1) → commit 5a9f2b38 ② inject-hot-facts.sh v1.1 mtime 缓存性能修复 (avg 729ms → <5ms, worst 37s → 0) → commit 979d9dc9 ③ settings.json dirty 走 worktree feat/settings-json-cleanup + PR #107 auto-merge (启用 3 plugin + Write 权限 + 删 defaultMode:auto + 删 40 skillOverrides off) ④ Layer 1.0 N-tool drift audit 4 维 grep P0=0 P1=0 (协议位字面 100% 一致, 不需 §20 8 步管道). memory-bench 50 题跑分 v1 (per v3.2.8 + ADR-0065). v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078): CSS → [CLAUDE.local.md §6.1](~/.claude/CLAUDE.local.md) | smart-push → [MEMORY.md §7](~/.claude/memory/MEMORY.md) | calm-flow → [soul.md §3](~/.claude/rules/soul.md) | N-tool → [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) | auto-commit → [ADR-0063](~/.claude/docs/adr/0063-claudecode-auto-commit-policy.md). description line 9 + 反模式扩 '跨域规则不引 SSOT'. v3.3.0 (2026-07-19): PER Workflow 统一抽象；新增 PER Workflow 总览节；Layer 0-3/A 明确归属 Executor/Verifier。 v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
-  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline, v3.2.5, cwd-guard, adr-0059, deja-vu-fix, per-workflow, v3.3.0, cross-reference-5d, adr-0078, v3.3.1, run-2026-07-24, adr-0065, v3.3.2, run-2026-07-25, v3.3.3]
+  changelog: "v3.3.4 (2026-07-25): 🩺 §doctor-check 段立 (per Kimi Work session user 指令合并) — host-self-evolve 摸底必跑 check-doctor-cleanup.sh 10 项 check (新增 check 10 settings.json 完整性: JSON 有效/属组 staff/无 0 字节 backup), ⚠️/❌ 先收口再进 Layer 1. 脚本维护 3 件套 (bash -n + shellcheck + 冒烟) + pipefail 3 脚枪写法. 联动 §cwd-guard + 主仓 57e794bb/93f7f656/ecffa304. v3.3.3 (2026-07-25): 本 run @ Kimi Work (user 显式解除 sub-agent 限制) 实跑收口 5 件事 — ① Layer 0 主仓 push 67f80059 (decision-stream ×2 收口) ② Layer 1.0 audit P0=5 → 子仓 PR #72 MERGED 50f1f6b (README v2.9 协议段整段 redirect + 4 file 1 行 pointer, per ADR-0056 §20 管道) ③ Layer 3 fan-out 12 highlights → 主仓 memory/external-highlights-2026-07-25.md (b4ac2224) ④ memory-bench 50 题 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅ target (题库 v0.1.0 过时 3 处: 铁律作废/路径迁移/mem0 删除, 建议升 v0.2.0) ⑤ 观察项未动: 8/10 skill 缺 when_to_use + ~/Repo/webs/active/* 4 项目仓路径失效 (已迁 ~/Claude/Projects/webs/). v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — ① CLAUDE.local.md §6.1 CSS var context 专题瘦身 (-16/+1) → commit 5a9f2b38 ② inject-hot-facts.sh v1.1 mtime 缓存性能修复 (avg 729ms → <5ms, worst 37s → 0) → commit 979d9dc9 ③ settings.json dirty 走 worktree feat/settings-json-cleanup + PR #107 auto-merge (启用 3 plugin + Write 权限 + 删 defaultMode:auto + 删 40 skillOverrides off) ④ Layer 1.0 N-tool drift audit 4 维 grep P0=0 P1=0 (协议位字面 100% 一致, 不需 §20 8 步管道). memory-bench 50 题跑分 v1 (per v3.2.8 + ADR-0065). v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078): CSS → [CLAUDE.local.md §6.1](~/.claude/CLAUDE.local.md) | smart-push → [MEMORY.md §7](~/.claude/memory/MEMORY.md) | calm-flow → [soul.md §3](~/.claude/rules/soul.md) | N-tool → [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) | auto-commit → [ADR-0063](~/.claude/docs/adr/0063-claudecode-auto-commit-policy.md). description line 9 + 反模式扩 '跨域规则不引 SSOT'. v3.3.0 (2026-07-19): PER Workflow 统一抽象；新增 PER Workflow 总览节；Layer 0-3/A 明确归属 Executor/Verifier。 v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
+  tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline, v3.2.5, cwd-guard, adr-0059, deja-vu-fix, per-workflow, v3.3.0, cross-reference-5d, adr-0078, v3.3.1, run-2026-07-24, adr-0065, v3.3.2, run-2026-07-25, v3.3.3, v3.3.4, doctor-check]
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-25"
 ---
 
-# 主机自升级 Skill (host-self-evolve v3.3.0)
+# 主机自升级 Skill (host-self-evolve v3.3.4)
 
 ## 🔒 §cwd-guard 段 (v3.2.5 立, 2026-07-17, per ADR-0059 + §E Deja Vu Fix Protocol)
 
@@ -60,6 +60,49 @@ last_updated: "2026-07-25"
 
 **历史 record**:
 - 2026-07-17 v3.2.5: 立 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 + §E Deja Vu Fix Protocol 第 2 次触发 + 整数 slot 0059)
+
+---
+
+## 🩺 §doctor-check 段 (v3.3.4 立, 2026-07-25, per Kimi Work session 体检修复实战)
+
+> **触发**: 2026-07-25 Kimi Work session 修复链 — ① check-doctor-cleanup.sh 主流程曾是**死代码** (游离 `exit 0` + 内嵌 Python 字面换行语法错, 自创立起 8 项 check 从未实跑) ② 21:16 settings.json 出现 **0 字节 backup 对** (CC 自身备份例程被并发 doctor session 打断, 非本地脚本 bug, 属组 myk:wheel 异常).
+>
+> **协议位**: host-self-evolve 摸底阶段 (§cwd-guard 通过后 / Layer 1 开始前) **必跑** `bash ~/.claude/scripts/check-doctor-cleanup.sh`, 10 项 check (1/2/3/4/5/6/7/9/10, 8 跳过) 全 ✅ / ℹ️ 才继续; 任何 ⚠️ / ❌ 项先收口派单, 不带病进 Layer 1.
+
+**10 项 check 一览** (SSOT = 脚本本身, 此处只列 anchor):
+
+| # | 检查项 | 健康线 |
+|---|--------|--------|
+| 1 | 3 MCP 90 天 0 调用 | 全 disabled |
+| 2 | CLAUDE.local.md dedup | 仅 1 份 |
+| 3 | process.md chars | < 40K |
+| 4 | stale §self-summary | 无 >7 天段 |
+| 5 | SessionStart slow hooks | 无 timeout |
+| 6 | context heavy | rules 无条件加载 ~59K chars (2026-07-25 减重后基线) |
+| 7 | version currency | CLI 在 PATH |
+| 9 | 频繁 deny | < 50 |
+| 10 | **settings.json 完整性** (v3.3.4 新增) | JSON 有效 + 属组 staff + 无 0 字节 backup 残留 |
+
+**脚本维护硬规则 (per 本次修复教训, 改 check-doctor-cleanup.sh 后必跑 3 件套)**:
+
+1. `bash -n` 语法过 + `shellcheck -x` clean (含 info 级)
+2. 全程冒烟 `bash check-doctor-cleanup.sh` exit 0 且无 stderr
+3. **pipefail 3 脚枪写法** (set -euo pipefail 下必守):
+   - `{ grep -r ... || true; } | wc -l` (grep 无匹配 exit 1 会杀脚本)
+   - `grep -c ... || true` (grep -c 必出计数, 不要再 `| head -1`, `|| echo 0` 会造成双行)
+   - `[ -f x ] && VAR=$(...)` 脚枪改 if-form (文件缺失即静默退出)
+
+**反模式 (永久失效, 4 条)**:
+
+1. ❌ 体检脚本自身带病 = 假绿源头 (游离 exit 0 让 8 项 check 死代码躺了 10 天无人发现)
+2. ❌ 0 字节 backup 当 "已备份" = 比没备份更危险 (假安全感, 2026-07-25 21:16 实例)
+3. ❌ settings.json 属组非 staff 不追查 = 外部工具截断式写入的信号被忽略
+4. ❌ 改脚本只过 bash -n 不过 shellcheck + 冒烟 = pipefail 雷上线才炸
+
+**联动**: §cwd-guard (跑前守卫, 本段是其兄弟段) + `rules/shared-file-write-freshness.md` (多 agent 并发写 settings 协议) + skill `disable-truth-sop` (写后必断言) + 主仓 commits 57e794bb (pipefail 排雷) / 93f7f656 (check 10 立) / ecffa304 (死代码复活)
+
+**历史 record**:
+- 2026-07-25 v3.3.4: 立 (per Kimi Work session — hooks shellcheck 修复链 + doctor 体检复活 + 0 字节 backup 根因调查收口, user 指令 "把这个检查修复合并进主机自升级")
 
 ---
 
