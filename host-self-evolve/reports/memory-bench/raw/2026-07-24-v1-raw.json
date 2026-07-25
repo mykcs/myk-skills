@@ -1,0 +1,105 @@
+{
+  "run_id": "memory-bench-2026-07-24-v1",
+  "questions": [
+    {
+      "id": "Q001",
+      "question": "~/.claude/skills/ 这个路径的物理性质是什么？它指向哪里？",
+      "answer": "**物理性质**：directory symlink（目录符号链接）\n\n**指向**：`~/.agents/skills/`\n\n（即 `~/.claude/skills/` 和 `~/.mavis/skills/` 都是指向统一来源 `~/.agents/skills/` 的目录符号链接）",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 821,
+      "output_tokens": 245,
+      "prompt_chars": 2429
+    },
+    {
+      "id": "Q002",
+      "question": "skills 单一来源（source of truth）在哪里？git remote 是什么？",
+      "answer": "**位置**: `~/.agents/skills/`（`~/.claude/skills/` 和 `~/.mavis/skills/` 是指向它的 symlink）\n\n**git remote**: `mykcs/myk-skills`",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 847,
+      "output_tokens": 142,
+      "prompt_chars": 2459
+    },
+    {
+      "id": "Q003",
+      "question": "用户的 GitHub 账号有几个？各自负责什么仓库？",
+      "answer": "根据 CLAUDE.local.md 的信息，用户有 **2 个 GitHub 账号**：\n\n1. **mykcs** — 主站 `mykcs.github.io` + `myk-skills` 等仓库\n2. **wangrui2025** — papers 相关仓库 + GDKVM 仓库\n\n两条账号隔离铁律：`wangrui2025/*` 必须推送到 wangrui2025，`mykcs/*` ...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 852,
+      "output_tokens": 240,
+      "prompt_chars": 2207
+    },
+    {
+      "id": "Q004",
+      "question": "用户 2026 年申请什么学校的 PhD？导师是谁？",
+      "answer": "用户 2026 年申请**浙江大学** PhD（2027 入学），导师是 **魏颖（Ying Wei）**，隶属于 CompLife Lab。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 977,
+      "output_tokens": 111,
+      "prompt_chars": 2412
+    },
+    {
+      "id": "Q005",
+      "question": "用户提了 bug 修复任务，claudecode 应该问还是直接做？为什么？",
+      "answer": "**直接做。**\n\n根据仓库上下文：\n\n- `CASE-COMMIT-PR-DEFAULT-NOTION-FEISHU-STRICT-20260713.md` 明确写明：\"bug 修复类**直接做**，改 config/字段先问\"\n- `rules/references/process-section-C.7-cascade-kill.md` 也提到：\"bug fix 类 kill 是**直接做*...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 961,
+      "output_tokens": 367,
+      "prompt_chars": 2409
+    },
+    {
+      "id": "Q006",
+      "question": "改 framework config 字段时，claudecode 应该问还是直接做？",
+      "answer": "**应该先问（列建议清单等用户决定）**，不应直接做。\n\n根据 `~/.claude/memory/user.md` 的边界规则：改 config / 改类型字段 / 删除/合并/拆分等**容易引起歧义**的任务 → 走 `universal.md §D` scope discipline，即先列建议清单，等用户决定。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 810,
+      "output_tokens": 239,
+      "prompt_chars": 2250
+    },
+    {
+      "id": "Q007",
+      "question": "claudecode 写反向提问句时，必须以什么词开头？",
+      "answer": "**必须以「用户 / claudecode」开头**（具名固定字符串），禁用「你/您/请问你/你看」。来源 `soul.md §1`。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 815,
+      "output_tokens": 157,
+      "prompt_chars": 1966
+    },
+    {
+      "id": "Q008",
+      "question": "灵魂 v3 要求 claudecode 解释技术时应该怎么做？",
+      "answer": "根据 `soul.md §2.1` 和 `user.md`：\n\n**灵魂 v3 大白话要求**：\n\n1. **语气**：像\"大姐姐跟小白弟弟解释东西\"，通俗易懂\n2. **技术词翻译**：技术词/协议名**首次出现立即**用大白话翻译\n3. **偶尔类比**：用生活化的比喻帮助理解\n4. **选项处理**：给 A vs B 选择时 → 推荐 + 1 句理由\n5. **结尾明确**：明确说\"请回 X...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 958,
+      "output_tokens": 430,
+      "prompt_chars": 2169
+    },
+    {
+      "id": "Q009",
+      "question": "跨 3+ 文件修改前，claudecode 应该跑什么协议？",
+      "answer": "**Repo Confirmation Protocol**（仓库确认协议）\n\n跨 3+ 文件修改前必须执行 `git remote -v` 三次确认 + `cd <path> && git status`。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 691,
+      "output_tokens": 147,
+      "prompt_chars": 1985
+    },
+    {
+      "id": "Q010",
+      "question": "改 CSS 后给用户的强制提示是什么？",
+      "answer": "**硬刷新** — Cmd+Shift+R (macOS) / Ctrl+Shift+R (Windows/Linux)；并建议用户通过浏览器 DevTools 关闭 CSS 缓存。\n\n（来源：`tooling.md §A.4 CSS Hard Refresh`）",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 851,
+      "output_tokens": 182,
+      "prompt_chars": 2230
+    }
+  ]
+}
