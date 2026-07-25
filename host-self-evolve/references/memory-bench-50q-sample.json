@@ -1,8 +1,10 @@
 {
   "metadata": {
     "name": "memory-bench-50q-sample",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "created": "2026-06-26",
+    "updated": "2026-07-25",
+    "changelog": "v0.2.0 (2026-07-25, host-self-evolve run @ Kimi Work): 修过时项 — Q003 双账号隔离铁律 2026-07-14 作废 / Q012 路径 2026-07-20 迁移 ~/Claude/Projects/webs/ / Q046-Q050 mem0 封存改考本地 fallback 架构 (per host-anchors.md:68 建议) / Q008-Q009-Q010-Q030-Q031-Q035 source+keywords drift 修正 / C001+C003 consistency 事实更新 / distribution mem0_compact_captured → memory_architecture_post_mem0",
     "skill": "rich-audit",
     "skill_version": "2.6.25",
     "design_doc": "references/memory-bench-design.md",
@@ -13,7 +15,7 @@
     "hot_fact_MASTER_CLAUDE_local_md": 20,
     "rules_universal_process_bugfix_tooling": 15,
     "cases_wiki_recent_30d": 10,
-    "mem0_compact_captured": 5,
+    "memory_architecture_post_mem0": 5,
     "total": 50
   },
   "metric_weights": {
@@ -42,10 +44,10 @@
     {
       "id": "Q003",
       "category": "hot_fact_user_identity",
-      "source": "CLAUDE.local.md §2 / MEMORY.md §2",
-      "question": "用户的 GitHub 账号有几个？各自负责什么仓库？",
-      "expected_keywords": ["mykcs", "wangrui2025", "主站", "papers", "双账号隔离"],
-      "scoring_note": "4 关键词全中 = 1.0，缺 1 = 0.5"
+      "source": "CLAUDE.local.md hot recall 表 / memory/user.md",
+      "question": "用户的 GitHub 账号有几个？各自负责什么仓库？双账号隔离铁律现状如何？",
+      "expected_keywords": ["mykcs", "wangrui2025", "papers", "作废 2026-07-14", "都可推 4 站"],
+      "scoring_note": "命中 3+ 关键词 = 1.0；仍答旧铁律「wangrui2025 禁推 mykcs」= 0.5"
     },
     {
       "id": "Q004",
@@ -84,13 +86,13 @@
       "category": "hot_fact_persona_soul_v3",
       "source": "CLAUDE.local.md §3",
       "question": "灵魂 v3 要求 claudecode 解释技术时应该怎么做？",
-      "expected_keywords": ["大白话", "翻译", "A vs B", "推荐", "请回 X", "小白"],
+      "expected_keywords": ["大白话", "翻译", "字母选项", "推荐", "请回 X", "小白"],
       "scoring_note": "命中 3+ 关键词 = 1.0"
     },
     {
       "id": "Q009",
       "category": "hot_fact_edit_pre_flight",
-      "source": "CLAUDE.local.md §4",
+      "source": "memory/host-anchors.md / memory/user.md §Repo Confirmation Protocol / CLAUDE.md",
       "question": "跨 3+ 文件修改前，claudecode 应该跑什么协议？",
       "expected_keywords": ["Repo Confirmation Protocol", "git remote -v", "三次确认"],
       "scoring_note": "3 关键词全中 = 1.0"
@@ -98,7 +100,7 @@
     {
       "id": "Q010",
       "category": "hot_fact_edit_pre_flight",
-      "source": "CLAUDE.local.md §4",
+      "source": "memory/host-anchors.md / rules/tooling.md §A.4 CSS Hard Refresh",
       "question": "改 CSS 后给用户的强制提示是什么？",
       "expected_keywords": ["硬刷新", "Cmd+Shift+R", "Ctrl+Shift+R", "CSS 缓存"],
       "scoring_note": "2 关键词 = 1.0"
@@ -114,10 +116,10 @@
     {
       "id": "Q012",
       "category": "hot_fact_4_active_sites",
-      "source": "CLAUDE.local.md §5",
-      "question": "旧站在哪个路径？状态是什么？",
-      "expected_keywords": ["~/Repo/webs/arch/", "已重定向", "归档"],
-      "scoring_note": "3 关键词 = 1.0"
+      "source": "CLAUDE.local.md hot recall 表 / memory/user.md §历史变更 2026-07-20",
+      "question": "项目站点路径 2026-07-20 迁移后在哪里？旧路径 ~/Repo/webs/ 现状是什么？",
+      "expected_keywords": ["~/Claude/Projects/webs/", "已废弃", "不存在", "平铺"],
+      "scoring_note": "命中 3+ 关键词 = 1.0；仍答 ~/Repo/webs/arch/ 已归档 = 0.5"
     },
     {
       "id": "Q013",
@@ -257,18 +259,18 @@
     },
     {
       "id": "Q030",
-      "category": "rules_process_force_all_search",
-      "source": "rules/process.md §F.1.2",
-      "question": "CLI session 5-tool 不可达时，自动降级到几-tool 协议？",
-      "expected_keywords": ["2-tool", "exa", "WebFetch", "降级"],
-      "scoring_note": "命中「2-tool」+ 2 工具 = 1.0"
+      "category": "rules_process_n_tool_fallback",
+      "source": "rules/protocols/N-tool-search.md §3.1 (per ADR-0056 收口)",
+      "question": "CLI session N-tool (6 工具) 部分不可达时，降级矩阵怎么走？",
+      "expected_keywords": ["2-tool", "exa", "WebFetch", "mmx", "降级"],
+      "scoring_note": "命中「2-tool」+ 2 工具 = 1.0；答 mmx 可直接降级 = 0 (v1.1.3 起不允许)"
     },
     {
       "id": "Q031",
       "category": "rules_bugfix_400_diagnosis",
       "source": "rules/bugfix-400.md",
       "question": "bug fix 端到端脚本输出 6 场景分别是什么？",
-      "expected_keywords": ["400", "无环境访问", "task boundary", "env drift", "api key", "rate limit"],
+      "expected_keywords": ["400", "ENABLE_TOOL_SEARCH", "Kimi", "MiniMax", "task boundary", "无环境访问"],
       "scoring_note": "命中 3+ 场景 = 1.0"
     },
     {
@@ -298,7 +300,7 @@
     {
       "id": "Q035",
       "category": "rules_typescript_strict",
-      "source": "rules/typescript.md",
+      "source": "memory/host-anchors.md (锚点; typescript.md 正文无对应段, 2026-07-25 实测)",
       "question": "TypeScript strict 模式 4 个核心 flag 是哪些？",
       "expected_keywords": ["strict", "noImplicitAny", "strictNullChecks", "noUnusedLocals"],
       "scoring_note": "命中 3+ = 1.0"
@@ -385,52 +387,52 @@
     },
     {
       "id": "Q046",
-      "category": "mem0_compact_session1",
-      "source": "~/.mem0/compact_captured_9060d66a-9442-4042-bbe6-61894f4c44a6",
-      "question": "mem0 compact capture 9060d66a 包含的关键决策是什么？",
-      "expected_keywords": [],
-      "scoring_note": "占位题, 实际跑分时根据 mem0 内容更新"
+      "category": "memory_architecture_post_mem0",
+      "source": "memory/host-anchors.md / CLAUDE.local.md line 6 / CASE-MEM0-GHOST-PLUGIN-FULL-CLEANUP-20260722",
+      "question": "mem0 plugin 现状是什么？何时因何移除？",
+      "expected_keywords": ["已删除", "2026-07-22", "CASE-MEM0-GHOST-PLUGIN-FULL-CLEANUP", "quota"],
+      "scoring_note": "命中 3+ = 1.0；答 mem0 仍可用 / 答去查 ~/.mem0/ = 0"
     },
     {
       "id": "Q047",
-      "category": "mem0_compact_session2",
-      "source": "~/.mem0/compact_captured_6b5824e4-7161-49ee-b391-827541c4dff8",
-      "question": "mem0 compact capture 6b5824e4 包含的关键决策？",
-      "expected_keywords": [],
-      "scoring_note": "占位题, 实际跑分时根据 mem0 内容更新"
+      "category": "memory_architecture_post_mem0",
+      "source": "CLAUDE.local.md §19 (mem0 quota fallback 3 步)",
+      "question": "mem0 不可用后，记忆沉淀的本地 fallback 3 步是什么？",
+      "expected_keywords": ["本地 case", "CLAUDE.local.md", "decision-stream", "fallback"],
+      "scoring_note": "3 步全中 = 1.0"
     },
     {
       "id": "Q048",
-      "category": "mem0_compact_session3",
-      "source": "~/.mem0/compact_captured_665abc6c-5c63-4d6c-a409-0f0f224c5b8c",
-      "question": "mem0 compact capture 665abc6c 包含的关键决策？",
-      "expected_keywords": [],
-      "scoring_note": "占位题, 实际跑分时根据 mem0 内容更新"
+      "category": "memory_architecture_post_mem0",
+      "source": "CLAUDE.local.md line 132 / memory/self-summaries.md",
+      "question": "9 段 self-summary 归档在哪个文件？何时搬出？",
+      "expected_keywords": ["memory/self-summaries.md", "2026-07-21", "100 行"],
+      "scoring_note": "命中路径 + 日期 = 1.0"
     },
     {
       "id": "Q049",
-      "category": "mem0_session_log",
-      "source": "~/.mem0/session-log.md",
-      "question": "mem0 session log 最近 5 个 session 的主题分布？",
-      "expected_keywords": [],
-      "scoring_note": "占位题, 实际跑分时根据 session-log 更新"
+      "category": "memory_architecture_post_mem0",
+      "source": "CLAUDE.local.md line 6 (source-of-truth split)",
+      "question": "MEMORY.md § HOT FACTS 段的 3 个 mem0 ID 引文现在是什么状态？",
+      "expected_keywords": ["历史快照", "commit 2e439fa7", "plugin 已移除", "fallback = CLAUDE.local.md"],
+      "scoring_note": "命中 2+ = 1.0"
     },
     {
       "id": "Q050",
-      "category": "mem0_project_map",
-      "source": "~/.mem0/project_map.json",
-      "question": "mem0 project_map 包含哪些 app_id / project scope？",
-      "expected_keywords": ["mykcs-.claude", "user_id", "myk"],
-      "scoring_note": "占位题, 实际跑分时根据 project_map 更新"
+      "category": "memory_architecture_post_mem0",
+      "source": "memory/host-anchors.md line 68",
+      "question": "mem0 quota 最终封存状态是什么？谁封的？",
+      "expected_keywords": ["10000/10000", "封存", "doctor 2026-07-15", "Startup auto-query disabled"],
+      "scoring_note": "命中 2+ = 1.0"
     }
   ],
   "consistency_questions": [
     {
       "id": "C001",
       "check": "fact_consistency",
-      "fact": "GitHub dual account isolation rule",
+      "fact": "GitHub 双账号分工 (旧隔离铁律 2026-07-14 作废, mykcs/wangrui2025 都可推 4 站)",
       "sources_to_cross_check": [
-        "CLAUDE.local.md §2",
+        "CLAUDE.local.md hot recall 表",
         "MEMORY.md §2",
         "CLAUDE.md 强制偏好",
         "rules/universal.md §E 规则 1"
@@ -451,11 +453,11 @@
     {
       "id": "C003",
       "check": "version_consistency",
-      "fact": "Force-All-Search protocol version",
+      "fact": "N-tool 搜索协议版本与工具数 (N=6)",
       "sources_to_cross_check": [
-        "CLAUDE.local.md §9 (v2.9.5)",
-        "rules/process.md §F.1.1 (v2.9.5)",
-        "MEMORY.md §6 (v2.9.4 旧)"
+        "rules/protocols/N-tool-search.md (SSOT, v1.1.3)",
+        "CLAUDE.local.md N-tool pointer",
+        "CLAUDE.md N-tool 引用"
       ],
       "scoring": "完全一致=2 / 措辞差=1 / 矛盾=0"
     }
