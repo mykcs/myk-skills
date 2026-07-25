@@ -1,5 +1,7 @@
 # Layer A.4: CI 全绿验收标准 (v2.6.45, 2026-06-29)
 
+> 历史说明: 文中 5-tool 为 2026-07-13 前协议位, 现行 SSOT = ~/.claude/rules/protocols/N-tool-search.md (N=6, per ADR-0056)
+>
 > **触发**: user 2026-06-29 原话 "把《CI 全绿》这个标准加入 skill 里面". 跟 website-improve §L26 (v4.0.5) + process.md §H Acceptance Protocol + §C.3.7 4 站 CI gate 全部同步.
 >
 > **source-of-truth split**:

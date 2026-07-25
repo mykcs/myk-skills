@@ -84,21 +84,11 @@ SKILL.md (主入口)
     └── __pycache__/                   (gitignore)
 ```
 
-## 协议 (v2.9, 5-tool + per-tool 显式披露)
+## 协议 (v2.9, 5-tool + per-tool 显式披露) (已作废, 历史)
 
-| Phase | 行为 | 工具 |
-|-------|------|------|
-| A. Parallel Fan-out | 5 工具**并行**同 query | `mcp__MiniMax__web_search` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` ∥ `exa` (`web_search_exa` + `web_fetch_exa`) |
-| B. Merge + Compare | 共识 (≥3 源) / 冲突 | 内部 |
-| C. Conflict Resolve | Phase A 递归 ≤2 层 | 同 A |
-
-**输出契约 (per-tool 显式披露, v2.9)**: 每个工具独立 1 段 (工具 / 搜索内容 / 结论 / 状态), 缺/降级也写 1 段 (标 ⚠️/❌), 最后追加 共识/冲突/缺失工具 分段. 不能只给合并结论.
-
-**降级 (两层)**:
-- Layer 1 (已注册但暂不可用): 同源替代, 报告标注
-- Layer 2 (未注册 / MCP server 缺席): **fail-fast**, 报告"❌ BLOCKED: 缺失 N 个工具"; 唯一例外: 用户显式说"接受降级"
-
-完整协议见 `references/force-all-search-protocol.md` (v2.7, 2026-06-12 重命名自 Tri-Search v2.6), 全局化在 `~/.claude/rules/behavioral-process-forceallsearch.md`.
+> **现行 SSOT**: [`~/.claude/rules/protocols/N-tool-search.md`](~/.claude/rules/protocols/N-tool-search.md) **v1.1.3** — N-tool 6 工具 parallel fan-out (`MiniMax` ∥ `kimi-webbridge` ∥ `anysearch` ∥ `WebFetch` ∥ `exa` ∥ `mmx`), 全仓唯一入口, 本节不再复述协议位 (防字面散落, per N-tool-search.md §5 反模式 #5).
+>
+> **历史标 (2026-07-25 ADR-0056 cleanup)**: 原 v2.9 5-tool 协议 (Phase A/B/C fan-out + per-tool 显式披露 + 两层降级) 2026-07-13 收口为 N-tool 6 工具, per ADR-0056. 标题字面保留作版本演进证据 (audit trail). 旧详稿见 `references/force-all-search-protocol.md` (v2.7, 历史) 与 `~/.claude/rules/behavioral-process-forceallsearch.md` (历史).
 
 ## 测试
 
