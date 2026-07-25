@@ -225,7 +225,7 @@
        ┌─ auto-feishu-digest (主, 9 阶段)
        │
        ▼
-   5-tool fan-out → 5 源
+   N-tool fan-out → 6 源
        │
        ├─→ process.md §F.1 N-tool protocol (5/6 当前 N)
        ├─→ process.md §F.3 fail-fast (v0.1.3)

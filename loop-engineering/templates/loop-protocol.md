@@ -27,7 +27,7 @@
 
 | Stage | 目的 | sub-agent | 输入 | 输出 | 时间 |
 |---|---|---|---|---|---|
-| 1 SEARCH | 5-tool fan-out 抓候选 | sonnet | query | `search-<C>-<date>.jsonl` | 2-5 min |
+| 1 SEARCH | N-tool fan-out（6 工具, per [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) v1.1.3）抓候选 <!-- 历史标 (2026-07-25 ADR-0056): 原 "5-tool fan-out", 2026-07-13 收口为 N-tool 6 工具 --> | sonnet | query | `search-<C>-<date>.jsonl` | 2-5 min |
 | 2 FILTER | A+B+C 三方交叉 | sonnet | jsonl | `filtered-papers-<date>.md` | 5-10 min |
 | 3 NOTE | v2.1 模板精读 | sonnet | 通过清单 | `<n>-<slug>.md` | 5-10 min |
 | 4 REPORT | 全谱索引 | sonnet | notes | `report-<date>.md` + `.html` | 10-15 min |

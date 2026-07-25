@@ -65,7 +65,7 @@ metadata:
 - **输出**: `~/.claude/plans/gdkvm-<phase>-<YYYYMMDD>.md` (~388 行, 借鉴 plan v3.2 骨架)
   - 5 方向 + N 改动 + scorecard + Go/No-Go gate + 沉淀物清单
 - **失败处理**: 立即 STOP, AskUserQuestion 重新设计 (per §B.1 Plan Review Gate)
-- **关键能力**: 借鉴 rich-audit §I.6 capture 段 + 3 路并行调研 (plan v3.2 + server 端 8 步 checklist + 5-tool fan-out)
+- **关键能力**: 借鉴 rich-audit §I.6 capture 段 + 3 路并行调研 (plan v3.2 + server 端 8 步 checklist + N-tool fan-out（6 工具）) <!-- 历史标 (2026-07-25 ADR-0056): 原 "5-tool fan-out", 2026-07-13 收口为 N-tool 6 工具, per N-tool-search.md v1.1.3 -->
 
 ### 1.2 Executor (sonnet, oh-my-claudecode:executor)
 

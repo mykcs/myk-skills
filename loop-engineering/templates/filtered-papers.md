@@ -85,4 +85,4 @@
 
 - `~/.agents/skills/loop-engineering/SKILL.md` §4 反模式 #2 (单源 web search)
 - weiying20260624/04-artifacts/agents-output/filtered-papers-20260630.md (week2 实跑版, 39 篇)
-- `process.md §F Force-All-Search Protocol` (5-tool fan-out)
+- [`~/.claude/rules/protocols/N-tool-search.md`](~/.claude/rules/protocols/N-tool-search.md) v1.1.3 (N-tool fan-out, N 当前 = 6 含 mmx; 旧名 `process.md §F Force-All-Search Protocol (5-tool fan-out)`, per ADR-0056)
