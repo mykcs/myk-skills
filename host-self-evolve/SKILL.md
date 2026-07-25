@@ -16,8 +16,51 @@ metadata:
   version: "3.3.4"
   author: mykcs
   category: self-evolution
+<<<<<<< HEAD
   changelog: "v3.3.4 (2026-07-25): 🩺 §doctor-check 段立 (per Kimi Work session user 指令合并) — host-self-evolve 摸底必跑 check-doctor-cleanup.sh 10 项 check (新增 check 10 settings.json 完整性: JSON 有效/属组 staff/无 0 字节 backup), ⚠️/❌ 先收口再进 Layer 1. 脚本维护 3 件套 (bash -n + shellcheck + 冒烟) + pipefail 3 脚枪写法. 联动 §cwd-guard + 主仓 57e794bb/93f7f656/ecffa304. v3.3.3 (2026-07-25): 本 run @ Kimi Work (user 显式解除 sub-agent 限制) 实跑收口 5 件事 — ① Layer 0 主仓 push 67f80059 (decision-stream ×2 收口) ② Layer 1.0 audit P0=5 → 子仓 PR #72 MERGED 50f1f6b (README v2.9 协议段整段 redirect + 4 file 1 行 pointer, per ADR-0056 §20 管道) ③ Layer 3 fan-out 12 highlights → 主仓 memory/external-highlights-2026-07-25.md (b4ac2224) ④ memory-bench 50 题 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅ target (题库 v0.1.0 过时 3 处: 铁律作废/路径迁移/mem0 删除, 建议升 v0.2.0) ⑤ 观察项未动: 8/10 skill 缺 when_to_use + ~/Repo/webs/active/* 4 项目仓路径失效 (已迁 ~/Claude/Projects/webs/). v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — ① CLAUDE.local.md §6.1 CSS var context 专题瘦身 (-16/+1) → commit 5a9f2b38 ② inject-hot-facts.sh v1.1 mtime 缓存性能修复 (avg 729ms → <5ms, worst 37s → 0) → commit 979d9dc9 ③ settings.json dirty 走 worktree feat/settings-json-cleanup + PR #107 auto-merge (启用 3 plugin + Write 权限 + 删 defaultMode:auto + 删 40 skillOverrides off) ④ Layer 1.0 N-tool drift audit 4 维 grep P0=0 P1=0 (协议位字面 100% 一致, 不需 §20 8 步管道). memory-bench 50 题跑分 v1 (per v3.2.8 + ADR-0065). v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078): CSS → [CLAUDE.local.md §6.1](~/.claude/CLAUDE.local.md) | smart-push → [MEMORY.md §7](~/.claude/memory/MEMORY.md) | calm-flow → [soul.md §3](~/.claude/rules/soul.md) | N-tool → [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) | auto-commit → [ADR-0063](~/.claude/docs/adr/0063-claudecode-auto-commit-policy.md). description line 9 + 反模式扩 '跨域规则不引 SSOT'. v3.3.0 (2026-07-19): PER Workflow 统一抽象；新增 PER Workflow 总览节；Layer 0-3/A 明确归属 Executor/Verifier。 v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717, §E Deja Vu Fix 第 2 次触发). 跑前第 1 行必跑 `pwd` 验证 cwd = ~/.claude 或 ~/.claude/.worktrees/<branch>/, 不通过 STOP + AskUserQuestion 拍板 A 切主仓 / B 切子仓. 5 字段自检升级 6 字段 (加 cwd). 联动: ADR-0059 + case + §A.4.1 #1 + §A.4.2 #4 + §H Acceptance Protocol + CASE-PATH-DRIFT-20260714 (同类源). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056 + CASE-META-PROTOCOL-MODIFICATION-PIPELINE-20260713 实战). 加 §1 4 路盘点协议 (记忆/灵魂 + 规则/协议 + skills/项目入口 + 实际执行层), §4 8 步修复 SOP (6 件套 grep + AskUserQuestion 拍板 4 项 + worktree + 改 N file + Python 4 维 self-verify + commit + push + PR + gh pr merge + ff + cleanup + 5 字段自检), §5 drift check 脚本交付 (主仓 commit d94fa91b, 不挂 settings.json), §6 5 IF...THEN 触发规则 + §7 7 协议级反模式扩 1 项 (跳 §20 8 步管道). 触发词 + 触发方式补 N-tool audit + 4 路盘点; user 原话 2026-07-13 '把我这个主机所有的 claude 记忆、规则、灵魂所有的搜索工具协议都列出来. 然后去看他们是否都执行同一组的协议'. 详见 references/changelog.md."
   tags: [self-evolution, claude, host, banner, fix-until-done, phase-1, life-setup, v3.2.1, default-decision, adr-0050, v3.2.2-deprecated, v3.2.3, report-minimal, phase-1-style, adr-0051-deprecated, adr-0052, v3.2.4, n-tool-audit-fix-sop, adr-0056, meta-protocol-pipeline, v3.2.5, cwd-guard, adr-0059, deja-vu-fix, per-workflow, v3.3.0, cross-reference-5d, adr-0078, v3.3.1, run-2026-07-24, adr-0065, v3.3.2, run-2026-07-25, v3.3.3, v3.3.4, doctor-check]
+=======
+  changelog: "v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/memory-bench-protocol.md (memory-bench 必跑 + report-card 模板) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅. v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. memory-bench v1. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
+  tags:
+    [
+      self-evolution,
+      claude,
+      host,
+      banner,
+      fix-until-done,
+      phase-1,
+      life-setup,
+      v3.2.1,
+      default-decision,
+      adr-0050,
+      v3.2.2-deprecated,
+      v3.2.3,
+      report-minimal,
+      phase-1-style,
+      adr-0051-deprecated,
+      adr-0052,
+      v3.2.4,
+      n-tool-audit-fix-sop,
+      adr-0056,
+      meta-protocol-pipeline,
+      v3.2.5,
+      cwd-guard,
+      adr-0059,
+      deja-vu-fix,
+      per-workflow,
+      v3.3.0,
+      cross-reference-5d,
+      adr-0078,
+      v3.3.1,
+      run-2026-07-24,
+      adr-0065,
+      v3.3.2,
+      run-2026-07-25,
+      v3.3.3,
+      body-split-references,
+      v3.3.4,
+    ]
+>>>>>>> aa975b6 (refactor(skills): body 拆 references/ 1 层深 (per Anthropic best-practices))
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-25"
@@ -25,44 +68,18 @@ last_updated: "2026-07-25"
 
 # 主机自升级 Skill (host-self-evolve v3.3.4)
 
-## 🔒 §cwd-guard 段 (v3.2.5 立, 2026-07-17, per ADR-0059 + §E Deja Vu Fix Protocol)
+> **v3.3.4 body 拆 4 references/** (per Anthropic best-practices + deep-research P0 #3): SKILL.md body 1014 → ~360 行. 引用 1 层深, 禁嵌套.
 
-> **触发**: CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 (本 run 摸底阶段 cwd drift, 第 2 次同类 30 天阈值到硬约束, 跟 CASE-PATH-DRIFT-20260714 同根因)
->
-> **协议位**: host-self-evolve v3.2.5+ 跑前**必跑** cwd 验证硬规则, 不通过则**立即 STOP + AskUserQuestion**, 不继续执行 Layer 0-3 摸底.
-
-**硬规则 (5 条, per ADR-0059 §2.1)**:
-
-1. **Rule 1**: 跑前第 1 行命令必跑 cwd 验证:
-   ```bash
-   pwd  # 期望: /Users/myk/.claude (主仓) 或 /Users/myk/.claude/.worktrees/<branch>/ (worktree 模式)
-   ```
-
-2. **Rule 2**: pwd 输出 ≠ `/Users/myk/.claude` AND ≠ `/Users/myk/.claude/.worktrees/*` → 立即 STOP + AskUserQuestion 拍板 2 选项:
-   - **A**: `cd ~/.claude && pwd` 切主仓 (推荐, 99% case)
-   - **B**: user 显式说"跑子仓 X" 才切子仓
-
-3. **Rule 3**: pwd 输出 = `/Users/myk/.claude/.worktrees/<branch>/` → 算合规 (worktree 模式), 继续.
-
-4. **Rule 4**: 后续所有 `git status` / `git log` / `git remote` / `git rev-list` 命令**禁用** `git -C` 强切, 改直接 `git status` 走 cwd (因为 cwd 已合规). 避免主仓 / 子仓 / worktree 混层.
-
-5. **Rule 5**: §H 5 字段自检表升级 6 字段 (path / cwd / commit / push / CI / owner), cwd 字段必填 `~/.claude` 主仓绝对路径, 不填子仓 / worktree / 项目仓路径.
-
-**反模式 (永久失效, 5 条, per ADR-0059 §2.3)**:
-
-1. ❌ host-self-evolve 跑前不 verify cwd = 摸底混层 (本 case 真因)
-2. ❌ 5 字段自检用 `git -C ~/.claude` 强切主仓就够了 = 不够, 摸底阶段已混层
-3. ❌ 跑完汇报不察觉 cwd 错 = 跑完自检缺 cwd 字段
-4. ❌ cwd drift 当单次 bug 修, 不立 §E Deja Vu = 同类会再出现
-5. ❌ 立 ADR 不 grep 现状 6 件套 = 重复劳动
-
-**联动**: ADR-0059 (本段协议位) + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 (本段起源) + CASE-PATH-DRIFT-20260714 (同类源) + §E Deja Vu Fix Protocol (per `rules/process.md` §E) + §A.4.1 #1 Repository Context Verification + §A.4.2 #4 Path Validation + §H Acceptance Protocol 5 字段 → 6 字段升级
-
-**历史 record**:
-- 2026-07-17 v3.2.5: 立 (per ADR-0059 + CASE-HOST-SELF-EVOLVE-CWD-DRIFT-20260717 + §E Deja Vu Fix Protocol 第 2 次触发 + 整数 slot 0059)
+| references/ 段              | 内容                                                                                                 | 引用原因                                   |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `cwd-guard-per-defaults.md` | §cwd-guard (v3.2.5) + PER Workflow (v3.3.0) + v3.2.1 default decision + v3.2.3 汇报极简化 + 设计哲学 | 配置/默认决策段, 不常跑前必读              |
+| `memory-bench-protocol.md`  | v3.2.8 memory-bench 必跑 + v3.2.9 report-card 11 行总表模板                                          | 跑分协议位, 跑分时才需要                   |
+| `n-tool-drift-audit.md`     | N-tool 协议位 audit §1-§9 + §Layer 1.0 + §20 8 步管道 + 4 维 audit                                   | 协议位散落检测, 跑 host-self-evolve 时按需 |
+| `case-study.md`             | 实战案例沉淀 (N-tool drift cleanup 5 件事 + 5 字段验收 + 踩坑 + 未来复用)                            | 历史案例, 复用参考                         |
 
 ---
 
+<<<<<<< HEAD
 ## 🩺 §doctor-check 段 (v3.3.4 立, 2026-07-25, per Kimi Work session 体检修复实战)
 
 > **触发**: 2026-07-25 Kimi Work session 修复链 — ① check-doctor-cleanup.sh 主流程曾是**死代码** (游离 `exit 0` + 内嵌 Python 字面换行语法错, 自创立起 8 项 check 从未实跑) ② 21:16 settings.json 出现 **0 字节 backup 对** (CC 自身备份例程被并发 doctor session 打断, 非本地脚本 bug, 属组 myk:wheel 异常).
@@ -571,17 +588,19 @@ bash ~/.claude/scripts/check-n-tool-drift.sh /path/to/repo  # 扫指定仓
 - 2026-07-14 子仓 run: 8 file 收口 → PR #24 MERGED
 - 2026-07-14 项目仓 run: 3 项目仓 CLAUDE.md 各 +1 行 pointer → PR #2/#4/#2 MERGED
 
+=======
+>>>>>>> aa975b6 (refactor(skills): body 拆 references/ 1 层深 (per Anthropic best-practices))
 ## 触发方式 (中英文, 12 词)
 
-| 中文 | 英文 |
-|------|------|
-| 主机自升级 | /host-self-evolve |
-| 自我升级 | self-evolve |
-| 整理记忆 | host evolve |
-| claude 协调 | claude coord |
-| 协调 ~/.claude | evolve claude |
-| evolve 整体 | full self-evolve |
-| **N-tool 协议位 audit** | **N-tool audit** |
+| 中文                     | 英文                   |
+| ------------------------ | ---------------------- |
+| 主机自升级               | /host-self-evolve      |
+| 自我升级                 | self-evolve            |
+| 整理记忆                 | host evolve            |
+| claude 协调              | claude coord           |
+| 协调 ~/.claude           | evolve claude          |
+| evolve 整体              | full self-evolve       |
+| **N-tool 协议位 audit**  | **N-tool audit**       |
 | **4 路盘点 N-tool 收口** | **N-tool unify audit** |
 
 > **不适用** (灵魂 v6 anti-trigger, 跟 frontmatter when_to_use 协同): 单文件 typo / 文档微调 / 非 ~/.claude/ 项目 (用 website-improve) / 用户说 "我就要个快速版" (拒绝, 走 §F 自决协议位)。
@@ -604,7 +623,7 @@ bash ~/.claude/scripts/check-n-tool-drift.sh /path/to/repo  # 扫指定仓
 🔍 检查什么 (What I will check):
   ├─ [Layer 0] 5 commands gate (git status / log / remote / ahead-behind / CI)
   ├─ [Layer 1] 7 sub-task audit (file size / cross-source dup / case library / orphan / frontmatter / shell unified / memory-bench 50 题)
-  ├─ [Layer 1.0] **N-tool 协议位 drift audit** (per ADR-0056, 2026-07-13 立, 强制必跑 — 见下文 §Layer 1.0 N-tool 协议位 drift audit 协议)
+  ├─ [Layer 1.0] **N-tool 协议位 drift audit** (per ADR-0056, 2026-07-13 立, 强制必跑 — 详见 references/n-tool-drift-audit.md)
   ├─ [Layer 2] cleanup orphan (孤文件 / 断链 / 死代码)
   ├─ [Layer 3] N-tool fan-out (N 当前 = 6, per N-tool-search.md)
   └─ [Layer A] 5 字段自检 (path / commit / push / CI / owner) + §C.3.7 4 站 CI gate
@@ -637,12 +656,14 @@ bash ~/.claude/scripts/check-n-tool-drift.sh /path/to/repo  # 扫指定仓
 ```
 
 **字段约束**:
+
 - 标题 `🎯 host-self-evolve v3.1.0 <主题>` 1 行 ≤ 60 chars
 - 横幅 `═══...═══` 上下两行包围
 - 5 字段必填 (检查 / 修复 / 提升 / 预期 wall clock / 完成标准)
 - 数字具体 ("7 sub-task" / "5-tool" / "8+ 资源" / "≥ 30 min 实测")
 
 **反模式 (永久失效)**:
+
 - ❌ 跑前不显示 🎯 banner 段
 - ❌ banner 缺 5 字段任一
 - ❌ banner 数字模糊 ("一些" / "几个")
@@ -652,6 +673,7 @@ bash ~/.claude/scripts/check-n-tool-drift.sh /path/to/repo  # 扫指定仓
 
 ---
 
+<<<<<<< HEAD
 ## 📋 §Layer 1.0 — N-tool 协议位 drift audit 协议 (per ADR-0056, 2026-07-13 立)
 
 > **协议位**: host-self-evolve 跑前 banner 之后**必**跑本协议 (跟 banner Layer 1.0 + 实战案例沉淀段 line 194-231 + CASE-N-TOOL-DRIFT-CLEANUP-20260713 协同). 缺 = 违反 ADR-0056 硬约束.
@@ -753,6 +775,8 @@ test -f ~/.agents/skills/host-self-evolve/references/force-all-search-protocol.m
 
 ---
 
+=======
+>>>>>>> aa975b6 (refactor(skills): body 拆 references/ 1 层深 (per Anthropic best-practices))
 ## 🌱 Phase 1 — Life / Setup 段 (v3.2.0 立, 2026-07-08, per ADR-0041)
 
 > **触发**: user 2026-07-08 反馈 "修改 skill 主机自升级, 我需要你把这个 skill 明显的分为几个阶段或者是几个模块. 我需要在这个第一阶段是生命或者是设置, 需要完整的输出出来, 我们要干什么". 跟 v3.1.0 banner UX 协同: banner 之后**必**输出本段 (不可跳, 违反 v3.2.0 §✅ 修没做到).
@@ -760,6 +784,7 @@ test -f ~/.agents/skills/host-self-evolve/references/force-all-search-protocol.m
 > **协议位**: host-self-evolve 跑前 banner 之后**必**先输出本段 (跟 v3.1.0 banner + ADR-0041 协同). 缺 = 违反 v3.2.0 硬约束.
 >
 > **🔴 硬规则 (per CASE-HOST-SELF-EVOLVE-V3-2-0-PHASE-1-MISSED-20260708, 2026-07-08 user 抓包立)**:
+>
 > - 跑 banner 段 (v3.1.0) → **立即**接 §Phase 1 段 (v3.2.0) → 然后才跑 Layer 0-3 摸底
 > - **不可跳** §Phase 1 段直接进 Layer 0-3 摸底
 > - **不可自决**"先跑 7 sub-task 再补 §Phase 1 段" (违反"banner 之后立即")
@@ -804,9 +829,9 @@ test -f ~/.agents/skills/host-self-evolve/references/force-all-search-protocol.m
   - 用 PER Workflow 跑 (计划 / 执行 / 验收 三个人独立)
   - 跑完输出 ## ✅ 做了 + ## ❌ 没做 + ## 🔧 修了 三段
 
-═══════════════════════════════════════
+══════════════════════
 banner 结束 — 立即接 Phase 1 段
-═══════════════════════════════════════
+══════════════════════
 ```
 
 ```
@@ -906,28 +931,27 @@ banner 结束 — 立即接 Phase 1 段
 
   一句话: 把 ~/.claude/hooks/ + scripts/ + settings.json 4 hooks 协议位 整理
 
-  现状:
+  现状 (per CLAUDE.local.md §18 + rules/protocol-violation-auto-detect.md §4):
     - 4 hooks 协议位 (cross-session-grep / verify-before-act / post-pr-merge-ff-verify / protocol-violation-auto-detect)
     - 挂载在 ~/.claude/settings.json 的 PreToolUse / PostPRMerge / Stop 钩子位
     - 实施状态: 0 个真挂 (参考实现 ~/.omc/hooks/*.sh 写好了, user 没挂载)
 
-  干什么:
-    1. 摸底: grep -A 20 '"hooks"' ~/.claude/settings.json
-    2. 比对参考实现 ~/.omc/hooks/* 4 个脚本
-    3. 跟 user 确认是否挂 (framework config 改字段 必问)
+  干什么 (SOP per ADR-0026 + ADR-0039 + §18):
+    1. 摸底: `grep -A 20 '"hooks"' ~/.claude/settings.json` 看实际挂载数
+    2. 比对参考实现 ~/.omc/hooks/* 4 个脚本 (per protocol-violation-auto-detect.md §4)
+    3. 跟 user 确认是否挂 (灵魂 v3 §3: framework config 改字段 必问)
     4. 挂载后跑 5 commands verify + 1 次实战触发验证
     5. 立 ADR-0042 (本机自动化挂载决策沉淀)
 
   验收:
     - 4 hooks 协议位 100% 挂载 (或 user 决策"参考实现就够" 走文档化)
-    - settings.json diff ≤ 50 行
+    - settings.json diff ≤ 50 行 (per tooling-section-A §A.2 触发式决策表)
     - new ADR 立 (0042 整数 slot)
 
 
-═══════════════════════════════════════
+═══════════════════════
 🚀 Phase 1 整体验收 (跑完 1.1 → 1.4 后必跑)
 ═══════════════════════════════════════
-
   - 5 fields acceptance (path / commit / push / CI / owner)
   - decision-stream 流追加 (per calm-flow §4)
   - mem0 add_memory × 1-3 条 (per post-task-recommend §3)
@@ -935,39 +959,10 @@ banner 结束 — 立即接 Phase 1 段
   - SKILL.md changelog 升 v3.2.X (本 run 沉淀)
 
 ═══════════════════════════════════════
-``` 整理
-
-   现状 (per CLAUDE.local.md §18 + rules/protocol-violation-auto-detect.md §4):
-     - 4 hooks 协议位 (cross-session-grep / verify-before-act / post-pr-merge-ff-verify / protocol-violation-auto-detect)
-     - 挂载在 ~/.claude/settings.json 的 PreToolUse / PostPRMerge / Stop 钩子位
-     - 实施状态: 0 个真挂 (参考实现 ~/.omc/hooks/*.sh 写好了, user 没挂载)
-
-   干什么 (SOP per ADR-0026 + ADR-0039 + §18):
-     1. 摸底: `grep -A 20 '"hooks"' ~/.claude/settings.json` 看实际挂载数
-     2. 比对参考实现 ~/.omc/hooks/* 4 个脚本 (per protocol-violation-auto-detect.md §4)
-     3. 跟 user 确认是否挂 (灵魂 v3 §3: framework config 改字段 必问)
-     4. 挂载后跑 5 commands verify + 1 次实战触发验证
-     5. 立 ADR-0042 (本机自动化挂载决策沉淀)
-
-   验收:
-     - 4 hooks 协议位 100% 挂载 (或 user 决策"参考实现就够" 走文档化)
-     - settings.json diff ≤ 50 行 (per tooling-section-A §A.2 触发式决策表)
-     - new ADR 立 (0042 整数 slot)
-
-═══════════════════════════════════════════════════════════
-
-🚀 Phase 1 整体验收 (跑完 1.1 → 1.4 后必跑)
-═══════════════════════════════════════════════════════════
-  - 5 fields acceptance (path / commit / push / CI / owner)
-  - decision-stream 流追加 (per calm-flow §4)
-  - mem0 add_memory × 1-3 条 (per post-task-recommend §3)
-  - ADR 整数 slot 不抢 sub-slot (per ADR-0027 v1.1)
-  - SKILL.md changelog 升 v3.2.0 (本 run 沉淀)
-
-═══════════════════════════════════════════════════════════
 ```
 
 **字段约束** (跟 v3.1.0 banner §字段约束 协同):
+
 - 标题 `🌱 Phase 1 — Life / Setup` 1 行 ≤ 60 chars
 - 横幅 `═══...═══` 上下两行包围
 - 4 子模块必填 (1.1 shell / 1.2 记忆 / 1.3 规则 / 1.4 自动化)
@@ -975,12 +970,14 @@ banner 结束 — 立即接 Phase 1 段
 - 数字具体 ("12 公共源文件" / "75 files drift" / "≥ 30 min 实测")
 
 **§Phase 1 协议位硬规则**:
+
 - IF user 触发「主机自升级」/ self-evolve / 整理记忆 / claude 协调 / 协调 ~/.claude / 自我进化
 - AND banner 段跑完
 - THEN **必**接本 §Phase 1 段 (banner 之后, Layer 0-3 之前)
 - AND 4 子模块描述必完整 (一句话 + 现状 + 干什么 + 验收)
 
 **反模式 (永久失效)**:
+
 - ❌ 跑前只输出 banner 5 字段, 缺 §Phase 1 段 (违反 ADR-0041 v3.2.0)
 - ❌ Phase 1 段输出后跳过 Layer 0-3 (违反 §I.4 8 步循环)
 - ❌ Phase 1 4 子模块拆 4 个独立 skill (违反 host-self-evolve 主 skill 协调定位)
@@ -988,6 +985,7 @@ banner 结束 — 立即接 Phase 1 段
 - ❌ banner 写 wall clock = "30 min" 约束值 (违反 CASE-HOST-SELF-EVOLVE-V2-7-0-WALL-CLOCK-FALSE-CLAIM)
 
 **联动**:
+
 - 跟 v3.1.0 banner UX (跑前) 协同: banner → §Phase 1 → Layer 0-3 顺序固定
 - 跟 v3.1.0 ✅ 执行后 3 段 detailed (跑后) 协同: §Phase 1 → Layer 0-3 → 3 段 detailed
 - 跟 v2.6.46 wall-clock 改名实测硬约束协同: Phase 1 段含 wall clock 字段必填实测值
@@ -999,6 +997,7 @@ banner 结束 — 立即接 Phase 1 段
 - 跟 protocol-violation-auto-detect §4 4 hooks 协议位 协同: Phase 1.4 主入口
 
 **历史 record**:
+
 - 2026-07-08 v3.2.0 立 (user 2026-07-08 反馈 + ADR-0041, 整数 slot 0041 AVAILABLE)
 
 ---
@@ -1014,29 +1013,29 @@ banner 结束 — 立即接 Phase 1 段
 ```markdown
 ## ✅ 做了 (N 项)
 
-| # | 项 | Layer | 详情 |
-|---|----|-------|------|
-| 1 | <做了什么> | [Layer X] | <具体动作 + 数字> |
-| 2 | <做了什么> | [Layer X] | <具体动作 + 数字> |
-| ... | ... | ... | ... |
+| #   | 项         | Layer     | 详情              |
+| --- | ---------- | --------- | ----------------- |
+| 1   | <做了什么> | [Layer X] | <具体动作 + 数字> |
+| 2   | <做了什么> | [Layer X] | <具体动作 + 数字> |
+| ... | ...        | ...       | ...               |
 
 **小计**: N 项, 跨 [Layer X / Y / Z].
 
 ## ❌ 没做 (M 项)
 
-| # | 项 | 原因 | 修法 (立即跑) |
-|---|----|------|---------------|
-| 1 | <没做到什么> | <为什么没做> | <具体修法, 含命令> |
-| ... | ... | ... | ... |
+| #   | 项           | 原因         | 修法 (立即跑)      |
+| --- | ------------ | ------------ | ------------------ |
+| 1   | <没做到什么> | <为什么没做> | <具体修法, 含命令> |
+| ... | ...          | ...          | ...                |
 
 **小计**: M 项, 必立即修 (per §✅ 修没做到 协议).
 
 ## 🔧 修了 (K 项) — 上面 ❌ 没做的修法跑完
 
-| # | ❌ 没做 # | 修法 (跟上面) | 跑完实测 | 验收 |
-|---|-----------|--------------|---------|------|
-| 1 | 1 | <命令> | <输出> | ✅ / ❌ |
-| ... | ... | ... | ... | ... |
+| #   | ❌ 没做 # | 修法 (跟上面) | 跑完实测 | 验收    |
+| --- | --------- | ------------- | -------- | ------- |
+| 1   | 1         | <命令>        | <输出>   | ✅ / ❌ |
+| ... | ...       | ...           | ...      | ...     |
 
 **小计**: K 项修完, M-K 项仍未修 (写明原因 + BLOCKED 条件).
 
@@ -1051,6 +1050,7 @@ banner 结束 — 立即接 Phase 1 段
 ```
 
 **字段约束**:
+
 - 3 段必填, 缺 = 违反 v3.1.0 硬约束
 - 数字具体 ("3 file +12/-5" / "2 case 立")
 - ❌ 没做表写"原因" + "修法" 双字段 (user 看得懂, 跟"未做"对立)
@@ -1059,15 +1059,16 @@ banner 结束 — 立即接 Phase 1 段
 
 **§✅ 修没做到 协议 (v3.1.0 立, 2026-07-03)**:
 
-| 修法类型 | 必跑 | 不可卸载给 user |
-|---------|------|-----------------|
-| ❌ 没做表任一项 | 立即跑修法 (单步 ≤ 5 min) | ❌ 写"下次再" / "留给 user" |
-| ❌ 修法失败 | 重试 ≤ 3 次 (per §C.3.6.1 no-stuck) | ❌ 立即 STOP + AskUserQuestion |
-| ❌ BLOCKED on X | 显式说明 + 触发条件 | ❌ 静默标 PENDING |
-| ❌ 不可逆 / framework config / user 偏好 | AskUserQuestion (4 类必问) | ❌ 装作 know |
-| ❌ 跑 ≥ 5 min 必问 user | AskUserQuestion (long-task 显式) | ❌ 默默做 |
+| 修法类型                                 | 必跑                                | 不可卸载给 user                |
+| ---------------------------------------- | ----------------------------------- | ------------------------------ |
+| ❌ 没做表任一项                          | 立即跑修法 (单步 ≤ 5 min)           | ❌ 写"下次再" / "留给 user"    |
+| ❌ 修法失败                              | 重试 ≤ 3 次 (per §C.3.6.1 no-stuck) | ❌ 立即 STOP + AskUserQuestion |
+| ❌ BLOCKED on X                          | 显式说明 + 触发条件                 | ❌ 静默标 PENDING              |
+| ❌ 不可逆 / framework config / user 偏好 | AskUserQuestion (4 类必问)          | ❌ 装作 know                   |
+| ❌ 跑 ≥ 5 min 必问 user                  | AskUserQuestion (long-task 显式)    | ❌ 默默做                      |
 
 **反模式 (永久失效)**:
+
 - ❌ 跑完只给分数 ("完成 80%" 无 3 段)
 - ❌ 修复藏在 ❌ 没做表里不显式 (违反 user 反馈 "非常详细、明显地输出")
 - ❌ ❌ 没做 = 0 假装全做了 (实际 < 100%, false completion per §C.5)
@@ -1075,6 +1076,7 @@ banner 结束 — 立即接 Phase 1 段
 - ❌ 跑完不跑 5 字段自检 (per §H Acceptance Protocol)
 
 **联动**:
+
 - 跟 v2.6.55 (做什么/修了什么, 短) 协同: v2.6.55 简化, v3.1.0 详 3 段
 - 跟 v2.6.57 (banner, 跑前) 协同: 跑前 banner + 跑后 3 段 = 完整 UX
 - 跟 PER Workflow 协同: verify 段必跑 3 段 detailed 输出 (per §C.3.7)
