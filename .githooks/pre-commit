@@ -9,9 +9,9 @@
 set -e
 
 # 找到本 skill 的 lint 脚本 (本 hook 假定在 mykcs/myk-skills 仓内)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# .git/hooks/pre-commit → 上 2 层是 .git/ 仓根, 上 1 层是 skill 子目录
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# 2026-07-25 fix: core.hooksPath=.githooks 时 SCRIPT_DIR/../.. 会算出仓外路径 (~/.agents/),
+# 改用 git rev-parse --show-toplevel, 与 hook 物理位置解耦
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 LINT_SH="$REPO_ROOT/auto-feishu-digest/scripts/check-run-card-version.sh"
 
 # 只在 auto-feishu-digest 改动时跑 (避免不相关 commit 触发)
