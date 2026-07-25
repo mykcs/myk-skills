@@ -1,21 +1,21 @@
-name: rich-audit CI
+name: host-self-evolve CI
 
 on:
   push:
     branches: [main]
     paths:
-      - 'rich-audit/**'
+      - 'host-self-evolve/**'
       - '.github/workflows/rich-audit-ci.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'rich-audit/**'
+      - 'host-self-evolve/**'
       - '.github/workflows/rich-audit-ci.yml'
   workflow_dispatch:  # allow manual re-run from UI / gh cli
 
-# 防止 rich-audit 自己 trigger 自己 (递归 CI)
+# 防止 host-self-evolve 自己 trigger 自己 (递归 CI)
 concurrency:
-  group: rich-audit-${{ github.ref }}
+  group: host-self-evolve-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
       - name: Stub ~/.claude (read-only detection)
-        # rich-audit 检测 ~/.claude/; CI 上是空的, 应该 pass
+        # host-self-evolve 检测 ~/.claude/; CI 上是空的, 应该 pass
         run: |
           mkdir -p ~/.claude/knowledge/cases/wiki
           echo "# CI stub" > ~/.claude/knowledge/cases/wiki/README.md
@@ -66,43 +66,43 @@ jobs:
           EOF
 
       - name: Run unittest (10 tests)
-        working-directory: rich-audit
+        working-directory: host-self-evolve
         run: python3 -m unittest scripts.test_detection_scripts -v
 
       - name: Run dead_code_detector (smoke)
-        working-directory: rich-audit
+        working-directory: host-self-evolve
         run: python3 scripts/dead_code_detector.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('count:',d['count']); assert d['tool']=='dead_code_detector.py'"
 
       - name: Run lint_runner (smoke)
-        working-directory: rich-audit
+        working-directory: host-self-evolve
         run: python3 scripts/lint_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('scanned:',d['scanned_sh'],'sh+',d['scanned_py'],'py'); assert d['tool']=='lint_runner.py'"
 
   modernize:
-    name: Modernization Check (Tri-Search Protocol v2.6 + consistency 6d)
+    name: Modernization Check (PER Workflow + consistency 6d)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Verify Tri-Search Protocol v2.6 in SKILL.md
+      - name: Verify PER Workflow 协议位 in SKILL.md
         run: |
-          if ! grep -q "§A.2 Layer 2b" rich-audit/SKILL.md; then
-            echo "❌ Tri-Search Protocol v2.6 not in SKILL.md"
+          if ! grep -q "PER Workflow" host-self-evolve/SKILL.md; then
+            echo "❌ PER Workflow 协议位 not in SKILL.md"
             exit 1
           fi
-          echo "✅ Tri-Search Protocol v2.6 found"
+          echo "✅ PER Workflow 协议位 found"
       - name: Verify consistency 6d sub-modules
         run: |
           for n in 1 2 3 4 5 6; do
-            test -f "rich-audit/references/consistency-6d/${n}-"*.md || { echo "❌ consistency-6d/${n} missing"; exit 1; }
+            test -f "host-self-evolve/references/consistency-6d/${n}-"*.md || { echo "❌ consistency-6d/${n} missing"; exit 1; }
           done
           echo "✅ 6 consistency sub-modules present"
       - name: Verify 8 detection scripts
         run: |
           SCRIPTS="dead_code_detector.py commands_to_skills_migrator.py lint_runner.py memory_audit_runner.py skill_authoring_checker.py skill_overlap_enhancer.py waste_token_detector.py auto_fix_proposer.py"
           for s in $SCRIPTS; do
-            test -f "rich-audit/scripts/$s" || { echo "❌ $s missing"; exit 1; }
+            test -f "host-self-evolve/scripts/$s" || { echo "❌ $s missing"; exit 1; }
           done
           echo "✅ 8 detection scripts present"
       - name: Verify tests pass (10 tests)
         run: |
-          cd rich-audit && python3 -m unittest scripts.test_detection_scripts 2>&1 | tail -3
+          cd host-self-evolve && python3 -m unittest scripts.test_detection_scripts 2>&1 | tail -3
