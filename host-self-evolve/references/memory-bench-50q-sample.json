@@ -1,10 +1,10 @@
 {
   "metadata": {
     "name": "memory-bench-50q-sample",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "created": "2026-06-26",
     "updated": "2026-07-25",
-    "changelog": "v0.2.0 (2026-07-25, host-self-evolve run @ Kimi Work): 修过时项 — Q003 双账号隔离铁律 2026-07-14 作废 / Q012 路径 2026-07-20 迁移 ~/Claude/Projects/webs/ / Q046-Q050 mem0 封存改考本地 fallback 架构 (per host-anchors.md:68 建议) / Q008-Q009-Q010-Q030-Q031-Q035 source+keywords drift 修正 / C001+C003 consistency 事实更新 / distribution mem0_compact_captured → memory_architecture_post_mem0",
+    "changelog": "v0.2.1 (2026-07-25, v2 重跑新发现 4 处): Q010 tooling.md §A.4 迁出 / Q019 MEMORY.md §7 无仓清单 / Q036 case 文件名修正 CASE-SOUL-V2-DAHUA-VS-SHIJIN-20260626 / Q045 keywords 经 git history 190e0d43 核实修正 (frontmatter/OMCRef 不在原文, 改 trigger/plugin/7-way bonus test/submodule). v0.2.0 (2026-07-25, host-self-evolve run @ Kimi Work): 修过时项 — Q003 双账号隔离铁律 2026-07-14 作废 / Q012 路径 2026-07-20 迁移 ~/Claude/Projects/webs/ / Q046-Q050 mem0 封存改考本地 fallback 架构 (per host-anchors.md:68 建议) / Q008-Q009-Q010-Q030-Q031-Q035 source+keywords drift 修正 / C001+C003 consistency 事实更新 / distribution mem0_compact_captured → memory_architecture_post_mem0",
     "skill": "rich-audit",
     "skill_version": "2.6.25",
     "design_doc": "references/memory-bench-design.md",
@@ -100,7 +100,7 @@
     {
       "id": "Q010",
       "category": "hot_fact_edit_pre_flight",
-      "source": "memory/host-anchors.md / rules/tooling.md §A.4 CSS Hard Refresh",
+      "source": "memory/host-anchors.md (tooling.md §A.4 字面已迁出, 2026-07-25 v2 实测)",
       "question": "改 CSS 后给用户的强制提示是什么？",
       "expected_keywords": ["硬刷新", "Cmd+Shift+R", "Ctrl+Shift+R", "CSS 缓存"],
       "scoring_note": "2 关键词 = 1.0"
@@ -172,7 +172,7 @@
     {
       "id": "Q019",
       "category": "hot_fact_smart_push",
-      "source": "CLAUDE.local.md §7 / MEMORY.md §7",
+      "source": "CLAUDE.local.md hot recall 表 line 31 (MEMORY.md §7 仅有 case 链接无仓清单, 2026-07-25 v2 实测)",
       "question": "哪些仓的修改后会自动 smart-push？",
       "expected_keywords": ["~/.claude", "主站", "GDKVM", "OSA", "Academic"],
       "scoring_note": "5 仓全列 = 1.0"
@@ -308,7 +308,7 @@
     {
       "id": "Q036",
       "category": "cases_recent_soul_v2_v3",
-      "source": "knowledge/cases/wiki/CASE-SOUL-V2-20260626 (推测)",
+      "source": "knowledge/cases/wiki/CASE-SOUL-V2-DAHUA-VS-SHIJIN-20260626.md (v0.2.0 推测名已修正)",
       "question": "灵魂 v2/v3 升级 case 包含什么 4 维度验证？",
       "expected_keywords": ["跨会话", "反市井化", "保留专业", "4 维度"],
       "scoring_note": "命中 2+ = 1.0"
@@ -380,10 +380,10 @@
     {
       "id": "Q045",
       "category": "cases_recent_omc_upgrade",
-      "source": "knowledge/cases/wiki/CASE-OMC-4-15-0-UPGRADE-20260624 (推测)",
+      "source": "knowledge/cases/wiki/CASE-OMC-UPGRADE-4.15.0-EPISODE-20260624.md (工作树已删 e4bdefef, git history 190e0d43 + memory/case-index-archive.md:169)",
       "question": "OMC 4.15.0 升级 case 触发的回归测试点？",
-      "expected_keywords": ["frontmatter", "trigger", "OMCRef", "plugin"],
-      "scoring_note": "命中 2+ = 1.0"
+      "expected_keywords": ["trigger", "plugin", "7-way bonus test", "submodule"],
+      "scoring_note": "命中 2+ = 1.0 (v0.2.1 修: 原 keywords frontmatter/OMCRef 经 git history 核实不在 case 原文)"
     },
     {
       "id": "Q046",
