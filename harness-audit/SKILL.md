@@ -22,15 +22,17 @@ Run a deterministic repository harness audit and return a prioritized scorecard.
 
 ## Deterministic Engine
 
-Always run:
+Choose the deterministic entry point by target:
 
 ```bash
-node scripts/harness-audit.js <scope> --format <text|json> --root ~
+# ~/.claude control-plane repository: root-level settings/hooks/skills
+python3 ~/.claude/scripts/harness-audit-cp.py --root ~/.claude <scope> --format <text|json>
+
+# ordinary consumer repository
+node scripts/harness-audit.js <scope> --format <text|json> --root <repo>
 ```
 
-The script reads `process.cwd()` as default root, so this machine-local override pins the audit to `~` (home, where the ECC control plane lives). Paths resolve via the `scripts/` symlink at `~/.claude/skills/harness-audit/scripts` -> `~/.claude/plugins/marketplaces/everything-claude-code/scripts`. For per-repo audits, override with `--root <path>`.
-
-This script is the source of truth for scoring and checks. Do not invent additional dimensions or ad-hoc points.
+The control-plane wrapper delegates to the vendored engine and only corrects its two nested-consumer checks when the target root itself is `~/.claude`. It prevents the wrapper from remaining dead code while preserving unchanged scoring for ordinary repositories. Do not invent additional dimensions or ad-hoc points.
 
 Rubric version: `2026-03-16`.
 

@@ -12,12 +12,12 @@
 | 2   | timestamp         | ISO 8601 + timezone                      | string  |
 | 3   | host              | `mykcs/{local-path}`                     | string  |
 | 4   | skill_version     | `v{X.Y.Z}`                               | semver  |
-| 5   | model             | `claude-{sonnet\|opus\|haiku}` + version | string  |
-| 6   | judge             | `opus-as-judge` + version                | string  |
+| 5   | model             | actual answer runtime, e.g. `MiniMax via mmx text chat` | string  |
+| 6   | judge             | actual judge runtime, e.g. `mmx dual-order judge`                | string  |
 | 7   | recall_total      | N/50 (sum)                               | 整数    |
 | 8   | consistency_total | N/15 (sum)                               | 整数    |
 | 9   | compliance_total  | N/12 (sum)                               | 整数    |
-| 10  | weighted_score    | `0.0 - 2.0` 5 级 (opus-as-judge)         | float   |
+| 10  | weighted_score    | `raw=0.0-2.0; normalized=0-100`（同一行）         | float   |
 | 11  | target_met        | `✅ ≥ 60 / ❌ < 60`                      | boolean |
 
 **模板示例** (per §C.3.3 v2.6.56 实战):
@@ -29,12 +29,12 @@
 | 2   | timestamp         | 2026-07-18T15:30:00+08:00  |
 | 3   | host              | mykcs@/Users/myk/.claude   |
 | 4   | skill_version     | v3.2.9                     |
-| 5   | model             | sonnet 4.6                 |
-| 6   | judge             | opus-as-judge v4.5         |
+| 5   | model             | MiniMax via mmx text chat  |
+| 6   | judge             | MiniMax via mmx dual-order judge |
 | 7   | recall_total      | 42/50                      |
 | 8   | consistency_total | 13/15                      |
 | 9   | compliance_total  | 11/12                      |
-| 10  | weighted_score    | 0.93                       |
+| 10  | weighted_score    | raw=1.20; normalized=60.0  |
 | 11  | target_met        | ✅ ≥ 60                    |
 ```
 
@@ -85,16 +85,16 @@
 | Step | 行为                                                                                   | 输出             |
 | ---- | -------------------------------------------------------------------------------------- | ---------------- |
 | 1    | 读 `~/.agents/skills/host-self-evolve/references/memory-bench-50q-sample.json`         | 50 题题库        |
-| 2    | 50 题拆 50 个 sonnet session, 每题独立 (防前后题污染)                                  | 50 session 报告  |
-| 3    | opus-as-judge 评分 (5 级: 0 / 0.5 / 1.0 / 1.5 / 2.0)                                   | 评分报告         |
-| 4    | 15 consistency 跨源 grep + opus-judge 语义                                             | consistency 报告 |
+| 2    | 50 题逐题独立调用 mmx text chat（每题独立 prompt，防前后题污染）                                  | 50 session 报告  |
+| 3    | mmx 双序 judge 逐题评分（0-1），4 metric 合成后缩放到 0-2                                   | 评分报告         |
+| 4    | 15 consistency 跨源 grep + mmx/脚本语义判定                                             | consistency 报告 |
 | 5    | 12 compliance 触发场景, 跑对应 hook/script                                             | compliance 报告  |
 | 6    | 4 metric 加权求和 → total score                                                        | total score      |
 | 7    | 写 11 行总表到 `~/.agents/skills/host-self-evolve/reports/memory-bench/{date}-v{n}.md` | 报告文件         |
 
 **失败处理** (per §C.3.6.1 no-stuck 协同):
 
-- 跑分中途 token 限制 / opus API 失败 → 暂停 + 报告 user + AskUserQuestion (走 4 类必问白名单)
+- 跑分中途 token 限制 / mmx API 失败 → 暂停 + 报告 user + AskUserQuestion (走 4 类必问白名单)
 - 跑分发现 P0 安全问题 → 立即停止 + 报告 user
 - 跑分时间长 (3h) → 拆多 session, 进度写 decision-stream
 

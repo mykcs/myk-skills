@@ -1,7 +1,7 @@
 ---
 name: host-self-evolve
 description: |
-  本地主机 Claude Code 协调 + 自我进化 (v3.3.1 cross-reference + v3.3.0 PER Workflow): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
+  本地主机 Claude Code 协调 + 自我进化 (v3.3.5 doctor audit hardening + v3.3.0 PER Workflow): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
   5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
   必跑: §cwd-guard (v3.2.5/ADR-0059) + §doctor-check (v3.3.5) + banner + §Phase 1 (ADR-0041) + §memory-bench 50 题 (ADR-0065) + PER Workflow (v2.6.59/§C.3.7) + 实测 wall-clock.
@@ -16,7 +16,7 @@ metadata:
   version: "3.3.5"
   author: mykcs
   category: self-evolution
-  changelog: "v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/memory-bench-protocol.md (memory-bench 必跑 + report-card 模板) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅. v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. memory-bench v1. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
+  changelog: "v3.3.5 (2026-07-26): resolve committed conflict markers using aa975b6 one-level references layout; harden mandatory doctor gate; restore the memory-bench 11-row schema, truthful mmx runtime labels, 0-2 score math and >=60 target; exclude non-authoritative runtime copies from rich-audit security scans and detect quoted JSON credential keys. v3.3.4 (2026-07-25): body split into one-level references; details in references/changelog.md."
   tags:
     [
       self-evolution,
@@ -55,11 +55,12 @@ metadata:
       v3.3.3,
       body-split-references,
       v3.3.4,
-      doctor-check,
+      v3.3.5,
+      doctor-audit-hardening,
     ]
 version: "1.0.0"
 author: "mykcs"
-last_updated: "2026-07-25"
+last_updated: "2026-07-26"
 ---
 
 # 主机自升级 Skill (host-self-evolve v3.3.5)
@@ -75,81 +76,18 @@ last_updated: "2026-07-25"
 
 ---
 
-## 🩺 §doctor-check 段 (v3.3.4 立, 2026-07-25, per Kimi Work session 体检修复实战)
+## 🩺 §doctor-check（v3.3.5，强制）
 
-> **触发**: 2026-07-25 Kimi Work session 修复链 — ① check-doctor-cleanup.sh 主流程曾是**死代码** (游离 `exit 0` + 内嵌 Python 字面换行语法错, 自创立起 8 项 check 从未实跑) ② 21:16 settings.json 出现 **0 字节 backup 对** (CC 自身备份例程被并发 doctor session 打断, 非本地脚本 bug, 属组 myk:wheel 异常).
->
-> **协议位**: host-self-evolve 摸底阶段 (§cwd-guard 通过后 / Layer 1 开始前) **必跑** `bash ~/.claude/scripts/check-doctor-cleanup.sh`, 10 项 check (1/2/3/4/5/6/7/9/10, 8 跳过) 全 ✅ / ℹ️ 才继续; 任何 ⚠️ / ❌ 项先收口派单, 不带病进 Layer 1.
+执行顺序不可变：先按 `references/cwd-guard-per-defaults.md` 完成 cwd guard；通过后、进入 Layer 1 前运行：
 
-**10 项 check 一览** (SSOT = 脚本本身, 此处只列 anchor):
+```bash
+bash ~/.claude/scripts/check-doctor-cleanup.sh
+```
 
-| # | 检查项 | 健康线 |
-|---|--------|--------|
-| 1 | 3 MCP 90 天 0 调用 | 全 disabled |
-| 2 | CLAUDE.local.md dedup | 仅 1 份 |
-| 3 | process.md chars | < 40K |
-| 4 | stale §self-summary | 无 >7 天段 |
-| 5 | SessionStart slow hooks | 无 timeout |
-| 6 | context heavy (v3.3.5 增强) | references/protocols 无 paths 漏网=0 + 常驻 ~10K tokens (2026-07-26 减重后基线) |
-| 7 | version currency | CLI 在 PATH |
-| 9 | 频繁 deny | < 50 |
-| 10 | **settings.json 完整性** (v3.3.4 新增) | JSON 有效 + 属组 staff + 无 0 字节 backup 残留 |
+- exit 0：继续 Layer 1。
+- exit 1 或 2：停止并先完成对应修复，不带病继续。
+- 禁止自动修改 `settings.json`、配置字段、hooks、provider 或 plugin 状态；这类修复必须留在既有审批流程。
 
-**脚本维护硬规则 (per 本次修复教训, 改 check-doctor-cleanup.sh 后必跑 3 件套)**:
-
-1. `bash -n` 语法过 + `shellcheck -x` clean (含 info 级)
-2. 全程冒烟 `bash check-doctor-cleanup.sh` exit 0 且无 stderr
-3. **pipefail 3 脚枪写法** (set -euo pipefail 下必守):
-   - `{ grep -r ... || true; } | wc -l` (grep 无匹配 exit 1 会杀脚本)
-   - `grep -c ... || true` (grep -c 必出计数, 不要再 `| head -1`, `|| echo 0` 会造成双行)
-   - `[ -f x ] && VAR=$(...)` 脚枪改 if-form (文件缺失即静默退出)
-
-**反模式 (永久失效, 4 条)**:
-
-1. ❌ 体检脚本自身带病 = 假绿源头 (游离 exit 0 让 8 项 check 死代码躺了 10 天无人发现)
-2. ❌ 0 字节 backup 当 "已备份" = 比没备份更危险 (假安全感, 2026-07-25 21:16 实例)
-3. ❌ settings.json 属组非 staff 不追查 = 外部工具截断式写入的信号被忽略
-4. ❌ 改脚本只过 bash -n 不过 shellcheck + 冒烟 = pipefail 雷上线才炸
-
-**联动**: §cwd-guard (跑前守卫, 本段是其兄弟段) + `rules/shared-file-write-freshness.md` (多 agent 并发写 settings 协议) + skill `disable-truth-sop` (写后必断言) + 主仓 commits 57e794bb (pipefail 排雷) / 93f7f656 (check 10 立) / ecffa304 (死代码复活)
-
-**历史 record**:
-- 2026-07-25 v3.3.4: 立 (per Kimi Work session — hooks shellcheck 修复链 + doctor 体检复活 + 0 字节 backup 根因调查收口, user 指令 "把这个检查修复合并进主机自升级")
-
----
-
-- 2026-07-26 v3.3.5: check 6 增强 + §context-budget-fix 立 (per user "把这个检查修复加到主机自升级"). check 6 从'求和所有 rules'改成'揪 references/protocols 无顶层 paths 漏网'; 起源 rules 减重 91.4k→17k memory (主仓 PR #119/#120/#122/#123).
-
-### §context-budget-fix (check 6 报 ⚠️ 时的修复 SOP, v3.3.5 立)
-
-check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层** `paths:` 让其从常驻改按需加载。
-
-**机制** (per code.claude.com/docs/en/memory + 2026-07-26 本机实证):
-
-- rules/*.md 有**顶层** `paths:` (跟 name/description 平级, **不能**嵌 metadata) → 只在 Read 匹配文件时加载
-- 无 paths → session 启动无条件常驻
-- 实证: `process-a-workflow.md` (有 paths) 不在 /context; 无 paths 的全在
-
-**修复映射 (按父规则继承 scope)**:
-
-| 文件前缀 | 顶层 paths |
-| --- | --- |
-| `process-*` | 代码+配置+SKILL (同 process.md) |
-| `tooling-*` | CSS/settings/kimi/skills |
-| `language-stack-{cpp,go,php}` | 对应语言后缀 |
-| `typescript-*` / `bugfix-400-*` | TS/JS / fix脚本+settings |
-| `soul-*` | `~/.claude/rules/soul.md` + `references/soul-*.md` |
-| `*-changelog-archive.md` | 只 scope 自己 (纯历史, ≈永不自动加载) |
-| `protocols/*` | `~/.claude/rules/**` + `protocols/**` + skills (directive 在常驻 CLAUDE.md) |
-
-**硬规则**:
-
-1. ❌ 别 scope 写时安全闸门规则, **除非**它有 hook 兜底 (verify-before-act→`pre-verify-act.py`; cross-session-grep→`pre-skill-protocol.sh`) — 否则 Read 触发 ≠ Write 触发, 悄悄失效
-2. ❌ `soul.md` / `calm-flow.md` 是核心行为规则, 保持常驻不 scope
-3. ✅ 改完必**重启 claude + /context** 实测 (本 session 改的规则本 session 命中 scope 仍加载, 测不准)
-4. ✅ 无 frontmatter 的文件新建 `---` 块含 `name:` + `paths:`; 有的则插顶层 paths (per rules 减重工程 §20 规范)
-
----
 ## 触发方式 (中英文, 12 词)
 
 | 中文                     | 英文                   |
@@ -232,7 +170,6 @@ check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层**
 - ❌ **banner 缺 Layer 1.0 N-tool 协议位 drift audit** (字面 drift 漏检, 协议级必跑)
 
 ---
-
 
 ## 🌱 Phase 1 — Life / Setup 段 (v3.2.0 立, 2026-07-08, per ADR-0041)
 

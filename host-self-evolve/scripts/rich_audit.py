@@ -120,7 +120,7 @@ def grep_secrets(text: str) -> list[dict]:
     ]
     # Look for KEYWORD = "long-random-string" or KEYWORD: long-random-string
     context_pat = re.compile(
-        r'(?:' + '|'.join(secret_keywords) + r')\s*[:=]\s*["\']?([A-Za-z0-9_/+=\-]{32,})["\']?',
+        r'["\']?(?:' + '|'.join(secret_keywords) + r')["\']?\s*[:=]\s*["\']?([A-Za-z0-9_/+=\-]{32,})["\']?',
         re.IGNORECASE
     )
     for m in context_pat.finditer(text):
@@ -829,7 +829,7 @@ def check_skill_health(report: dict) -> list[dict]:
 
         # Check 1: line count
         try:
-            line_count = sum(1 for _ in skill_file.open())
+            line_count = len(skill_file.read_text(errors="ignore").splitlines())
         except OSError:
             continue
         if line_count > SKILL_MAX_LINES:
@@ -1284,8 +1284,9 @@ def check_architecture(report: dict) -> list[dict]:
     return findings
 
 
-_EXCLUDED_DIRS = {
-    "plugins/marketplaces", "plugins/cache",
+_EXCLUDED_PARTS = {".git", ".worktrees", "worktrees", "session-env", ".venv", "venv", "node_modules", "vendor", "cache", ".cache"}
+_EXCLUDED_PATHS = {
+    ".claude/plugins/marketplaces", ".claude/plugins/cache",
     ".omc/state/checkpoints", ".omc/state/sessions",
 }
 
@@ -1294,9 +1295,10 @@ def _is_excluded(path: Path) -> bool:
     try:
         rel = path.relative_to(HOME)
         rel_str = str(rel).replace("\\", "/")
-        for excluded in _EXCLUDED_DIRS:
-            if excluded in rel_str:
-                return True
+        if any(part in _EXCLUDED_PARTS for part in rel.parts):
+            return True
+        if any(excluded in rel_str for excluded in _EXCLUDED_PATHS):
+            return True
         return False
     except ValueError:
         return False
@@ -1306,7 +1308,7 @@ def check_security(report: dict) -> list[dict]:
     findings = []
 
     # Scan scripts and configs for hardcoded secrets
-    for root in (CLAUDE_DIR / "scripts", CLAUDE_DIR, OMC_DIR):
+    for root in (CLAUDE_DIR, OMC_DIR):
         if not root.exists():
             continue
         for f in root.rglob("*"):
@@ -1338,6 +1340,8 @@ def check_security(report: dict) -> list[dict]:
             continue
         for f in root.rglob("*"):
             if not f.is_file():
+                continue
+            if _is_excluded(f):
                 continue
             mode = f.stat().st_mode
             if mode & stat.S_IRWXO == stat.S_IRWXO:

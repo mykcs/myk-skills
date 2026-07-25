@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-memory_bench_runner.py - host-self-evolve memory-bench 跑分主逻辑 (v2, LLM-judge 升级版)
+memory_bench_runner.py - host-self-evolve memory-bench 跑分主逻辑 (v5.4, truthful score/runtime audit)
 
 升级记录 (per ADR-0067):
   - v1 (2026-07-18): skeleton/keyword-fallback (recall 23.8/50 vs v3 4.0/50 -83% 暴露不可靠)
@@ -10,7 +10,7 @@ memory_bench_runner.py - host-self-evolve memory-bench 跑分主逻辑 (v2, LLM-
     真值 ~1/2) + 双评改展示顺序交换 (标签不变)
 
 用法:
-  python3 memory_bench_runner.py                    # 默认 50 题 + sonnet 主跑 + opus 评分
+  python3 memory_bench_runner.py                    # 默认 50 题 + mmx 作答 + mmx 双序评分
   python3 memory_bench_runner.py --questions 10    # 跑前 10 题
   python3 memory_bench_runner.py --parallel 5       # 并行 5 session
   python3 memory_bench_runner.py --keyword-fallback # 退回 keyword 模式 (debug 用)
@@ -36,10 +36,11 @@ SKILL_DIR = SCRIPT_DIR.parent
 REF_DIR = SKILL_DIR / "references"
 REPORT_DIR = SKILL_DIR / "reports" / "memory-bench"
 QUESTION_FILE = REF_DIR / "memory-bench-50q-sample.json"
+RUNNER_VERSION = "5.4.0"
 
-# Weighted score 协议位 (per ADR-0067 §6 TODO):
-# 5 级 (0-2.0) → 1.0 = 60/100 target, 1.5 = 90, 2.0 = 120 (上限)
-WEIGHTED_SCORE_TARGET = 1.0  # ≥ 1.0 = ≥ 60/100 target
+# Weighted score 协议位: 4 metrics first normalize to 0-1, then scale to 0-2.
+# normalize_weighted(raw) maps 0-2 to 0-100, so target 60 equals raw 1.2.
+WEIGHTED_SCORE_TARGET = 1.2
 
 # 跑分偏差容忍 (per ADR-0067 §4 #2)
 BASELINE_DEVIATION_TOLERANCE = 0.10  # ≤ 10% 才算可靠基线
@@ -347,6 +348,20 @@ def normalize_weighted(raw: float) -> float:
     return raw / 2.0 * 100
 
 
+def compute_weighted_score(weights: dict, recall_total: float, n: int,
+                           consistency_total: int, consistency_max: int,
+                           compliance_total: int, compliance_max: int,
+                           token_score: float) -> float:
+    """Combine four 0-1 metric ratios and scale the composite to 0-2."""
+    unit_score = (
+        weights.get("recall", 0.35) * (recall_total / max(1, n))
+        + weights.get("consistency", 0.25) * (consistency_total / max(1, consistency_max))
+        + weights.get("compliance", 0.30) * (compliance_total / max(1, compliance_max))
+        + weights.get("token_economy", 0.10) * (token_score / 100.0)
+    )
+    return 2.0 * unit_score
+
+
 def next_report_version() -> str:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -361,17 +376,27 @@ def next_report_version() -> str:
     return f"{today}-v{max_v + 1}"
 
 
+def read_skill_version(path: Path = SKILL_DIR / "SKILL.md") -> str:
+    """Read metadata.version from SKILL.md frontmatter."""
+    text = path.read_text(encoding="utf-8")
+    frontmatter = text.split("---", 2)[1]
+    match = re.search(r'^\s{2}version:\s*["\']?([^"\'\n]+)', frontmatter, re.MULTILINE)
+    if not match:
+        raise ValueError(f"metadata.version missing in {path}")
+    return f"v{match.group(1).strip().lstrip('v')}"
+
 def build_report_card(run_id: str, timestamp: str, n: int, recall_total: float,
                       consistency_total: int, compliance_total: int,
-                      weighted_score: float, target_met: bool,
-                      judge_mode: str, deviation_pct: Optional[float] = None) -> str:
+                      weighted_score: float, judge_mode: str,
+                      deviation_pct: Optional[float] = None) -> str:
     host = "mykcs@/Users/myk/.claude"
-    skill_version = "v3.2.9"
-    model = "sonnet 4.6"
-    judge = f"{judge_mode} (opus-as-judge v4.5)"
+    skill_version = read_skill_version()
+    model = "MiniMax via mmx text chat"
+    judge = f"{judge_mode} (MiniMax via mmx dual-order judge)"
     deviation_str = f"{deviation_pct:.1%}" if deviation_pct is not None else "N/A"
     raw_score = weighted_score
     normalized_weighted = normalize_weighted(weighted_score)
+    target_met = weighted_score >= WEIGHTED_SCORE_TARGET
     return f"""# memory-bench report-card — {run_id}
 
 | # | 字段 | 值 |
@@ -385,9 +410,8 @@ def build_report_card(run_id: str, timestamp: str, n: int, recall_total: float,
 | 7 | recall_total | {recall_total:.1f}/{n} |
 | 8 | consistency_total | {consistency_total}/15 |
 | 9 | compliance_total | {compliance_total}/12 |
-| 10 | raw_score | {raw_score:.2f} (range 0-2.0) |
-| 11 | normalized_weighted | {normalized_weighted:.1f} (range 0-100, per ADR-0068-b linear) |
-| 12 | target_met | {'✅ ≥ 60 (normalized)' if target_met else '❌ < 60 (normalized)'} |
+| 10 | weighted_score | raw={raw_score:.3f} (0-2.0); normalized={normalized_weighted:.1f} (0-100) |
+| 11 | target_met | {'✅ ≥ 60 (normalized)' if target_met else '❌ < 60 (normalized)'} |
 
 ## Baseline Compare (per ADR-0067 §4 #2)
 
@@ -421,7 +445,7 @@ def compute_baseline_deviation(current_recall: float) -> Optional[float]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="host-self-evolve memory-bench runner v2 (LLM-judge)")
+    parser = argparse.ArgumentParser(description=f"host-self-evolve memory-bench runner v{RUNNER_VERSION} (LLM-judge)")
     parser.add_argument("--questions", type=int, default=50)
     parser.add_argument("--parallel", type=int, default=1)
     parser.add_argument("--keyword-fallback", action="store_true",
@@ -440,7 +464,7 @@ def main() -> int:
     n = min(args.questions, len(questions))
     selected = questions[:n]
 
-    print(f"🚀 memory-bench runner v5.1 (RAG-lite + LLM-judge + token_economy 实测), running {n} questions, parallel={args.parallel}")
+    print(f"🚀 memory-bench runner v{RUNNER_VERSION} (RAG-lite + LLM-judge + token_economy 实测), running {n} questions, parallel={args.parallel}")
     print(f"   judge_mode: {'keyword-fallback' if args.keyword_fallback else 'llm-judge+position-bias'}")
 
     wall_clock_start = time.time()
@@ -486,14 +510,12 @@ def main() -> int:
     clock_part = 100.0 if wall_clock_s <= CLOCK_BUDGET_S else max(
         0.0, 100.0 * CLOCK_BUDGET_S / wall_clock_s)
     token_score = 0.7 * token_part + 0.3 * clock_part
-    weighted_score = (
-        weights.get("recall", 0.35) * (recall_total / n * 100)
-        + weights.get("consistency", 0.25) * (consistency_total / consistency_max * 100)
-        + weights.get("compliance", 0.30) * (compliance_total / compliance_max * 100)
-        + weights.get("token_economy", 0.10) * token_score
-    ) / 100.0
-
-    target_met = weighted_score >= WEIGHTED_SCORE_TARGET
+    weighted_score = compute_weighted_score(
+        weights, recall_total, n,
+        consistency_total, consistency_max,
+        compliance_total, compliance_max,
+        token_score,
+    )
 
     # baseline deviation (per ADR-0067 §3 step 7)
     deviation_pct = compute_baseline_deviation(recall_total)
@@ -506,7 +528,7 @@ def main() -> int:
     report = build_report_card(
         run_id, timestamp, n, recall_total,
         consistency_total, compliance_total,
-        weighted_score, target_met, judge_mode_label, deviation_pct,
+        weighted_score, judge_mode_label, deviation_pct,
     )
     print(report)
     print(f"\n## token_economy 明细 (v5.1 实测)")
