@@ -630,14 +630,15 @@ grep -rE "5-tool|5 tool|N-tool-search\.md|MiniMax|kimi-webbridge|anysearch|mmx" 
   ~/.agents/skills/ 2>/dev/null
 ```
 
-**Step 3**: 4 active 仓 grep (跨仓协议位一致性)
+**Step 3**: 4 active 仓 grep (跨仓协议位一致性; 路径 2026-07-20 迁移, per user.md §历史变更)
 ```bash
-for d in ~/Repo/webs/active/mykcs.github.io ~/Repo/webs/active/GDKVM \
-         ~/Repo/webs/active/OSA ~/Repo/webs/active/content2html; do
+for d in ~/Claude/Projects/webs/mysite ~/Claude/Projects/webs/gdkvm \
+         ~/Claude/Projects/webs/osa ~/Claude/Projects/webs/content2html; do
   if [ -d "$d" ]; then
     grep -rln "5-tool\|N-tool-search\.md\|网络搜索" "$d" 2>/dev/null
   fi
 done
+# 注: 旧 ~/Repo/webs/active/* 布局 2026-07-20 已废弃 (物理不存在), 现平铺于 ~/Claude/Projects/webs/
 ```
 
 **Step 4**: 副 SSOT 验证 (确保 N-tool-search.md v1.1 是**唯一**权威)
