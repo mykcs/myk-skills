@@ -8,6 +8,10 @@ description: |
 
   触发场景：用户问 "制作组会 slide" / "arxiv paperlink 转 html" / "周报 slide" / "论文 long-form 摘要"，
   或提供 paperlink (arxiv URL / DOI / PDF / 本地 path) 要求产出 HTML。
+when_to_use: |
+  触发: arxiv URL / DOI / PDF / 本地 progress → HTML slide + long-form 4 产物; 组会 slide / 周报 slide / 论文摘要.
+  范围: 独立 Astro project, 部署 mykcs.github.io/content2html/; 双语默认 zh; Style B 视觉 (IKB 蓝 / Swiss editorial).
+  不适用: 纯 PPT/pptx 需求 / 非学术内容排版 / 单图导出 / 无 paperlink 的泛泛写作.
 license: MIT
 metadata:
   type: skill

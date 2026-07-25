@@ -1,6 +1,10 @@
 ---
 name: find-skills
 description: Helps users discover and install agent skills when they ask questions like "how do I do X", "find a skill for X", "is there a skill that can...", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.
+when_to_use: |
+  触发: 用户问 "how do I do X" / "有没有 skill 能做 X" / "find a skill for X" / 想扩展 agent 能力, 且该能力可能是常见可安装 skill.
+  方式: 先查 skills.sh 榜, 再 `npx skills find/add` 搜索安装, 装完确认触发规则.
+  不适用: 调用已安装 skill / 从零自写 skill (走 skill-creator) / 与 skill 生态无关的普通问答.
 version: "1.0.0"
 author: "mykcs"
 license: "MIT"
