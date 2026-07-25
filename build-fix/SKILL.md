@@ -1,6 +1,10 @@
 ---
 name: build-fix
 description: Incrementally fixes build and type errors one at a time with minimal, safe edits, grouping errors by file and dependency order.
+when_to_use: |
+  触发: build / type error 批量修复 — npm/pnpm build、tsc --noEmit、cargo、mvn、go build 报错时逐条修.
+  方式: 按文件分组 + 依赖排序, 一次一个最小 Edit, 每修一个重跑 build 验证, 越修越多 → STOP 问用户.
+  不适用: runtime bug / 测试失败 / lint warning 清理 / 需要架构级重构的错误.
 version: "1.0.0"
 author: "mykcs"
 license: "MIT"

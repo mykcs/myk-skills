@@ -1,6 +1,10 @@
 ---
 name: anysearch
 description: Real-time search engine supporting web search, vertical domain search (23 domains), parallel batch search, and URL content extraction.
+when_to_use: |
+  触发: 用户明确要求 web search / 搜 X / 查最新资讯 / 垂直领域搜索 (23 domains) / parallel 批量搜索 / 抓 URL 正文.
+  边界: AnySearch 是可选项之一, 不作默认/唯一搜索引擎; 匿名可用, API key 仅提 rate limit.
+  不适用: 本地文件搜索 / 已知 URL 直接 fetch / 纯离线任务.
 version: 2.0.0
 authors:
   - AnySearch Team

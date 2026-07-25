@@ -1,6 +1,10 @@
 ---
 name: code-review
 description: Reviews uncommitted changes for security vulnerabilities, code-quality issues, and best-practice violations, then blocks the commit if CRITICAL or HIGH issues are present.
+when_to_use: |
+  触发: commit 前审查 uncommitted changes (git diff HEAD) — 查 hardcoded 密钥 / 注入 / XSS 等 CRITICAL 安全 + 函数>50行 / 文件>800行等 HIGH 质量.
+  产出: CRITICAL/HIGH/MEDIUM/LOW 分级报告 (文件+行号+建议修法); 有 CRITICAL/HIGH → block commit.
+  不适用: 已提交历史代码审计 / 已合入 PR 的 review / 非 git 仓库.
 version: "1.0.0"
 author: "mykcs"
 license: "MIT"

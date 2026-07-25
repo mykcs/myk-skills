@@ -1,6 +1,10 @@
 ---
 name: auto-feishu-digest
 description: '自动追踪领域重要 articles + tech blogs → 按 7 维评分规整 → 自动推送飞书表格。MVP 跑 **N-tool fan-out (N 当前 = 6, per [~/.claude/rules/protocols/N-tool-search.md](https://example.invalid/~/.claude/rules/protocols/N-tool-search.md) v1.1.2)** × 3 大类信息源 (论文会议 / 国内博客 / 国外博主) × daily 浅 + weekly 深双轨。立 loop-engineering skill 子方向字段 + Bitable 4 表拆分。**历史标 (2026-07-14 ADR-0056 cleanup)**: 旧 "5 源 × 5-tool" 是 v0.1.0-v0.1.7 时期协议, 实际跑 N-tool (N 当前 = 6 含 mmx) parallel fan-out.'
+when_to_use: |
+  触发: auto digest / daily digest / weekly digest / 飞书表格 / Bitable / 自动追踪领域 article + tech blog.
+  场景: daily 08:00 CST 浅扫 + weekly 周日 20:00 CST 深扫, 5 源 N-tool fan-out → 7 维评分 → 写 Bitable 4 表.
+  不适用: 一次性手动搜索 / 非飞书渠道推送 / 与 digest pipeline 无关的 Bitable 小修.
 metadata:
   type: skill
   project_id: auto-feishu-digest

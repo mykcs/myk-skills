@@ -1,6 +1,10 @@
 ---
 name: docx
 description: Use when the user wants to create, edit, or manipulate Word documents (.docx).
+when_to_use: |
+  触发: 创建 / 编辑 / 分析 .docx — pandoc 提取 (含 tracked changes) / docx-js 新建 / unpack → 改 XML → repack 编辑.
+  边界: legacy .doc 先用 soffice 转 .docx; 转图片走 soffice → pdf → pdftoppm.
+  不适用: 纯 Markdown 写作 / 直接编辑 PDF / Google Docs 等在线文档.
 license: Proprietary
 version: "1.0.0"
 author: "mykcs"

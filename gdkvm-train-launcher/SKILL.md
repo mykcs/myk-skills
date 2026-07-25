@@ -1,6 +1,10 @@
 ---
 name: gdkvm-train-launcher
 description: GDKVM 训练启动 skill（2026-06-30 立, v1.0）— 在六号服务器（202/rtx6, 172.31.71.202）跑 hydra + torchrun 双卡训练。一行连接 + systemd-run 启动 + journalctl 监控 + GPU/CUDA 0,1 隔离 + loginctl Linger 必备 + hydra config 必须在 config/ 目录。触发场景：用户说「六号服务器」「202 (rtx6)」「两张卡」「GDKVM 训练」「code_modern_v3」「systemd-run 启动」时必读。
+when_to_use: |
+  触发: 六号服务器 / 202 (rtx6) / 172.31.71.202 / GDKVM 训练 / code_modern_v3 / 两张卡 / systemd-run 启动.
+  硬约束: 禁 nohup/tmux/screen 必须 systemd-run --user; GPU 只用 0,1; loginctl Linger 必备; hydra config 在 config/ 目录.
+  不适用: 其他服务器训练 / 推理部署 / 非 hydra+torchrun 任务.
 metadata:
   type: skill
   version: 1.0
