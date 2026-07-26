@@ -9,6 +9,14 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - code-review
+  - /code-review
+  - code review
+  - commit 前审查
+  - security review
+  - uncommitted changes review
+
 ---
 
 

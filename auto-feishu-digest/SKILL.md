@@ -16,6 +16,16 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - auto digest
+  - daily digest
+  - weekly digest
+  - /auto-feishu-digest
+  - 飞书表格
+  - Bitable
+  - 自动追踪
+  - tech blog digest
+
 ---
 
 # Auto Feishu Digest Skill

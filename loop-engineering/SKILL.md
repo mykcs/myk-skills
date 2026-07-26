@@ -11,6 +11,15 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - loop-engineering
+  - /loop-engineering
+  - pipeline
+  - research pipeline
+  - decision pipeline
+  - 调研流水线
+  - 串行 sub-agent
+
 ---
 
 # Loop Engineering Skill

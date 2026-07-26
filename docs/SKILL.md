@@ -5,6 +5,15 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - docs
+  - /docs
+  - library docs
+  - Context7
+  - look up docs
+  - library documentation
+  - API 文档查询
+
 ---
 
 # docs

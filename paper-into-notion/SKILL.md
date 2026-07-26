@@ -49,6 +49,16 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-25"
+triggers:
+  - paper 进 Notion
+  - 论文入库
+  - /paper-into-notion
+  - Notion 沉淀
+  - 写论文卡片
+  - 收藏 arXiv
+  - 收藏公众号
+  - paper card
+
 ---
 
 # paper-into-notion v4.7

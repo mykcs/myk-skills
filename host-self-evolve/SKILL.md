@@ -60,6 +60,15 @@ metadata:
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-25"
+triggers:
+  - host-self-evolve
+  - /host-self-evolve
+  - self-evolve
+  - 主机自升级
+  - 整理记忆
+  - 协调 ~/.claude
+  - 自我进化
+
 ---
 
 # 主机自升级 Skill (host-self-evolve v3.3.5)

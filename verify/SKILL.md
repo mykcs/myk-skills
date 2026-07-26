@@ -5,6 +5,14 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - verify
+  - /verify
+  - run verification
+  - build check
+  - pre-commit check
+  - pre-flight check
+
 ---
 
 

@@ -5,6 +5,15 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - context-budget
+  - /context-budget
+  - optimize context
+  - context window
+  - /context
+  - 上下文优化
+  - context truncation
+
 ---
 
 # context-budget

@@ -10,6 +10,14 @@ metadata:
   category: workflow
   author: mykcs
   migrated-from: ~/.claude/rules/post-pr-merge-ff-verify-rule.md (2026-07-25 rules 减重)
+triggers:
+  - ff verify
+  - post pr merge
+  - /post-pr-merge-ff-verify
+  - PR 合并后 verify
+  - ahead/behind check
+  - gh pr merge verify
+
 ---
 
 # 规则: PR 合并后强制 FF 验证协议 (post-pr-merge-ff-verify)

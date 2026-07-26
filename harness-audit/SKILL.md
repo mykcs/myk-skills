@@ -5,6 +5,14 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - harness-audit
+  - /harness-audit
+  - harness audit
+  - repo audit
+  - repository scorecard
+  - harness scorecard
+
 ---
 
 

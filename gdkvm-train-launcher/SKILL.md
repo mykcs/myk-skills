@@ -14,6 +14,16 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - 六号服务器
+  - 202 (rtx6)
+  - 172.31.71.202
+  - GDKVM 训练
+  - code_modern_v3
+  - systemd-run 启动
+  - 双卡训练
+  - /gdkvm-train-launcher
+
 ---
 
 # gdkvm-train-launcher (v1.0)

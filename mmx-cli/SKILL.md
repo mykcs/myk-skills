@@ -5,6 +5,15 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+triggers:
+  - mmx
+  - MiniMax
+  - /mmx
+  - generate media
+  - mmx-cli
+  - MiniMax AI
+  - MiniMax API
+
 ---
 
 # MiniMax CLI — Agent Skill Guide
