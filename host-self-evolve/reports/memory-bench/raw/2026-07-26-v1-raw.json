@@ -1,0 +1,505 @@
+{
+  "run_id": "memory-bench-2026-07-26-v1",
+  "questions": [
+    {
+      "id": "Q001",
+      "question": "~/.claude/skills/ 这个路径的物理性质是什么？它指向哪里？",
+      "answer": "**目录符号链接 (symlink)**\n\n`~/.claude/skills/` 是一个目录符号链接，整体指向 `~/.agents/skills/`（即 `mykcs/myk-skills` 的 git clone 仓库）。\n\n> **不要将其视为真实目录**，任何 skill 操作只需维护 `~/.agents/skills/` 即可，Claude Code 通过 symlink 自动加载。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 839,
+      "output_tokens": 245,
+      "prompt_chars": 2484
+    },
+    {
+      "id": "Q002",
+      "question": "skills 单一来源（source of truth）在哪里？git remote 是什么？",
+      "answer": "**单一来源路径**：`~/.agents/skills/`（由 `mykcs/myk-skills` git clone 而来）\n\n**git remote**：`mykcs/myk-skills`（GitHub 仓库）\n\n其他两个路径 `~/.claude/skills/` 和 `~/.mavis/skills/` 都是指向同一来源的 symlink。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 849,
+      "output_tokens": 291,
+      "prompt_chars": 2459
+    },
+    {
+      "id": "Q005",
+      "question": "用户提了 bug 修复任务，claudecode 应该问还是直接做？为什么？",
+      "answer": "**直接做**，不问。\n\n根据 `~/.claude/knowledge/cases/wiki/CASE-COMMIT-PR-DEFAULT-NOTION-FEISHU-STRICT-20260713.md` 中的记录，用户已确认的规则是：\n\n> \"bug 修复类直接做，改 config/字段先问\"\n\nBug 修复属于低风险操作，且用户已授权直接执行，无需通过 AskUserQuestion 二次...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 961,
+      "output_tokens": 264,
+      "prompt_chars": 2409
+    },
+    {
+      "id": "Q004",
+      "question": "用户 2026 年申请什么学校的 PhD？导师是谁？",
+      "answer": "用户正在申请**浙江大学（ZJU）PhD**，入学时间为2027年，导师是**魏颖（Ying Wei）**，隶属于 CompLife Lab。",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 991,
+      "output_tokens": 147,
+      "prompt_chars": 2452
+    },
+    {
+      "id": "Q003",
+      "question": "用户的 GitHub 账号有几个？各自负责什么仓库？双账号隔离铁律现状如何？",
+      "answer": "## GitHub 双账号体系\n\n| 账号 | 负责仓库 | 职责 |\n|------|---------|------|\n| **mykcs** | mykcs.github.io（主站）、myk-skills | 主站和技能库 |\n| **wangrui2025** | GDKVM paper、papers 相关 | 学术论文仓库 |\n\n## 双账号隔离铁律现状\n\n- **规则**：wangr...",
+      "score": 0.5,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 860,
+      "output_tokens": 334,
+      "prompt_chars": 2219
+    },
+    {
+      "id": "Q009",
+      "question": "跨 3+ 文件修改前，claudecode 应该跑什么协议？",
+      "answer": "**Repo Confirmation Protocol**（仓库确认协议）。\n\n跨 3+ 文件修改前，必须运行：\n\n1. `git remote -v` 三次确认 owner\n2. `cd <path> && git status` 确认仓库状态",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 716,
+      "output_tokens": 130,
+      "prompt_chars": 2013
+    },
+    {
+      "id": "Q008",
+      "question": "灵魂 v3 要求 claudecode 解释技术时应该怎么做？",
+      "answer": "根据 `soul.md §2.1`，灵魂 v3 要求：\n\n1. **大白话翻译周边保留专业词** — 用日常语言解释，技术词首次出现立即翻译\n2. **偶尔类比** — 帮助理解\n3. **给选择时 A vs B** — 字母选项必须翻译成完整中文选项，加上推荐 + 1 句理由\n4. **结尾明确\"请回 X\"** — 指明下一步",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 960,
+      "output_tokens": 286,
+      "prompt_chars": 2169
+    },
+    {
+      "id": "Q007",
+      "question": "claudecode 写反向提问句时，必须以什么词开头？",
+      "answer": "必须以「用户 / claudecode」开头（具名固定字符串），禁用「你/您/请问你/你看」。来源 `soul.md §1`。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 817,
+      "output_tokens": 200,
+      "prompt_chars": 1966
+    },
+    {
+      "id": "Q010",
+      "question": "改 CSS 后给用户的强制提示是什么？",
+      "answer": "硬刷新 — **Cmd+Shift+R** (macOS) / **Ctrl+Shift+R** (Windows/Linux)，并建议在浏览器 DevTools 中关闭 CSS 缓存。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 851,
+      "output_tokens": 148,
+      "prompt_chars": 2230
+    },
+    {
+      "id": "Q006",
+      "question": "改 framework config 字段时，claudecode 应该问还是直接做？",
+      "answer": "应走 **scope discipline**：先列建议清单，等用户决定后再做。\n\n依据 `user.md §边界`：**改 config / 改类型字段 / 删除/合并/拆分等容易引起歧义的任务** → 走 `universal.md §D`，先列建议清单等用户决定。",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 812,
+      "output_tokens": 226,
+      "prompt_chars": 2250
+    },
+    {
+      "id": "Q012",
+      "question": "项目站点路径 2026-07-20 迁移后在哪里？旧路径 ~/Repo/webs/ 现状是什么？",
+      "answer": "**新路径**：`~/Claude/Projects/webs/`（平铺布局，无 active/arch 嵌套）\n\n**旧路径 `~/Repo/webs/` 现状**：已废弃，该目录**不存在**。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1022,
+      "output_tokens": 171,
+      "prompt_chars": 2664
+    },
+    {
+      "id": "Q013",
+      "question": "跨境 GH Actions runner 调外部 API 时，TIMEOUT 应该设多少？",
+      "answer": "根据仓库案例，跨境场景下 TIMEOUT 应设为 **30 秒**，并配合 Retry(3) 重试机制兜底。15 秒太短，无法覆盖跨境 RTT 和可能的反 bot 风控延迟。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 957,
+      "output_tokens": 165,
+      "prompt_chars": 2580
+    },
+    {
+      "id": "Q011",
+      "question": "claudecode 当前管理几个活跃站点？列出来。",
+      "answer": "4 个活跃站点：\n\n1. **主站** — `mysite/mykcs.github.io`（账号 mykcs）\n2. **GDKVM** — 论文宣传页仓（账号 wangrui2025）\n3. **OSA**\n4. **content2html**\n\n来源：`CLAUDE.local.md §强约束 #4`",
+      "score": 0.75,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 794,
+      "output_tokens": 233,
+      "prompt_chars": 2052
+    },
+    {
+      "id": "Q014",
+      "question": "claudecode 输出任何 markdown 报告前必跑什么脚本？",
+      "answer": "**`~/.claude/scripts/deferred-detector.sh`**\n\n具体命令：`cat <file> | ~/.claude/scripts/deferred-detector.sh -`\n\n若脚本返回非零（检测到 deferred 反模式），需立即 rewrite，不输出报告。\n\n> 来源：`CLAUDE.local.md §7.1`",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 906,
+      "output_tokens": 167,
+      "prompt_chars": 2454
+    },
+    {
+      "id": "Q015",
+      "question": "CSS var 命名必须带什么前缀？列 3 个例子。",
+      "answer": "上下文不足：该仓库中未包含 CSS 变量命名规范相关文档。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 951,
+      "output_tokens": 154,
+      "prompt_chars": 2638
+    },
+    {
+      "id": "Q016",
+      "question": "kill PID 之前必跑哪三件套？",
+      "answer": "根据 `process.md §C.7` 记录，**kill PID 之前必跑三件套**：\n\n1. `pgrep -P <pid>` — 检查有没有活 child\n2. `ps -o ppid= -p <pid>` — 查看父进程 PPID\n3. `lsof -p <pid>` — 检查打开的连接\n\n三件套全部通过（0 child + PPID=1 + 0 连接）→ 确认为真 orphan，可安全...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 870,
+      "output_tokens": 259,
+      "prompt_chars": 2166
+    },
+    {
+      "id": "Q019",
+      "question": "哪些仓的修改后会自动 smart-push？",
+      "answer": "上下文未包含关于\"哪些仓的修改后会自动 smart-push\"的信息。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 713,
+      "output_tokens": 134,
+      "prompt_chars": 1924
+    },
+    {
+      "id": "Q018",
+      "question": "识别 mykcs.github.io/<path>/ + audit 词时，claudecode 必先跑什么？",
+      "answer": "必先跑：\n\n1. `ls -la <repo>/SKILL.md`（5s）\n2. `head -20 <repo>/SKILL.md`（5s）\n\n——以判定走 website-improve Mode A 还是 skill-as-code（来源 `CLAUDE.local.md §5.1`）。",
+      "score": 0.75,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 952,
+      "output_tokens": 204,
+      "prompt_chars": 2487
+    },
+    {
+      "id": "Q021",
+      "question": "通用规则的 immutability 硬规则要求 claudecode 怎么处理对象？",
+      "answer": "**Immutability 硬规则要求**：**总是创建新对象，绝不改变（mutation）现有对象**。",
+      "score": 0.5,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 936,
+      "output_tokens": 253,
+      "prompt_chars": 2430
+    },
+    {
+      "id": "Q022",
+      "question": "scope discipline 触发场景有 5 个常见情况，请列出 3 个。",
+      "answer": "**scope discipline 触发场景 5 选 3**：\n\n1. 未用字段\n2. 重复 type 定义\n3. 顺手改 B 文件\n\n（另外两个是：重命名跨文件 / 删除未引用代码）",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 774,
+      "output_tokens": 203,
+      "prompt_chars": 1992
+    },
+    {
+      "id": "Q023",
+      "question": "self-verify first 协议禁止 claudecode 把什么推回给用户？",
+      "answer": "根据上下文，**禁止把核实/验证工作推回给用户**。\n\n具体指：当 claudecode 拥有 web/arXiv API 或任何可编程数据源时，不得把本可通过 API 自动核实的工作（如确认论文 ID 真实性、数据是否存在等）交给用户手动验证。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 861,
+      "output_tokens": 265,
+      "prompt_chars": 2299
+    },
+    {
+      "id": "Q025",
+      "question": "用户修正自动固化 5 步法的第一步是什么？",
+      "answer": "",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "prompt_chars": 1417
+    },
+    {
+      "id": "Q024",
+      "question": "claudecode 单次响应什么情况下必须写文件而不是内联？",
+      "answer": "",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "prompt_chars": 1978
+    },
+    {
+      "id": "Q017",
+      "question": "声明「✅ 已 push」前必跑几个 verification 命令？",
+      "answer": "**5 个** verification 命令。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 788,
+      "output_tokens": 106,
+      "prompt_chars": 2381
+    },
+    {
+      "id": "Q026",
+      "question": "plan review gate 的触发条件是什么？",
+      "answer": "**plan review gate 触发条件**：\n\n1. **用户请求实现功能或修复 bug**\n2. **AND** 涉及多文件改动或未知技术栈\n3. **AND** 采用 Plan First + planner agent 模式\n\n触发后会调用 `AskUserQuestion` 让用户拍板。\n\n> 来源：`process.md §B.1`",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 782,
+      "output_tokens": 295,
+      "prompt_chars": 2059
+    },
+    {
+      "id": "Q020",
+      "question": "calm-flow 协议激活后，claudecode 任务完成瞬间应该立即做什么？",
+      "answer": "根据 `calm-flow.md` 协议，任务完成后**立即追加一行到决策流**。\n\n具体来说，在自决时立即记录决策内容（session-id + 操作内容），而不是强制向用户提问。",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 754,
+      "output_tokens": 262,
+      "prompt_chars": 1904
+    },
+    {
+      "id": "Q027",
+      "question": "verification gate 硬规则：什么是非平凡任务的完成条件？4 选 1。",
+      "answer": "非平凡任务的完成条件为 **“4 选 1”**：满足以下任意一项即可算 PASS  \n\n1. **Build 通过** — `npm run build` 退出 0 且 `dist/` 产物存在  \n2. **部署验证** — `gh run list` 显示 CI green 或 `curl <url>` 返回 200 并包含新内容  \n3. **测试通过** — `npm test` / `p...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 900,
+      "output_tokens": 501,
+      "prompt_chars": 2314
+    },
+    {
+      "id": "Q028",
+      "question": "claudecode 报告里禁止出现的 5 个 deferred 词是哪些？",
+      "answer": "根据仓库上下文，claudecode 报告里禁止出现的 5 个 deferred 词是：\n\n1. **「下次再」**\n2. **「P2 (out of scope)」**\n3. **「let user decide」**\n4. **「future work」**\n5. **「follow-up」**\n\n来源：`deferred-detector.sh` PATTERNS（Q028/Q042）。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 823,
+      "output_tokens": 190,
+      "prompt_chars": 2132
+    },
+    {
+      "id": "Q029",
+      "question": "bug fix 验证报告必须含哪个独立 section？",
+      "answer": "必须包含 `## Bonus Test` section（或 `## End-to-End Test` section）。根据 `process.md` §D 规定，任何 bug fix 报告必须显式包含该独立 section，不能塞在 Step X 里。",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 694,
+      "output_tokens": 240,
+      "prompt_chars": 2201
+    },
+    {
+      "id": "Q033",
+      "question": "skill 审计触发阈值是 frontmatter 多少行？",
+      "answer": "**> 500 行**",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 806,
+      "output_tokens": 111,
+      "prompt_chars": 2274
+    },
+    {
+      "id": "Q031",
+      "question": "bug fix 端到端脚本输出 6 场景分别是什么？",
+      "answer": "**bug fix 端到端 6 场景：**\n\n1. **400**（HTTP 400 错误）\n2. **无环境访问**\n3. **task boundary**（任务边界问题）\n4. **env drift**（环境漂移）\n5. **api key**（API 密钥问题）\n6. **rate limit**（速率限制）",
+      "score": 0.5,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 873,
+      "output_tokens": 229,
+      "prompt_chars": 2323
+    },
+    {
+      "id": "Q035",
+      "question": "TypeScript strict 模式 4 个核心 flag 是哪些？",
+      "answer": "TypeScript strict 模式的 4 个核心 flag：\n\n1. `strict`\n2. `noImplicitAny`\n3. `strictNullChecks`\n4. `noUnusedLocals`\n\n来源：`typescript.md §A`（见 Q035）。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 853,
+      "output_tokens": 137,
+      "prompt_chars": 2485
+    },
+    {
+      "id": "Q030",
+      "question": "CLI session N-tool (6 工具) 部分不可达时，降级矩阵怎么走？",
+      "answer": "根据仓库中的降级矩阵（`N-tool-search.md`§3.1），CLI session N-tool 6 工具不可达时的降级路径如下：\n\n| 不可达情况 | 降级方案 | 说明 |\n|---|---|---|\n| anysearch 缺席 | **exa + WebFetch**（2-tool） | chardet 缺失 |\n| MiniMax + anysearch 同时缺席 | **ex...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 934,
+      "output_tokens": 598,
+      "prompt_chars": 2395
+    },
+    {
+      "id": "Q032",
+      "question": "改 settings.json 前必须做的 3 件事？",
+      "answer": "改 settings.json 前**必须做 3 件事**（来源 `tooling.md §A.1` 硬规则 1-3）：\n\n1. **WebFetch 官方文档** — 验证 schema 和正确用法\n2. **备份** — `cp settings.json.backup.$TS`\n3. **jq 规范路径走 §A.1 5 件套** — 按工具链规范操作",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1075,
+      "output_tokens": 343,
+      "prompt_chars": 2867
+    },
+    {
+      "id": "Q036",
+      "question": "灵魂 v2/v3 升级 case 包含什么 4 维度验证？",
+      "answer": "根据仓库上下文，**Q036 灵魂 v2/v3 升级**的 4 维度验证是：\n\n1. **跨会话一致性** — 跨会话边界保持一致\n2. **反市井化** — 避免口语化/接地气过头\n3. **保留专业词** — 专业术语不被稀释\n4. **4 维度评分** — 综合打分验证\n\n来源：`CASE-SOUL-V4-EXPRESSION-STRATEGY-AUTO-20260626`（另见 `CASE...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1000,
+      "output_tokens": 453,
+      "prompt_chars": 2412
+    },
+    {
+      "id": "Q037",
+      "question": "GLaDOS checkin case 包含哪 3 个 axis 升级？",
+      "answer": "根据仓库上下文，`Q037 GLaDOS checkin 3 axis 升级` 包含：\n\n1. **timeout 重试**\n2. **mock test ≠ 代码实际**（mock 测试与实际代码不符）\n3. **ruff CI**（代码检查）\n4. 跨境 sandbox ≠ 真仓（沙箱环境与真实仓库不一致）\n\n来源：`CLAUDE.local.md §10 + CASE-GLADOS-CHEC...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 793,
+      "output_tokens": 511,
+      "prompt_chars": 2179
+    },
+    {
+      "id": "Q038",
+      "question": "Force-All-Search 案例的核心发现是什么？",
+      "answer": "上下文未提供 \"Force-All-Search 案例的核心发现\" 的具体内容。\n\n仅知该文件原为 Force-All-Search Protocol v2.9（2026-06-12），后续演进为 5-tool-search → N-tool-search，涉及协议名抽象与工具数从 5 增至 6（加 mmx）。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1008,
+      "output_tokens": 297,
+      "prompt_chars": 2501
+    },
+    {
+      "id": "Q039",
+      "question": "CSS var 命名冲突 case 的根因是什么？",
+      "answer": "**根因**：CSS 变量在 `@theme {}`、`:root {}` 和 JS inline style 中多处定义，跨 context（screen/print/dark）共享同一名字，而 CSS cascade 顺序为 **JS inline > :root > @theme**（后定义者赢），必然产生 race condition。\n\n**解决**：永远加 context 前缀，如 `...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 990,
+      "output_tokens": 249,
+      "prompt_chars": 2712
+    },
+    {
+      "id": "Q034",
+      "question": "Python heredoc 必先做什么？",
+      "answer": "**Python heredoc 必先 import 所有用到的基础库**（如 json、os、sys、re、urllib 等），即使是很简单的脚本也必须先 import 基础库，避免 NameError。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 595,
+      "output_tokens": 168,
+      "prompt_chars": 1889
+    },
+    {
+      "id": "Q040",
+      "question": "cascade-kill 案例的关键启示是什么？",
+      "answer": "## cascade-kill 案例关键启示\n\n**核心原则**：启动时间**不是**判断孤儿进程的信号。\n\n**必须执行三件套**：\n1. `pgrep -P <pid>` — 查看子进程数量\n2. `ps -o ppid= <pid>` — 查看父进程 PPID\n3. `lsof -p <pid>` — 验证是否有打开的连接/文件\n\n**真孤儿判定标准**（三者同时满足）：\n- 0 child...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1074,
+      "output_tokens": 397,
+      "prompt_chars": 2722
+    },
+    {
+      "id": "Q042",
+      "question": "Deferred theater 案例的反模式是？",
+      "answer": "**Deferred theater 反模式**：在报告里写「下次再」/「P2 (out of scope)」/「let user decide」/「future work」/「follow-up」等 5 个禁止词，把决策卸给用户。\n\n**正确做法**：未完成项只有两种命运：\n1. 当场做完（用工具调用证明：commit hash / build exit code / curl 200 / gr...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 370,
+      "output_tokens": 308,
+      "prompt_chars": 2119
+    },
+    {
+      "id": "Q041",
+      "question": "Audit verification gate 失败 case 的根本原因？",
+      "answer": "**根本原因**：口头报\"已 push\"但无 ground truth（无实际验证证据）。\n\n**硬规则**：必须跑 5 commands verification（`git log`、`git status`、`git remote`、`git ahead-behind`、CI），取实测结果，不取中间表示（如 owner 字段、网页显示等）。\n\n来源：`CLAUDE.local.md §5.2 ...",
+      "score": 0.75,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 778,
+      "output_tokens": 219,
+      "prompt_chars": 2297
+    },
+    {
+      "id": "Q043",
+      "question": "smart-push 演化 case 的关键里程碑？",
+      "answer": "**smart-push 关键里程碑**（来源 `CASE-SMART-PUSH-EVOLUTION`）：\n\n- **v1**：基础 push\n- **v2**：修复 3 个 staging bugs（force-push 保护 / DU bypass / conflict）\n- **v3**：加 pre-push git diff scan\n- **v4**：全 protocol 化",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 977,
+      "output_tokens": 176,
+      "prompt_chars": 2735
+    },
+    {
+      "id": "Q044",
+      "question": "Meta-pattern internalization 案例的核心发现？",
+      "answer": "## Meta-pattern internalization 核心发现\n\n**hot fact 内化 ≠ 建 cross-ref 指针**\n\n必须把决策写进 `CLAUDE.local.md` 的 **hot recall 段**，让 `SessionStart` 自动注入，这样 session-start 时才能真正生效。",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 895,
+      "output_tokens": 227,
+      "prompt_chars": 2436
+    },
+    {
+      "id": "Q045",
+      "question": "OMC 4.15.0 升级 case 触发的回归测试点？",
+      "answer": "**信息不足**：当前 repository context 中未找到 OMC 4.15.0 升级相关的回归测试点记录。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 622,
+      "output_tokens": 247,
+      "prompt_chars": 1910
+    },
+    {
+      "id": "Q046",
+      "question": "mem0 plugin 现状是什么？何时因何移除？",
+      "answer": "根据提供的上下文，没有找到关于 **mem0 plugin** 的任何信息，无法回答其现状或移除原因。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 951,
+      "output_tokens": 268,
+      "prompt_chars": 2458
+    },
+    {
+      "id": "Q047",
+      "question": "mem0 不可用后，记忆沉淀的本地 fallback 3 步是什么？",
+      "answer": "根据仓库中的 `self-summary-protocol.md` 记录，mem0 不可用后 fallback 3 步为：\n\n1. **写本地 case file**：在 `~/.claude/knowledge/cases/wiki/CASE-*.md` 创建文件\n2. **append CLAUDE.local.md**：在 `§self-summary-{date}` 段落追加（hot re...",
+      "score": 0.875,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1010,
+      "output_tokens": 360,
+      "prompt_chars": 2609
+    },
+    {
+      "id": "Q048",
+      "question": "9 段 self-summary 归档在哪个文件？何时搬出？",
+      "answer": "9 段 self-summary 归档在 `self-summaries.md`，于 **2026-07-21** 从 `CLAUDE.local.md` 搬出（249→200 行）。",
+      "score": 0.625,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 830,
+      "output_tokens": 191,
+      "prompt_chars": 1960
+    },
+    {
+      "id": "Q049",
+      "question": "MEMORY.md § HOT FACTS 段的 3 个 mem0 ID 引文现在是什么状态？",
+      "answer": "**信息缺失**：在提供的仓库上下文中（全部为 `CASE-RICH-AUDIT-*.md` 案例文件），**未找到** 关于 `MEMORY.md` 文件或其中 **HOT FACTS 段 mem0 ID 引文状态** 的任何信息。",
+      "score": 0.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 1824,
+      "output_tokens": 320,
+      "prompt_chars": 3880
+    },
+    {
+      "id": "Q050",
+      "question": "mem0 quota 最终封存状态是什么？谁封的？",
+      "answer": "**mem0 quota 最终封存状态：**\n- 配额：10000/10000 已满\n- 状态：已封存\n- 重置日期：2026-08-01\n\n**封存执行者：**\n- 由 **doctor** 于 **2026-07-15** 通过 SessionStart hook 触发 \"Startup auto-query disabled\" 指令执行封存。\n\n（per Q045~Q050 记录及 self...",
+      "score": 1.0,
+      "judge": "llm-judge+position-bias",
+      "input_tokens": 884,
+      "output_tokens": 330,
+      "prompt_chars": 2284
+    }
+  ]
+}
