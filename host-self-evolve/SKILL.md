@@ -13,10 +13,10 @@ when_to_use: |
   反模式: ❌ PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ✅/❌/🔧 3 段 / ❌ 跑完汇报 > 80 行 / ❌ 跨域规则不引 SSOT (v3.3.1). 历史 → [archive](references/changelog-v3-2-1-3-archive.md).
 license: MIT
 metadata:
-  version: "3.3.6"
+  version: "3.3.7"
   author: mykcs
   category: self-evolution
-  changelog: "v3.3.6 (2026-07-26): 本 run @ Kimi Work 实跑收口 5 件事 — check-doctor-cleanup.sh 死变量 $LOCAL_CLAUDE 复活 (check 6/7/9/10 从假死到 8/8 ✅) + 7 rules frontmatter 补齐 (rules-health HIGH 5→0, 4 stub paths=self 落实自声明按需加载) + CLAUDE.md 22:11 0 字节截断应急 git 恢复 (属组 staff, 外部写入者未锁定) + Layer 2 七个根目录 .bak → backups/ + Layer 3 fan-out 12 highlights internalize. memory-bench 降级跑分 (deterministic-keyword-judge, 非官方 50 session + opus-judge) recall 22.5/50 (题库 v0.2.1 引用改名前 CLAUDE.local.md = staleness P1 派单) + consistency 4/6 + compliance 12/12 + normalized 72.4 ✅ target_met. v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/memory-bench-protocol.md (memory-bench 必跑 + report-card 模板) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅. v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. memory-bench v1. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
+  changelog: "v3.3.7 (2026-07-27): 默认端到端执行 + 固定 5 行简短报告模板固化进 references/cwd-guard-per-defaults.md v3.2.1 段 (per usage-insight 2026-07-27). 不停在规划/侦察, 除非 user 说『只规划』; 跑完输出改了什么/动哪些文件/PR commit/一句话风险/下次建议. v3.6 (2026-07-26): 本 run @ Kimi Work 实跑收口 5 件事 — check-doctor-cleanup.sh 死变量 $LOCAL_CLAUDE 复活 (check 6/7/9/10 从假死到 8/8 ✅) + 7 rules frontmatter 补齐 (rules-health HIGH 5→0, 4 stub paths=self 落实自声明按需加载) + CLAUDE.md 22:11 0 字节截断应急 git 恢复 (属组 staff, 外部写入者未锁定) + Layer 2 七个根目录 .bak → backups/ + Layer 3 fan-out 12 highlights internalize. memory-bench 降级跑分 (deterministic-keyword-judge, 非官方 50 session + opus-judge) recall 22.5/50 (题库 v0.2.1 引用改名前 CLAUDE.local.md = staleness P1 派单) + consistency 4/6 + compliance 12/12 + normalized 72.4 ✅ target_met. v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/memory-bench-protocol.md (memory-bench 必跑 + report-card 模板) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅. v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. memory-bench v1. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
   tags:
     [
       self-evolution,
@@ -59,7 +59,7 @@ metadata:
     ]
 version: "1.0.0"
 author: "mykcs"
-last_updated: "2026-07-25"
+last_updated: "2026-07-27"
 triggers:
   - host-self-evolve
   - /host-self-evolve
@@ -71,7 +71,7 @@ triggers:
 
 ---
 
-# 主机自升级 Skill (host-self-evolve v3.3.5)
+# 主机自升级 Skill (host-self-evolve v3.3.7)
 
 > **v3.3.4 body 拆 4 references/** (per Anthropic best-practices + deep-research P0 #3): SKILL.md body 1014 → ~360 行. 引用 1 层深, 禁嵌套.
 
