@@ -7,7 +7,7 @@ description: |
 user-invocable: true
 license: MIT
 metadata:
-  version: "3.1.0"
+  version: "3.0.0"
   author: mykcs
   category: knowledge
   triggers:
@@ -38,8 +38,6 @@ metadata:
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
-when_to_use: |
-  record case / 案例归档 / 知识沉淀 / case 模板
 ---
 
 # Record Case — 统一知识归档 v3.0
@@ -56,28 +54,6 @@ when_to_use: |
 | 显式请求 | "记录/归档/case 一下/学到了" | 按需路由 |
 
 ## 执行流程
-
-### §cost-gate 段 (v3.1 立, 2026-07-31, 借鉴 ng/adversarial-review 成本门控)
-
-> **来源**: 2026-07-31 N-tool 调研 `ng/adversarial-review` 的 cost-gated review (免费机械检查先行, 贵 LLM 按风险分级). 内部化进 record-case, 避免「什么小事都跑深度归档」的过度开销.
->
-> **协议位**: 触发 record-case 后, **先**按价值分级决定跑多深, 不默认全量深度归档.
-
-| 级别 | 判据 | 跑多深 |
-|------|------|--------|
-| 🟢 light | 无根因 / 无失败路径 / 一次性环境问题 (mem0 quota / 网络抖动) | **不提取**, 或 Pattern 1 行带过 |
-| 🟡 standard | 有根因但 ≤ 1 次失败尝试, 单文件改动 | Pattern / Decision 轻量模板 |
-| 🔴 deep | 调试 ≥ 2 轮 / 失败路径 ≥ 1 条 / 多方案权衡 / 可复现失败模式 | **Case 深度模板** (全 4 维检查清单) |
-
-**硬规则**:
-- 免费判据先行: grep 重复 (Step 6) + Step 1 价值 3 问是**零 LLM 开销**的机械检查, 必最先跑, 过了才进 LLM 深度生成.
-- 🟢 light 项**不**升级为 Case (防知识库噪音膨胀); 🔴 deep 项**不**降级为 Pattern (per §路由优先级 Case > Decision > Pattern).
-- 拿不准级别时**默认降一级** (light/standard), 不默认 deep — 深度归档是最贵的, 过度归档比漏归档更难清.
-
-**反模式 (永久失效)**:
-- ❌ 什么小事都跑 Case 深度模板 (成本失控, 知识库膨胀)
-- ❌ 不跑免费 grep 重复检查直接生成 (可能重复归档)
-- ❌ deep 项降级 Pattern 图省事 (违反路由优先级)
 
 ### Step 1: 识别知识价值
 

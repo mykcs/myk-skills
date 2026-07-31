@@ -12,8 +12,7 @@ triggers:
   - consolidate rules
   - deprecate rules
   - rules inventory
-when_to_use: |
-  rules distill / 规则整理 / cross-reference / verdict
+
 ---
 
 # rules-distill

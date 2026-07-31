@@ -25,8 +25,6 @@ metadata:
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
-when_to_use: |
-  backup claude settings / 备份 settings.json / 自动 snapshot
 ---
 
 # Backup Claude Settings

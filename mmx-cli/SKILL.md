@@ -13,8 +13,7 @@ triggers:
   - mmx-cli
   - MiniMax AI
   - MiniMax API
-when_to_use: |
-  mmx CLI / MiniMax CLI / mmx 命令行 / mmx chat
+
 ---
 
 # MiniMax CLI — Agent Skill Guide

@@ -9,8 +9,6 @@ metadata:
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
-when_to_use: |
-  飞书知识库 / lark-wiki / 知识空间 / 节点
 ---
 
 # wiki (v2)

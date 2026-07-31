@@ -83,23 +83,6 @@ Per-finding JSON:
 
 **Default to `real: false` if uncertain.** Most audit findings are noise.
 
-**Evidence must be command output, not reasoning alone** (per ng/adversarial-review):
-every `verdict.real: true` needs at least one piece of **reproducible** evidence —
-a quoted `file:line`, a command that was actually run (`grep` / `sed -n` / a failing
-test), or a reproduction. A verdict backed only by "the code looks like it does X"
-is `confidence: low` at best, and downgraded to `real: false` when uncertain.
-
-### Cost gate (free checks before LLM spend)
-
-Verify cheap-before-expensive; escalate only when needed:
-
-| Tier | Check | Cost | Use when |
-|------|-------|------|----------|
-| 0 | Mechanical: `grep`/`sed` the cited `file:line`, run lint/build/test | free | always, first |
-| 1 | Reproduce: run the flagged command / query in a sandbox | low | tier-0 inconclusive |
-| 2 | LLM re-read + alternative-explanation debate | high | tier-0/1 still ambiguous |
-
-Do **not** spend tier-2 reasoning on a finding tier-0 already killed (or confirmed).
 Common false positive patterns to watch for:
 - Path mentions in comments (the audit tool flagging `git add -A` text in a comment)
 - Glob patterns in documentation (`~/.claude/rules/behavioral-*.md` is a pattern, not a missing file)

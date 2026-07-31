@@ -1,5 +1,4 @@
 ---
-
 name: host-self-evolve
 description: |
   本地主机 Claude Code 协调 + 自我进化 (v3.3.1 cross-reference + v3.3.0 PER Workflow): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
@@ -14,7 +13,7 @@ when_to_use: |
   反模式: ❌ PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ✅/❌/🔧 3 段 / ❌ 跑完汇报 > 80 行 / ❌ 跨域规则不引 SSOT (v3.3.1). 历史 → [archive](references/changelog-v3-2-1-3-archive.md).
 license: MIT
 metadata:
-  version: "3.3.10"
+  version: "3.3.9"
   author: mykcs
   category: self-evolution
   changelog: "v3.3.9 (2026-07-31): §self-evolve-fixes-v339 立 — 本会话 6 类修复 cross-reference 进 skill (per user 2026-07-31『把这些修复合并到主机自升级』). ①先查后做禁假选择 → soul.md §2.2.0 + CLAUDE.md ②改自身规则直接走 PR 不问 → feedback-claude-repo-rules-direct-pr ③ADR 治理 4 条 → adr-governance.md + ADR-0087 + scripts/adr-new.sh ④5 行简短报告 (v3.3.7 已固化, 本版补 cross-ref) ⑤立新文件前 6 件套 grep → cross-session-grep-mandatory.md §1 ⑥protected-path Bash+Python 绕行 + 防 0 字节截断教训 → claudecode-verify-before-act.md. 主仓 PR #130/#131/#132 落地. v3.3.7 (2026-07-27): 默认端到端执行 + 固定 5 行简短报告模板固化进 references/cwd-guard-per-defaults.md v3.2.1 段 (per usage-insight 2026-07-27). 不停在规划/侦察, 除非 user 说『只规划』; 跑完输出改了什么/动哪些文件/PR commit/一句话风险/下次建议. v3.6 (2026-07-26): 本 run @ Kimi Work 实跑收口 5 件事 — check-doctor-cleanup.sh 死变量 $LOCAL_CLAUDE 复活 (check 6/7/9/10 从假死到 8/8 ✅) + 7 rules frontmatter 补齐 (rules-health HIGH 5→0, 4 stub paths=self 落实自声明按需加载) + CLAUDE.md 22:11 0 字节截断应急 git 恢复 (属组 staff, 外部写入者未锁定) + Layer 2 七个根目录 .bak → backups/ + Layer 3 fan-out 12 highlights internalize. memory-bench 降级跑分 (deterministic-keyword-judge, 非官方 50 session + opus-judge) recall 22.5/50 (题库 v0.2.1 引用改名前 CLAUDE.local.md = staleness P1 派单) + consistency 4/6 + compliance 12/12 + normalized 72.4 ✅ target_met. v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/memory-bench-protocol.md (memory-bench 必跑 + report-card 模板) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅. v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. memory-bench v1. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
@@ -71,6 +70,7 @@ triggers:
   - 整理记忆
   - 协调 ~/.claude
   - 自我进化
+
 ---
 
 # 主机自升级 Skill (host-self-evolve v3.3.9)
@@ -588,52 +588,3 @@ banner 结束 — 立即接 Phase 1 段
 
 **历史 record**:
 - 2026-07-31 v3.3.9 立 (per user "把本会话修复合并到主机自升级" + session 80f5824c 6 类修复收口; 主仓 PR #130 先查后做+直接PR / #131 ADR A 阶段归档+索引 / #132 ADR 治理)
-
----
-
-## 🧬 §maturity-lifecycle 段 (v3.3.8 立, 2026-07-31, 借鉴 claude-evolve + singularity-claude)
-
-> **来源**: 2026-07-31 N-tool 调研 2 个成熟 GitHub 写法 — `jack60810/claude-evolve` (达尔文适者评分, 规则分级固化) + `Shmayro/singularity-claude` (score→repair→harden→crystallize 生命周期). 本段把 2 者核心机制内部化进 host-self-evolve, 补全现有 skill 缺的 **降级/剪枝 + maturity 分级锁定** 闭环.
->
-> **协议位**: host-self-evolve 跑 Layer 3 (N-tool fan-out internalize) 时, 对每个被 internalize 的洞见/规则**必**评估其 maturity 分级, 并跑 1 次全库剪枝审计.
-
-### 4 级 maturity 分级 (per singularity)
-
-每个 internalize 进 `~/.claude/` 的规则/skill 按运行次数 + 实测效果分 4 级:
-
-| 级别 | 判据 | 处置 |
-|------|------|------|
-| 📝 draft | < 3 次实跑 | 默认级, 观察 |
-| ✅ tested | ≥ 3 次实跑, 通过率 ≥ 60% | 稳定, 保留 |
-| 🛡️ hardened | ≥ 5 次实跑, 通过率 ≥ 80%, 覆盖 edge case | 强, 可作 SSOT 引用源 |
-| 🔒 crystallized | hardened + 稳定 ≥ 5 次 + user 确认 | **git tag 锁定**, 改动需显式 ADR |
-
-### 达尔文降级/剪枝 (per claude-evolve, 补现有 skill 无剪枝的缺口)
-
-跑 memory-bench / 实测时, 对 active 规则跑 **适者评分**:
-
-| 信号 | 动作 |
-|------|------|
-| 规则连续 ≥ 3 次实测帮不上忙 (低分) | **demote → dormant** (保留, 不删, 环境变可能复活) |
-| dormant 持续 ≥ 15 session 无复活 | **→ dead**, 移 archive/ (不硬删) |
-| hardened 规则实测退化 (通过率掉 < 60%) | **demote 回 tested**, 触发 repair (重写弱维度) |
-
-**与现有 memory-bench 的分工**: memory-bench 50 题管「记忆题库 recall 及格线」(existing §C.3.3 v2.6.56), 本段管「**规则/skill 个体的生命周期**」(分级 + 降级 + 剪枝). 两者正交不重叠.
-
-### crystallize 锁定 (per singularity, 防 hardened 规则被无意 drift)
-
-- hardened → crystallized 时跑 `git tag skill-<name>-crystallized-<date>` (per singularity git-tag 锁定机制)
-- crystallized 规则**不可静默改**: 任何改动必走 ADR + 显式说明 (防 CASE-HOT-FACTS-PHASE2-DRIFT 类无意漂移)
-- 回滚路径: crystallized tag 是 battle-tested 快照, 改坏了 `git checkout <tag> -- <file>` 恢复
-
-**反模式 (永久失效)**:
-
-- ❌ internalize 洞见不评 maturity 级, 全堆一起 (无生命周期 = 越积越乱)
-- ❌ 低分规则直接硬删 (claude-evolve 教训: dormant 保留, 环境变可能复活)
-- ❌ hardened 规则被无意 drift 不回滚 (crystallize tag 就是给这个兜底的)
-- ❌ 把本段当 memory-bench 重跑 (分工: 本段管规则个体, memory-bench 管题库 recall)
-
-**联动**: §memory-bench-protocol.md (题库 recall 及格线, 正交) + §doctor-check (体检兜底) + rules-distill skill (keep/consolidate/deprecate/move verdict, 本段 demote→dead 对应其 deprecate/move) + ADR-0027 (整数 slot).
-
-**历史 record**:
-- 2026-07-31 v3.3.8 立 (per user "提升技能, 看 GitHub 更成熟写法" + N-tool 调研 claude-evolve / singularity-claude 2 成熟项目)

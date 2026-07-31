@@ -31,8 +31,7 @@ license: MIT
 1. **扫转录**：定位最近 N 个 session 转录（`~/.claude/projects/**/*.jsonl`），grep 摩擦信号：用户纠正（「不对 / 我是说 / 不是这个 / 你搞错了」）、返工、啰嗦吐槽、过度工程打断。按模式归类（误解请求 / 错误方案 / 改动过多 / 啰嗦格式 / 其他）。
 2. **计数筛模式**：每个模式统计复发次数。**只取 ≥3 次的**进入下一步；<3 次记为观察，不动手。
 3. **起草规则**：对每个入选模式，起草一条硬规则（触发词 + 行为 + 反面 + 证据 session），落点到 soul.md 或对应 rules 文件。先跑 6 件套 grep 确认无重复锚点。
-4. **配探针**：每条规则写一个 `~/.claude/scripts/<topic>-probes/p<N>-*.sh`（只读 grep 锚点防回归），实测跑到 exit=0。**探针必用相对路径**（`F="$(cd "$(dirname "$0")/<rel>" && pwd)/<target>"`），禁 `~`/`$HOME` 硬编码（CI runner HOME≠仓库，soul-probes 因此全红）；写完假 HOME 实测 `HOME=/tmp/fake bash <probe>` exit=0。
-4.5. **接探针**（2026-07-28 立，per CASE-FRICTION-MINING-PROBE-WIRING-20260728）：探针配了**必须接进 CI**（`ci.yml` probes job 跑 `scripts/**/*-probes/*.sh`），否则是孤立法医工具（只有被删后手动跑才报，等于没防回归）。接完**首跑必看 CI 实地绿**——本地绿 ≠ ubuntu 绿（相对路径未做时 ubuntu 必红）。规则要召回：登记进 ssot-pointers = 按需召回；要强召回另加 1 行进 `hot-facts.md` 正文（SessionStart 注入链）。**探针绿 ≠ 规则被执行**：探针只防「文字被删」，防不了「没人读/没人照做」（行为验证是另一套机制，别指望 grep 探针）。
+4. **配探针**：每条规则写一个 `~/.claude/scripts/<topic>-probes/p<N>-*.sh`（只读 grep 锚点防回归），实测跑到 exit=0。
 5. **原子 PR + 报告**：每条规则一个 commit（五段 message：改了什么/为什么/在哪/安全/验证），push；汇总报告已落地规则 + 探针结果 + 观察项（<3 次的）。
 
 ## 输出模板（收尾用，极简）
@@ -51,9 +50,6 @@ PR/commit: <hashes>
 
 - ❌ 凭印象立规则，不引 ≥3 个证据 session（违反证据先行）
 - ❌ 立规则不配探针 / 探针没实跑就标 ✅（空架子，process.md §C.5 false completion）
-- ❌ 探针硬编码 `~`/`$HOME`（CI runner HOME≠仓库，ubuntu 必红，2026-07-28 soul-probes 实踩）——必用相对路径 + 假 HOME 实测
-- ❌ 配了探针不接 CI（孤立法医工具，从不自动跑 = 没防回归）；接完不看 CI 首跑实地绿（本地绿 ≠ ubuntu 绿）
-- ❌ 把「探针绿」当「规则被执行」（探针只防文字被删，防不了没人读/没人照做）
 - ❌ <3 次的偶发也立规则（规则膨胀，信噪比下降）
 - ❌ 多条规则揉一个 commit（违反原子 PR）
 - ❌ 把「挖过一次」当成「闭环建成」——本 skill 才是可重复机制，手动挖是一次性

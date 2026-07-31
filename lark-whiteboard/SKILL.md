@@ -11,8 +11,6 @@ metadata:
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
-when_to_use: |
-  飞书画板 / lark-whiteboard / 画板
 ---
 
 > [!IMPORTANT]

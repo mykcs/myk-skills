@@ -12,7 +12,7 @@ when_to_use: |
   3 sub-agent 独立: planner 跑 plan_json_gen.py → executor 跑 exec_log_gen.py → verifier 跑 verdict_json_gen.py, verifier PASS 才 done, FAIL → executor 重做整轮. JSON schema 脚本立 ~/.claude/scripts/website-improve/.
   v4.1.1 body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3): SKILL.md body 935 → ~470 行 (< 500 cap).
 metadata:
-  version: "4.2"
+  version: "4.1.1"
   author: mykcs
   category: web-development
   changelog: |
@@ -162,36 +162,6 @@ last_updated: "2026-07-25"
 - ❌ sub-agent 之间口头传话，不走 artifact。
 - ❌ Planner 直接改文件或跑命令。
 - ❌ Verifier 改文件替 Executor 修 bug。
-
-### §cost-gate 段 (v4.2 立, 2026-07-31, 借鉴 ng/adversarial-review 成本门控)
-
-> **来源**: 2026-07-31 N-tool 调研 `ng/adversarial-review` cost-gated review (免费机械检查先行, 贵 LLM 按风险分级). 内部化进 website-improve, 避免「小改动也 4 站全量 sub-agent sweep」的过度开销.
->
-> **协议位**: Planner 输出 sub-mode 路由后, **先**跑零开销机械检查, 按改动规模分级决定 sub-agent 深度.
-
-| Tier | 检查 | 成本 | 必跑? |
-|------|------|------|-------|
-| 0 | 机械: `git status` / `git diff --stat` 看改动文件数 + 站点数, `npm run build` 是否过 | 免费 | **always, first** |
-| 1 | lint + typecheck + 单站 build (机械, 无 LLM) | 低 | tier-0 通过 |
-| 2 | 3-role sub-agent (Planner/Executor/Verifier) + 4 站 CI sweep | 高 | tier-1 通过 + 改动达阈值 |
-
-**分级阈值**:
-
-| 改动规模 | 跑多深 |
-|----------|--------|
-| 单站 + ≤ 3 文件 + 无 package.json/lockfile 改动 | tier-0/1 即可, **不**起 3-role sub-agent |
-| 多站 (≥2) 或 > 3 文件 | 起 3-role sub-agent, 但 CI 只跑受影响站 |
-| 涉及 package.json / lockfile / build config | **全量** tier-2 + 4 站 CI 全绿 (§L19 硬规则) |
-
-**硬规则**:
-- tier-0 机械检查失败 (build red / git 脏) → **不**起 LLM sub-agent, 先修机械层.
-- package.json / lockfile 改动**必须** tier-2 全量 (per §L20 fix-validate-build, 防 lockfile 漂移).
-- 小改动不强行 4 站 CI sweep; 但 CI 一旦跑, 受影响站**必须**全绿才算 done (§L19).
-
-**反模式 (永久失效)**:
-- ❌ 单站 typo 也起 3-role sub-agent + 4 站 CI (成本失控)
-- ❌ build red 仍起 LLM sub-agent (机械层没过, LLM 层白跑)
-- ❌ 改了 package.json 只跑单站 CI (违反 §L19/L20, lockfile 漂移)
 
 ### L19-L27 角色归属速查
 
