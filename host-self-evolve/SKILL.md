@@ -2,21 +2,21 @@
 name: host-self-evolve
 description: |
   本地主机 Claude Code 协调 + 自我进化 (v3.3.1 cross-reference + v3.3.0 PER Workflow): 提升 ~/.claude/ 跨层一致性 + §I.4 8 步循环 + N-tool fan-out internalize.
-  5 Layer: Layer 0 5 commands gate / Layer 1 7 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
+  5 Layer: Layer 0 5 commands gate / Layer 1 6 sub-task audit / Layer 2 cleanup orphan / Layer 3 N-tool fan-out / Layer A.2-A.4 5 字段自检 + 4 站 CI gate.
   触发词: 主机自升级, /host-self-evolve, self-evolve, 整理记忆, 协调 ~/.claude, 自我进化.
-  必跑: §cwd-guard (v3.2.5/ADR-0059) + §doctor-check (v3.3.5) + banner + §Phase 1 (ADR-0041) + §memory-bench 50 题 (ADR-0065) + PER Workflow (v2.6.59/§C.3.7) + 实测 wall-clock.
+  必跑: §cwd-guard (v3.2.5/ADR-0059) + §doctor-check (v3.3.5) + banner + §Phase 1 (ADR-0041) + PER Workflow (v2.6.59/§C.3.7) + 实测 wall-clock.
   🆕 v3.3.1 cross-reference 5 维 (per ADR-0078): CSS → [CLAUDE.local.md §6.1](~/.claude/CLAUDE.local.md) | smart-push → [MEMORY.md §7](~/.claude/memory/MEMORY.md) | calm-flow → [soul.md §3](~/.claude/rules/soul.md) | N-tool → [N-tool-search.md](~/.claude/rules/protocols/N-tool-search.md) | auto-commit → [ADR-0063](~/.claude/docs/adr/0063-claudecode-auto-commit-policy.md).
 when_to_use: |
   Also trigger when self-evolve / skill evolve / host 升级 / 整理记忆 / claude 协调.
-  sub-task 触发: frontmatter audit / shell unified check / memory-bench 50 题 / N-tool 协议位 audit (per ADR-0056). 详见 references/per-workflow-framework.md.
+  sub-task 触发: frontmatter audit / shell unified check / N-tool 协议位 audit (per ADR-0056). 详见 references/per-workflow-framework.md.
   范围: ~/.claude/ + ~/.agents/skills/ 双仓. 不适用: 单文件 typo / 文档微调.
-  反模式: ❌ PENDING 跳过 memory-bench / ❌ 写约束值当 wall-clock / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ✅/❌/🔧 3 段 / ❌ 跑完汇报 > 80 行 / ❌ 跨域规则不引 SSOT (v3.3.1). 历史 → [archive](references/changelog-v3-2-1-3-archive.md).
+  反模式: ❌ 写约束值当 wall-clock / ❌ 三段 sub-agent 物理隔离破坏 / ❌ 跑前不显示 🎯 banner / ❌ 跑完不写 ✅/❌/🔧 3 段 / ❌ 跑完汇报 > 80 行 / ❌ 跨域规则不引 SSOT (v3.3.1). 历史 → [archive](references/changelog-v3-2-1-3-archive.md).
 license: MIT
 metadata:
   version: "3.3.9"
   author: mykcs
   category: self-evolution
-  changelog: "v3.3.9 (2026-07-31): §self-evolve-fixes-v339 立 — 本会话 6 类修复 cross-reference 进 skill (per user 2026-07-31『把这些修复合并到主机自升级』). ①先查后做禁假选择 → soul.md §2.2.0 + CLAUDE.md ②改自身规则直接走 PR 不问 → feedback-claude-repo-rules-direct-pr ③ADR 治理 4 条 → adr-governance.md + ADR-0087 + scripts/adr-new.sh ④5 行简短报告 (v3.3.7 已固化, 本版补 cross-ref) ⑤立新文件前 6 件套 grep → cross-session-grep-mandatory.md §1 ⑥protected-path Bash+Python 绕行 + 防 0 字节截断教训 → claudecode-verify-before-act.md. 主仓 PR #130/#131/#132 落地. v3.3.7 (2026-07-27): 默认端到端执行 + 固定 5 行简短报告模板固化进 references/cwd-guard-per-defaults.md v3.2.1 段 (per usage-insight 2026-07-27). 不停在规划/侦察, 除非 user 说『只规划』; 跑完输出改了什么/动哪些文件/PR commit/一句话风险/下次建议. v3.6 (2026-07-26): 本 run @ Kimi Work 实跑收口 5 件事 — check-doctor-cleanup.sh 死变量 $LOCAL_CLAUDE 复活 (check 6/7/9/10 从假死到 8/8 ✅) + 7 rules frontmatter 补齐 (rules-health HIGH 5→0, 4 stub paths=self 落实自声明按需加载) + CLAUDE.md 22:11 0 字节截断应急 git 恢复 (属组 staff, 外部写入者未锁定) + Layer 2 七个根目录 .bak → backups/ + Layer 3 fan-out 12 highlights internalize. memory-bench 降级跑分 (deterministic-keyword-judge, 非官方 50 session + opus-judge) recall 22.5/50 (题库 v0.2.1 引用改名前 CLAUDE.local.md = staleness P1 派单) + consistency 4/6 + compliance 12/12 + normalized 72.4 ✅ target_met. v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/memory-bench-protocol.md (memory-bench 必跑 + report-card 模板) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 recall 44/50 + consistency 15/15 + compliance 12/12 + normalized 95.8 ✅. v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. memory-bench v1. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
+  changelog: "v3.3.11 (2026-07-31): 硬删 memory-bench 协议位 (per user 2026-07-31 拍板『从 host-self-evolve 硬删 memory-bench, 解绑全局必跑约束』). 删 9 文件 (5 协议/题库/设计 + 2 跑分脚本 + 2 .pyc) + 28 处局部编辑. 历史跑分报告归档保留在 reports/memory-bench/ (per user 决策); changelog/external-highlights 7 处历史叙述保留. 4 sub-task 必跑协议 (cwd-guard + doctor-check + Phase 1 + PER) 不变. v3.3.9 (2026-07-31): §self-evolve-fixes-v339 立 — 本会话 6 类修复 cross-reference 进 skill (per user 2026-07-31『把这些修复合并到主机自升级』). ①先查后做禁假选择 → soul.md §2.2.0 + CLAUDE.md ②改自身规则直接走 PR 不问 → feedback-claude-repo-rules-direct-pr ③ADR 治理 4 条 → adr-governance.md + ADR-0087 + scripts/adr-new.sh ④5 行简短报告 (v3.3.7 已固化, 本版补 cross-ref) ⑤立新文件前 6 件套 grep → cross-session-grep-mandatory.md §1 ⑥protected-path Bash+Python 绕行 + 防 0 字节截断教训 → claudecode-verify-before-act.md. 主仓 PR #130/#131/#132 落地. v3.3.7 (2026-07-27): 默认端到端执行 + 固定 5 行简短报告模板固化进 references/cwd-guard-per-defaults.md v3.2.1 段 (per usage-insight 2026-07-27). 不停在规划/侦察, 除非 user 说『只规划』; 跑完输出改了什么/动哪些文件/PR commit/一句话风险/下次建议. v3.6 (2026-07-26): 本 run @ Kimi Work 实跑收口 5 件事 — check-doctor-cleanup.sh 死变量 $LOCAL_CLAUDE 复活 (check 6/7/9/10 从假死到 8/8 ✅) + 7 rules frontmatter 补齐 (rules-health HIGH 5→0, 4 stub paths=self 落实自声明按需加载) + CLAUDE.md 22:11 0 字节截断应急 git 恢复 (属组 staff, 外部写入者未锁定) + Layer 2 七个根目录 .bak → backups/ + Layer 3 fan-out 12 highlights internalize. v3.3.4 (2026-07-25): body 拆 4 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 1014 → ~360 行 (< 500 cap). references/cwd-guard-per-defaults.md (§cwd-guard + PER + default decision + 汇报极简化 + 设计哲学) + references/n-tool-drift-audit.md (N-tool 协议位 audit §1-§9 + §Layer 1.0) + references/case-study.md (实战案例沉淀). 触发不变. v3.3.3 (2026-07-25): 本 run @ Kimi Work 实跑收口 5 件事 — Layer 0 主仓 push 67f80059 + Layer 1.0 audit 子仓 PR #72 MERGED 50f1f6b + Layer 3 fan-out 12 highlights + memory-bench v0.2.0 跑分 (历史归档). v3.3.2 (2026-07-24): 本 run 实跑收口 4 件事 — CLAUDE.local.md §6.1 CSS var context 专题瘦身 + inject-hot-facts.sh v1.1 mtime 缓存修复 + settings.json dirty 走 worktree feat/settings-json-cleanup PR #107 + Layer 1.0 N-tool drift audit 4 维 grep P0=0. v3.3.1 (2026-07-22): 🆕 cross-reference 5 维 (per ADR-0078). v3.3.0 (2026-07-19): PER Workflow 统一抽象. v3.2.5 (2026-07-17): 🔒 cwd-guard 硬约束段 (per ADR-0059). v3.2.4 (2026-07-14): 🔍 N-tool 协议位 audit 子任务扩展 (per ADR-0056). 详见 references/changelog.md."
   tags:
     [
       self-evolution,
@@ -80,7 +80,6 @@ triggers:
 | references/ 段              | 内容                                                                                                 | 引用原因                                   |
 | --------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | `cwd-guard-per-defaults.md` | §cwd-guard (v3.2.5) + PER Workflow (v3.3.0) + v3.2.1 default decision + v3.2.3 汇报极简化 + 设计哲学 | 配置/默认决策段, 不常跑前必读              |
-| `memory-bench-protocol.md`  | v3.2.8 memory-bench 必跑 + v3.2.9 report-card 11 行总表模板                                          | 跑分协议位, 跑分时才需要                   |
 | `n-tool-drift-audit.md`     | N-tool 协议位 audit §1-§9 + §Layer 1.0 + §20 8 步管道 + 4 维 audit                                   | 协议位散落检测, 跑 host-self-evolve 时按需 |
 | `case-study.md`             | 实战案例沉淀 (N-tool drift cleanup 5 件事 + 5 字段验收 + 踩坑 + 未来复用)                            | 历史案例, 复用参考                         |
 
@@ -193,7 +192,7 @@ check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层**
 
 🔍 检查什么 (What I will check):
   ├─ [Layer 0] 5 commands gate (git status / log / remote / ahead-behind / CI)
-  ├─ [Layer 1] 7 sub-task audit (file size / cross-source dup / case library / orphan / frontmatter / shell unified / memory-bench 50 题)
+  ├─ [Layer 1] 6 sub-task audit (file size / cross-source dup / case library / orphan / frontmatter / shell unified)
   ├─ [Layer 1.0] **N-tool 协议位 drift audit** (per ADR-0056, 2026-07-13 立, 强制必跑 — 详见 references/n-tool-drift-audit.md)
   ├─ [Layer 2] cleanup orphan (孤文件 / 断链 / 死代码)
   ├─ [Layer 3] N-tool fan-out (N 当前 = 6, per N-tool-search.md)
@@ -201,8 +200,7 @@ check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层**
 
 🔧 修复什么 (What I will fix):
   ├─ Layer 0-3 跑出来的 critical (FAIL exit 2, 必修)
-  ├─ Layer A 5 字段自检 fail 项 (必修)
-  └─ memory-bench < 60 target 立即修协议 (per §C.3.3 v2.6.56)
+  └─ Layer A 5 字段自检 fail 项 (必修)
 
 🚀 提升什么 (What I will improve):
   ├─ 新洞见 internalize 到 ~/.claude/memory/*.md (per §I.4 step 3)
@@ -213,7 +211,7 @@ check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层**
 ⏱️ 预期 wall clock: ≥ 30 min (实测, 不写约束值, per CASE-HOST-SELF-EVOLVE-V2-7-0-WALL-CLOCK-FALSE-CLAIM)
 
 ✅ 完成标准:
-  - 7 sub-task 全跑通 (含 memory-bench 50 题, 不允许 PENDING 跳过 per §C.3.3 v2.6.56)
+  - 6 sub-task 全跑通
   - **Layer 1.0 N-tool 协议位 drift audit 全跑通** (4 维 grep + 命中 P0 走 §20 8 步管道修, 不允许 PENDING 跳过)
   - N-tool fan-out 抓 8+ 资源 internalize (per §I.4 8 步循环)
   - Layer A.4 5 字段自检表全过 (path / commit / push / CI / owner)
@@ -231,7 +229,7 @@ check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层**
 - 标题 `🎯 host-self-evolve v3.1.0 <主题>` 1 行 ≤ 60 chars
 - 横幅 `═══...═══` 上下两行包围
 - 5 字段必填 (检查 / 修复 / 提升 / 预期 wall clock / 完成标准)
-- 数字具体 ("7 sub-task" / "5-tool" / "8+ 资源" / "≥ 30 min 实测")
+- 数字具体 ("6 sub-task" / "5-tool" / "8+ 资源" / "≥ 30 min 实测")
 
 **反模式 (永久失效)**:
 
@@ -255,7 +253,7 @@ check 6 报 "N 个 references/protocols 无顶层 paths" → 逐个加**顶层**
 >
 > - 跑 banner 段 (v3.1.0) → **立即**接 §Phase 1 段 (v3.2.0) → 然后才跑 Layer 0-3 摸底
 > - **不可跳** §Phase 1 段直接进 Layer 0-3 摸底
-> - **不可自决**"先跑 7 sub-task 再补 §Phase 1 段" (违反"banner 之后立即")
+> - **不可自决**"先跑 6 sub-task 再补 §Phase 1 段" (违反"banner 之后立即")
 > - **不可混** Phase 1.1-1.4 摸底 (Layer 0-3 子任务) 跟 §Phase 1 段 (跑前必输协议位 output), 2 个独立硬约束
 > - claudecode 把"必"降级成"可选" = false completion (per §C.5 + 灵魂 v6 §6 self-verify)
 > - 跑完**必**灵魂 v6 self-verify: `grep -E "🌱 Phase 1" <output>` 期望 ≥ 1 命中, 0 命中 = 违反 v3.2.0 硬约束, 立即 abort 改写

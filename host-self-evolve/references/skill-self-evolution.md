@@ -623,7 +623,7 @@ user 反馈记忆流程问题 → 现状 grep (memory-strategy.md + MEMORY.md + 
 | 1 | user 原话触发 | "使用技能重度审计的时候, 做了什么, 修复了什么, 要很明显的输出出来" (2026-07-01 11:15 PT) |
 | 2 | 现状 grep 验证 | SKILL.md line 320-344 有 v2.6.24 输出格式段, 但**无**显式 "做了什么/修了什么" 段 (`grep -c "^## 做了什么\|^## 修了什么" SKILL.md` = 0) |
 | 3 | v2.6.22 总分总协议 | changelog line 22 "禁止散落的绿色对勾 emoji + 多余详细文字说明; 用 总分总 或 总分 结构; 绿色大勾集中在一处 (「## 状态」section); 注意事项另起一区 (「## 注意」section), 不混在结论里" |
-| 4 | v2.6.46 重版约束 | 取消轻量版, ≥ 30 min 必跑完整重版 (memory-bench 50 题 + 7 sub-task 全跑), 输出必须有 "做了什么" 维度 |
+| 4 | v2.6.46 重版约束 | 取消轻量版, ≥ 30 min 必跑完整重版 (7 sub-task 全跑), 输出必须有 "做了什么" 维度 |
 | 5 | ADR-0032 立 | 主仓 `docs/adr/0032-rich-audit-explicit-output-protocol.md` (整数 slot 0032, 不抢 sub-slot per ADR-0027 v1.1) |
 
 ### 5 IF...THEN 规则
@@ -655,7 +655,7 @@ user 反馈记忆流程问题 → 现状 grep (memory-strategy.md + MEMORY.md + 
 
 # Step 2: 输出 "## 做了什么" 段 (per ADR-0032)
 echo "## 做了什么 (N 项)"
-echo "- [Layer 1] 跑了 7 sub-task: memory-bench 50 题 + file size + cross-source dup + case library + orphan + frontmatter audit + shell unified check"
+echo "- [Layer 1] 跑了 6 sub-task: file size + cross-source dup + case library + orphan + frontmatter audit + shell unified check"
 echo "- [Layer 2] 修复 N 项 Tier 1 (具体清单: 3 symlink + 5 frontmatter + 2 orphan + 2 shell alias)"
 echo "- [Layer 3] 抓 8+ 外部资源, internalize 到 N memory/.md (具体文件名)"
 echo "- [Layer A.2] PR #X 创建 (M commit / N file +X/-Y)"
@@ -762,7 +762,7 @@ user 反馈 "做了什么/修了什么要明显输出" → 现状 grep (SKILL.md
 # 触发: plan 段报告输出后
 # 时机: spawn execute sub-agent (独立 process + Opus + 独立 worktree)
 # 禁止: 调 Agent tool 嵌套 spawn / 跑 grader / 改 execute 报告本身
-# 输出: 11 file 改完 + memory-bench v8 baseline + commit + push + decision-stream + execute 报告 (含 5 字段自检)
+# 输出: 11 file 改完 + commit + push + decision-stream + execute 报告 (含 5 字段自检)
 
 # Step 4: verify 阶段 (sub-agent 3, verify 段专属, 物理隔离)
 # 触发: execute 段报告输出后
@@ -798,7 +798,7 @@ user 反馈 "做了什么/修了什么要明显输出" → 现状 grep (SKILL.md
 │ 工作目录: 独立 worktree (e.g. .worktrees/2026-07-01-rich-audit-v2-6-59) │
 │ 输入: plan 报告 (修改清单)                                    │
 │ 禁止: 调 Agent tool (嵌套 spawn) / 跑 grader / 改 execute 报告 │
-│ 必跑: 11 file 改完 + memory-bench v8 baseline + commit + push │
+│ 必跑: 11 file 改完 + commit + push │
 │ 必跑: decision-stream 流追加                                  │
 │ 输出: execute 报告 (含 5 字段自检) → parent 接力              │
 └─────────────────────────────────────────────────────────────────┘
@@ -828,7 +828,7 @@ user 反馈 "做了什么/修了什么要明显输出" → 现状 grep (SKILL.md
 - 子仓 references/skill-self-evolution.md §F.4.6 新立 (本段, 跟 §F.4.1-§F.4.5 同骨架 ~120 lines)
 - 子仓 references/changelog.md v2.6.59 entry 追加
 - 子仓 references/skill-authoring-best-practices.md 加 v2.6.59 段 (三段 sub-agent 协议位)
-- 子仓 reports/memory-bench/2026-07-01-v8/ 立 50 题 baseline (per v2.6.56 强约束)
+- 子仓 reports/memory-bench/2026-07-01-v8/ 立 50 题 baseline (历史归档)
 - 主仓 process.md §C.3.3 v2.6.59 强化段 (跨仓同步)
 - 主仓 CLAUDE.local.md §11.2 hot recall v2.6.59 hint
 - 主仓 CASE-RICH-AUDIT-V2-6-59-TRIPLE-SUB-AGENT-20260701.md (立, 跟 v2.6.57 banner case + v2.6.58 full-quality case 同骨架)
@@ -846,4 +846,4 @@ user 反馈 "做了什么/修了什么要明显输出" → 现状 grep (SKILL.md
 
 跟 §I.4 self-evolution 关系: §F.4.6 是 self-evolution 第 8 步 internalize 案例 (v2.6.34 立 self-evolution 协议后第 7 个端到端案例, 第 1 个协议位架构案例)
 
-**永久失效**: 'execute 段嵌套 spawn / execute 段跑 grader / plan 段写代码 / verify 段重跑 commit / 三段合并跑' 反模式 (跟 v2.6.46 重版约束 + v2.6.56 memory-bench 50 强约束 + v2.6.57 banner UX + v2.6.58 5 维度 full-quality + §C.3.6.1 no-stuck 协议 + §H Acceptance Protocol + ADR-0035 协议位架构 协同).
+**永久失效**: 'execute 段嵌套 spawn / execute 段跑 grader / plan 段写代码 / verify 段重跑 commit / 三段合并跑' 反模式 (跟 v2.6.46 重版约束 + v2.6.57 banner UX + v2.6.58 5 维度 full-quality + §C.3.6.1 no-stuck 协议 + §H Acceptance Protocol + ADR-0035 协议位架构 协同).

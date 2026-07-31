@@ -10,9 +10,7 @@ Output: JSON {tool, version, exit_code, result_line, summary_pass,
 Usage: python3 ~/.agents/skills/rich-audit/scripts/memory_audit_runner.py
 
 v2.0.0 (2026-06-26): 版本号 bump, 跟 rich-audit 主线 v2.6.25 对齐.
-  不改主逻辑, 维持 8 个 caller 兼容. 配合新增 memory_bench_runner.py
-  (77 题 Layer 1 recall + consistency + compliance + token) 构成
-  memory-bench 双脚本体系. 详细设计见 references/memory-bench-design.md.
+  不改主逻辑, 维持 8 个 caller 兼容. (memory-bench 双脚本体系已于 2026-07-31 硬删, 本脚本保留作独立 memory audit 工具).
 """
 import json
 import re

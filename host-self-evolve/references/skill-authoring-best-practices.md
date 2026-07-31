@@ -76,7 +76,7 @@ finding 类型:
 |------|---------|------------|-----------|
 | 工作目录 | parent 主进程 | 独立 worktree | 独立 worktree (跟 execute 共 path, 独立 process) |
 | 输入 | grill 4-6 决策点 | plan 报告 (修改清单) | execute 报告 (5 字段自检) |
-| 必跑 | 立修改清单 + worktree + ADR 编号 + case 骨架 + mem0 plan | 11 file 改完 + memory-bench baseline + commit + push + decision-stream | grader 校准 + 5 字段自检 + deferred-detector + mem0 add_memory × 1-3 |
+| 必跑 | 立修改清单 + worktree + ADR 编号 + case 骨架 + mem0 plan | 11 file 改完 + commit + push + decision-stream | grader 校准 + 5 字段自检 + deferred-detector + mem0 add_memory × 1-3 |
 | 禁止 | 写代码 / 调 Edit/Write / commit / push | 调 Agent tool 嵌套 spawn / 跑 grader / 改 execute 报告 | 重跑 commit / 改源文件 / 跑 Edit / 调 Agent tool |
 | 输出 | plan 报告 | execute 报告 (含 5 字段自检) | PASS/FAIL 报告 (含 5 维 evidence + 4 维 self-verify) |
 

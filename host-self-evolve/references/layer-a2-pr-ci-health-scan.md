@@ -148,7 +148,7 @@ gh api repos/<owner>/<repo>/compare/main...<branch>
 
 ### 根因
 
-PR 创建后, `origin/main` 被其他 session / background agent 推进 (rich-audit / memory-bench / 跨仓修复), PR head 变 outdated. GitHub 自动算不出能否 merge → mergeable=null.
+PR 创建后, `origin/main` 被其他 session / background agent 推进 (rich-audit / 跨仓修复), PR head 变 outdated. GitHub 自动算不出能否 merge → mergeable=null.
 
 ### 修复命令模板 (用 merge 不用 rebase, 保留 PR commit 历史清晰)
 

@@ -23,8 +23,8 @@
     },
     {
       "id": "host-self-evolve-verifier-fail-retry",
-      "name": "Verifier FAIL retry: memory-bench < 60 or N-tool audit P0",
-      "trigger": "Verifier 发现 memory-bench weighted_score < 60 或 N-tool 协议位 audit 命中 🔴 P0",
+      "name": "Verifier FAIL retry: N-tool audit P0",
+      "trigger": "Verifier 发现 N-tool 协议位 audit 命中 🔴 P0",
       "expected": [
         "Verifier  verdict = FAIL, 明确列出 FAIL 项 + 复现证据",
         "FAIL  verdict 必须打回 Executor, 不打给用户标 done",

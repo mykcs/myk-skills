@@ -48,8 +48,8 @@
 | PER 角色     | 在 host-self-evolve 中负责                                                                                                            | 产出 artifact                   |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
 | **Planner**  | 输出 🎯 banner + 🌱 Phase 1 (Life/Setup) 段; 将 Layer 0-3 拆成可执行任务; 识别风险并决定 scope (默认全套 / 只跑 X)                    | `plan.json` / `plan.md`         |
-| **Executor** | 跑 Layer 0 (5 commands gate) → Layer 1 (7 sub-tasks, 含 N-tool 协议位 audit) → Layer 2 (cleanup orphan) → Layer 3 (N-tool fan-out)    | `exec-log.json` / `exec-log.md` |
-| **Verifier** | 跑 Layer A 5/6 字段自检 (path / cwd / commit / push / CI / owner) + memory-bench score gate + 4 站 CI gate; FAIL 则打回 Executor 重做 | `verdict.json` / `verdict.md`   |
+| **Executor** | 跑 Layer 0 (5 commands gate) → Layer 1 (6 sub-tasks, 含 N-tool 协议位 audit) → Layer 2 (cleanup orphan) → Layer 3 (N-tool fan-out)    | `exec-log.json` / `exec-log.md` |
+| **Verifier** | 跑 Layer A 5/6 字段自检 (path / cwd / commit / push / CI / owner) + 4 站 CI gate; FAIL 则打回 Executor 重做 | `verdict.json` / `verdict.md`   |
 
 ### Layer → PER 归属
 
@@ -73,7 +73,6 @@
 - v3.1.0 banner 段 / v3.2.0 Phase 1 段 (Planner 产出)
 - v3.2.1 default decision 段 (Planner scope/risk 决策, user-override, 不变)
 - Layer 0-3 详细协议 (Executor 执行范围)
-- v3.2.8 memory-bench 必跑段 + v3.2.9 report-card 模板段 (Verifier 验收项)
 
 ---
 
@@ -91,8 +90,6 @@
 - ✅ **执行模式**: 默认三段串行 (plan / execute / verify 物理隔离, per v2.6.59 + §C.3.7)
 - ✅ **遗留 dirty 改动收口 (v3.2.6 新增, per user 2026-07-17 拍板)**: 摸底 Layer 0 发现工作树有未提交改动 (M / ?? untracked, 上个 session 收尾残留) → **默认纳入本轮一起收口, 不再 AskUserQuestion "怎么处理遗留改动"**. user 原话 "这批遗留改动本来就是这次自升级要处理的, 直接纳入本轮一起收口, 不要再停下来问". 例外: 遗留改动里含 4 类必问白名单 (framework config / user 偏好 / 不可逆 / user 显式说) 时, 仅对该子项走 AskUserQuestion, 其余 dirty 项照常纳入.
 - ✅ **跑完摸底默认继续跑剩余 sub-task (v3.2.7 新增, per user 2026-07-18 拍板)**: 跑完单次摸底收口后**默认继续跑剩余 sub-task** (Phase 1.2 / 1.3 + Layer 1-3), **不再 AskUserQuestion "要不要继续"**. user 原话 "修改技能以后，不要出现这个情况，都是默认继续跑". 跟 v3.2.6 user-override 同根因, 跑后不主动停下问 user. 4 类必问白名单保留 (不可逆 / framework config / user 偏好 / user 显式说).
-- ✅ **memory-bench 50 题必跑 (v3.2.8 新增, per user 2026-07-18 拍板)**: host-self-evolve run **必跑 memory-bench 50 题** (per §C.3.3 v2.6.56 强约束), **不允许 PENDING 跳过**. user 原话 "把'memory-bench 50 题'作为 host-self-evolve 必跑". 跑分结果 (weighted score) 必落 `~/.agents/skills/host-self-evolve/reports/memory-bench/{date}-v{n}.md`. score < 60 target 立即修协议. 4 类必问白名单保留 (跑分中途 token 限制 / opus API 失败 / 跑分发现 P0 安全问题 / user 显式说 走 AskUserQuestion).
-- ✅ **report-card 模板 11 行总表标准化 (v3.2.9 新增, per user 2026-07-18 拍板)**: memory-bench 跑分报告 (per ADR-0065 + §C.3.3 v2.6.56) **必走 11 行总表 report-card 标准模板**, 字段顺序 + 单位 + 加权方法 100% 一致 (便于 baseline v1 vs SOTA v8 vs ablation-5 横向对比). user 原话 "把 §memory-bench 必跑段扩展为 report-card 模板". 11 行字段: run_id / timestamp / host / skill_version / model / judge / recall_total / consistency_total / compliance_total / weighted_score / target_met. 4 类必问白名单保留 (格式争议 / 字段命名冲突 / user 显式说 / 跑分失败 走 AskUserQuestion).
 - ✅ **默认端到端执行, 不停在规划/侦察 (v3.3.7 新增, per usage-insight 2026-07-27)**: user 触发 host-self-evolve 后, 默认**端到端跑完**所有阶段 (banner → Phase 1 → Layer 0-3 → Layer A), **不停在规划/侦察**, 除非 user 显式说「只规划」. user 原话 "当用户触发一个 skill 时，端到端执行它。不要停在规划/侦察，除非用户明确说『只规划』". 该规则同时写入 `~/.claude/CLAUDE.md` §执行纪律.
 - ✅ **固定 5 行简短报告模板 (v3.3.7 新增, per usage-insight 2026-07-27)**: host-self-evolve 运行结束, 在 v3.1.0 §✅ 3 段 detailed 输出之后, 额外输出固定 5 行极简报告: (1) 改了什么 (2) 动了哪些文件 (3) PR/commit 链接 (4) 一句话风险 (5) 下次建议运行时机. user 原话 "运行结束的报告用固定的简短模板". 该规则同时写入 `~/.claude/CLAUDE.md` §执行纪律.
 - ✅ **判定流程**:
@@ -119,8 +116,6 @@
 6. ❌ 跑完不输出 v3.1.0 §✅ 3 段 detailed = 违反 v3.1.0 硬约束
 7. ❌ 摸底 Layer 0 发现工作树 dirty 就停下问 "怎么处理遗留改动" = 违反 v3.2.6 user-override (直接纳入本轮收口)
 8. ❌ 跑完单次摸底收口后 AskUserQuestion "要不要继续跑 Layer 1-3" = 违反 v3.2.7 user-override (默认继续跑剩余 sub-task, per ADR-0064)
-9. ❌ host-self-evolve 跑分 PENDING 跳过 memory-bench 50 题 = 违反 v3.2.8 user-override (memory-bench 必跑不跳过, per ADR-0065)
-10. ❌ memory-bench 跑分报告缺 11 行总表任一字段 / 字段顺序错乱 / score 用百分制 / target_met 不填 = 违反 v3.2.9 report-card 模板 (per ADR-0066)
 
 **联动**:
 
@@ -136,8 +131,6 @@
 - 2026-07-10 v3.2.1: 立 (ADR-0050 整数 slot 0050 + user-override 落点 + 本段嵌入 SKILL.md)
 - 2026-07-17 v3.2.6: 加第 3 条默认决策 (遗留 dirty 改动纳入本轮收口, 不再问) + 反模式 #7 (per user 2026-07-17 拍板)
 - 2026-07-18 v3.2.7: 加第 4 条默认决策 (跑完摸底默认继续跑剩余 sub-task, 不再问) + 反模式 #8 (per user 2026-07-18 拍板 + ADR-0064 整数 slot)
-- 2026-07-18 v3.2.8: 加第 5 条默认决策 (memory-bench 50 题必跑, 不允许 PENDING 跳过) + 反模式 #9 (per user 2026-07-18 拍板 + ADR-0065 整数 slot)
-- 2026-07-18 v3.2.9: 加第 6 条默认决策 (memory-bench 跑分报告 11 行总表 report-card 模板标准化) + 反模式 #10 (per user 2026-07-18 拍板 + ADR-0066 整数 slot)
 
 ---
 
