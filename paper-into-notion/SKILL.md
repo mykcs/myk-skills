@@ -10,7 +10,7 @@ metadata:
   type: skill
   project_scope: cross-project
   skill_id: paper-into-notion
-  version: v4.7 (2026-07-25)
+  version: v4.8 (2026-07-31)
   changelog: |
     v4.7 (2026-07-25) — body 拆 1 references/ 1 层深 (per Anthropic best-practices + deep-research P0 #3). SKILL.md body 624 → ~450 行 (< 500 cap). references/anti-patterns-history.md (反模式 #1-#57 + 「修改哪一部分」4 决路径 + 「跑完自我总结」4 段模板 + 「经验教训 → 提升 skill」5 步闭环 + v-bump 自动触发 4 条件 + 多 db schema 适配 + 4 env + 2 db property 差异表).
     v4.6 (2026-07-19) — PER Workflow 统一抽象；新增 PER Workflow 总览节；frontmatter 触发词拆分；高级触发词下沉到 references/triggers-advanced.md；技能版本号与 frontmatter 对齐为 v4.6。
@@ -123,6 +123,31 @@ triggers:
 完整闭环协议见 `references/self-evolution-loop.md` + `references/anti-patterns-history.md` (反模式 #17-#24 + 「经验教训 → 提升 skill」5 步闭环 + v-bump 自动触发 4 条件)。
 
 ---
+
+## §cost-gate 段 (v4.8 立, 2026-07-31, 借鉴 ng/adversarial-review 成本门控)
+
+> **来源**: 2026-07-31 N-tool 调研 `ng/adversarial-review` cost-gated review (免费机械检查先行, 贵 LLM 按风险分级). 内部化进 paper-into-notion, 避免「每条 URL 都全量 LLM judge + verify」的过度开销.
+>
+> **协议位**: Planner 判定模态后, **先**跑零开销机械检查, 按结果分级决定 LLM 深度.
+
+| Tier | 检查 | 成本 | 必跑? |
+|------|------|------|-------|
+| 0 | 机械: `modal-detect.sh` 判模态 + Notion db 是否已有同 URL page (`ntn api` GET 查询) | 免费 | **always, first** |
+| 1 | arXiv 抓 metadata (`arxiv-affiliations` + abstract), 不跑 LLM judge | 低 | tier-0 通过 |
+| 2 | LLM judge 5 字段 + `verify_all_fields.py` 全字段自检 | 高 | tier-0/1 成功 |
+
+**硬规则**:
+- Tier 0 命中「db 已有同 URL page」→ **不**重跑 LLM judge, 直接走字段级 merge (§字段级 merge 算法), 只对缺失字段补 Tier 2.
+- Tier 1 arXiv 抓取失败 (重试 3 次 exit 1) → **不**进 Tier 2 LLM judge (无 abstract 会瞎填关键词, per v4.5 反模式).
+- Tier 2 是最贵的 (LLM judge + verify), 只对真正需要新填字段的 page 跑; 已有 page 只补缺字段, 不全量重 judge.
+
+**反模式 (永久失效)**:
+- ❌ 每条 URL 无差别全量 LLM judge (成本失控, 已有 page 也重 judge)
+- ❌ 跳过 Tier 0 db 查重直接 LLM judge (可能覆盖已有 multi_select, 违反核心铁律)
+- ❌ arXiv 抓取失败仍进 LLM judge (v4.5 教训: 无 abstract → 关键词瞎填)
+
+---
+
 
 ## 9 字段自检表 (核心铁律: multi_select 不覆盖, v2.7 修 v1.4 误写 8 字段为 9 字段)
 

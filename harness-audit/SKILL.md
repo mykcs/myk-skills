@@ -12,7 +12,8 @@ triggers:
   - repo audit
   - repository scorecard
   - harness scorecard
-
+when_to_use: |
+  harness audit / harness 工程 / harness-engineering
 ---
 
 

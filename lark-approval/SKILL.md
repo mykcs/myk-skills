@@ -9,6 +9,8 @@ metadata:
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+when_to_use: |
+  飞书审批 / lark approval / 审批待办
 ---
 
 **CRITICAL — 开始前 MUST 先用 Read 工具读取 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)，其中包含认证、权限处理**

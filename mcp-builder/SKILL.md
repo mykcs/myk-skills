@@ -5,6 +5,8 @@ license: Apache-2.0
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
+when_to_use: |
+  mcp builder / 建 MCP server / 外部 API 集成
 ---
 
 # MCP Server Development Guide

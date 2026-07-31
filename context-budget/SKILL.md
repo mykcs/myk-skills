@@ -13,7 +13,8 @@ triggers:
   - /context
   - 上下文优化
   - context truncation
-
+when_to_use: |
+  context budget fix / context 重 / /context
 ---
 
 # context-budget

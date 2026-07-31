@@ -13,7 +13,8 @@ triggers:
   - look up docs
   - library documentation
   - API 文档查询
-
+when_to_use: |
+  docs lookup / context7 / library docs / current API
 ---
 
 # docs

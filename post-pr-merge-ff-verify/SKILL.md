@@ -17,7 +17,8 @@ triggers:
   - PR 合并后 verify
   - ahead/behind check
   - gh pr merge verify
-
+when_to_use: |
+  ff verify / post merge / ahead-behind / 撤回
 ---
 
 # 规则: PR 合并后强制 FF 验证协议 (post-pr-merge-ff-verify)

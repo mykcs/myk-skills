@@ -9,6 +9,8 @@ metadata:
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+when_to_use: |
+  飞书云文档 / lark-doc / docx / wiki 文档
 ---
 
 # docs

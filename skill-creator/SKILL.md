@@ -5,6 +5,8 @@ version: "1.0.0"
 author: "mykcs"
 license: "MIT"
 last_updated: "2026-07-19"
+when_to_use: |
+  skill creator / 新建 skill / skill 创建
 ---
 
 # Skill Creator

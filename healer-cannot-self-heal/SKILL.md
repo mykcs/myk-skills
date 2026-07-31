@@ -45,6 +45,8 @@ user-invocable: true
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
+when_to_use: |
+  医者不可自医 / healer / session 急诊 / claudecode 子问题急诊
 ---
 
 # 医者不可自医 — Session 急诊室
