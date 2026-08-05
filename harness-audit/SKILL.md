@@ -1,10 +1,10 @@
 ---
 name: harness-audit
 description: Runs a deterministic repository harness audit and returns a prioritized scorecard across 7 fixed categories (tool coverage, context efficiency, etc.).
-version: "1.0.0"
+version: "1.0.1"
 author: "mykcs"
 license: "MIT"
-last_updated: "2026-07-19"
+last_updated: "2026-08-05"
 triggers:
   - harness-audit
   - /harness-audit
@@ -33,10 +33,10 @@ Run a deterministic repository harness audit and return a prioritized scorecard.
 Always run:
 
 ```bash
-node scripts/harness-audit.js <scope> --format <text|json> --root ~
+node ~/.claude/plugins/marketplaces/everything-claude-code/scripts/harness-audit.js <scope> --format <text|json> --root ~
 ```
 
-The script reads `process.cwd()` as default root, so this machine-local override pins the audit to `~` (home, where the ECC control plane lives). Paths resolve via the `scripts/` symlink at `~/.claude/skills/harness-audit/scripts` -> `~/.claude/plugins/marketplaces/everything-claude-code/scripts`. For per-repo audits, override with `--root <path>`.
+The script reads `process.cwd()` as default root, so this machine-local override pins the audit to `~` (home, where the ECC control plane lives). Use the installed marketplace script directly; the former `~/.claude/skills/harness-audit/scripts` compatibility symlink is not guaranteed to exist. For per-repo audits, override with `--root <path>`.
 
 This script is the source of truth for scoring and checks. Do not invent additional dimensions or ad-hoc points.
 
