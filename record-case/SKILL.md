@@ -113,8 +113,7 @@ last_updated: "2026-07-19"
    - `cat` 抽查关键段落（症状 / P0 / 教训）
 8. **更新索引**：
    - Case → 追加到 `~/.claude/memory/MEMORY.md` 的 `## Cases`
-   - 同时写入 mem0：`metadata.type="case"`，`metadata.tags=[tag1, tag2]`，`metadata.source="CASE-<DESCRIPTOR>-<YYYYMMDD>"`
-   - 若 MEMORY.md 写入被 hook 拦截 → 改用 `mcp__plugin_mem0_mem0__add_memory`
+   - 若 MEMORY.md 写入被 hook 拦截 → 直接告知用户（mem0 已 2026-08-05 停用，本机不再调用第三方记忆写入）
 9. **升级评估**：若 case 涉及可复现的失败模式 → 评估是否新增 rule 到 `~/.claude/rules/`；若 case 重复出现 ≥2 次 → 必须升级为 hook/lint/test
 
 ---
@@ -333,8 +332,7 @@ related: [CASE-OTHER-YYYYMMDD]  # 无相关 case 时删除本行或写 []
 2. **重复检查**：`grep -r "<核心症状关键词>" ~/.claude/knowledge/cases/wiki/ --include="*.md"` 确认非重复归档；若发现同类根因 → 更新已有 case 而非新建
 3. **更新索引**：
    - Case → 追加到 `~/.claude/memory/MEMORY.md` 的 `## Cases`
-   - 同时写入 mem0：`metadata.type="case"`，`metadata.tags=[tag1, tag2]`，`metadata.source="CASE-<DESCRIPTOR>-<YYYYMMDD>"`
-   - 若 MEMORY.md 写入被 hook 拦截 → 改用 `mcp__plugin_mem0_mem0__add_memory`，内容结构化存储（标题 + frontmatter + 教训摘要）
+   - 若 MEMORY.md 写入被 hook 拦截 → 直接告知用户（mem0 已 2026-08-05 停用，本机不再调用第三方记忆写入）
 4. **Rule 升级评估**：若 case 涉及可复现的失败模式 → 评估是否需要新增 rule 到 `~/.claude/rules/`
 5. **硬约束评估**：若 case 重复出现 ≥2 次 → 必须升级为 hook/lint/test
 
