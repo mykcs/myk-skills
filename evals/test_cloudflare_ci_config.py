@@ -69,6 +69,19 @@ class CloudflareCiConfigTests(unittest.TestCase):
         self.assertIn("python3 scripts/ci_check.py", workflow)
         self.assertIn("requirements-ci.txt", workflow)
 
+    def test_required_check_policy_accounts_for_skipped_builds(self) -> None:
+        policy = (ROOT / "docs" / "cloudflare-required-check-policy.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("do not configure", policy.lower())
+        self.assertIn("global required status check", policy)
+        self.assertIn("Build watch paths", policy)
+        self.assertIn("docs/*", policy)
+        self.assertIn("exact latest head commit", policy)
+        self.assertIn("Cloudflare Workers & Pages GitHub App", policy)
+        self.assertIn("scripts/ci_check.py", policy)
+        self.assertIn("not proof of the live dashboard state", policy)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
