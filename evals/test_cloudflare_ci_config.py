@@ -58,6 +58,17 @@ class CloudflareCiConfigTests(unittest.TestCase):
         self.assertIn('"status": "passed"', build)
         self.assertIn("scripts/ci_check.py", build)
 
+    def test_github_actions_is_manual_fallback_only(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "rich-audit-ci.yml").read_text(
+            encoding="utf-8"
+        )
+        trigger_block = workflow.split("\non:\n", 1)[1].split("\n\n", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger_block)
+        self.assertNotIn("push:", trigger_block)
+        self.assertNotIn("pull_request:", trigger_block)
+        self.assertIn("python3 scripts/ci_check.py", workflow)
+        self.assertIn("requirements-ci.txt", workflow)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
