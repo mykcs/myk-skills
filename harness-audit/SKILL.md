@@ -1,10 +1,10 @@
 ---
 name: harness-audit
 description: Runs a deterministic repository harness audit and returns a prioritized scorecard across 7 fixed categories (tool coverage, context efficiency, etc.).
-version: "1.0.1"
+version: "1.0.2"
 author: "mykcs"
 license: "MIT"
-last_updated: "2026-08-05"
+last_updated: "2026-08-09"
 triggers:
   - harness-audit
   - /harness-audit
@@ -38,11 +38,11 @@ python3 ~/.claude/scripts/harness-audit-cp.py <scope> --format <text|json>
 
 For a repository other than the `~/.claude` control plane, add `--root <path>`.
 
-The wrapper is the single supported entrypoint. It resolves the vendored harness-audit JavaScript engine from supported installation locations (or an explicit `HARNESS_AUDIT_JS` override), preserves the upstream deterministic scoring logic, and applies only the control-plane-root corrections required when auditing `~/.claude`. Do not invoke a marketplace engine path directly from this skill; installation layout may change independently of the skill symlink layout.
+The wrapper is the single supported entrypoint. This skill ships the canonical pinned JavaScript engine at `scripts/harness-audit.js`; the pinned source provenance, Git blob SHA, and upstream MIT license are recorded under `vendor/`. The control-plane wrapper should prefer this skill-backed copy rather than a mutable marketplace/cache copy. An explicit `HARNESS_AUDIT_JS` override is for controlled testing or migration only and must not silently redefine the production rubric.
 
 This script is the source of truth for scoring and checks. Do not invent additional dimensions or ad-hoc points.
 
-Rubric version: `2026-03-16`.
+Rubric version: `2026-03-30`.
 
 The script computes 7 fixed categories (`0-10` normalized each):
 
@@ -54,7 +54,7 @@ The script computes 7 fixed categories (`0-10` normalized each):
 6. Security Guardrails
 7. Cost Efficiency
 
-Scores are derived from explicit file/rule checks and are reproducible for the same commit.
+Scores are derived from explicit file/rule checks and are reproducible for the same commit and pinned engine.
 
 ## Output Contract
 
@@ -72,6 +72,7 @@ Return:
 - If `--format json` is requested, return the script JSON unchanged.
 - If text is requested, summarize failing checks and top actions.
 - Include exact file paths from `checks[]` and `top_actions[]`.
+- Treat `vendor/UPSTREAM.md` plus the pinned engine blob SHA as the supply-chain identity for this rubric revision.
 
 ## Example Result
 
