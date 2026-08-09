@@ -742,9 +742,15 @@ function summarizeCategoryScores(checks) {
     const earned = inCategory
       .filter(check => check.pass)
       .reduce((sum, check) => sum + check.points, 0);
+
     const normalized = max === 0 ? 0 : Math.round((earned / max) * 10);
-    scores[category] = { score: normalized, earned, max };
+    scores[category] = {
+      score: normalized,
+      earned,
+      max,
+    };
   }
+
   return scores;
 }
 
@@ -755,49 +761,109 @@ function buildReport(scope, options = {}) {
     .filter(check => check.scopes.includes(scope));
   const categoryScores = summarizeCategoryScores(checks);
   const maxScore = checks.reduce((sum, check) => sum + check.points, 0);
-  const overallScore = checks.filter(check => check.pass).reduce((sum, check) => sum + check.points, 0);
+  const overallScore = checks
+    .filter(check => check.pass)
+    .reduce((sum, check) => sum + check.points, 0);
+
   const failedChecks = checks.filter(check => !check.pass);
-  const topActions = failedChecks.sort((left, right) => right.points - left.points).slice(0, 3).map(check => ({ action: check.fix, path: check.path, category: check.category, points: check.points }));
-  return { scope, root_dir: rootDir, target_mode: targetMode, deterministic: true, rubric_version: '2026-03-30', overall_score: overallScore, max_score: maxScore, categories: categoryScores, checks: checks.map(check => ({ id: check.id, category: check.category, points: check.points, path: check.path, description: check.description, pass: check.pass })), top_actions: topActions };
+  const topActions = failedChecks
+    .sort((left, right) => right.points - left.points)
+    .slice(0, 3)
+    .map(check => ({
+      action: check.fix,
+      path: check.path,
+      category: check.category,
+      points: check.points,
+    }));
+
+  return {
+    scope,
+    root_dir: rootDir,
+    target_mode: targetMode,
+    deterministic: true,
+    rubric_version: '2026-03-30',
+    overall_score: overallScore,
+    max_score: maxScore,
+    categories: categoryScores,
+    checks: checks.map(check => ({
+      id: check.id,
+      category: check.category,
+      points: check.points,
+      path: check.path,
+      description: check.description,
+      pass: check.pass,
+    })),
+    top_actions: topActions,
+  };
 }
 
 function printText(report) {
   console.log(`Harness Audit (${report.scope}, ${report.target_mode}): ${report.overall_score}/${report.max_score}`);
   console.log(`Root: ${report.root_dir}`);
   console.log('');
+
   for (const category of CATEGORIES) {
     const data = report.categories[category];
-    if (!data || data.max === 0) continue;
+    if (!data || data.max === 0) {
+      continue;
+    }
+
     console.log(`- ${category}: ${data.score}/10 (${data.earned}/${data.max} pts)`);
   }
+
   const failed = report.checks.filter(check => !check.pass);
   console.log('');
   console.log(`Checks: ${report.checks.length} total, ${failed.length} failing`);
+
   if (failed.length > 0) {
     console.log('');
     console.log('Top 3 Actions:');
-    report.top_actions.forEach((action, index) => console.log(`${index + 1}) [${action.category}] ${action.action} (${action.path})`));
+    report.top_actions.forEach((action, index) => {
+      console.log(`${index + 1}) [${action.category}] ${action.action} (${action.path})`);
+    });
   }
 }
 
 function showHelp(exitCode = 0) {
-  console.log(`\nUsage: node scripts/harness-audit.js [scope] [--scope <repo|hooks|skills|commands|agents>] [--format <text|json>]\n       [--root <path>]\n\nDeterministic harness audit based on explicit file/rule checks.\nAudits the current working directory by default and auto-detects ECC repo mode vs consumer-project mode.\n`);
+  console.log(`
+Usage: node scripts/harness-audit.js [scope] [--scope <repo|hooks|skills|commands|agents>] [--format <text|json>]
+       [--root <path>]
+
+Deterministic harness audit based on explicit file/rule checks.
+Audits the current working directory by default and auto-detects ECC repo mode vs consumer-project mode.
+`);
   process.exit(exitCode);
 }
 
 function main() {
   try {
     const args = parseArgs(process.argv);
-    if (args.help) { showHelp(0); return; }
+
+    if (args.help) {
+      showHelp(0);
+      return;
+    }
+
     const report = buildReport(args.scope, { rootDir: args.root });
-    if (args.format === 'json') console.log(JSON.stringify(report, null, 2));
-    else printText(report);
+
+    if (args.format === 'json') {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      printText(report);
+    }
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 }
 
-if (require.main === module) main();
+if (require.main === module) {
+  main();
+}
 
-module.exports = { buildReport, parseArgs, findPluginInstall, compareVersionDesc };
+module.exports = {
+  buildReport,
+  parseArgs,
+  findPluginInstall,
+  compareVersionDesc,
+};
