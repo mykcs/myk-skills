@@ -80,6 +80,7 @@ class CloudflareCiConfigTests(unittest.TestCase):
         self.assertIn("exact latest head commit", policy)
         self.assertIn("Cloudflare Workers & Pages GitHub App", policy)
         self.assertIn("scripts/ci_check.py", policy)
+        self.assertIn("not proof of the live dashboard state", policy)
 
 
 if __name__ == "__main__":
