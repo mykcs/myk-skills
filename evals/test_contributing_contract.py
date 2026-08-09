@@ -24,6 +24,7 @@ class ContributingContractTests(unittest.TestCase):
         self.assertIn("single source of truth", text)
         self.assertIn("Python 3.12", text)
         self.assertNotIn("Python 3.10+", text)
+        self.assertNotIn("Scope: P0", text)
 
 
 if __name__ == "__main__":
