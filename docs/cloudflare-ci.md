@@ -87,6 +87,62 @@ If Workers Builds usage itself later becomes materially high, optimize that usag
 
 When adding exclusions, fail closed: do not exclude paths containing validation policy, active skills, tests/evals, dependency pins, Wrangler configuration, CI scripts, or other files whose changes should still be verified. Re-check current Cloudflare limits before making quota-driven decisions because plan limits can change over time.
 
+## Build watch paths policy
+
+The repository's conservative desired-state policy for Cloudflare Workers Builds is:
+
+```text
+Include paths: *
+Exclude paths: docs/*
+```
+
+This is intentionally an **exclude-only optimization**. Keep the default catch-all include so new top-level skills, scripts, configuration, tests, and future repository structures continue to trigger validation automatically.
+
+### Why only `docs/*` is excluded
+
+`docs/` contains explanatory and operational documentation, but it is not an input to the repository validation entrypoint. `scripts/ci_check.py` validates active top-level skills, repository evals, active-skill evals, and `host-self-evolve` checks. Therefore a docs-only edit does not change the code or skill artifacts that the Cloudflare validation job executes.
+
+Do **not** broaden the exclusion to `*.md`. Active skills use `SKILL.md`, and Markdown files inside skill directories can be behavior-bearing instructions or references. Those changes must continue to trigger validation.
+
+Do **not** replace `Include: *` with a narrow allowlist of current skill directories. Skills are dynamic top-level directories; a future new skill must trigger validation without requiring a second Cloudflare settings change.
+
+### Expected behavior
+
+| Changed paths in one push | Expected Workers Build |
+| --- | --- |
+| only `docs/**` | skip |
+| `docs/**` plus any non-doc path | build |
+| any active skill directory | build |
+| `scripts/**` or `evals/**` | build |
+| `host-self-evolve/**` | build |
+| `package.json`, `requirements-ci.txt`, `.python-version`, or `wrangler.jsonc` | build |
+| `.github/workflows/**` | build |
+
+Cloudflare evaluates excludes first and then includes. If every changed path is excluded, the build is skipped; if any remaining path matches `*`, the build runs. Cloudflare also documents two fail-safe cases where path matching is bypassed and a build runs anyway: a push with zero file changes, or a push containing at least 3,000 changed files or at least 20 commits.
+
+### Dashboard application and verification
+
+Build watch paths are Cloudflare project settings, not fields in `wrangler.jsonc`. The runtime setting must therefore be applied to `myk-skills-validation` under **Settings > Build > Build watch paths** and verified against this repository-owned desired state.
+
+After applying the setting, verify it with two real commits or equivalent controlled pushes:
+
+1. a docs-only change should be skipped by Workers Builds;
+2. a non-doc change should still trigger `scripts/ci_check.py` and must pass before merge.
+
+Do not claim the optimization is active merely because this document exists. The Cloudflare Dashboard/API state is authoritative for whether watch paths are actually enabled.
+
+### Future optimization order
+
+If Workers Builds usage remains materially high after `docs/*` is excluded, optimize in this order:
+
+1. measure which paths are causing builds;
+2. add only individually justified, non-behavioral exclusions;
+3. consider Build Caching to reduce duration of builds that still need to run;
+4. keep `scripts/ci_check.py` as the provider-neutral validation SSOT;
+5. never disable the PR safety gate solely to save build minutes.
+
+Each new exclusion must be treated as a safety change: prove that the excluded path cannot alter executable validation policy, active skill behavior, dependencies, or deployment configuration before adding it.
+
 ## Public exposure safety
 
 `wrangler.jsonc` intentionally sets:
