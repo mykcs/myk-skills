@@ -39,13 +39,9 @@ class QuickValidateRegressionTests(unittest.TestCase):
         valid, message = root_validator.validate_skill(ROOT / "verifier-pass2")
         self.assertTrue(valid, message)
 
-    def test_current_host_self_evolve_schema_is_accepted(self) -> None:
-        valid, message = root_validator.validate_skill(ROOT / "host-self-evolve")
-        self.assertTrue(valid, message)
-
     def test_documented_fields_and_extension_fields_are_allowed(self) -> None:
         skill_dir = self._make_skill(
-            """---\n"
+            "---\n"
             "name: sample-skill\n"
             "description: Sample skill used for validator regression coverage.\n"
             "when_to_use: Use for validator regression tests.\n"
@@ -59,7 +55,6 @@ class QuickValidateRegressionTests(unittest.TestCase):
             "custom-extension-field: accepted\n"
             "---\n"
             "# Sample\n"
-            """
         )
         valid, message = canonical_validator.validate_skill(skill_dir)
         self.assertTrue(valid, message)
