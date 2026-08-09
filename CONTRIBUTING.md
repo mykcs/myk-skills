@@ -14,7 +14,7 @@ skill-name/
 
 ## `SKILL.md` Frontmatter
 
-A skill may use YAML frontmatter at the top of `SKILL.md`. The repository validator follows the current Claude Code skill contract: documented frontmatter fields are optional, `description` is recommended for discoverability, and repository-specific extension fields are allowed.
+Every `SKILL.md` must start with a YAML frontmatter block between `---` markers, followed by markdown instructions. The frontmatter fields themselves are optional: `description` is recommended for discoverability, and repository-specific extension fields are allowed.
 
 Example:
 
@@ -35,7 +35,7 @@ metadata:
 ---
 ```
 
-The canonical repository validator is `skill-creator/scripts/quick_validate.py`; the root entrypoint `scripts/quick_validate.py` delegates to it. Validation intentionally fails closed on malformed YAML and invalid field types, but it does not maintain a stale fixed allowlist of extension fields.
+The canonical repository validator is `skill-creator/scripts/quick_validate.py`; the root entrypoint `scripts/quick_validate.py` delegates to it. Validation intentionally fails closed on missing/malformed frontmatter, malformed YAML, and invalid field types, but it does not maintain a stale fixed allowlist of extension fields.
 
 Current validated field rules include:
 
