@@ -13,6 +13,7 @@ MAKEFILE = ROOT / "Makefile"
 class MakefileContractTests(unittest.TestCase):
     def test_makefile_delegates_validation_to_shared_entrypoint(self) -> None:
         text = MAKEFILE.read_text(encoding="utf-8")
+        self.assertIn("PY ?= python3", text)
         self.assertIn("scripts/ci_check.py", text)
         self.assertIn("test: check", text)
         self.assertIn("ci: check", text)
