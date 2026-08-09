@@ -1,103 +1,120 @@
 #!/usr/bin/env python3
-"""
-Quick validation script for skills - minimal version
+"""Validate one Claude Code skill's ``SKILL.md`` structure.
+
+This validator intentionally follows the current Claude Code skill contract:
+frontmatter fields are optional, ``description`` is recommended, and extension
+fields are allowed. It rejects structural/type errors that can make a skill
+unusable instead of enforcing a stale repository-specific allowlist.
 """
 
-import sys
-import os
+from __future__ import annotations
+
 import re
-import yaml
+import sys
 from pathlib import Path
+from typing import Any
 
-def validate_skill(skill_path):
-    """Basic validation of a skill"""
-    skill_path = Path(skill_path)
+import yaml
 
-    # Check SKILL.md exists
-    skill_md = skill_path / 'SKILL.md'
-    if not skill_md.exists():
-        return False, "SKILL.md not found"
 
-    # Read and validate frontmatter
-    content = skill_md.read_text()
-    if not content.startswith('---'):
-        return False, "No YAML frontmatter found"
+FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", re.DOTALL)
+NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+BOOLEAN_FIELDS = ("user-invocable", "disable-model-invocation")
+TEXT_FIELDS = ("description", "when_to_use", "argument-hint", "model")
+STRING_OR_LIST_FIELDS = ("allowed-tools", "arguments")
 
-    # Extract frontmatter
-    match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+
+def _parse_frontmatter(content: str) -> tuple[bool, dict[str, Any] | None, str]:
+    if not content.startswith("---"):
+        return False, None, "No YAML frontmatter found"
+
+    match = FRONTMATTER_RE.match(content)
     if not match:
-        return False, "Invalid frontmatter format"
+        return False, None, "Invalid frontmatter format"
 
-    frontmatter_text = match.group(1)
-
-    # Parse YAML frontmatter
     try:
-        frontmatter = yaml.safe_load(frontmatter_text)
-        if not isinstance(frontmatter, dict):
-            return False, "Frontmatter must be a YAML dictionary"
-    except yaml.YAMLError as e:
-        return False, f"Invalid YAML in frontmatter: {e}"
+        parsed = yaml.safe_load(match.group(1))
+    except yaml.YAMLError as exc:
+        return False, None, f"Invalid YAML in frontmatter: {exc}"
 
-    # Define allowed properties
-    ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility'}
+    # All documented fields are optional, so an empty frontmatter block is a
+    # valid empty mapping rather than a missing-required-fields error.
+    if parsed is None:
+        parsed = {}
+    if not isinstance(parsed, dict):
+        return False, None, "Frontmatter must be a YAML dictionary"
 
-    # Check for unexpected properties (excluding nested keys under metadata)
-    unexpected_keys = set(frontmatter.keys()) - ALLOWED_PROPERTIES
-    if unexpected_keys:
-        return False, (
-            f"Unexpected key(s) in SKILL.md frontmatter: {', '.join(sorted(unexpected_keys))}. "
-            f"Allowed properties are: {', '.join(sorted(ALLOWED_PROPERTIES))}"
-        )
+    return True, parsed, ""
 
-    # Check required fields
-    if 'name' not in frontmatter:
-        return False, "Missing 'name' in frontmatter"
-    if 'description' not in frontmatter:
-        return False, "Missing 'description' in frontmatter"
 
-    # Extract name for validation
-    name = frontmatter.get('name', '')
-    if not isinstance(name, str):
-        return False, f"Name must be a string, got {type(name).__name__}"
-    name = name.strip()
-    if name:
-        # Check naming convention (kebab-case: lowercase with hyphens)
-        if not re.match(r'^[a-z0-9-]+$', name):
-            return False, f"Name '{name}' should be kebab-case (lowercase letters, digits, and hyphens only)"
-        if name.startswith('-') or name.endswith('-') or '--' in name:
-            return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
-        # Check name length (max 64 characters per spec)
+def _validate_optional_fields(frontmatter: dict[str, Any]) -> tuple[bool, str]:
+    if "name" in frontmatter:
+        name = frontmatter["name"]
+        if not isinstance(name, str):
+            return False, f"Name must be a string, got {type(name).__name__}"
+        name = name.strip()
+        if not name:
+            return False, "Name cannot be empty when provided"
         if len(name) > 64:
             return False, f"Name is too long ({len(name)} characters). Maximum is 64 characters."
+        if not NAME_RE.fullmatch(name):
+            return False, (
+                f"Name '{name}' must contain only lowercase letters, digits, and single hyphens, "
+                "and cannot start or end with a hyphen"
+            )
 
-    # Extract and validate description
-    description = frontmatter.get('description', '')
-    if not isinstance(description, str):
-        return False, f"Description must be a string, got {type(description).__name__}"
-    description = description.strip()
-    if description:
-        # Check for angle brackets
-        if '<' in description or '>' in description:
-            return False, "Description cannot contain angle brackets (< or >)"
-        # Check description length (max 1024 characters per spec)
-        if len(description) > 1024:
-            return False, f"Description is too long ({len(description)} characters). Maximum is 1024 characters."
+    for field in TEXT_FIELDS:
+        if field in frontmatter and not isinstance(frontmatter[field], str):
+            return False, f"{field} must be a string when provided"
 
-    # Validate compatibility field if present (optional)
-    compatibility = frontmatter.get('compatibility', '')
-    if compatibility:
-        if not isinstance(compatibility, str):
-            return False, f"Compatibility must be a string, got {type(compatibility).__name__}"
-        if len(compatibility) > 500:
-            return False, f"Compatibility is too long ({len(compatibility)} characters). Maximum is 500 characters."
+    for field in BOOLEAN_FIELDS:
+        if field in frontmatter and not isinstance(frontmatter[field], bool):
+            return False, f"{field} must be a YAML boolean when provided"
 
-    return True, "Skill is valid!"
+    for field in STRING_OR_LIST_FIELDS:
+        if field not in frontmatter:
+            continue
+        value = frontmatter[field]
+        if not isinstance(value, (str, list)):
+            return False, f"{field} must be a string or YAML list when provided"
+        if isinstance(value, list) and not all(isinstance(item, str) for item in value):
+            return False, f"{field} list entries must all be strings"
+
+    if "metadata" in frontmatter and not isinstance(frontmatter["metadata"], dict):
+        return False, "metadata must be a YAML dictionary when provided"
+
+    return True, "Skill structure is valid!"
+
+
+def validate_skill(skill_path: str | Path) -> tuple[bool, str]:
+    """Validate a skill directory without imposing repository-only schema fields."""
+    skill_path = Path(skill_path)
+    skill_md = skill_path / "SKILL.md"
+    if not skill_md.is_file():
+        return False, "SKILL.md not found"
+
+    try:
+        content = skill_md.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return False, f"Unable to read SKILL.md: {exc}"
+
+    ok, frontmatter, message = _parse_frontmatter(content)
+    if not ok or frontmatter is None:
+        return False, message
+
+    return _validate_optional_fields(frontmatter)
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if len(argv) != 1:
+        print("Usage: python quick_validate.py <skill_directory>")
+        return 2
+
+    valid, message = validate_skill(argv[0])
+    print(message)
+    return 0 if valid else 1
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python quick_validate.py <skill_directory>")
-        sys.exit(1)
-    
-    valid, message = validate_skill(sys.argv[1])
-    print(message)
-    sys.exit(0 if valid else 1)
+    sys.exit(main())
