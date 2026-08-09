@@ -16,14 +16,11 @@ import sys
 import tempfile
 from pathlib import Path
 from types import ModuleType
-from typing import Iterable, Sequence
+from typing import Sequence
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_EVALS = ROOT / "evals"
-ROOT_VALIDATOR = ROOT / "scripts" / "quick_validate.py"
-HOST_SKILL = ROOT / "host-self-evolve"
-HOST_SCRIPTS = HOST_SKILL / "scripts"
 HOST_REQUIRED_SCRIPTS = (
     "dead_code_detector.py",
     "commands_to_skills_migrator.py",
@@ -71,8 +68,7 @@ def skill_eval_dirs(root: Path = ROOT) -> list[Path]:
 
 def validate_active_skills(root: Path = ROOT) -> list[str]:
     """Validate every active top-level SKILL.md and return failure messages."""
-    validator_path = root / "scripts" / "quick_validate.py"
-    validator = _load_module(validator_path, "myk_repo_quick_validate")
+    validator = _load_module(root / "scripts" / "quick_validate.py", "myk_repo_quick_validate")
     failures: list[str] = []
     for skill_dir in active_skill_dirs(root):
         valid, message = validator.validate_skill(skill_dir)
