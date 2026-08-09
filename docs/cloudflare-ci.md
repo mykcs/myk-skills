@@ -131,6 +131,24 @@ After applying the setting, verify it with two real commits or equivalent contro
 
 Do not claim the optimization is active merely because this document exists. The Cloudflare Dashboard/API state is authoritative for whether watch paths are actually enabled.
 
+### Agent note: browser and Dashboard observability boundary
+
+The operator may edit Cloudflare settings manually in a browser and then ask whether an Agent can see or verify those edits.
+
+The answer depends on the tools available in that specific session. A GitHub repository connector can read repository state, commits, pull requests, and GitHub-visible checks, but it **cannot read the operator's Cloudflare Dashboard form fields or browser click history**. A normal chat session also must not assume that it can see another browser tab merely because the operator used it moments earlier.
+
+Treat the following states separately:
+
+- **User-reported configured**: the operator says they entered or saved the values.
+- **Repository desired state**: this document records what the values should be.
+- **Cloudflare-verified active**: an authenticated Cloudflare API/account connector, an actually available browser/computer-use tool, or an observable Cloudflare build result proves the runtime setting.
+
+An Agent must not collapse these into one state. In particular, do not claim `docs/*` exclusion is active solely because the user reports having filled it in or because this document says it should be configured.
+
+If an authenticated Cloudflare API/account connector or browser-control tool is available, use it directly to verify the saved setting and avoid making the operator manually shuttle information between systems. If no such tool is available, say that the Dashboard state is not directly observable. A screenshot or exact copied values from the operator may be used as user-provided evidence, but should still be described as user-provided rather than independently verified.
+
+A docs-only commit after the setting is saved is a useful behavioral test: if Cloudflare records that build as skipped due to watch paths, that is stronger evidence that the exclusion is active. Absence of a GitHub status alone is not sufficient proof when the available GitHub connector does not expose Cloudflare Workers Builds check-runs.
+
 ### Future optimization order
 
 If Workers Builds usage remains materially high after `docs/*` is excluded, optimize in this order:
