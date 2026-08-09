@@ -53,6 +53,40 @@ The connected Worker project uses:
 
 Keep the Cloudflare GitHub App repository scope as narrow as practical.
 
+## Agent note: Pages 500-build quota vs Workers Builds
+
+This section records a recurring operator concern so future agents do not make a destructive CI change based on the wrong Cloudflare quota.
+
+### The concern
+
+The operator was concerned that this repository might consume the Cloudflare Pages Free-plan allowance of 500 builds per month and asked whether the Cloudflare integration should be disabled or changed to avoid using that allowance.
+
+### Current answer
+
+As of 2026-08-09, this repository's CI project is **Cloudflare Workers Builds**, not Cloudflare Pages. These products have separate build limits:
+
+- Cloudflare Pages Free: 500 builds per month.
+- Cloudflare Workers Builds Free: 3,000 build-minutes per month.
+
+Therefore, `myk-skills-validation` does **not** consume the Pages 500-build monthly allowance merely by running its Workers Builds validation. The relevant resource for this repository is Workers Builds build-minutes.
+
+Official references:
+
+- Workers Builds limits and pricing: <https://developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/>
+- Pages limits: <https://developers.cloudflare.com/pages/platform/limits/>
+
+### Required agent behavior
+
+For the specific concern about the Pages 500-build quota, the default action is **no action**. Do not disconnect `myk-skills-validation`, disable normal PR validation, or restore automatic GitHub Actions merely to protect the Pages build allowance.
+
+Workers Builds currently provides the routine PR/main validation gate, while GitHub Actions is intentionally manual fallback only. Removing Workers Builds without first establishing an equivalent validated replacement would weaken the repository's safety gate.
+
+If Workers Builds usage itself later becomes materially high, optimize that usage separately. Prefer Cloudflare **Build watch paths** to skip changes that cannot affect validation, rather than disabling CI globally. Cloudflare documents Workers Build watch paths here:
+
+<https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/>
+
+When adding exclusions, fail closed: do not exclude paths containing validation policy, active skills, tests/evals, dependency pins, Wrangler configuration, CI scripts, or other files whose changes should still be verified. Re-check current Cloudflare limits before making quota-driven decisions because plan limits can change over time.
+
 ## Public exposure safety
 
 `wrangler.jsonc` intentionally sets:
