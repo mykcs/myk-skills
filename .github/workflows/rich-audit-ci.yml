@@ -1,28 +1,17 @@
-name: host-self-evolve CI
+name: host-self-evolve CI (manual fallback)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'host-self-evolve/**'
-      - '.github/workflows/rich-audit-ci.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'host-self-evolve/**'
-      - '.github/workflows/rich-audit-ci.yml'
-  workflow_dispatch:  # allow manual re-run from UI / gh cli
+  workflow_dispatch:
 
-# 防止 host-self-evolve 自己 trigger 自己 (递归 CI)
 concurrency:
-  group: host-self-evolve-${{ github.ref }}
+  group: host-self-evolve-manual-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Unittest (10 tests, 4 detection scripts)
+  validate:
+    name: Repository validation fallback
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -31,78 +20,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install shellcheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Install pinned CI dependencies
+        run: python3 -m pip install --disable-pip-version-check -r requirements-ci.txt
 
-      - name: Stub ~/.claude (read-only detection)
-        # host-self-evolve 检测 ~/.claude/; CI 上是空的, 应该 pass
-        run: |
-          mkdir -p ~/.claude/knowledge/cases/wiki
-          echo "# CI stub" > ~/.claude/knowledge/cases/wiki/README.md
-          mkdir -p ~/.claude/hooks ~/.claude/scripts ~/.claude/rules ~/.claude/memory
-          echo "# CI stub" > ~/.claude/memory/MEMORY.md
-          # Stub a script so lint_runner has >=1 file to scan
-          printf '#!/bin/bash\necho "stub"\n' > ~/.claude/scripts/stub.sh
-          chmod +x ~/.claude/scripts/stub.sh
-          # commands/ for commands_to_skills_migrator
-          mkdir -p ~/.claude/commands
-          echo "# stub command" > ~/.claude/commands/stub-cmd.md
-
-      - name: Stub ~/.agents/skills (skill detection scripts need this)
-        # 3 detection scripts (skill_overlap_enhancer / skill_authoring_checker /
-        # description_person_checker / reference_depth_checker) read ~/.agents/skills/.
-        # CI runner has no symlink, so create a minimal stub with 1 valid skill.
-        run: |
-          mkdir -p ~/.agents/skills/stub-skill
-          cat > ~/.agents/skills/stub-skill/SKILL.md <<'EOF'
-          ---
-          name: stub-skill
-          description: Stub skill for CI testing - this is a third-person description.
-          metadata:
-            version: "1.0.0"
-          ---
-          # Stub Skill
-          CI stub for detection script smoke tests.
-          EOF
-
-      - name: Run unittest (10 tests)
-        working-directory: host-self-evolve
-        run: python3 -m unittest scripts.test_detection_scripts -v
-
-      - name: Run dead_code_detector (smoke)
-        working-directory: host-self-evolve
-        run: python3 scripts/dead_code_detector.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('count:',d['count']); assert d['tool']=='dead_code_detector.py'"
-
-      - name: Run lint_runner (smoke)
-        working-directory: host-self-evolve
-        run: python3 scripts/lint_runner.py | python3 -c "import json,sys; d=json.load(sys.stdin); print('scanned:',d['scanned_sh'],'sh+',d['scanned_py'],'py'); assert d['tool']=='lint_runner.py'"
-
-  modernize:
-    name: Modernization Check (PER Workflow + consistency 6d)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Verify PER Workflow 协议位 in SKILL.md
-        run: |
-          if ! grep -q "PER Workflow" host-self-evolve/SKILL.md; then
-            echo "❌ PER Workflow 协议位 not in SKILL.md"
-            exit 1
-          fi
-          echo "✅ PER Workflow 协议位 found"
-      - name: Verify consistency 6d sub-modules
-        run: |
-          for n in 1 2 3 4 5 6; do
-            test -f "host-self-evolve/references/consistency-6d/${n}-"*.md || { echo "❌ consistency-6d/${n} missing"; exit 1; }
-          done
-          echo "✅ 6 consistency sub-modules present"
-      - name: Verify 8 detection scripts
-        run: |
-          SCRIPTS="dead_code_detector.py commands_to_skills_migrator.py lint_runner.py memory_audit_runner.py skill_authoring_checker.py skill_overlap_enhancer.py waste_token_detector.py auto_fix_proposer.py"
-          for s in $SCRIPTS; do
-            test -f "host-self-evolve/scripts/$s" || { echo "❌ $s missing"; exit 1; }
-          done
-          echo "✅ 8 detection scripts present"
-      - name: Verify tests pass (10 tests)
-        run: |
-          cd host-self-evolve && python3 -m unittest scripts.test_detection_scripts 2>&1 | tail -3
+      - name: Run provider-neutral repository validation
+        run: python3 scripts/ci_check.py
