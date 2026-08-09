@@ -76,6 +76,7 @@ class CloudflareCiConfigTests(unittest.TestCase):
         self.assertIn("do not configure", policy.lower())
         self.assertIn("global required status check", policy)
         self.assertIn("Build watch paths", policy)
+        self.assertIn("docs/*", policy)
         self.assertIn("exact latest head commit", policy)
         self.assertIn("Cloudflare Workers & Pages GitHub App", policy)
         self.assertIn("scripts/ci_check.py", policy)
