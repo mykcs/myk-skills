@@ -20,7 +20,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 def finding(kind: str, path: Path, detail: str) -> dict[str, str]:
@@ -170,6 +170,13 @@ def audit_claude(home: Path) -> list[dict[str, str]]:
             "claude_stale_memory_mcp_permission",
             path,
             f"retired memory MCP permission(s) reintroduced: {stale_memory}",
+        ))
+    stale_minimax = sorted(rule for rule in allow if isinstance(rule, str) and rule.startswith("mcp__MiniMax__"))
+    if stale_minimax:
+        findings.append(finding(
+            "claude_retired_minimax_mcp_permission",
+            path,
+            f"MiniMax platform routing is mmx-CLI-only; retired MCP permission(s) reintroduced: {stale_minimax}",
         ))
 
     sandbox = data.get("sandbox", {})
