@@ -18,7 +18,7 @@ tags:
   - meta-cognition
   - two-pass
   - adversarial
-user-invocable: true
+user-invocable: false
 version: "1.0.0"
 author: "mykcs"
 last_updated: "2026-07-19"
@@ -29,6 +29,8 @@ last_updated: "2026-07-19"
 ## Purpose
 
 Given a list of findings (from any reviewer agent or audit tool), adversarially verify each one with high confidence. **Pass-1 surfaces, Pass-2 validates.**
+
+Canonical user-facing entrypoint: `/verify pass2`. This skill remains the internal implementation and may still be selected by routing when pass-2 validation is needed.
 
 ## When to Use
 
