@@ -17,7 +17,6 @@ from typing import Any
 import yaml
 
 
-FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", re.DOTALL)
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 BOOLEAN_FIELDS = ("user-invocable", "disable-model-invocation")
 TEXT_FIELDS = ("description", "when_to_use", "argument-hint", "model")
@@ -25,15 +24,20 @@ STRING_OR_LIST_FIELDS = ("allowed-tools", "arguments")
 
 
 def _parse_frontmatter(content: str) -> tuple[bool, dict[str, Any] | None, str]:
-    if not content.startswith("---"):
+    lines = content.splitlines()
+    if not lines or lines[0].strip() != "---":
         return False, None, "No YAML frontmatter found"
 
-    match = FRONTMATTER_RE.match(content)
-    if not match:
+    closing_index = next(
+        (index for index, line in enumerate(lines[1:], start=1) if line.strip() == "---"),
+        None,
+    )
+    if closing_index is None:
         return False, None, "Invalid frontmatter format"
 
+    frontmatter_text = "\n".join(lines[1:closing_index])
     try:
-        parsed = yaml.safe_load(match.group(1))
+        parsed = yaml.safe_load(frontmatter_text)
     except yaml.YAMLError as exc:
         return False, None, f"Invalid YAML in frontmatter: {exc}"
 
