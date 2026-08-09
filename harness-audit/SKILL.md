@@ -30,13 +30,15 @@ Run a deterministic repository harness audit and return a prioritized scorecard.
 
 ## Deterministic Engine
 
-Always run:
+Always run through the control-plane wrapper:
 
 ```bash
-node ~/.claude/plugins/marketplaces/everything-claude-code/scripts/harness-audit.js <scope> --format <text|json> --root ~
+python3 ~/.claude/scripts/harness-audit-cp.py <scope> --format <text|json>
 ```
 
-The script reads `process.cwd()` as default root, so this machine-local override pins the audit to `~` (home, where the ECC control plane lives). Use the installed marketplace script directly; the former `~/.claude/skills/harness-audit/scripts` compatibility symlink is not guaranteed to exist. For per-repo audits, override with `--root <path>`.
+For a repository other than the `~/.claude` control plane, add `--root <path>`.
+
+The wrapper is the single supported entrypoint. It resolves the vendored harness-audit JavaScript engine from supported installation locations (or an explicit `HARNESS_AUDIT_JS` override), preserves the upstream deterministic scoring logic, and applies only the control-plane-root corrections required when auditing `~/.claude`. Do not invoke a marketplace engine path directly from this skill; installation layout may change independently of the skill symlink layout.
 
 This script is the source of truth for scoring and checks. Do not invent additional dimensions or ad-hoc points.
 
