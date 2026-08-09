@@ -47,6 +47,26 @@ class CiCheckRegressionTests(unittest.TestCase):
             ["alpha", "beta"],
         )
 
+    def test_active_skill_validation_fails_closed(self) -> None:
+        _, root = self._repo_fixture()
+        validator = root / "scripts" / "quick_validate.py"
+        validator.write_text(
+            "from pathlib import Path\n"
+            "def validate_skill(path):\n"
+            "    path = Path(path)\n"
+            "    return (path.name != 'broken', 'fixture invalid')\n",
+            encoding="utf-8",
+        )
+        for name in ("good", "broken"):
+            skill = root / name
+            skill.mkdir()
+            (skill / "SKILL.md").write_text("---\n---\n", encoding="utf-8")
+
+        self.assertEqual(
+            ci_check.validate_active_skills(root),
+            ["broken: fixture invalid"],
+        )
+
     def test_skill_eval_discovery_only_returns_test_directories(self) -> None:
         _, root = self._repo_fixture()
         alpha = root / "alpha"
