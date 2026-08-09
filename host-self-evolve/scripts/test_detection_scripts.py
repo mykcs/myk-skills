@@ -119,7 +119,19 @@ class TestWasteTokenDetector(unittest.TestCase):
 
     def test_types_known(self):
         data = _run_script("waste_token_detector.py")
-        valid = {"hot_path_heavy", "skill_too_heavy", "stale_hot_path"}
+        valid = {
+            "hot_path_heavy",
+            "skill_too_heavy",
+            "stale_hot_path",
+            "cross_tool_instruction_leak",
+            "plugin_manifest_invalid",
+            "plugin_skill_scope_broad",
+            "plugin_skill_scope_invalid",
+            "plugin_skill_scope_drift",
+            "instruction_projection_compiler_missing",
+            "instruction_projection_check_failed",
+            "instruction_projection_stale",
+        }
         for f in data["findings"]:
             self.assertIn(f.get("type"), valid, f"unknown: {f.get('type')}")
 
