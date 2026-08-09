@@ -1,0 +1,14 @@
+{
+  "name": "myk-skills-cloudflare-validation",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "cloudflare:check": "python3 scripts/ci_check.py",
+    "cloudflare:build": "python3 -m pip install --disable-pip-version-check -r requirements-ci.txt && python3 scripts/cloudflare_build.py",
+    "cloudflare:deploy": "wrangler deploy",
+    "cloudflare:preview": "wrangler versions upload"
+  },
+  "devDependencies": {
+    "wrangler": "4.114.0"
+  }
+}

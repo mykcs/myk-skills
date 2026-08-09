@@ -25,3 +25,7 @@ build/
 node_modules/
 .cache/
 harness-audit/scripts
+
+# Cloudflare CI-only build output/state
+.wrangler/
+cloudflare-dist/
