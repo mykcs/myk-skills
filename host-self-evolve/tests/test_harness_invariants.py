@@ -118,7 +118,11 @@ disable_on_external_context = false
             healthy_home(home)
             settings = json.loads((home / ".claude" / "settings.json").read_text())
             settings["permissions"]["defaultMode"] = "default"
-            settings["permissions"]["allow"] = ["Bash(*)", "mcp__memory__*"]
+            settings["permissions"]["allow"] = [
+                "Bash(*)",
+                "mcp__memory__*",
+                "mcp__MiniMax__*",
+            ]
             settings["sandbox"] = {"enabled": False, "autoAllowBashIfSandboxed": False}
             settings["hooks"]["PreToolUse"][0]["hooks"].append({
                 "type": "command",
@@ -130,6 +134,7 @@ disable_on_external_context = false
                 "claude_default_mode_drift",
                 "claude_blanket_permission_regression",
                 "claude_stale_memory_mcp_permission",
+                "claude_retired_minimax_mcp_permission",
                 "claude_sandbox_disabled",
                 "claude_sandbox_autonomy_drift",
                 "claude_retired_bash_guard_remounted",
