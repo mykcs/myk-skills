@@ -13,7 +13,8 @@ CONTRIBUTING = ROOT / "CONTRIBUTING.md"
 class ContributingContractTests(unittest.TestCase):
     def test_skill_frontmatter_guidance_matches_repository_validator(self) -> None:
         text = CONTRIBUTING.read_text(encoding="utf-8")
-        self.assertIn("documented frontmatter fields are optional", text)
+        self.assertIn("must start with a YAML frontmatter block", text)
+        self.assertIn("frontmatter fields themselves are optional", text)
         self.assertIn("`description` is recommended", text)
         self.assertIn("extension fields are allowed", text)
         self.assertNotIn("Required frontmatter fields:", text)
