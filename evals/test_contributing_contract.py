@@ -23,6 +23,7 @@ class ContributingContractTests(unittest.TestCase):
         self.assertIn("python3 scripts/ci_check.py", text)
         self.assertIn("single source of truth", text)
         self.assertIn("Python 3.12", text)
+        self.assertNotIn("Python 3.10+", text)
 
 
 if __name__ == "__main__":
