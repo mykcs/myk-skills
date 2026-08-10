@@ -1,56 +1,61 @@
-> 📌 This is a public repository. To make it private, navigate to **Settings → Danger Zone → Change repository visibility → Make private**. Visibility changes are reversible but may affect external links and forks.
-
 # myk-skills
 
-Claude Code skills for personal knowledge management, web development, and productivity automation.
+Shared user-level skills for the Claude Code and Codex harnesses.
 
 ## Architecture
 
+```text
+mykcs/myk-skills
+        ↓ clone / checkout
+~/.agents/skills/          ← canonical writable skill source
+        ↓ consumer links / native routing
+~/.claude/skills/          ← Claude consumer surface
+Codex shared-skill routing ← Codex consumer surface
 ```
-~/.agents/skills/          ← git clone (source of truth, mykcs/myk-skills)
-~/.claude/skills/          ← symlinks to ~/.agents/skills/<name>
-```
 
-**Rule**: All skills in `~/.claude/skills/` must be symlinks pointing to `~/.agents/skills/`. No real directories allowed.
+**Ownership rule:** shared skill semantics are edited in this repository only. Consumer links/adapters are not independent sources of truth.
 
-## Skills
+Harness-native/system skills are separate. In particular, Codex `.system` skills are platform-owned and must not be merged into this repository merely because a name overlaps (for example `skill-creator`).
 
-| Skill | Description |
-|-------|-------------|
-| `site-modernizer` | Static academic/personal website maintenance and upgrading |
-| `rich-audit` | Multi-stage audit skill for code quality and modernization |
-| `feishu-agent` | Feishu Bitable natural language CRUD operations |
-| `grill-with-docs` | Repo audit with documentation coverage analysis |
-| `record-case` | Structured case archiving from session learnings |
-| `skill-creator` | Create new Claude Code skills from templates |
-| `xlsx` | Excel file operations via Python |
-| `pdf` | PDF generation and manipulation |
-| `docx` | Word document operations |
-| `pptx` | PowerPoint generation |
-| `frontend-design` | Frontend UI/UX design and implementation |
-| `canvas-design` | Canvas-based design and visualization |
-| `publishing-astro-websites` | Astro website publishing workflow |
-| `mcp-builder` | Build MCP servers and tools |
-| `web-access` | Web search and fetch capabilities |
-| `learn` | Learning and knowledge acquisition |
-| `hello-world` | Example skill template |
-| ... | [38 skills total] |
+## Complete inventory
 
-## Usage
+Do not maintain a hand-written skill count in this README. The repository contains active skills, archives, benchmark fixtures, plugin-owned skills, and nested reference copies; recursively counting `SKILL.md` files without lifecycle classification is misleading.
+
+Generate a deterministic complete inventory with:
 
 ```bash
-# Install a new skill — create symlink
-ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>
-
-# Check symlink status
-ls -la ~/.claude/skills/
+python3 scripts/skill_inventory.py --format text
+python3 scripts/skill_inventory.py --format json
 ```
 
-## Adding a New Skill
+The inventory classifies every `SKILL.md` as one of:
 
-1. Add skill directory to `~/.agents/skills/<name>/`
-2. Commit and push to `mykcs/myk-skills`
-3. Create symlink: `ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>`
+- `active` — top-level `<name>/SKILL.md`, the shared runtime surface;
+- `archive` / `deprecated-reference` — historical evidence only;
+- `benchmark-fixture` — evaluation/benchmark material;
+- `plugin-owned` — plugin-local skill surface;
+- `reference-copy` / `nested-skill` — nested implementation/reference material.
+
+Use `--fail-on-duplicate-active-name` in validation when duplicate active frontmatter names must fail the check.
+
+## Verification ownership
+
+Reusable workflows belong in shared skills. Harness-native command syntax should be a thin adapter rather than a copied implementation. For example:
+
+- shared `verify` owns verification semantics; Claude `/verify` delegates to it;
+- shared `docs` owns documentation lookup semantics; Claude `/docs` delegates to it;
+- `harness-audit` owns its pinned engine while the Claude command remains a control-plane entry adapter.
+
+## Adding or changing a skill
+
+1. Edit/add the canonical top-level skill directory in this repository.
+2. Run `python3 scripts/skill_inventory.py --format text --fail-on-duplicate-active-name`.
+3. Run the repository validation entrypoint (`python3 scripts/ci_check.py`).
+4. Update consumer symlinks/routing only when needed; do not create a second real skill tree under `.claude` or `.codex`.
+
+## Validation policy
+
+Validation is provider-neutral and local-first. `scripts/ci_check.py` is the repository validation entrypoint; GitHub Actions or Cloudflare may call it, but they are not the source of validation policy.
 
 ## License
 
