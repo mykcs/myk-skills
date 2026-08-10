@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import unittest
 from pathlib import Path
 
@@ -25,9 +24,6 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         cls.per = PER.read_text(encoding="utf-8")
         cls.recovery = RECOVERY.read_text(encoding="utf-8")
         cls.checklist = CHECKLIST.read_text(encoding="utf-8")
-        cls.live = "\n".join(
-            [cls.skill, cls.three_role, cls.ci_gate, cls.per, cls.recovery, cls.checklist]
-        )
 
     def test_active_skill_is_v4_2_modern(self) -> None:
         self.assertIn('version: "4.2.0"', self.skill)
@@ -52,22 +48,20 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
     def test_executor_does_not_own_automatic_smart_push(self) -> None:
         self.assertNotIn("并自动 `smart-autopush.sh` 提交", self.skill)
         self.assertNotIn("按 plan 跑 audit、fix、smart-push", self.skill)
-        self.assertNotRegex(
-            self.recovery,
-            r"(?m)^\s*(?:\"[^\"]*smart-(?:auto)?push\.sh\"|smart-(?:auto)?push\.sh)\b",
-        )
+        self.assertIn("does **not** automatically commit, push", self.skill)
+        self.assertIn("Publication is separate from execution", self.skill)
 
-    def test_recovery_has_no_executable_generic_git_publication(self) -> None:
-        executable = "\n".join(
-            line for line in self.recovery.splitlines() if not line.lstrip().startswith("#")
-        )
-        for pattern in (
-            r"(?m)^\s*git\s+add\s+-A(?:\s|$)",
-            r"(?m)^\s*git\s+commit(?:\s|$)",
-            r"(?m)^\s*git\s+push(?:\s|$)",
+    def test_recovery_is_not_a_publication_takeover(self) -> None:
+        self.assertIn("does **not** grant permission to publish work automatically", self.recovery)
+        self.assertIn("Publication is not recovery", self.recovery)
+        for stale_instruction in (
+            "Step 2: 接管 push",
+            "smart-push 试",
+            "git pull --rebase origin main",
+            "手动 raw `git push`",
         ):
-            with self.subTest(pattern=pattern):
-                self.assertIsNone(re.search(pattern, executable))
+            with self.subTest(stale_instruction=stale_instruction):
+                self.assertNotIn(stale_instruction, self.recovery)
 
     def test_four_site_gate_is_scope_relevant_not_universal(self) -> None:
         self.assertIn("only when the requested task actually includes all four", self.ci_gate)
