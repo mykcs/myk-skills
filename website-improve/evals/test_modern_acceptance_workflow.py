@@ -117,7 +117,8 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
 
     def test_quality_checks_are_contextual_evidence(self) -> None:
         self.assertIn("requested outcome depends on", self.quality)
-        self.assertIn("not mandatory for every", self.quality.lower())
+        self.assertIn("planner selects the checks", self.quality.lower())
+        self.assertIn("task-scoped v4.2.0 acceptance", self.quality.lower())
         self.assertNotIn("任何 audit 必跑", self.quality)
 
     def test_memory_promotion_is_conditional(self) -> None:
