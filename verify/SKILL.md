@@ -1,10 +1,10 @@
 ---
 name: verify
-description: Canonical cross-harness verification workflow for build/type/lint/test/security checks, targeted quality gates, adversarial review, and pass-2 finding validation.
-version: "1.1.0"
+description: Canonical cross-harness verification workflow for build/type/lint/test/security checks, targeted quality gates, adversarial review, pass-2 finding validation, and high-impact verification portfolios that separate implementation failures from infrastructure noise.
+version: "1.2.0"
 author: "mykcs"
 license: "MIT"
-last_updated: "2026-08-10"
+last_updated: "2026-08-11"
 triggers:
   - verify
   - /verify
@@ -22,6 +22,8 @@ triggers:
 This skill is the canonical verification **workflow** shared across harnesses. Harness-native commands may provide convenient syntax, but they should delegate here instead of maintaining a second verification policy.
 
 Verification is evidence gathering. It must not silently become an implementation, remediation, commit, push, or merge workflow.
+
+A verifier is a proxy for user intent, not the intent itself. For high-impact or harness-level changes, do not rely on one fixed test suite, one judge, or one benchmark forever; use a portfolio of complementary evidence and evolve it as the generator/harness changes.
 
 ## Modes
 
@@ -46,6 +48,41 @@ Run repository-appropriate checks in this order, skipping only checks that genui
 7. **Git state** — report uncommitted changes and the exact diff scope being verified.
 
 Do not assume every repository is TypeScript/Node. Detect the project's real tooling from version-controlled configuration and scripts.
+
+## Environment fingerprint
+
+When validation runs in a hosted environment, benchmark container, CI runner, Cloudflare build, or other environment whose configuration can affect results, record the relevant execution fingerprint before interpreting failures. Include only what matters to the test surface, for example:
+
+- OS / architecture;
+- language/runtime versions (Python, Node, Go, Java, etc.);
+- package-manager version;
+- key harness/tool versions;
+- sandbox/network mode when relevant;
+- immutable commit/SHA being tested.
+
+Do not treat an environment fingerprint as a substitute for tests. Its purpose is to distinguish **implementation regressions** from **infrastructure/environment failures or drift**.
+
+Classify a failed gate as one of:
+
+- `IMPLEMENTATION` — the changed product/harness behavior is wrong;
+- `POLICY_DRIFT` — ownership/config/invariant contract regressed;
+- `INFRASTRUCTURE` — runner/runtime/network/environment failed independently of the implementation;
+- `INSUFFICIENT_EVIDENCE` — the required verifier could not be executed or the result cannot be trusted.
+
+An unavailable/skipped hosted check is never silently upgraded to PASS.
+
+## High-impact verification portfolio
+
+For changes that affect harness architecture, security, permissions, sandboxes, tool routing, memory/context policy, publication, deployment, or verification itself, supplement the normal mode with a portfolio appropriate to the change:
+
+1. **Static/config evidence** — schema, ownership, mounts, generated-vs-canonical boundaries, stale references.
+2. **Executable evidence** — unit/integration/CLI/runtime tests exercising the changed behavior.
+3. **Environment evidence** — fingerprint hosted/benchmark execution when infrastructure can move the score/result.
+4. **Independent review** — a read-only reviewer/verifier that did not author the implementation.
+5. **Intent evidence** — check the actual acceptance goal and user-visible behavior, not only proxy tests.
+6. **Adversarial/pass-2 evidence** — required when the change can weaken the verifier, security boundary, or approval path.
+
+Not every change needs every lane. State which lanes are `N/A` and why. Do not create review theater or redundant same-context reviewers merely to fill a checklist.
 
 ## Quick mode
 
@@ -80,7 +117,7 @@ This is an independent verification gate, not an implementation loop.
 
 1. Define the review scope from the supplied path/description or current diff.
 2. Build an objective rubric covering correctness, security, error handling, completeness, internal consistency, regressions, and relevant domain-specific checks.
-3. Run two independent read-only reviewer contexts. Prefer materially different reviewer capabilities when available, but do not hard-code provider/model names in the shared skill.
+3. Run two independent read-only reviewer contexts. Prefer materially different reviewer capabilities or evidence paths when available, but do not hard-code provider/model names in the shared skill.
 4. Require structured per-criterion evidence from both reviewers.
 5. PASS only if both reviewers pass. Any fail returns consolidated findings.
 6. Do not edit files, remediate, commit, push, merge, or retry after fixing inside the same verification run.
@@ -116,19 +153,23 @@ When the `verifier-pass2` skill is available, it is the internal implementation 
 Use this shape, adapting fields to `N/A` when a check does not exist:
 
 ```text
-VERIFICATION: PASS | FAIL
+VERIFICATION: PASS | FAIL | INCOMPLETE
 
-Scope:    <path/diff/repository>
-Build:    OK | FAIL | N/A
-Types:    OK | <n> errors | N/A
-Lint:     OK | <n> issues | N/A
-Tests:    <passed>/<total> | FAIL | N/A
-Security: OK | <n> findings | N/A
-Logs:     OK | <n> findings | N/A
+Scope:       <path/diff/repository>
+Commit:      <sha | N/A>
+Environment: <fingerprint summary | N/A>
+Build:       OK | FAIL | N/A
+Types:       OK | <n> errors | N/A
+Lint:        OK | <n> issues | N/A
+Tests:       <passed>/<total> | FAIL | N/A
+Security:    OK | <n> findings | N/A
+Logs:        OK | <n> findings | N/A
+Failure class: IMPLEMENTATION | POLICY_DRIFT | INFRASTRUCTURE | INSUFFICIENT_EVIDENCE | N/A
 
 Ready for commit/PR: YES | NO | N/A
 ```
 
+For a high-impact portfolio, additionally list the evidence lanes actually executed and their result.
 For `quality`, include target and whether `--fix` was used.
 For `adversarial`, include both reviewer verdicts and agreement/disagreement.
 For `pass2`, clearly separate confirmed findings from rejected/uncertain findings.
