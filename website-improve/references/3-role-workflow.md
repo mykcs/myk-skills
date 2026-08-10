@@ -11,7 +11,9 @@ This reference defines the active Planner → Executor → Verifier handoff for
 | **Executor** | scoped edits, fresh first-party verification, blockers, session manifest | self-approval, automatic publication |
 | **Verifier** | independent acceptance and evidence-derived PASS/FAIL | remediation, commits, pushes, deploys |
 
-A single subagent must not impersonate all three roles.
+A single subagent must not impersonate all three roles. **Verifier remains read-only**:
+it inspects evidence and target state but never patches files, remediates findings,
+commits, pushes, opens publication side effects, or makes its own failed verdict pass.
 
 ## Planner → `plan.json`
 
