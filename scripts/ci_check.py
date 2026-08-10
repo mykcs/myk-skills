@@ -56,6 +56,29 @@ def active_skill_dirs(root: Path = ROOT) -> list[Path]:
     )
 
 
+def validate_skill_inventory(root: Path = ROOT) -> list[str]:
+    """Enforce the complete skill-inventory ownership contract."""
+    inventory = _load_module(root / "scripts" / "skill_inventory.py", "myk_skill_inventory")
+    payload = inventory.inventory_repository(root)
+    failures: list[str] = []
+
+    duplicates = payload.get("duplicate_active_names", [])
+    if duplicates:
+        failures.append(
+            "duplicate active skill names: " + ", ".join(sorted(duplicates))
+        )
+
+    inventory_active = payload.get("counts", {}).get("active")
+    discovered_active = len(active_skill_dirs(root))
+    if inventory_active != discovered_active:
+        failures.append(
+            "active skill count mismatch: "
+            f"inventory={inventory_active}, validator={discovered_active}"
+        )
+
+    return failures
+
+
 def skill_eval_dirs(root: Path = ROOT) -> list[Path]:
     """Return active skill eval directories that contain unittest files."""
     result: list[Path] = []
@@ -208,7 +231,16 @@ def run_host_self_evolve_checks(root: Path = ROOT) -> None:
 def main() -> int:
     print("== myk-skills validation ==")
 
-    print("\n[1/4] Validate active SKILL.md files")
+    print("\n[1/5] Enforce complete skill inventory")
+    inventory_failures = validate_skill_inventory(ROOT)
+    if inventory_failures:
+        print("Skill inventory validation failed:", file=sys.stderr)
+        for failure in inventory_failures:
+            print(f"- {failure}", file=sys.stderr)
+        return 1
+    print(f"Inventory agrees on {len(active_skill_dirs(ROOT))} active top-level skills")
+
+    print("\n[2/5] Validate active SKILL.md files")
     failures = validate_active_skills(ROOT)
     if failures:
         print("Active skill validation failed:", file=sys.stderr)
@@ -217,17 +249,17 @@ def main() -> int:
         return 1
     print(f"Validated {len(active_skill_dirs(ROOT))} active top-level skills")
 
-    print("\n[2/4] Run repository evals")
+    print("\n[3/5] Run repository evals")
     run_unittest_dir(ROOT_EVALS, cwd=ROOT)
 
-    print("\n[3/4] Run active skill evals")
+    print("\n[4/5] Run active skill evals")
     eval_dirs = skill_eval_dirs(ROOT)
     for eval_dir in eval_dirs:
         print(f"-- {eval_dir.relative_to(ROOT)}")
         run_unittest_dir(eval_dir, cwd=ROOT)
     print(f"Ran {len(eval_dirs)} active skill eval suites")
 
-    print("\n[4/4] Preserve host-self-evolve CI checks")
+    print("\n[5/5] Preserve host-self-evolve CI checks")
     run_host_self_evolve_checks(ROOT)
 
     print("\nPASS: myk-skills validation complete")
