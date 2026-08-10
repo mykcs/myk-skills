@@ -1,74 +1,89 @@
-# website-improve Long-Tail Triggers (v3.7.0+ 拆分)
+# website-improve long-tail routing triggers — v4.2.0
 
-> **来源**: 从 SKILL.md v3.6.0 (2026-06-09) frontmatter `triggers:` 拆分（v3.7.0 progressive disclosure refactor, 2026-06-10）。
-> **目的**: SKILL.md frontmatter 只保留 24 个核心触发器（按 4 类分组），长尾 24 个触发器按需加载本文件。
-> **加载时机**: 用户输入含长尾触发器关键词但 SKILL.md frontmatter 不直接命中时，grep 本文件。
+This file is a routing aid for requests that do not directly name a sub-mode. It does
+not override `website-improve/SKILL.md`, and it must not expand task scope merely
+because a historical keyword appears.
 
----
+## Mode A — check / improve
 
-## 长尾触发器列表 (24 个, 按类别分组)
+Typical terms:
 
-### Mode A — 检查+提升 (8 个)
-- `improve site` — Mode A 同义词
-- `health check` — 通用健康检查入口
-- `check website` — 同义词
-- `site check` — 同义词
-- `audit site` — 同义词
-- `upgrade` — 升级改造入口
-- `modernize` — 现代化改造
-- `升级` — 中文升级同义词
+- `improve site`, `check website`, `site check`, `audit site`, `health check`
+- `upgrade`, `modernize`, `升级`, `重构`, `cleanup`, `清理`
+- `anti-pattern scan`, `反模式扫描`
+- `build fix`, `fix build`
+- `architecture decision`, `ADR`
+- `duplicate pages`, `redirect`, `重定向`
 
-### Mode A — 反模式 / 构建 (5 个)
-- `重构` — 重构请求
-- `cleanup` / `clean up` / `清理` — 清理请求
-- `反模式扫描` / `anti-pattern scan` — 反模式专项
-- `build fix` / `fix build` — 构建失败修复
+Route to Mode A for the site(s) actually named or resolved from context.
 
-### Mode A — 架构决策 (3 个)
-- `architecture decision` / `ADR` — 架构决策记录
-- `build pipeline` / `构建脚本` — 构建脚本相关
+## Mode B — Astro/build
 
-### Mode A — 页面级 (4 个)
-- `duplicate pages` / `重复页面` — 重复页面检测
-- `merge scripts` — 脚本合并
-- `redirect` / `重定向` — 重定向配置
+Typical terms:
 
-### Mode B — Astro 详细 (8 个)
-- `astro` / `astro website` / `astro static site` — Astro 总入口
-- `astro content collections` — Content Collections 配置
-- `astro deployment` — 部署相关
-- `astro firebase` — Firebase 部署
-- `astro mermaid` — Mermaid 集成
-- `starlight` — Starlight 主题
-- `set up content collections` — Content Collections 初始化
-- `add mermaid diagrams to astro` — Mermaid 集成
-- `configure astro i18n` — i18n 配置
+- `astro`, `astro website`, `astro static site`
+- `astro content collections`, `astro deployment`, `astro i18n`
+- `starlight`, `mermaid`, build/dependency migration terms
 
-### Mode D — Multi-Site 详细 (v4.0.0: 3 → 7 个, +4)
-- `fan out` — fan-out 同义词（无连字符）
-- `parallel sites` — 并行多站点
-- `并行部署` — 中文 fan-out
-- `parallel full audit` — **v4.0.0 新增**: 并行全量 audit
-- `全量 fan-out` — **v4.0.0 新增**: 中文全量 fan-out
-- `4-site sweep` — **v4.0.0 新增**: 4 站同时 sweep (default scope)
-- `full sweep` — **v4.0.0 新增**: 4 sub-mode 全跑 (A+B+C+D)
+Add Mode B when the target is Astro or the requested work materially touches the Astro
+build/dependency layer. Do not run it just because historical website-improve defaults
+used a broad sweep.
 
----
+## Mode C — project page
 
-## 触发器优先级
+Typical terms:
 
-**SKILL.md frontmatter 核心触发器** (24 个):
-- 必查, 触发后立即加载 SKILL.md 全文
-- 涵盖 4 大模式入口
+- project page / academic project page
+- paper/project landing page
+- research demo site
 
-**references/triggers.md 长尾触发器** (v4.0.0: 24 → 28 个):
-- 必查 SKILL.md frontmatter 之后, 再 grep 本文件
-- 命中后按关键词类别路由到对应 sub-mode (v4.0.0: 不是 1 个 mode, 是 sub-mode sweep 阶段)
-- 不命中 → 兜底走 Sub-mode A (默认必跑)
+Add Mode C when the requested outcome is a project-page artifact.
 
----
+## Mode D — multi-site
 
-## Changelog
+Typical terms:
 
-- **v4.0.0** (2026-06-27): 长尾触发器 24 → 28 (+4). 新增 `parallel full audit` / `全量 fan-out` / `4-site sweep` / `full sweep` 4 个 v4 sweep 触发词. Mode D 列表从 3 → 7.
-- **v3.7.0** (2026-06-10): 从 SKILL.md frontmatter 拆出 24 个长尾触发器。原 frontmatter 触发器 60+ 个 → 24 个 (核心) + 24 个 (本文件)。
+- `fan out`, `parallel sites`, `并行部署`
+- `sync all sites`, `multi-site`
+- `parallel full audit`, `全量 fan-out`
+- `4-site sweep`
+
+Mode D scope is **the sites named/resolved by the request**.
+
+`4-site sweep` is an explicit historical preset for:
+
+- `mykcs`
+- `GDKVM`
+- `OSA`
+- `content2html`
+
+It is not the default scope for a generic `audit site` or `full sweep` request.
+
+`full sweep` means “run the relevant website-improve capabilities across the resolved
+scope”, not “force A+B+C+D and four historical sites regardless of relevance”. Planner
+chooses sub-modes based on the actual task and technology stack.
+
+## Routing precedence
+
+1. explicit user scope and requested outcome;
+2. current website-improve v4.2.0 skill contract;
+3. these keyword hints;
+4. fallback to Mode A for the resolved site(s).
+
+Never let a keyword silently add a repository/site the user did not request and the
+change does not affect.
+
+## Publication and verification
+
+Triggers select capabilities, not publication side effects.
+
+- `deploy all` may imply publication/deployment intent and should be encoded by Planner;
+- `audit all` does not automatically imply commit/push/deploy;
+- hosted CI is used only when the scoped repository/publication contract calls for it;
+- Verifier still derives modern Acceptance from task-scoped evidence.
+
+## Historical note
+
+Older versions of this file described `4-site sweep` as a default scope and `full
+sweep` as mandatory A+B+C+D. Those semantics are retained only as history in Git; they
+are not active v4.2.0 routing rules.
