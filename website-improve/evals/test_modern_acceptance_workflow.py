@@ -62,9 +62,9 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
 
     def test_executor_and_recovery_do_not_own_publication(self) -> None:
         self.assertIn("does **not** automatically commit, push", self.skill)
+        self.assertIn("does **not** grant permission to publish work automatically", self.recovery)
         self.assertIn("Publication is not recovery", self.recovery)
-        self.assertIn("must not automatically publish stalled work", self.recovery)
-        self.assertIn("only enter publication if the plan requested it", self.recovery)
+        self.assertIn("enter publication only when the plan explicitly requested it", self.recovery)
 
     def test_site_and_ci_scope_are_task_driven(self) -> None:
         self.assertIn("single unrelated site such as `basemodel`", self.ci_gate)
@@ -83,7 +83,7 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         self.assertIn("Planner selects the checks", self.quality)
         self.assertIn("requested outcome depends on", self.quality)
         self.assertIn("task-scoped v4.2.0 acceptance", self.quality)
-        self.assertIn("skipped`, missing, stale, queued, or unavailable checks are not PASS", self.quality)
+        self.assertIn("`skipped`, missing, stale, queued, or unavailable checks are not PASS", self.quality)
 
     def test_memory_and_validation_contract_are_modern(self) -> None:
         self.assertIn("not mandatory for every PER task", self.per)
