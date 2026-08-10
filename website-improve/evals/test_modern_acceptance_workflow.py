@@ -47,7 +47,7 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
             with self.subTest(state=state):
                 self.assertIn(state, self.skill)
         self.assertIn("Publication is separate from execution", self.skill)
-        self.assertIn("publication `VERIFIED` or `BLOCKED`", self.three_role)
+        self.assertIn("requested publication is evidenced as `VERIFIED` or `BLOCKED`", self.three_role)
 
     def test_executor_does_not_own_automatic_smart_push(self) -> None:
         self.assertNotIn("并自动 `smart-autopush.sh` 提交", self.skill)
