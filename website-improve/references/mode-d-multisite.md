@@ -1,198 +1,185 @@
-## 模式 D: Multi-Site 编排 (2026-06-08 吞并自 sync-all-sites v1.1.0)
+# Mode D — Multi-site orchestration v4.2.0
 
-> **适用**：mykcs.github.io / GDKVM / OSA / Academic / wangrui2025(arch) 等 Astro 站点
-> **来源**：insights 2026-06-03 — 用户 5-9 parallel agent runs 显著提升 session 完成度
-> **吞并决策**：2026-06-08 (CASE-MERGE-SYNC-ALL-SITES-20260608) — 减少 skill 分散, 单一入口更易调用
+Mode D coordinates website-improve across **two or more task-scoped sites**. It keeps
+the useful fan-out/barrier pattern from the historical sync-all-sites workflow while
+removing universal publication and four-site assumptions.
 
-**适用场景**: 用户要求"在 N 个站点上同时部署 N 个 agent"/"sync all sites"/"fan-out"/"deploy all"。Wall-clock = 最慢站点时长, 通常 10-15 min for 3 sites。
+## Trigger
 
-**与 Mode A 关系**: 每个 per-site agent 内部用 Mode A 协议 (Check → Fix → Improve → Verify)。Mode D 是 multi-site 编排层, 负责 4-phase 同步 (验仓/audit/fix/CI)。
+Use Mode D when the user explicitly asks for multi-site work or the resolved plan
+contains 2+ sites, for example:
 
-### 触发
+- “sync these three sites”
+- “audit site-a + site-b”
+- “fan out across all four historical sites”
+- a shared change demonstrably affects multiple sites
 
-```bash
-# 直接说触发词即可
-"sync all sites" / "fan-out 3 sites" / "audit all" / "deploy all" / "multi-site"
-"同时在 N 个站点部署 N 个 agent" / "并行 audit" / "3 个独立审计会话变成一次协调操作"
-"并行全量 audit" / "全量 fan-out" / "4-site sweep" / "full sweep" (v4.0.0 新增 — 触发全 sweep)
-```
+The historical preset `mykcs,GDKVM,OSA,content2html` remains available for an explicit
+full sweep. It is not the default scope for unrelated website requests.
 
-**v4.0.0 default scope**: 4 active sites = `mykcs, GDKVM, OSA, content2html` (v3.x 默认 3 站, content2html 是 2026-06-23 新加的 skill 独立站, 升级到 default). User 可 override scope 指定 sites (e.g. "只跑 mykcs+OSA" / "scope: content2html").
+## Planner
 
-### 4 阶段协议
-
-#### Phase 0: 工具预加载 (L18 硬化, 2026-06-08 Run 4 验证 — 治本 subagent tool loading bug)
-
-> **Run 4 发现**: GDKVM agent 0 tool uses. 错误信息: "SubagentStart hook did not provide working tools to begin audit. Deferred tool schemas (WebFetch, WebSearch, etc.) require ToolSearch loading before use." mykcs + OSA 同时跑 66 + 44 tool uses, 正常. 根因: General-purpose subagent tool provisioning 偶尔失败 (SubagentStart hook 漏 inject 某些 tool schema).
-
-#### Phase 0.5: Pre-flight Declaration 检查 (§L21, v4.0.2 强制)
-
-> **新增强制**: 每次 multi-site fan-out 启动时, orchestrator 必先输出 pre-flight declaration (per SKILL.md §L21 模板), 等用户回 OK 才进 Phase 1 验仓.
-
-**Multi-site D 模式专属段 (在通用 7 段模板基础上必填)**:
-- **默认 4 站**: mykcs/mykcs.github.io + wangrui2025/GDKVM + wangrui2025/osa + mykcs/content2html
-- **wall-clock**: slowest site (历史 Run 5 ~50 min for 4 sites)
-- **§L19 4 站 CI 全绿**: 任一 red → BLOCKED on <site>, 禁止声明 done
-- **owner 隔离铁律**: mykcs/* vs wangrui2025/* push 前必 `git remote -v` 三次确认 (4+ 次历史污染教训)
-
-**反模式 (claudecode 必避)**:
-- ❌ 跳过 pre-flight 直接进 Phase 1 → 违反 §L21
-- ❌ pre-flight 漏 4 站 CI 段 → 违反 §L19 联动
-- ❌ pre-flight 完不等 user 回 "OK" → 违反启动门控
-
-**强制流程** (orchestrator 在 Phase 1 之前必须跑):
+Planner resolves the exact site set and writes a modern plan:
 
 ```bash
-# 1. 显式 load 基础 5 tool (确保 subagent 拿到 schemas)
-ToolSearch(query="select:Bash,Read,Edit,Grep,Glob")
+python3 ~/.claude/scripts/website-improve/plan_json_gen.py \
+  --artifact-mode modern \
+  --audit-target "<multi-site requested outcome>" \
+  --sub-modes "A,D" \
+  --sites "site-a,site-b" \
+  --expected-wall-clock <minutes> \
+  --completion "<task-scoped criteria CSV>" \
+  --verification-targets "<build,browser,ci,curl,... as applicable>" \
+  --publication-mode "<none|commit|push|pr|deploy|release>" \
+  --session-manifest-required \
+  --out plan.json
 ```
 
-**为什么**: SubagentStart hook 偶尔漏 inject tool schemas. 预加载是治本方案 — 显式 load 后所有后续 subagent 都能拿到基础 5 tool.
+Pre-flight declares assumptions, ownership risks, and publication intent, then routine
+reversible execution may continue autonomously. Do not stop for a ceremonial user
+“OK” unless a genuine human-only/high-risk boundary exists.
 
-**注意**: 仍可能有其他 deferred tool (WebFetch / WebSearch / LSP / mcp_*) 需 on-demand load. Phase 2 agent prompt 需明确 "如需 WebFetch, 用前先 ToolSearch load".
+## Phase 1 — Target isolation
 
-#### Phase 1: 验仓 (必须先做, 不能跳过)
+For each scoped site:
 
-```bash
-# 对每个目标站点：
-for site in $SITES; do
-  case "$site" in
-    mykcs)   repo=~/Repo/webs/active/mykcs.github.io ;;
-    GDKVM)   repo=~/Repo/webs/active/GDKVM ;;
-    OSA)     repo=~/Repo/webs/active/OSA ;;
-    *)       echo "Unknown site: $site"; exit 1 ;;
-  esac
-  cd "$repo" || exit 1
-  echo "=== $site ==="
-  git remote -v
-  git status --short
-  git log @{u}..HEAD --oneline | wc -l
-done
-```
+- resolve the actual repository/path/owner;
+- inspect current branch/worktree state;
+- distinguish pre-existing changes from this task;
+- do not assume historical local paths or GitHub owners are still correct;
+- do not require a clean worktree by destroying/stashing unrelated user work.
 
-**abort 条件**:
-- 任何站点 `git status` 非空 (uncommitted changes) → 提示用户提交
-- 任何站点 `git log HEAD..origin/main` 有新 commit → 提示 `git pull --rebase`
+If a site is inaccessible, record a blocker and continue other independent safe work
+where possible.
 
-#### Phase 2: 并行 audit (N agent, N = site count)
+## Phase 2 — Parallel read-only audit
 
-```text
-For each site, launch 1 Agent with this prompt:
+One audit lane per scoped site may run in parallel. Each finding must contain concrete
+first-party evidence. “Verify X”, “check Y”, or “should audit Z” is not a finding.
 
-You are auditing <SITE_REPO> for SEO/accessibility/i18n/CI/build issues.
+Useful audit result shape:
 
-**EVIDENCE-BASED AUDIT (强制)**:
-每个 issue 必须给出 grep/curl/ls 的实际命令输出, **禁止报"verify X" / "check Y" / "should audit Z"**。
-- ❌ BAD: {"fix": "verify if Google Sans is configured"}
-- ✅ GOOD: {"fix": "Google Sans fallback — global.css:7 'was Google Sans' comment", "evidence": "grep -n 'Google_Sans\\|Google Sans' src/ 2>/dev/null | head -5"}
-
-**DEAD-CODE PROOF 协议**:
-- 报"dead i18n key"前必须 `grep -rn '<key>' src/` 显示 0 matches
-- 报"unused font"前必须 `grep -rn 'fontfile' src/ --include="*.astro"` 显示 0 imports
-- 报"unused file"前必须 `grep -rn 'filename' src/` 显示 0 references
-- **找不到 = 不存在, 不算 dead**
-
-**L14 FINAL MESSAGE PROTOCOL (mandatory, orchestrator 会 grep 验证 JSON 合法性)**:
-- 你的 final message MUST 是 EXACTLY 一个 JSON block matching 上面的 schema
-- Wrap in ` ```json ... ``` ` 三反引号
-- NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble
-- 任何非 JSON 内容 (含 ack / 解释 / "Subagent acknowledged" / "Acknowledged") → orchestrator 拒收, 整个 run 失败, Phase 2/3 需重做
-- 验证方式: orchestrator 评分前会 `grep -q '"site":' <output>` + `python3 -c "import json; json.loads(...)"` 双层 check
-
-Output JSON schema:
+```json
 {
-  "site": "<name>",
-  "score": 0-100,
+  "site": "site-a",
   "issues": [
-    {"severity": "P0|P1|P2", "type": "seo|a11y|i18n|build|ci|security", "file": "path", "fix": "concrete action", "evidence": "grep/curl/ls output snippet"}
+    {
+      "severity": "P1",
+      "type": "a11y",
+      "file": "src/pages/index.astro",
+      "problem": "navigation label missing",
+      "evidence": "exact source/runtime evidence"
+    }
   ]
 }
-
-**No `deferred` field** — 报出来就是要 fix 的, 看不到 grep 证据的不报。
-
-Use the website-improve skill (Mode A) for the audit protocol.
-Do NOT make any edits — read-only mode.
-Report back as a single JSON block.
 ```
 
-**barrier**: 等所有 agent 返回后聚合。
+Do not edit during the audit lane.
 
-#### Phase 3: 并行 fix (P0 + P1 + P2)
+## Phase 3 — Executor fan-out
 
-```text
-Filter issues by severity ∈ {P0, P1, P2}.
-Group by site. Launch 1 Agent per site with this prompt:
+After findings are accepted into scope, assign one Executor lane per site. Executor:
 
-Apply the following fixes to <SITE_REPO>:
-<issue list>
+1. reads the shared modern plan;
+2. edits only accepted issues/improvements for that site;
+3. runs the site's planned verification targets;
+4. records blockers instead of silently deferring failures;
+5. records the session manifest;
+6. writes/merges evidence into the modern executor handoff.
 
-For each fix:
-1. Show the diff
-2. Run the relevant build/test command
-3. Commit with conventional commit message
-4. Push via autopush.sh (not raw git push)
+Executor does **not** automatically commit, push, open a PR, or deploy. Multi-site
+parallelism does not change publication ownership.
 
-Do NOT touch issues not in this list. (scope discipline)
-Do NOT mark done until build passes.
-Do NOT silently defer P2 issues; every reported P0/P1/P2 issue must be fixed or explicitly BLOCKED.
+Package/lock/build configuration edits must still pass the project-owned clean
+install/build checks described in `4-site-ci-gate.md`.
 
-**L14 FINAL MESSAGE PROTOCOL (mandatory)**:
-- 你的 final message MUST 是 EXACTLY 一个 JSON block:
+## Barrier
+
+Wait until every scoped Executor lane is in a terminal evidence state:
+
+- `PASS` execution evidence; or
+- explicit `BLOCKED` / `INCOMPLETE` with reason.
+
+Do not call the multi-site execution complete while one scoped site is silently
+pending.
+
+## Publication
+
+If `publication_mode = none`, no site is committed/pushed merely because Mode D ran.
+
+If publication is requested:
+
+1. establish execution acceptance first;
+2. route each verified site through its canonical Git/deploy lifecycle;
+3. preserve owner/repository isolation;
+4. avoid force-pushing stale/diverged branches when clean replay/rebase-safe recovery is available;
+5. record final publication as `VERIFIED` or `BLOCKED` per scoped site/overall plan.
+
+Do not use a generic `autopush.sh` or `smart-autopush.sh` takeover as the Mode D
+publication mechanism.
+
+## Phase 4 — Independent verification
+
+Verifier checks **the sites in the plan**, not an unrelated fixed set.
+
+Examples:
+
+- two-site task → both sites require planned evidence;
+- historical four-site full sweep → all four are in scope and must pass;
+- a site with requested deployment → deployed evidence is required;
+- source-only no-publication task → do not fabricate hosted CI/deploy evidence.
+
+Build/CI/browser/curl evidence follows `4-site-ci-gate.md` and the current repository
+contracts.
+
+Final Acceptance uses:
+
+```json
 {
-  "site": "<name>",
-  "p0_fixed": <count>,
-  "p1_fixed": <count>,
-  "p2_fixed": <count>,
-  "p2_deferred": <count>,
-  "commits": ["<hash1>: <msg1>", "<hash2>: <msg2>"],
-  "ci_status": "green|red|pending|unknown",
-  "evidence_blocking": "<reason if not all P0/P1/P2 fixed, else empty>"
+  "scope": "PASS|FAIL",
+  "execution_evidence": "PASS|FAIL|BLOCKED|INCOMPLETE",
+  "blockers": "CLEAR|BLOCKED",
+  "publication": "NOT_REQUESTED|NOT_APPLICABLE|VERIFIED|BLOCKED",
+  "ownership": "PASS|FAIL|NOT_APPLICABLE",
+  "session_manifest": "PASS|FAIL"
 }
-- Wrap in ` ```json ... ``` ` 三反引号
-- NO prose / NO "Task complete" / NO acknowledgments / NO preamble / NO postamble
-- 任何非 JSON 内容 → orchestrator 拒收
-- 验证方式同 Phase 2 (grep + python3 json.loads)
 ```
 
-**barrier**: 所有 agent 返回后聚合。
+Then `verdict_json_gen.py --artifact-mode modern --acceptance-file ...` derives the
+verdict.
 
-#### Phase 4: CI gate + case 记录 (L19 4 站全绿硬规则, v4.0.1)
+## Agent-output recovery
 
-```bash
-# Wait for all CI runs to settle
-for site in $SITES; do
-  echo "=== $site CI ==="
-  gh run list --repo <OWNER>/<REPO> --limit 3 --json status,conclusion,name
-done
-```
+Do not make a particular final-message JSON wrapper a reason to discard valid work.
+If an agent response is malformed:
 
-**§L19 4 站全绿硬规则 (v4.0.1, 强制)**: 4 active sites (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green 才算 done. 任一 red → **BLOCKED on `<site>`, 禁止声明完成**. 详见 SKILL.md §L19.
+- inspect the actual repository/artifacts/tool output;
+- request/reconstruct the missing structured handoff;
+- rerun affected verification;
+- preserve independent Verifier acceptance.
 
-**§L20 Fix-Validate-Build (v4.0.1, 强制)**: 改 `package.json` / `package-lock.json` 后必跑 `npm install` + `npm run build` 验证, 防 lockfile 漂移 → CI red. 详见 SKILL.md §L20.
+Formatting recovery does not grant permission to commit/push.
 
-**Case file** (强制):
-```bash
-CASE_PATH=~/.claude/knowledge/cases/CASE-SYNC-ALL-SITES-$(date +%Y%m%d).md
-```
+## User escalation
 
-### L17 Orchestrator Fallback (Agent ack → 自动 follow-up, 2026-06-08 Run 4 验证)
+Do not send ordinary multi-site conflicts back to the user as an information-shuttle
+step. Continue autonomously across safe independent sites and switch tools/agents as
+needed.
 
-> **Run 4 发现**: L14 enforcement 2/3 success. 即便 prompt 顶部硬性要求 JSON, 仍有 ~33% agent 返 plain text ack (e.g. OSA "OSA Run 4 audit complete."). L14 内化非 100% 有效.
+Escalate only for a genuine human-only boundary, unavailable external control plane,
+or irreversible/high-risk decision.
 
-**强制流程** (orchestrator 在收到 agent final message 后, Phase 2/3 barrier 之前):
+## Memory
 
-1. **验证 L14 compliance**:
-   ```bash
-   # 双层 check: JSON 存在 + 合法
-   grep -q '"site":' <agent_output> && \
-   python3 -c "import json; json.loads(<agent_output_with_fences>)"
-   ```
-2. **L14 失败时**: 自动 `SendMessage(to=<agent_id>, message="L14 violation detected. Please resend your final message as a single JSON block matching the schema, wrapped in \`\`\`json fences. NO other text. NO acknowledgments.")` 一次
-3. **二次失败**: 不再 retry, 改用 `git log + gh run list` 重建证据链 (Run 3 fallback 模式). 在 evidence_blocking 字段标注 `"L17 fallback applied: agent returned plain text after 1 retry"`.
+A multi-site case file or ADR is created only if the incident meets the current memory
+promotion threshold. It is not a mandatory Phase 4 output.
 
-**为什么**: L14 prompt 内化非 100% 有效. Orchestrator 端兜底是必要的. 与 Run 3 mykcs agent 行为同款 (那次也用 SendMessage 救场). **不要让 plain-text 失败导致整 run 失败** — 用 fallback 重建即可.
+## Permanent anti-patterns
 
-### Output contract (strict 4-section)
-
-```markdown
-# sync-all-sites report
+- ❌ defaulting every website task to the historical four sites
+- ❌ waiting for user “OK” before routine reversible fan-out
+- ❌ fix agents committing/pushing as part of execution
+- ❌ fixed four-site CI for a two-site task
+- ❌ mandatory case file after every fan-out
+- ❌ dropping a scoped site without recording it as blocked/incomplete
+- ❌ Verifier editing a failed site itself
