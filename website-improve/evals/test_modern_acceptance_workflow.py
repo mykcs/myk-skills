@@ -15,6 +15,8 @@ RECOVERY = REFS / "orchestrator-recovery.md"
 CHECKLIST = REFS / "validation-checklist.md"
 MODE_A = REFS / "mode-a.md"
 MODE_D = REFS / "mode-d-multisite.md"
+TRIGGERS = REFS / "triggers.md"
+QUALITY = REFS / "quality-checks.md"
 
 
 class TestModernAcceptanceWorkflow(unittest.TestCase):
@@ -28,6 +30,8 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         cls.checklist = CHECKLIST.read_text(encoding="utf-8")
         cls.mode_a = MODE_A.read_text(encoding="utf-8")
         cls.mode_d = MODE_D.read_text(encoding="utf-8")
+        cls.triggers = TRIGGERS.read_text(encoding="utf-8")
+        cls.quality = QUALITY.read_text(encoding="utf-8")
         cls.live = "\n".join(
             [
                 cls.skill,
@@ -38,6 +42,8 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
                 cls.checklist,
                 cls.mode_a,
                 cls.mode_d,
+                cls.triggers,
+                cls.quality,
             ]
         )
 
@@ -62,7 +68,7 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
                 self.assertIn(state, self.skill)
                 self.assertIn(state, self.three_role)
         self.assertIn("publication-mode none", self.skill)
-        self.assertIn("publication_state = none", self.mode_d.replace("publication_mode", "publication_state"))
+        self.assertIn("publication_mode = none", self.mode_d)
 
     def test_legacy_publication_ownership_does_not_return(self) -> None:
         forbidden = (
@@ -103,6 +109,16 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
                 self.assertNotIn(marker, self.mode_d)
         self.assertIn("publication_mode = none", self.mode_d)
         self.assertIn("modern", self.mode_d.lower())
+
+    def test_trigger_routing_does_not_expand_scope_by_default(self) -> None:
+        self.assertIn("task scope", self.triggers.lower())
+        self.assertIn("not the default scope", self.triggers.lower())
+        self.assertNotIn("4 站同时 sweep (default scope)", self.triggers)
+
+    def test_quality_checks_are_contextual_evidence(self) -> None:
+        self.assertIn("requested outcome depends on", self.quality)
+        self.assertIn("not mandatory for every", self.quality.lower())
+        self.assertNotIn("任何 audit 必跑", self.quality)
 
     def test_memory_promotion_is_conditional(self) -> None:
         self.assertNotIn("不写 case 文件 → self-evolution 协议违反", self.live)
