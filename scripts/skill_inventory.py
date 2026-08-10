@@ -6,8 +6,6 @@ benchmark fixtures, plugin-owned skills, and nested reference copies so a raw
 recursive count is never mistaken for the active runtime surface.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 from dataclasses import asdict, dataclass
