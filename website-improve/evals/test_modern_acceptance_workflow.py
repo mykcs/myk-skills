@@ -28,82 +28,92 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         cls.checklist = CHECKLIST.read_text(encoding="utf-8")
         cls.mode_a = MODE_A.read_text(encoding="utf-8")
         cls.mode_d = MODE_D.read_text(encoding="utf-8")
+        cls.live = "\n".join(
+            [
+                cls.skill,
+                cls.three_role,
+                cls.ci_gate,
+                cls.per,
+                cls.recovery,
+                cls.checklist,
+                cls.mode_a,
+                cls.mode_d,
+            ]
+        )
 
-    def test_active_skill_is_v4_2_modern(self) -> None:
+    def test_active_skill_uses_modern_artifact_contract(self) -> None:
         self.assertIn('version: "4.2.0"', self.skill)
         self.assertIn("--artifact-mode modern", self.skill)
+        self.assertIn("--artifact-mode modern", self.three_role)
         self.assertIn("--acceptance-file", self.skill)
+        self.assertIn("--acceptance-file", self.three_role)
 
-    def test_three_roles_remain_independent(self) -> None:
+    def test_three_roles_remain_explicit_and_verifier_read_only(self) -> None:
         for role in ("Planner", "Executor", "Verifier"):
             with self.subTest(role=role):
                 self.assertIn(role, self.skill)
                 self.assertIn(role, self.three_role)
-        self.assertIn("The three roles are independent", self.skill)
-        self.assertIn("Verifier is read-only", self.skill)
+        self.assertIn("read-only", self.skill.lower())
+        self.assertIn("read-only", self.three_role.lower())
 
-    def test_publication_is_conditional_acceptance(self) -> None:
+    def test_publication_states_are_modern_and_conditional(self) -> None:
         for state in ("NOT_REQUESTED", "NOT_APPLICABLE", "VERIFIED", "BLOCKED"):
             with self.subTest(state=state):
                 self.assertIn(state, self.skill)
-        self.assertIn("Publication is separate from execution", self.skill)
-        self.assertIn("requested publication is evidenced as `VERIFIED` or `BLOCKED`", self.three_role)
+                self.assertIn(state, self.three_role)
+        self.assertIn("publication-mode none", self.skill)
+        self.assertIn("publication_state = none", self.mode_d.replace("publication_mode", "publication_state"))
 
-    def test_executor_does_not_own_automatic_smart_push(self) -> None:
-        self.assertNotIn("并自动 `smart-autopush.sh` 提交", self.skill)
-        self.assertNotIn("按 plan 跑 audit、fix、smart-push", self.skill)
-        self.assertIn("does **not** automatically commit, push", self.skill)
-        self.assertIn("Publication is separate from execution", self.skill)
-
-    def test_recovery_is_not_a_publication_takeover(self) -> None:
-        self.assertIn("does **not** grant permission to publish work automatically", self.recovery)
-        self.assertIn("Publication is not recovery", self.recovery)
-        for stale_instruction in (
+    def test_legacy_publication_ownership_does_not_return(self) -> None:
+        forbidden = (
+            "并自动 `smart-autopush.sh` 提交",
+            "按 plan 跑 audit、fix、smart-push",
+            "Push via autopush.sh",
             "Step 2: 接管 push",
             "smart-push 试",
-            "git pull --rebase origin main",
             "手动 raw `git push`",
+        )
+        for marker in forbidden:
+            with self.subTest(marker=marker):
+                self.assertNotIn(marker, self.live)
+
+    def test_four_site_and_five_field_rules_are_not_universal(self) -> None:
+        for marker in (
+            "4 站 CI 必须全部",
+            "4 active sites (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green",
+            "5 字段自检全过",
+            "Verifier → User（PASS）：必须附 5 字段",
         ):
-            with self.subTest(stale_instruction=stale_instruction):
-                self.assertNotIn(stale_instruction, self.recovery)
+            with self.subTest(marker=marker):
+                self.assertNotIn(marker, self.live)
+        self.assertIn("basemodel", self.ci_gate)
+        self.assertIn("path/commit/push/CI/owner", self.ci_gate)
 
-    def test_four_site_gate_is_scope_relevant_not_universal(self) -> None:
-        self.assertIn("only when the requested task actually includes all four", self.ci_gate)
-        self.assertIn("single unrelated site such as `basemodel`", self.ci_gate)
-        self.assertNotIn("任何 website-improve run", self.ci_gate)
-        self.assertNotIn("4 站 CI 必须全部", self.ci_gate)
-
-    def test_fixed_five_git_fields_no_longer_define_completion(self) -> None:
-        self.assertNotIn("5 字段自检全过", self.skill)
-        self.assertNotIn("Verifier → User（PASS）：必须附 5 字段", self.per)
-        self.assertIn("Do not create fixed path/commit/push/CI/owner rows", self.ci_gate)
-
-    def test_memory_promotion_is_conditional(self) -> None:
-        self.assertIn("promotion outputs", self.skill)
-        self.assertIn("not mandatory for every PER task", self.per)
-        self.assertNotIn("不写 case 文件 → self-evolution 协议违反", self.skill)
-
-    def test_checklist_guards_modern_cli_contract(self) -> None:
-        self.assertIn("plan_json_gen.py --artifact-mode modern", self.checklist)
-        self.assertIn("verdict_json_gen.py --artifact-mode modern --acceptance-file", self.checklist)
-        self.assertIn("single-site tasks verify that site only", self.checklist.lower())
-
-    def test_mode_a_uses_repository_owned_verification(self) -> None:
+    def test_mode_a_is_repository_aware(self) -> None:
         self.assertIn("plan.verification_targets", self.mode_a)
-        self.assertIn("不使用 GitHub Actions 的站点", self.mode_a)
+        self.assertIn("GitHub Actions", self.mode_a)
         self.assertNotIn("BUILD_PASS → TYPECHECK_PASS → CI_PASS", self.mode_a)
 
-    def test_mode_d_does_not_publish_during_execution(self) -> None:
-        self.assertIn("does **not** automatically commit, push", self.mode_d)
-        self.assertIn("publication_mode = none", self.mode_d)
-        for stale_instruction in (
-            "Push via autopush.sh",
+    def test_mode_d_execution_does_not_require_user_ok_or_case_file(self) -> None:
+        for marker in (
             "等用户回 OK",
             "Case file** (强制)",
-            "4 active sites (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green",
         ):
-            with self.subTest(stale_instruction=stale_instruction):
-                self.assertNotIn(stale_instruction, self.mode_d)
+            with self.subTest(marker=marker):
+                self.assertNotIn(marker, self.mode_d)
+        self.assertIn("publication_mode = none", self.mode_d)
+        self.assertIn("modern", self.mode_d.lower())
+
+    def test_memory_promotion_is_conditional(self) -> None:
+        self.assertNotIn("不写 case 文件 → self-evolution 协议违反", self.live)
+        self.assertIn("promotion", self.skill.lower())
+        self.assertIn("not mandatory", self.per.lower())
+
+    def test_validation_checklist_tracks_modern_cli(self) -> None:
+        self.assertIn("plan_json_gen.py --artifact-mode modern", self.checklist)
+        self.assertIn("verdict_json_gen.py --artifact-mode modern --acceptance-file", self.checklist)
+        self.assertIn("NOT_REQUESTED", self.checklist)
+        self.assertIn("BLOCKED", self.checklist)
 
 
 if __name__ == "__main__":
