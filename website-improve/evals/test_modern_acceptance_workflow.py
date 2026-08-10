@@ -13,6 +13,8 @@ CI_GATE = REFS / "4-site-ci-gate.md"
 PER = REFS / "per-workflow-framework.md"
 RECOVERY = REFS / "orchestrator-recovery.md"
 CHECKLIST = REFS / "validation-checklist.md"
+MODE_A = REFS / "mode-a.md"
+MODE_D = REFS / "mode-d-multisite.md"
 
 
 class TestModernAcceptanceWorkflow(unittest.TestCase):
@@ -24,6 +26,8 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         cls.per = PER.read_text(encoding="utf-8")
         cls.recovery = RECOVERY.read_text(encoding="utf-8")
         cls.checklist = CHECKLIST.read_text(encoding="utf-8")
+        cls.mode_a = MODE_A.read_text(encoding="utf-8")
+        cls.mode_d = MODE_D.read_text(encoding="utf-8")
 
     def test_active_skill_is_v4_2_modern(self) -> None:
         self.assertIn('version: "4.2.0"', self.skill)
@@ -83,6 +87,23 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         self.assertIn("plan_json_gen.py --artifact-mode modern", self.checklist)
         self.assertIn("verdict_json_gen.py --artifact-mode modern --acceptance-file", self.checklist)
         self.assertIn("single-site tasks verify that site only", self.checklist.lower())
+
+    def test_mode_a_uses_repository_owned_verification(self) -> None:
+        self.assertIn("plan.verification_targets", self.mode_a)
+        self.assertIn("不使用 GitHub Actions 的站点", self.mode_a)
+        self.assertNotIn("BUILD_PASS → TYPECHECK_PASS → CI_PASS", self.mode_a)
+
+    def test_mode_d_does_not_publish_during_execution(self) -> None:
+        self.assertIn("does **not** automatically commit, push", self.mode_d)
+        self.assertIn("publication_mode = none", self.mode_d)
+        for stale_instruction in (
+            "Push via autopush.sh",
+            "等用户回 OK",
+            "Case file** (强制)",
+            "4 active sites (mykcs/GDKVM/OSA/content2html) 必须 CI 全 green",
+        ):
+            with self.subTest(stale_instruction=stale_instruction):
+                self.assertNotIn(stale_instruction, self.mode_d)
 
 
 if __name__ == "__main__":
