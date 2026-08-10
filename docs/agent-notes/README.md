@@ -6,6 +6,7 @@ Use these notes as **orientation**, not as a substitute for executable tests or 
 
 ## Current notes
 
+- [`2026-08-10-website-improve-modern-acceptance.md`](./2026-08-10-website-improve-modern-acceptance.md) — active website-improve v4.2.0 modern acceptance landing, task-scoped site/CI semantics, three-role/publication boundaries, regression lessons, stale-PR cleanup, and compatibility window.
 - [`2026-08-10-harness-ci-cleanup.md`](./2026-08-10-harness-ci-cleanup.md) — current `myk-skills` validation architecture, Cloudflare/GitHub CI split, exact-head merge gate, validator contract, Makefile cleanup, Build watch-path behavior, and anti-regression guidance.
 
 ## Maintenance rules
