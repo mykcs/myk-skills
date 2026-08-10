@@ -1,133 +1,184 @@
-# PER Workflow 框架（Plan → Execute → Verify）
+# PER workflow framework — evidence-first v2
 
-> 统一 workflow 抽象，供 website-improve / host-self-evolve / paper-into-notion 引用。
-> Source of truth: `~/.agents/skills/website-improve/references/per-workflow-framework.md`
+PER means **Plan → Execute → Verify**. It is a general workflow pattern for complex
+skills that benefit from independent acceptance.
 
-## 核心思想
+## 1. Roles
 
-把任何复杂 skill 的执行拆成三段：
+| Role | Owns | Does not own |
+| --- | --- | --- |
+| **Planner** | intent, scope, assumptions, risks, acceptance criteria, verification targets, publication intent | implementation, final PASS |
+| **Executor** | scoped implementation, fresh first-party evidence, blockers, session manifest | self-approval, implicit publication |
+| **Verifier** | independent evidence review and PASS/FAIL | remediation, publication side effects |
 
-1. **Plan（计划）**：理解意图、定范围、识别风险、输出阶段计划。
-2. **Execute（执行）**：按 plan 改文件、跑命令、记录日志。
-3. **Verify（验收）**：按验收标准检查，PASS 才 done；FAIL 则 reject 回 Execute 重做。
+The roles exchange artifacts. A single agent must not silently collapse all three
+roles for workflows that declare PER independence.
 
-三段之间通过 **artifact 文件** handoff，不允许口头传话或共享 context window。
+## 2. Execution acceptance vs publication acceptance
 
-## 角色与职责
+Execution completion is not the same thing as Git/deployment publication.
 
-| 角色 | 可做什么 | 不可做什么 | 产出 artifact |
-|------|----------|-----------|---------------|
-| **Planner** | 解析请求、写 plan、标风险、排阶段 | 直接改文件、跑构建、自己标 done | `plan.json` / `plan.md` |
-| **Executor** | 读 plan、改文件、跑命令、写 exec log | 跳过 plan、自己标 done、绕过 verifier | `exec-log.json` / `exec-log.md` |
-| **Verifier** | 读 plan + exec log、跑验收、出 verdict | 改文件、替 executor 修 bug | `verdict.json` / `verdict.md` |
+### Execution Acceptance
 
-## Handoff 规则
+A task should prove:
 
-1. Planner → Executor：必须交付 plan artifact，含 scope、acceptance criteria、risk list。
-2. Executor → Verifier：必须交付 exec-log artifact，含实际改动、命令输出、git commits。
-3. Verifier → Executor（FAIL）：必须指出具体 FAIL 项 + 复现证据，Executor 重做整轮。
-4. Verifier → User（PASS）：必须附 5 字段自检表（path / commit / push / CI / owner）。
+- requested scope is satisfied;
+- execution evidence is fresh and relevant;
+- blockers are visible;
+- target/ownership is correct where applicable;
+- intentional changes are isolated from pre-existing changes.
 
-## Artifact Schema
+### Publication Acceptance
 
-### plan.json
+Commit/push/PR/deploy/release evidence is required only when publication is requested
+or necessary for the requested outcome.
+
+Allowed publication states:
+
+- `NOT_REQUESTED`
+- `NOT_APPLICABLE`
+- `VERIFIED`
+- `BLOCKED`
+
+Do not manufacture a commit, push, CI run, deployment, or memory artifact just to fill
+a universal acceptance form.
+
+## 3. Planner artifact
+
+A modern website-improve plan includes task-scoped criteria plus explicit publication
+intent and verification targets.
+
+Illustrative shape:
 
 ```json
 {
-  "skill": "website-improve",
-  "version": "4.1.0",
-  "trigger": "user prompt",
-  "scope": ["A", "B", "D"],
-  "sites": ["mykcs.github.io", "GDKVM", "OSA", "content2html"],
-  "acceptance_criteria": [
-    "4 站 CI green",
-    "5 字段自检全过",
-    "no P0/P1 deferred"
+  "audit_target": "improve basemodel guide layout",
+  "sub_modes": ["A"],
+  "4_sites": ["basemodel"],
+  "risk_decisions": [],
+  "expected_wall_clock_min": 20,
+  "completion_criteria": [
+    "build passes",
+    "desktop and mobile layout evidence shows no overlap"
   ],
-  "risks": [
+  "pre_flight_declaration": "single-site visual improvement",
+  "publication_requested": false,
+  "publication_mode": "none",
+  "verification_targets": ["build", "browser"],
+  "session_manifest_required": true
+}
+```
+
+`4_sites` is a historical compatibility field name; modern values are task-scoped
+site identifiers rather than a fixed four-site enum.
+
+## 4. Executor artifact
+
+A modern executor handoff records work and evidence, not mandatory publication:
+
+```json
+{
+  "plan_hash": "sha256:<...>",
+  "files_changed": [
+    {"path": "src/pages/guide.astro", "lines_added": 12, "lines_removed": 3}
+  ],
+  "verification_runs": [
     {
-      "item": "owner 隔离",
-      "level": "high",
-      "mitigation": "push 前 git remote -v 三次确认"
+      "kind": "build",
+      "status": "PASS",
+      "command": "npm run build",
+      "evidence": "exit 0"
     }
   ],
-  "phases": [
-    {"name": "pre-flight", "owner": "planner"},
-    {"name": "audit", "owner": "executor"},
-    {"name": "fix", "owner": "executor"},
-    {"name": "verify", "owner": "verifier"}
-  ]
+  "blockers": [],
+  "publication_state": "NOT_REQUESTED",
+  "session_manifest": {
+    "intentional_changes": ["src/pages/guide.astro"],
+    "pre_existing_changes": []
+  }
 }
 ```
 
-### exec-log.json
+Legacy `git_commits`, `smart_push_status`, and `decision_stream_entries` may remain
+accepted by compatibility schemas, but modern active workflows do not synthesize them.
+
+## 5. Verifier artifact
+
+Verifier expresses the final acceptance dimensions:
 
 ```json
 {
-  "plan_ref": "plan.json",
-  "files_changed": [
-    {"path": "src/layouts/BaseLayout.astro", "add": 12, "del": 3}
-  ],
-  "commands_run": [
-    {"cmd": "npm run build", "exit": 0}
-  ],
-  "git_commits": [
-    {"site": "mykcs.github.io", "sha": "a1b2c3d", "msg": "fix(a11y): ..."}
-  ],
-  "deferred": [],
-  "blocked": []
+  "scope": "PASS",
+  "execution_evidence": "PASS",
+  "blockers": "CLEAR",
+  "publication": "NOT_REQUESTED",
+  "ownership": "PASS",
+  "session_manifest": "PASS"
 }
 ```
 
-### verdict.json
+A final verdict is derived from evidence; a caller-provided PASS must never override a
+failed dimension.
 
-```json
-{
-  "plan_ref": "plan.json",
-  "exec_log_ref": "exec-log.json",
-  "verdict": "PASS",
-  "checks": {
-    "path": "PASS",
-    "commit": "PASS",
-    "push": "PASS",
-    "ci": "PASS",
-    "owner": "PASS"
-  },
-  "notes": "4/4 CI success, no deferred items"
-}
-```
+## 6. Publication lifecycle
 
-## 反模式（永久失效）
+When publication is requested:
 
-- ❌ 1 个 sub-agent 跑完 3 角色。
-- ❌ Executor 自己标 done。
-- ❌ Verifier FAIL 还强行 ship。
-- ❌ sub-agent 之间口头传话，不走 artifact。
-- ❌ Planner 直接改文件或跑命令。
-- ❌ Verifier 改文件替 Executor 修 bug。
+1. execution acceptance is established first;
+2. the orchestrator routes the verified change to the repository's canonical Git or deploy lifecycle;
+3. requested publication is evidenced as `VERIFIED` or `BLOCKED`;
+4. final Verifier acceptance includes that publication state.
 
-## 与三技能的映射
+Executor ownership of implementation does not imply ownership of `git add`, commit,
+push, PR creation, deployment, or release.
 
-| 技能 | Planner 做什么 | Executor 做什么 | Verifier 做什么 |
-|------|---------------|----------------|----------------|
-| **website-improve** | 输出 7 段 pre-flight + sub-mode 路由（A/B/C/D） | 跑 audit、fix、smart-push | 4 站 CI green + 5 字段自检 + curl live URL |
-| **host-self-evolve** | banner + Phase 1 说明 + Layer 0-3 任务拆分 | 跑 7 sub-task、cleanup、N-tool fan-out | 5/6 字段自检 + memory-bench score + CI gate |
-| **paper-into-notion** | 解析 URL + 判定 modal + 选 Notion db/page | fetch、fill 3 字段、patch block | 5 字段验证 + block layout check + patch recovery |
+## 7. Failure handling
 
-## 失败处理
+Verifier FAIL returns concrete failed dimensions and reproduction evidence to a fresh
+Executor pass. The agent should keep trying alternative safe approaches while the
+problem is agent-resolvable.
 
-| 场景 | 处理 |
-|------|------|
-| Verifier FAIL 第 1 次 | Executor 重做整轮 |
-| Verifier FAIL 第 2 次 | AskUserQuestion：A 再试 / B 降级 / C 停止 |
-| Executor 无法复现 | Verifier 提供最小复现命令 |
-| Planner scope 不清 | 先 AskUserQuestion 明确 scope 再出 plan |
+Ask the user only when a genuine human-only boundary exists, such as authorization,
+2FA/CAPTCHA, physical-device action, irreversible/high-risk approval, or a control
+plane inaccessible to every available tool.
 
-## 何时使用本框架
+A fixed retry count by itself is not a reason to offload the problem to the user.
 
-任何 skill 满足以下任一条件时，应显式引用本框架：
+## 8. Recovery
 
-- 需要 2 个以上阶段才能完成的任务。
-- 需要独立验收者才能避免 false completion。
-- 输出质量不稳定、某类任务反复出错。
-- 用户明确说“要有 workflow / 计划者 / 执行者 / 验收者”。
+Agent/process recovery preserves work product and restores a valid execution lane. It
+must not automatically publish stalled work.
+
+- inspect current artifacts/worktree;
+- distinguish intentional and pre-existing changes;
+- rerun affected evidence;
+- respawn/reassign Executor as needed;
+- enter publication only if the plan requested it.
+
+## 9. Memory promotion
+
+Decision streams, case files, and ADRs are durable-memory outputs governed by memory
+promotion rules. They are conditional, not mandatory for every PER task.
+
+## 10. Evidence quality
+
+Evidence must match the claim:
+
+- source/build claims → local/project-owned checks;
+- browser/UI claims → browser/runtime evidence;
+- deployed claims → deployed/live evidence;
+- native-platform claims → native-platform evidence;
+- publication claims → current publication target evidence.
+
+Unavailable, skipped, stale, or unrelated evidence is not PASS.
+
+## 11. Website-improve mapping
+
+| Role | website-improve v4.2.0 |
+| --- | --- |
+| Planner | modern plan, task-scoped sites/criteria, verification targets, publication intent |
+| Executor | audit/fix + fresh evidence + blockers + session manifest |
+| Verifier | modern Acceptance + evidence-derived verdict |
+
+Historical four-site fan-out remains a supported scope when requested; it is no longer
+the definition of every website task.
