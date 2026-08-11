@@ -1,503 +1,123 @@
-# Deployment Platforms for Astro Static Sites
+# Deployment architecture for website work — choose roles before providers
 
-Comprehensive deployment guides for major hosting platforms.
+Last reviewed: **2026-08-11**
 
-## Platform Comparison
+This reference is for `website-improve` tasks that touch Preview, hosting, CI/CD, canonical domains, or release architecture. Do not use an account-wide vendor recipe as a substitute for inspecting the target repository.
 
-| Platform | Auto CI/CD | Custom Domain | Edge CDN | Free Tier |
-|----------|------------|---------------|----------|-----------|
-| Netlify | Yes | Yes | Yes | 100GB/mo |
-| Vercel | Yes | Yes | Yes | 100GB/mo |
-| Cloudflare Pages | Yes | Yes | Yes | Unlimited |
-| GitHub Pages | Manual | Yes | Via CDN | Unlimited |
-| Firebase Hosting | Manual | Yes | Yes | 10GB/mo |
-| AWS S3+CloudFront | Manual | Yes | Yes | Pay-as-go |
+## Core rule
 
-## Netlify
+**Map provider roles first; choose or remove providers second.**
 
-### Quick Setup
+Before proposing Vercel, Cloudflare, GitHub Pages, Netlify, or another host, identify the target repository's current responsibilities:
 
-1. Push code to GitHub/GitLab
-2. Connect repository in Netlify dashboard
-3. Set build command: `npm run build`
-4. Set publish directory: `dist`
+| Role | Questions |
+| --- | --- |
+| Source / history | Where are canonical code, branches, PRs and releases? |
+| Validation / CI | Which provider actually runs blocking checks, and what platform-specific checks remain elsewhere? |
+| Preview / review | Is a public/exact-head Preview actually needed? Which current provider can supply it? |
+| Production | Which host serves the real product? What rollback exists? |
+| Runtime / API | Are there Functions, Workers, cron, storage, auth or other non-static requirements? |
+| Product identity | Which hostname/base path/canonical URLs are externally visible and indexable? |
 
-### netlify.toml
+A provider should normally own at least one **distinct, justified role**. Add a provider only when it fills a demonstrated missing role or deliberately replaces another. Avoid a third routine provider merely for symmetry or account-wide consistency.
 
-```toml
-[build]
-  command = "npm run build"
-  publish = "dist"
+## Decision principles
 
-[build.environment]
-  NODE_VERSION = "18"
+1. **Keep a working provider when the original pain was orchestration, not the provider itself.** If excessive Preview builds were the problem, moving Preview elsewhere may solve the problem without moving Production.
+2. **Provider-hosted domains are product identity.** Moving away from `*.pages.dev`, `*.vercel.app`, `*.github.io`, or a repository subpath can require canonical/SEO/redirect/external-link migration.
+3. **Preview and Production are separate evidence layers.** Build success or provider `READY` is not proof that the requested routes/visuals were inspected; Preview acceptance is not proof Production changed.
+4. **Exact-head evidence matters.** If `main` moves after a Preview passes, compare the branch again and revalidate when the intervening changes affect the same contract.
+5. **Do not optimize one quota by blindly moving pressure into another.** GitHub Actions usage, Vercel deployments/build execution, Cloudflare Pages Builds, and Cloudflare Workers Builds are different resource pools.
+6. **Batch coherent edits.** Avoid trigger-only commits and rapid push loops that manufacture hosted builds.
+7. **Re-check current first-party docs.** Provider pricing, quotas, promotion behavior and runtime capabilities change; dated project notes are hypotheses when current limits materially affect the decision.
 
-# Redirects for SPA-style routing (if needed)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+## Reference examples, not templates
 
-# Custom headers
-[[headers]]
-  for = "/*"
-    [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
+### `mykcs/basemodel`
 
-# Trailing slashes
-[build.processing]
-  skip_processing = false
-[build.processing.html]
-  pretty_urls = true
+Current recommended steady state after the 2026-08-11 audit:
+
+```text
+GitHub = source
+Vercel = ordinary PR / branch Preview
+Cloudflare Pages = Production at basemodel.pages.dev
 ```
 
-### Environment Variables
+The Cloudflare Workers Static Assets shadow was successfully validated but Production cutover is paused. The original problem was Cloudflare Preview/build-budget consumption; Vercel solved that Preview role without requiring a Production-host migration.
 
-Set in Netlify dashboard or `netlify.toml`:
+### `mykcs/mykcs.github.io`
 
-```toml
-[context.production.environment]
-  API_URL = "https://api.example.com"
+Different topology, intentionally:
 
-[context.deploy-preview.environment]
-  API_URL = "https://staging-api.example.com"
+```text
+GitHub Pages = canonical/indexable Production
+Cloudflare Pages = noindex mirror/review + scoped /api/scholar runtime
 ```
 
-## Vercel
+Adding Vercel only for Preview would create a third provider without replacing an existing required role, so the `basemodel` topology should not be copied mechanically.
 
-### Quick Setup
+### `mykcs/content2html`
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in project root
-3. Follow prompts to link/create project
+GitHub Pages currently satisfies Production and canonical identity at `/content2html`. No second provider is justified until a concrete Preview/runtime/hosting problem appears.
 
-### vercel.json
+### Non-website repositories
 
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "astro",
-  "routes": [
-    {
-      "src": "/assets/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    }
-  ],
-  "trailingSlash": false
-}
+Cloudflare may be CI or runtime rather than hosting. For example, an iOS repository can legitimately use Workers Builds as portable CI while Xcode remains the native validation surface; a scheduled Worker product can legitimately use Cloudflare as both runtime and validation. Website Preview guidance does not apply to those roles.
+
+## Vercel guidance
+
+Vercel is strong for Git-connected exact-head Preview and build feedback, but do not add it automatically.
+
+Use it when public/Agent-visible Preview is a real missing role and its extra provider ownership is justified. Keep Production disabled there when another provider intentionally owns Production. Treat Preview protection/share-link behavior and build limits as live provider facts to verify when material.
+
+Do not assume promoting a normal Preview means “zero additional build”; verify the current Vercel promotion/deployment model when build-count optimization is part of the task.
+
+## Cloudflare guidance
+
+Distinguish Cloudflare products and roles:
+
+- **Pages** — static/site hosting with Pages-specific Git build quotas and `pages.dev` identity;
+- **Workers Static Assets** — Workers deployment/runtime model, useful when Workers-native behavior or a host migration is actually justified;
+- **Workers Builds** — CI/build service whose resource accounting is different from Pages Builds;
+- **Direct Upload** — a deployment mechanism, not an account-wide Preview policy.
+
+Do not say a Direct Upload or Workers Build is “free” merely because it does not consume Pages' Git-build counter. Report the resource/evidence layer actually used.
+
+## GitHub Pages guidance
+
+GitHub Pages remains a good choice for simple static sites, especially when `github.io` identity or repository base paths are intentional product contracts. Do not add a second host solely to make all repositories look alike.
+
+If a public PR Preview becomes a repeated bottleneck, evaluate current preview options then and measure whether the second provider removes enough friction to justify itself.
+
+## Migration / simplification checklist
+
+When adding or removing a provider:
+
+```text
+read project Agent/current docs + executable config + live provider state
+-> inspect overlapping PRs
+-> map provider roles and canonical identity
+-> state the measured problem
+-> choose the smallest role change
+-> preserve provider-neutral build/validation
+-> create reversible non-production evidence when needed
+-> verify exact head + affected routes/runtime/SEO/headers
+-> define rollback
+-> explicit Production/canonical cutover
+-> verify Production
+-> retire old infrastructure only after independent proof
 ```
 
-### Preview Deployments
-
-Automatic for every PR. Access via unique URLs like:
-`project-git-branch-username.vercel.app`
-
-## Cloudflare Pages
-
-### Quick Setup
-
-1. Connect GitHub repo in Cloudflare dashboard
-2. Set framework preset: Astro
-3. Build command auto-detected
-
-### Configuration
-
-```toml
-# wrangler.toml (optional)
-name = "my-astro-site"
-compatibility_date = "2024-01-01"
-
-[site]
-bucket = "./dist"
-```
-
-### Custom Headers
-
-Create `public/_headers`:
-
-```
-/*
-  X-Frame-Options: DENY
-  X-Content-Type-Options: nosniff
-
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-```
-
-## GitHub Pages
-
-### GitHub Actions Workflow
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      - run: npm run build
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/deploy-pages@v4
-        id: deployment
-```
-
-### Astro Configuration for Subpath
-
-```javascript
-// astro.config.mjs
-export default defineConfig({
-  site: 'https://username.github.io',
-  base: '/repository-name'
-});
-```
-
-## Firebase Hosting
-
-### Initial Setup
-
-```bash
-# Install Firebase CLI
-npm install -g firebase-tools
-
-# Login and initialize
-firebase login
-firebase init hosting
-```
-
-### firebase.json
-
-```json
-{
-  "hosting": {
-    "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [],
-    "headers": [
-      {
-        "source": "/assets/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
-          }
-        ]
-      },
-      {
-        "source": "**",
-        "headers": [
-          {
-            "key": "X-Frame-Options",
-            "value": "DENY"
-          }
-        ]
-      }
-    ],
-    "cleanUrls": true,
-    "trailingSlash": false
-  }
-}
-```
-
-### Deploy Commands
-
-```bash
-# Build and deploy
-npm run build
-firebase deploy --only hosting
-
-# Deploy to preview channel
-firebase hosting:channel:deploy preview-name
-
-# Deploy with custom site ID (multiple sites)
-firebase deploy --only hosting:my-site-id
-```
-
-### GitHub Actions for Firebase
-
-```yaml
-# .github/workflows/firebase-deploy.yml
-name: Deploy to Firebase
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      - run: npm run build
-
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: live
-          projectId: your-project-id
-```
-
-### Multiple Sites
-
-```json
-{
-  "hosting": [
-    {
-      "target": "main-site",
-      "public": "dist",
-      "ignore": ["firebase.json", "**/.*"]
-    },
-    {
-      "target": "docs-site",
-      "public": "docs/dist",
-      "ignore": ["firebase.json", "**/.*"]
-    }
-  ]
-}
-```
-
-```bash
-firebase target:apply hosting main-site my-main-site
-firebase target:apply hosting docs-site my-docs-site
-firebase deploy --only hosting
-```
-
-## AWS S3 + CloudFront
-
-### S3 Bucket Setup
-
-```bash
-# Create bucket
-aws s3 mb s3://my-astro-site
-
-# Enable static website hosting
-aws s3 website s3://my-astro-site \
-  --index-document index.html \
-  --error-document 404.html
-
-# Sync build output
-aws s3 sync dist/ s3://my-astro-site --delete
-```
-
-### Bucket Policy
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "PublicReadGetObject",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::my-astro-site/*"
-    }
-  ]
-}
-```
-
-### CloudFront Distribution
-
-Key settings:
-- Origin: S3 bucket website endpoint
-- Default root object: `index.html`
-- Custom error response: 404 → /404.html
-- Cache behavior: Use cache policy for static assets
-
-### Invalidation on Deploy
-
-```bash
-aws cloudfront create-invalidation \
-  --distribution-id E1234567890 \
-  --paths "/*"
-```
-
-## GCS + Cloud CDN (GCP Alternative)
-
-Alternative to Firebase Hosting using Google Cloud Storage with Cloud CDN.
-
-### Setup
-
-```bash
-# Create bucket with uniform access
-gsutil mb -l us-central1 gs://my-astro-site
-gsutil uniformbucketlevelaccess set on gs://my-astro-site
-
-# Enable public access
-gsutil iam ch allUsers:objectViewer gs://my-astro-site
-
-# Configure as static site
-gsutil web set -m index.html -e 404.html gs://my-astro-site
-```
-
-### Deploy Script
-
-```bash
-# Build and sync
-npm run build
-gsutil -m rsync -r -d dist/ gs://my-astro-site
-
-# Set cache headers for assets
-gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" \
-  gs://my-astro-site/_astro/**
-```
-
-### Cloud CDN Setup
-
-1. Create a backend bucket in Cloud Console
-2. Point it to your GCS bucket
-3. Create a load balancer with the backend bucket
-4. Enable Cloud CDN on the backend bucket
-5. Configure SSL certificate for HTTPS
-
-```bash
-# Invalidate CDN cache after deploy
-gcloud compute url-maps invalidate-cdn-cache my-lb \
-  --path "/*" --async
-```
-
-### When to Use GCS + CDN vs Firebase
-
-| Scenario | Recommendation |
-|----------|----------------|
-| Simple static site | Firebase Hosting |
-| Need fine-grained cache control | GCS + CDN |
-| Already using GCP extensively | GCS + CDN |
-| Want simplest setup | Firebase Hosting |
-| Need custom CDN configuration | GCS + CDN |
-
-## Common Issues and Solutions
-
-### Trailing Slashes
-
-```javascript
-// astro.config.mjs
-export default defineConfig({
-  trailingSlash: 'always'  // or 'never' or 'ignore'
-});
-```
-
-### Base Path for Subdirectory
-
-```javascript
-// astro.config.mjs
-export default defineConfig({
-  site: 'https://example.com',
-  base: '/my-app'
-});
-```
-
-Update all internal links:
-
-```astro
-<a href={`${import.meta.env.BASE_URL}about`}>About</a>
-```
-
-### 404 Handling
-
-Most platforms need explicit 404 configuration:
-
-1. Create `src/pages/404.astro`
-2. Configure platform-specific redirects
-
-### Build Failures
-
-Common causes:
-- Node version mismatch (use v18+)
-- Missing environment variables
-- Case-sensitive file systems (Linux vs macOS)
-- Memory limits for large sites
-
-### Asset Caching
-
-For optimal performance, ensure assets have cache headers:
-
-```javascript
-// astro.config.mjs
-export default defineConfig({
-  build: {
-    assets: '_assets'  // Prefixed directory for fingerprinted assets
-  }
-});
-```
-
-## Performance Optimization
-
-### Pre-compression
-
-```javascript
-// astro.config.mjs
-import compress from 'astro-compress';
-
-export default defineConfig({
-  integrations: [compress()]
-});
-```
-
-### Image Optimization
-
-```javascript
-// astro.config.mjs
-export default defineConfig({
-  image: {
-    service: {
-      entrypoint: 'astro/assets/services/sharp'
-    }
-  }
-});
-```
-
-### Prefetching
-
-```javascript
-// astro.config.mjs
-export default defineConfig({
-  prefetch: {
-    prefetchAll: true,
-    defaultStrategy: 'viewport'
-  }
-});
-```
+Do not combine a framework migration, custom-domain migration and provider migration unless the product actually requires them together.
+
+## Completion evidence
+
+Report separately:
+
+- repository/local Gate;
+- hosted build provider and result;
+- Preview URL and whether affected routes were actually inspected;
+- branch/PR/exact-head state;
+- Production changed yes/no/unknown;
+- Production verification;
+- quota/build-counter claims only when authoritative provider evidence exists.
