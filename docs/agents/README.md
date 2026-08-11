@@ -12,7 +12,9 @@ Do not treat every nested `SKILL.md` as an active user skill. The repository del
 4. [`scripts/ci_check.py`](../../scripts/ci_check.py) — repository validation gate, including inventory invariants;
 5. the task-relevant top-level `<skill>/SKILL.md` — canonical workflow for that skill;
 6. [`../agent-notes/README.md`](../agent-notes/README.md) — dated architecture/migration handoffs and verified invariants;
-7. `shared/` and `reference/` only when the selected skill or task points there.
+7. task-relevant references only when the selected skill or task points there.
+
+For website hosting/deployment architecture work, use `website-improve/references/deployment-platforms.md` as the shared **provider-role-first** decision reference. It explicitly forbids copying one repository's Vercel/Cloudflare/GitHub Pages topology account-wide without first mapping the target project's source, CI, Preview, Production, runtime and canonical-identity roles.
 
 When available, account-wide collaboration preferences and the repository registry live in `~/.agents/AGENTS.md` and `~/.agents/docs/agents/README.md`.
 
