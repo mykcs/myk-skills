@@ -1,6 +1,6 @@
 # Deployment architecture for website work — choose roles before providers
 
-Last reviewed: **2026-08-11**
+Last reviewed: **2026-08-12**
 
 This reference is for `website-improve` tasks that touch Preview, hosting, CI/CD, canonical domains, or release architecture. Do not use an account-wide vendor recipe as a substitute for inspecting the target repository.
 
@@ -23,27 +23,29 @@ A provider should normally own at least one **distinct, justified role**. Add a 
 
 ## Decision principles
 
-1. **Keep a working provider when the original pain was orchestration, not the provider itself.** If excessive Preview builds were the problem, moving Preview elsewhere may solve the problem without moving Production.
+1. **Solve the actual requirement, not the previous architecture.** If excessive Preview builds were the problem, moving Preview may be enough. If the owner later requires one provider to own both Preview and Production or requires another provider's builds to become zero, re-open the decision against current evidence rather than treating an earlier audit as permanent.
 2. **Provider-hosted domains are product identity.** Moving away from `*.pages.dev`, `*.vercel.app`, `*.github.io`, or a repository subpath can require canonical/SEO/redirect/external-link migration.
 3. **Preview and Production are separate evidence layers.** Build success or provider `READY` is not proof that the requested routes/visuals were inspected; Preview acceptance is not proof Production changed.
 4. **Exact-head evidence matters.** If `main` moves after a Preview passes, compare the branch again and revalidate when the intervening changes affect the same contract.
 5. **Do not optimize one quota by blindly moving pressure into another.** GitHub Actions usage, Vercel deployments/build execution, Cloudflare Pages Builds, and Cloudflare Workers Builds are different resource pools.
 6. **Batch coherent edits.** Avoid trigger-only commits and rapid push loops that manufacture hosted builds.
-7. **Re-check current first-party docs.** Provider pricing, quotas, promotion behavior and runtime capabilities change; dated project notes are hypotheses when current limits materially affect the decision.
+7. **Re-check current first-party docs and project truth.** Provider pricing, quotas, promotion behavior, runtime capabilities and the project's own architecture can change; dated notes are hypotheses when current limits or ownership materially affect the decision.
 
 ## Reference examples, not templates
 
 ### `mykcs/basemodel`
 
-Current recommended steady state after the 2026-08-11 audit:
+Current steady state after the 2026-08-12 owner decision and Vercel cutover:
 
 ```text
 GitHub = source
-Vercel = ordinary PR / branch Preview
-Cloudflare Pages = Production at basemodel.pages.dev
+Vercel = Preview + Production
+Cloudflare Pages = frozen legacy rollback snapshot
 ```
 
-The Cloudflare Workers Static Assets shadow was successfully validated but Production cutover is paused. The original problem was Cloudflare Preview/build-budget consumption; Vercel solved that Preview role without requiring a Production-host migration.
+Normal development and releases are intended to consume zero Cloudflare Pages Builds. The earlier 2026-08-11 audit had retained Pages Production because moving hosts was not then justified by build count alone; the later owner requirement explicitly changed the objective to provider consolidation and zero normal Pages builds. The application stack remained Astro/React; only deployment ownership changed.
+
+This sequence is an important lesson: an architecture decision is current, not eternal. When the user changes the actual objective, re-read code/config/current docs/live provider state and update the owning decision rather than preserving an obsolete conclusion.
 
 ### `mykcs/mykcs.github.io`
 
@@ -66,9 +68,9 @@ Cloudflare may be CI or runtime rather than hosting. For example, an iOS reposit
 
 ## Vercel guidance
 
-Vercel is strong for Git-connected exact-head Preview and build feedback, but do not add it automatically.
+Vercel is strong for Git-connected exact-head Preview, build feedback and unified Preview/Production ownership when that is the chosen product contract. Do not add it automatically.
 
-Use it when public/Agent-visible Preview is a real missing role and its extra provider ownership is justified. Keep Production disabled there when another provider intentionally owns Production. Treat Preview protection/share-link behavior and build limits as live provider facts to verify when material.
+Use it when public/Agent-visible Preview is a real missing role, when consolidating Production there solves an explicit requirement, or when it deliberately replaces another provider. Keep Production disabled only when another provider intentionally owns Production. Treat Preview protection/share-link behavior, Production aliases, promotion semantics and build limits as live provider facts to verify when material.
 
 Do not assume promoting a normal Preview means “zero additional build”; verify the current Vercel promotion/deployment model when build-count optimization is part of the task.
 
@@ -82,6 +84,8 @@ Distinguish Cloudflare products and roles:
 - **Direct Upload** — a deployment mechanism, not an account-wide Preview policy.
 
 Do not say a Direct Upload or Workers Build is “free” merely because it does not consume Pages' Git-build counter. Report the resource/evidence layer actually used.
+
+A frozen rollback deployment is not an active Production provider. If legacy Git integration remains connected, preserve the repository's skip-build/branch-control contract until the account-side integration is disabled or intentionally reactivated.
 
 ## GitHub Pages guidance
 
@@ -97,7 +101,7 @@ When adding or removing a provider:
 read project Agent/current docs + executable config + live provider state
 -> inspect overlapping PRs
 -> map provider roles and canonical identity
--> state the measured problem
+-> state the measured problem and current owner objective
 -> choose the smallest role change
 -> preserve provider-neutral build/validation
 -> create reversible non-production evidence when needed
@@ -105,7 +109,7 @@ read project Agent/current docs + executable config + live provider state
 -> define rollback
 -> explicit Production/canonical cutover
 -> verify Production
--> retire old infrastructure only after independent proof
+-> retire or freeze old infrastructure only after independent proof
 ```
 
 Do not combine a framework migration, custom-domain migration and provider migration unless the product actually requires them together.
@@ -120,4 +124,5 @@ Report separately:
 - branch/PR/exact-head state;
 - Production changed yes/no/unknown;
 - Production verification;
+- rollback-provider state;
 - quota/build-counter claims only when authoritative provider evidence exists.
