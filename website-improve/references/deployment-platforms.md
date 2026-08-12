@@ -4,6 +4,8 @@ Last reviewed: **2026-08-12**
 
 This reference is for `website-improve` tasks that touch Preview, hosting, CI/CD, canonical domains, or release architecture. Do not use an account-wide vendor recipe as a substitute for inspecting the target repository.
 
+When two or more Agent conversations/PRs are active for one release window, also read [`parallel-agent-delivery.md`](parallel-agent-delivery.md). It owns the reusable worker-PR, integration-branch and hosted-build-budget protocol; this file continues to own provider-role selection.
+
 ## Core rule
 
 **Map provider roles first; choose or remove providers second.**
@@ -29,7 +31,8 @@ A provider should normally own at least one **distinct, justified role**. Add a 
 4. **Exact-head evidence matters.** If `main` moves after a Preview passes, compare the branch again and revalidate when the intervening changes affect the same contract.
 5. **Do not optimize one quota by blindly moving pressure into another.** GitHub Actions usage, Vercel deployments/build execution, Cloudflare Pages Builds, and Cloudflare Workers Builds are different resource pools.
 6. **Batch coherent edits.** Avoid trigger-only commits and rapid push loops that manufacture hosted builds.
-7. **Re-check current first-party docs and project truth.** Provider pricing, quotas, promotion behavior, runtime capabilities and the project's own architecture can change; dated notes are hypotheses when current limits or ownership materially affect the decision.
+7. **Serialize publication for parallel work.** Independent worker branches may proceed concurrently, but accepted changes should normally pass through one explicit integration/release head before `main` is updated. The number of chats does not determine provider consumption; pushed refs and provider triggers do.
+8. **Re-check current first-party docs and project truth.** Provider pricing, quotas, promotion behavior, runtime capabilities and the project's own architecture can change; dated notes are hypotheses when current limits or ownership materially affect the decision.
 
 ## Reference examples, not templates
 

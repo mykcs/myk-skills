@@ -16,6 +16,8 @@ Do not treat every nested `SKILL.md` as an active user skill. The repository del
 
 For website hosting/deployment architecture work, use `website-improve/references/deployment-platforms.md` as the shared **provider-role-first** decision reference. It explicitly forbids copying one repository's Vercel/Cloudflare/GitHub Pages topology account-wide without first mapping the target project's source, CI, Preview, Production, runtime and canonical-identity roles.
 
+For two or more concurrent Agent conversations/PRs or hosted-build quota work, use `website-improve/references/parallel-agent-delivery.md`. It defines focused worker Draft PRs, one explicit integration/release head, conflict classes, atomic connector writes, and truthful provider-trigger accounting. Project repositories keep only thin provider-specific adaptations.
+
 When available, account-wide collaboration preferences and the repository registry live in `~/.agents/AGENTS.md` and `~/.agents/docs/agents/README.md`.
 
 ## Ownership boundary
