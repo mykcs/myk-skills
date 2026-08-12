@@ -24,6 +24,7 @@ MODE_D = REFS / "mode-d-multisite.md"
 TRIGGERS = REFS / "triggers.md"
 QUALITY = REFS / "quality-checks.md"
 WEB_EXPRESSION = REFS / "human-thinking-web-expression.md"
+PARALLEL = REFS / "parallel-agent-delivery.md"
 EVALS = ROOT / "website-improve" / "evals" / "evals.json"
 
 
@@ -41,6 +42,7 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         cls.triggers = TRIGGERS.read_text(encoding="utf-8")
         cls.quality = QUALITY.read_text(encoding="utf-8")
         cls.web_expression = WEB_EXPRESSION.read_text(encoding="utf-8")
+        cls.parallel = PARALLEL.read_text(encoding="utf-8")
         cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))
 
     def test_active_skill_uses_modern_artifact_contract(self) -> None:
@@ -117,6 +119,14 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         self.assertIn("task-scoped v4.2.0 acceptance", self.quality)
         self.assertIn("`skipped`, missing, stale, queued, or unavailable checks are not PASS", self.quality)
         self.assertIn("browser inspection of the real changed route", self.web_expression)
+
+    def test_parallel_development_serializes_publication_and_counts_real_builds(self) -> None:
+        self.assertIn("references/parallel-agent-delivery.md", self.skill)
+        self.assertIn("Development may be parallel; publication is serialized.", self.parallel)
+        self.assertIn("one atomic multi-file commit/ref update", self.parallel)
+        self.assertIn("does **not** retroactively combine or erase builds", self.parallel)
+        self.assertIn("A clean Git merge does not prove", self.parallel)
+        self.assertIn("one exact-head Preview", self.parallel)
 
     def test_memory_and_validation_contract_are_modern(self) -> None:
         self.assertIn("not mandatory for every PER task", self.per)
