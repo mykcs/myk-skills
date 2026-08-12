@@ -1,13 +1,13 @@
-"""Regression tests for the active website-improve v4.2.0 workflow contract.
+"""Regression tests for the active website-improve v4.3.0 workflow contract.
 
-These tests intentionally assert stable architecture markers instead of broad
-substring bans across prose. Historical/anti-pattern documentation is allowed to
-name retired behavior; the active contract must positively encode the modern
-ownership and acceptance boundaries.
+These tests assert stable architecture markers instead of broad substring bans across
+historical prose. The expression lens is account-wide and lightweight; selecting the
+full website-improve skill still requires independent Planner/Executor/Verifier roles.
 """
 
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
@@ -23,6 +23,9 @@ MODE_A = REFS / "mode-a.md"
 MODE_D = REFS / "mode-d-multisite.md"
 TRIGGERS = REFS / "triggers.md"
 QUALITY = REFS / "quality-checks.md"
+WEB_EXPRESSION = REFS / "human-thinking-web-expression.md"
+PARALLEL = REFS / "parallel-agent-delivery.md"
+EVALS = ROOT / "website-improve" / "evals" / "evals.json"
 
 
 class TestModernAcceptanceWorkflow(unittest.TestCase):
@@ -38,15 +41,46 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         cls.mode_d = MODE_D.read_text(encoding="utf-8")
         cls.triggers = TRIGGERS.read_text(encoding="utf-8")
         cls.quality = QUALITY.read_text(encoding="utf-8")
+        cls.web_expression = WEB_EXPRESSION.read_text(encoding="utf-8")
+        cls.parallel = PARALLEL.read_text(encoding="utf-8")
+        cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))
 
     def test_active_skill_uses_modern_artifact_contract(self) -> None:
-        self.assertIn('version: "4.2.0"', self.skill)
+        self.assertIn('version: "4.3.0"', self.skill)
         self.assertIn("--artifact-mode modern", self.skill)
         self.assertIn("--acceptance-file", self.skill)
         self.assertIn("--artifact-mode modern", self.three_role)
         self.assertIn("--acceptance-file", self.three_role)
 
-    def test_roles_are_independent_and_verifier_is_read_only(self) -> None:
+    def test_expression_lens_has_three_proportional_dispositions(self) -> None:
+        for disposition in ("APPLY_LIGHT", "APPLY_FULL", "NOT_APPLICABLE"):
+            with self.subTest(disposition=disposition):
+                self.assertIn(disposition, self.skill)
+                self.assertIn(disposition, self.triggers)
+                self.assertIn(disposition, self.web_expression)
+        self.assertIn("add one item/content block", self.web_expression)
+        self.assertIn("add this item/content", self.triggers)
+
+    def test_expression_decision_encodes_thought_and_density(self) -> None:
+        for marker in (
+            "Reader goal",
+            "Mental relationship",
+            "Semantic HTML form",
+            "Density architecture",
+            "Flow and continuity",
+            "Acceptance evidence",
+            "sequence / journey",
+            "comparison / trade-off",
+            "evidence / uncertainty",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.web_expression)
+        self.assertIn("L0 — orientation", self.web_expression)
+        self.assertIn("L3 — reference depth", self.web_expression)
+        self.assertIn("undifferentiated card grid", self.web_expression)
+
+    def test_light_lens_does_not_weaken_full_role_isolation(self) -> None:
+        self.assertIn("does not by itself force", self.skill)
         self.assertIn("Planner → Executor → Verifier", self.skill)
         self.assertIn("The three roles are independent", self.skill)
         self.assertIn("Verifier is independent and read-only", self.skill)
@@ -84,6 +118,15 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         self.assertIn("requested outcome depends on", self.quality)
         self.assertIn("task-scoped v4.2.0 acceptance", self.quality)
         self.assertIn("`skipped`, missing, stale, queued, or unavailable checks are not PASS", self.quality)
+        self.assertIn("browser inspection of the real changed route", self.web_expression)
+
+    def test_parallel_development_serializes_publication_and_counts_real_builds(self) -> None:
+        self.assertIn("references/parallel-agent-delivery.md", self.skill)
+        self.assertIn("Development may be parallel; publication is serialized.", self.parallel)
+        self.assertIn("one atomic multi-file commit/ref update", self.parallel)
+        self.assertIn("does **not** retroactively combine or erase builds", self.parallel)
+        self.assertIn("A clean Git merge does not prove", self.parallel)
+        self.assertIn("one exact-head Preview", self.parallel)
 
     def test_memory_and_validation_contract_are_modern(self) -> None:
         self.assertIn("not mandatory for every PER task", self.per)
@@ -91,6 +134,17 @@ class TestModernAcceptanceWorkflow(unittest.TestCase):
         self.assertIn("verdict_json_gen.py --artifact-mode modern --acceptance-file", self.checklist)
         self.assertIn("NOT_REQUESTED", self.checklist)
         self.assertIn("BLOCKED", self.checklist)
+
+    def test_evals_no_longer_encode_retired_smart_push_contract(self) -> None:
+        self.assertEqual(self.evals["version"], "4.3.0")
+        serialized = json.dumps(self.evals, ensure_ascii=False)
+        self.assertNotIn('"smart_push"', serialized)
+        dispositions = {
+            case["expected"].get("web_expression_disposition")
+            for case in self.evals["cases"]
+            if "web_expression_disposition" in case["expected"]
+        }
+        self.assertEqual(dispositions, {"APPLY_LIGHT", "APPLY_FULL", "NOT_APPLICABLE"})
 
 
 if __name__ == "__main__":

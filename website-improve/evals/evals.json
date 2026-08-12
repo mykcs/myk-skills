@@ -1,62 +1,52 @@
 {
   "skill": "website-improve",
-  "version": "4.1.0",
-  "description": "PER Workflow eval cases for website-improve",
+  "version": "4.3.0",
+  "description": "Modern acceptance and situational web-expression routing cases for website-improve",
   "cases": [
     {
-      "id": "per-normal-flow",
-      "name": "Normal flow triggers full PER 3-stage workflow",
-      "prompt": "audit mykcs",
+      "id": "web-expression-light",
+      "name": "A small rendered-content request triggers the lightweight expression lens without mandatory workflow ceremony",
+      "prompt": "在模型详情页加一项证据说明",
       "expected": {
+        "web_expression_disposition": "APPLY_LIGHT",
+        "decision_fields": ["reader_goal", "mental_relationship", "semantic_html", "density_layer", "evidence"],
+        "full_three_role_workflow_required": false,
+        "publication_implied": false
+      }
+    },
+    {
+      "id": "web-expression-full",
+      "name": "A broad research-page journey redesign triggers the full workflow",
+      "prompt": "重构整篇研究复现页面，让读者看懂实验路径、证据层级和失败分流",
+      "expected": {
+        "web_expression_disposition": "APPLY_FULL",
         "stages_run": ["plan", "execute", "verify"],
-        "planner_outputs": ["plan.json", "7 段 pre-flight declaration"],
-        "executor_outputs": ["exec-log.json", "actual fixes", "smart-push"],
-        "verifier_outputs": ["verdict.json", "5 字段自检"],
-        "done_declared_by": "verifier",
-        "artifacts_handoff": "JSON files only, no oral context sharing"
+        "plan_includes": ["reader_goal", "mental_relationship", "semantic_html", "density_architecture", "acceptance_evidence"],
+        "verifier_read_only": true,
+        "publication_follows_plan": true
       }
     },
     {
-      "id": "per-verifier-fail-retry",
-      "name": "Verifier FAIL on 4-site CI red triggers executor redo",
-      "prompt": "sync all sites",
-      "simulation": {
-        "executor_first_pass": {
-          "files_changed": ["src/layouts/BaseLayout.astro"],
-          "push_status": "pushed",
-          "ci_status": "red on GDKVM"
-        },
-        "verdict_first_pass": "FAIL",
-        "verifier_evidence": "GDKVM gh run list conclusion=failure"
-      },
+      "id": "web-expression-not-applicable",
+      "name": "A backend-only CI correction does not manufacture UI work",
+      "prompt": "修复只影响后台构建缓存键的 CI bug",
       "expected": {
-        "verdict": "FAIL",
+        "web_expression_disposition": "NOT_APPLICABLE",
+        "reason_required": true,
+        "unrelated_ui_scope_added": false
+      }
+    },
+    {
+      "id": "modern-role-isolation",
+      "name": "When website-improve is selected, Planner, Executor, and Verifier remain independent",
+      "prompt": "完整审查并改进网站的信息架构",
+      "expected": {
+        "planner_edits_files": false,
         "executor_self_declares_done": false,
-        "executor_redo": true,
-        "final_state": "BLOCKED on GDKVM CI red or rerun until PASS",
-        "no_done_without_verifier_pass": true
-      }
-    },
-    {
-      "id": "per-role-isolation",
-      "name": "Planner does not edit files; executor does not self-declare done",
-      "prompt": "3 role workflow improve mykcs SEO",
-      "expected": {
-        "planner": {
-          "edits_files": false,
-          "runs_commands": false,
-          "outputs": "plan.json only"
-        },
-        "executor": {
-          "edits_files": true,
-          "declares_done": false,
-          "outputs": "exec-log.json only"
-        },
-        "verifier": {
-          "edits_files": false,
-          "declares_done_only_on_pass": true,
-          "outputs": "verdict.json only"
-        }
+        "verifier_edits_files": false,
+        "verifier_derives_acceptance_from_evidence": true,
+        "automatic_smart_push": false,
+        "fixed_five_field_completion": false
       }
     }
   ]
