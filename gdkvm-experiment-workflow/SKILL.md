@@ -4,7 +4,7 @@ description: Orchestrate reproducible GDKVM and related GPU experiments from pro
 license: MIT
 metadata:
   type: skill
-  version: "2.0.0"
+  version: "2.1.0"
   updated: "2026-08-31"
   category: ml-experiment-orchestration
   source_of_truth:
@@ -12,6 +12,7 @@ metadata:
     - "The current host/account/GPU policy governing RTX6"
     - "The current zju-server policy and active OpenEvo campaign/launch gate governing lyg2171"
     - "references/host-cases.md"
+    - "references/recent-gpu-cautions.md"
     - "references/rtx6-operations.md"
     - "references/experiment-contract.md"
   tags: [gdkvm, experiment, whs512, rtx6, lyg2171, wangr-dev, rtx5090, hydra, torchrun, systemd-run, reproducibility]
@@ -27,7 +28,7 @@ Run GDKVM experiments as a resumable, evidence-bound program. The default is cal
 - **Status / “谁在跑” / progress**: do read-only inspection and report evidence. Do not start, stop, retry, edit a protocol, or claim ownership from memory alone.
 - **Resume / retry an existing run**: resolve the current frozen contract and ledger first. Continue only missing eligible work without changing its scientific semantics.
 - **New phase / sweep / changed hypothesis**: resolve the host case first; read [references/experiment-contract.md](references/experiment-contract.md) for `whs512`, or the active project campaign/launch-gate contract for `lyg2171`. Freeze the decision rule and budget before looking at new outcomes, then commit and push the applicable contract before formal consumption.
-- **Any live host action**: read [references/host-cases.md](references/host-cases.md), then the matching host reference ([RTX6 operations](references/rtx6-operations.md) for `whs512`; the parent `zju-server` policy/runbook for `lyg2171`). Host policy and live evidence override historical cases and examples.
+- **Any live host action**: read [references/host-cases.md](references/host-cases.md) and [references/recent-gpu-cautions.md](references/recent-gpu-cautions.md), then the matching host reference ([RTX6 operations](references/rtx6-operations.md) for `whs512`; the parent `zju-server` policy/runbook for `lyg2171`). Host policy and live evidence override historical cases and examples.
 
 The July 2026 phase plans, cases, and `gdkvm-train-launcher` are historical evidence. On `whs512`, reuse demonstrated invariants such as durable `systemd-run` supervision; on `lyg2171`, follow the parent/OpenEvo supervisor instead. Do not inherit plaintext credentials, fixed GPU indices, stale branches, fixed five-arm designs, or old approval gates.
 
