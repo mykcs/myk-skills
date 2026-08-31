@@ -15,7 +15,7 @@ This is a routing reference, not a resource-authorization list. Read it before l
 
 Read [rtx6-operations.md](rtx6-operations.md) for secure connection, snapshot, UUID mapping, live gate, systemd supervision, monitor-disconnect recovery, and per-cell claim fencing.
 
-## Case B — `lyg2171` = 8×RTX 5090 OpenEvo server
+## Case B — `lyg2171` daemon label → `wangrui_root` → `root@wangr-dev` (8×RTX 5090)
 
 **Use for:** OpenEvo/WebShop or other experiments governed by the ZJU parent server contract.
 
