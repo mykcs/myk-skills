@@ -17,6 +17,9 @@ This is a routing reference, not a resource-authorization list. Read it before l
   as authoritative.
 - Hardware observed on 2026-08-11: four NVIDIA GeForce RTX 3090 devices, 24,576 MiB each.
 - Historical GDKVM checkout: `/data/wr2024/Repo/code_modern_v3`; typical runtime shape is Hydra + `torchrun`, supervised by the user systemd manager.
+- The current whs512 root/operator command is not defined by the ZJU `wangr-dev`
+  policy. Resolve and record that authority before live work; do not treat the
+  historical `RuiWang2024` path as an implicit root substitute.
 - A historical 0/1 split and another user’s old 2/3 ownership are not current authorization. Resolve exact allowed GPU UUIDs from the active host/project contract and perform the immediate two-sample live gate.
 - If the direct host, account, key fingerprint, runtime, or GPU topology differs, stop and re-qualify the relevant path. Do not silently fall through to the 5090 workflow.
 

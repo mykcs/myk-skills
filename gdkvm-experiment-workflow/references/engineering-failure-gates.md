@@ -9,7 +9,9 @@ the host-specific policy.
 
 - Host-side Git, Docker, staging, ownership handoff, and test orchestration use
   the parent-approved root operator path (`wangrui_root` on `lyg2171`; the
-  host-specific operator on `whs512`). `wangrui_user` is not the default.
+  currently documented root/operator path for `whs512`, once its authority is
+  resolved). `wangrui_user` is not the default, and this skill must not invent a
+  whs512 root command from historical credentials.
 - `1001:1001` is an isolated payload identity only. It never determines the SSH
   account, host authority, or permission to mutate shared Docker state.
 - Do not “fix” a failed handoff by `chmod 777`, by giving the payload a Docker
