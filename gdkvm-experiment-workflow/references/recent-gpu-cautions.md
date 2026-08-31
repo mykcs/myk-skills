@@ -20,13 +20,19 @@ Authoritative sources: `/Users/myk/Claude/Projects/zju-server/docs/experiment-ex
 - On `whs512`, follow the direct-host snapshot and ownership procedure in
   [rtx6-operations.md](rtx6-operations.md); do not assume `gpu-who` exists there.
 
-## Authorization, holders, and shared capacity
+## `lyg2171` only: authorization, holders, and shared capacity
 
+- This section describes the `lyg2171` OpenEvo 5090 policy only. `whs512`/RTX6
+  must not inherit its standing pool, holder, or `scripts/oe` semantics unless
+  its own current host/project contract independently defines them.
 - Standing project authorization is not an exclusive reservation. An ordinary
   launch needs an in-pool UUID that is live-idle at the point of use.
-- A project-owned holder is allowed only when the active parent/project contract
-  records the reservation. Acquire it only while the UUID is genuinely available;
-  never kill, reset, restart, or preempt another workload to create a holder.
+- A project-owned holder is allowed when either the project owner explicitly
+  requests/records the reservation or a versioned current project/campaign
+  resource contract declares it active under the standing policy. Acquire it only
+  while the UUID is genuinely available; never kill, reset, restart, or preempt
+  another workload to create a holder. Maintaining/restoring an already-active
+  holder does not require repeating the same approval.
 - Treat a verified holder bound to its UUID as `project-reserved`, verify the
   holder before handoff, remove only the project’s own holder immediately before
   launching the real workload, and record holder-release and launch timestamps.
@@ -35,20 +41,26 @@ Authoritative sources: `/Users/myk/Claude/Projects/zju-server/docs/experiment-ex
 - The remaining 5090 pool is shared first-come capacity. Coordinate voluntary
   release; an empty lock file or idle snapshot is not a reservation.
 
-## Dynamic placement and topology
+## `lyg2171` only: dynamic placement
 
 - For a homogeneous 5090 dynamic plan, `scripts/oe --gpus auto:N --wait` must
   resample the whole standing-pool candidate set. Busy cards reduce capacity;
   later-idle cards may backfill pending cells. Record backfill latency and any
   capacity-starvation event.
+
+## Shared identity and topology
+
 - UUIDs are physical identity and accounting evidence; indices are launch-time
   aliases only. A missing or replaced UUID is a topology/policy mismatch and
   fails closed. A retry/resume cannot migrate a running cell unless its contract
   explicitly permits migration.
+- Bind every cell/container to its selected UUID set and record the mapping. An
+  index-only or unbound multi-cell launch is invalid and can cause cross-cell
+  placement or GPU OOM.
 
-## Namespace and control-plane boundaries
+## `lyg2171` namespace and control-plane boundaries
 
-- In a namespace-limited view, nontrivial memory with no visible PID means
+- In the `wangr-dev` namespace-limited view, nontrivial memory with no visible PID means
   `occupied / owner-unresolved`, not free, orphaned, or leaked. Zero utilization
   means only idle at that sample.
 - `root@wangr-dev` is container root with Docker-daemon capability, not proof of
@@ -56,12 +68,20 @@ Authoritative sources: `/Users/myk/Claude/Projects/zju-server/docs/experiment-ex
   sibling containers, run global Docker prune, use privileged/arbitrary mounts,
   or mutate daemon/driver/CUDA/SSH settings for an experiment.
 - Never free capacity by killing, GPU-resetting, restarting, or preempting an
-  external workload. If ownership cannot be established, leave the cell blocked.
+  external workload on either host. If ownership cannot be established, leave
+  the cell blocked.
+
+Validated experiment payloads on `lyg2171` should use the approved isolated
+non-root runtime (`1001:1001`, no Docker socket/privileged mode); container
+identity does not change the host operator or GPU authorization boundary.
 
 ## Evidence and qualification
 
 - A runtime qualification is reusable only when the relevant runtime fingerprint
   matches. Recheck volatile GPU, disk, process, output, and network facts at each
   launch or handoff.
+- Full target storage or an output collision blocks launch. Clean only explicitly
+  project-owned, rebuildable artifacts under the storage policy; never use global
+  Docker prune to make GPU capacity appear.
 - Preserve the operator, contract/authorization basis, timestamped UUID snapshot,
   holder identity (if any), cell-to-UUID mapping, and blocked/lost-capacity reason.
