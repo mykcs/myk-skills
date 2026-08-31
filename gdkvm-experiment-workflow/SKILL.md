@@ -4,7 +4,7 @@ description: Orchestrate reproducible GDKVM and related GPU experiments from pro
 license: MIT
 metadata:
   type: skill
-  version: "2.1.0"
+  version: "2.2.0"
   updated: "2026-08-31"
   category: ml-experiment-orchestration
   source_of_truth:
@@ -13,6 +13,7 @@ metadata:
     - "The current zju-server policy and active OpenEvo campaign/launch gate governing lyg2171"
     - "references/host-cases.md"
     - "references/recent-gpu-cautions.md"
+    - "references/engineering-failure-gates.md"
     - "references/rtx6-operations.md"
     - "references/experiment-contract.md"
   tags: [gdkvm, experiment, whs512, rtx6, lyg2171, wangr-dev, rtx5090, hydra, torchrun, systemd-run, reproducibility]
@@ -29,6 +30,7 @@ Run GDKVM experiments as a resumable, evidence-bound program. The default is cal
 - **Resume / retry an existing run**: resolve the current frozen contract and ledger first. Continue only missing eligible work without changing its scientific semantics.
 - **New phase / sweep / changed hypothesis**: resolve the host case first; read [references/experiment-contract.md](references/experiment-contract.md) for `whs512`, or the active project campaign/launch-gate contract for `lyg2171`. Freeze the decision rule and budget before looking at new outcomes, then commit and push the applicable contract before formal consumption.
 - **Any live host action**: read [references/host-cases.md](references/host-cases.md) and [references/recent-gpu-cautions.md](references/recent-gpu-cautions.md), then the matching host reference ([RTX6 operations](references/rtx6-operations.md) for `whs512`; the parent `zju-server` policy/runbook for `lyg2171`). Host policy and live evidence override historical cases and examples.
+- **Any permission, writeability, exact-resume, or test failure**: read [references/engineering-failure-gates.md](references/engineering-failure-gates.md) before retrying. Preserve the failed attempt and keep host control-plane identity separate from container payload identity.
 
 The July 2026 phase plans, cases, and `gdkvm-train-launcher` are historical evidence. On `whs512`, reuse demonstrated invariants such as durable `systemd-run` supervision; on `lyg2171`, follow the parent/OpenEvo supervisor instead. Do not inherit plaintext credentials, fixed GPU indices, stale branches, fixed five-arm designs, or old approval gates.
 
@@ -36,7 +38,7 @@ The July 2026 phase plans, cases, and `gdkvm-train-launcher` are historical evid
 
 ### 1. Resolve current truth
 
-Confirm the actual local repository, remote, branch, dirty state, and current protocol/result entrypoint. For `whs512`, verify host identity, operator identity, repository SHA/dirty state, runtime identity, GPU index-to-UUID map, occupancy, disk, active units, output paths, and tracking mode. For `lyg2171`, verify the parent-policy operator path, active project contract/holder state, launcher/runtime identity, GPU UUID pool, occupancy, storage, output paths, and tracking mode.
+Confirm the actual local repository, remote, branch, dirty state, and current protocol/result entrypoint. Use the parent-approved root operator path for host-side Git/Docker/staging/test orchestration; a container UID such as `1001:1001` is payload identity, not the SSH account. For `whs512`, verify host identity, operator identity, repository SHA/dirty state, runtime identity, GPU index-to-UUID map, occupancy, disk, active units, output paths, and tracking mode. For `lyg2171`, verify the parent-policy operator path, active project contract/holder state, launcher/runtime identity, GPU UUID pool, occupancy, storage, output paths, and tracking mode.
 
 Classify each prerequisite:
 
@@ -64,6 +66,12 @@ For a new or materially changed trainer/runtime/evaluator path:
 3. Save a receipt binding the exact runtime fingerprint and test scope.
 4. Scale only after PASS and only to the frozen matrix.
 
+Run the tests in the declared project runtime. If host Python lacks `pytest`, do
+not install packages into the host merely to make the command pass: preserve the
+first failure, use zero-install `py_compile` plus authority/source-SHA,
+topology/config, and image-identity validators, and run full pytest only inside
+the approved Docker/venv runtime.
+
 If the fingerprint matches a prior PASS, reuse it and run only the live gate. A monitor disconnect or SSH failure is not evidence that the remote workload failed; inspect the unit, PID, GPU UUID, output heartbeat, and durable artifacts before relaunching.
 
 ### 4. Gate and schedule GPUs
@@ -79,11 +87,16 @@ If the fingerprint matches a prior PASS, reuse it and run only the live gate. A 
 
 Prepare code, config, output directory, deterministic cell identity, and command before the final live gate. On `whs512`, atomically claim the exact campaign/arm/seed/attempt in the shared durable control root and hold its per-cell fencing lock across the final token/state check, live gate, `systemd-run`, and launch-state persistence. On `lyg2171`, use the parent-policy/OpenEvo holder and launch-gate protocol with the project’s canonical `scripts/oe`; do not import RTX6’s systemd or fencing contract. If a claim already exists, follow that host’s fenced reconciliation/orphan path and never relaunch the attempt. Monitor with the host’s supported supervisor, GPU telemetry, and output heartbeats.
 
+When the payload runs as `1001:1001`, the host/root control plane must create the
+fresh append-only output/recovery namespace and run a target-runtime write gate
+after model/adapter load but before the first generation. A failed mkdir/write/
+rename gate blocks all model calls and formal credit; do not widen permissions.
+
 On `whs512`, do not use `nohup`, `tmux`, `screen`, `ssh -f`, or a bare background process for formal long runs; stop only the exact project-owned unit. On `lyg2171`, follow the parent policy’s supported `scripts/oe`/supervisor semantics instead of assuming a direct-host systemd unit. For either host, stop only an exact project-owned workload when the user request, frozen stop rule, or safe recovery path authorizes it; do not `kill <pid>` as routine control.
 
 ### 6. Recover without changing the science
 
-Continue autonomously for reward-blind, semantics-preserving repairs: reconnect monitoring, fix evidence serialization, correct an output/path wrapper, use a contract-permitted tracking fallback, or exact-resume missing eligible cells within the frozen retry and budget rules.
+Continue autonomously for reward-blind, semantics-preserving repairs: reconnect monitoring, fix evidence serialization, correct an output/path wrapper, use a contract-permitted tracking fallback, or exact-resume missing eligible cells within the frozen retry and budget rules. Before exact-resume, recheck manifest/hash/source/runtime/image/selection identities; reuse matching write-once selection receipts, use a fresh monotonic container name and output namespace, and never overwrite/delete failed evidence.
 
 Stop and re-freeze before changing an arm, seed set, data split, evaluator, primary metric, retry semantics, decision rule, budget, or claim boundary. Preserve failed attempts and reasons; never erase or relabel them to make the denominator look better.
 
