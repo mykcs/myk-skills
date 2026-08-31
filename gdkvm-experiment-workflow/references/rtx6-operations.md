@@ -1,6 +1,6 @@
-# RTX6 operations for GDKVM
+# `whs512` / RTX6 operations for GDKVM
 
-Read this reference immediately before any live RTX6 inspection or mutation. It records the operating shape, not permanent resource ownership.
+Read this reference immediately before any live `whs512`/RTX6 inspection or mutation. It records the operating shape, not permanent resource ownership. For `lyg2171`/`wangr-dev`, use [host-cases.md](host-cases.md) and the parent `zju-server` runbook instead; do not reuse these direct-host paths.
 
 ## Known profile and authority boundary
 

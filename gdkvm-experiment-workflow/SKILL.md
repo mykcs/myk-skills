@@ -1,6 +1,6 @@
 ---
 name: gdkvm-experiment-workflow
-description: Orchestrate reproducible GDKVM experiments on the RTX6 GPU server from protocol freeze through launch, monitoring, recovery, verification, and evidence closeout. Use for GDKVM phase/sweep/long-run work or when deciding how to safely continue an existing GDKVM experiment; status-only GPU questions should remain read-only.
+description: Orchestrate reproducible GDKVM and related GPU experiments from protocol freeze through launch, monitoring, recovery, verification, and evidence closeout. Use for work on whs512/rtx6 (4×RTX 3090) or lyg2171/wangr-dev (8×RTX 5090); status-only GPU questions remain read-only.
 license: MIT
 metadata:
   type: skill
@@ -10,9 +10,10 @@ metadata:
   source_of_truth:
     - "The active GDKVM repository protocol and current result ledger"
     - "The current host/account/GPU policy governing RTX6"
+    - "references/host-cases.md"
     - "references/rtx6-operations.md"
     - "references/experiment-contract.md"
-  tags: [gdkvm, experiment, rtx6, hydra, torchrun, systemd-run, reproducibility]
+  tags: [gdkvm, experiment, whs512, rtx6, lyg2171, wangr-dev, rtx5090, hydra, torchrun, systemd-run, reproducibility]
   user_invocable: true
 ---
 
@@ -25,7 +26,7 @@ Run GDKVM experiments as a resumable, evidence-bound program. The default is cal
 - **Status / “谁在跑” / progress**: do read-only inspection and report evidence. Do not start, stop, retry, edit a protocol, or claim ownership from memory alone.
 - **Resume / retry an existing run**: resolve the current frozen contract and ledger first. Continue only missing eligible work without changing its scientific semantics.
 - **New phase / sweep / changed hypothesis**: read [references/experiment-contract.md](references/experiment-contract.md), freeze the decision rule and budget before looking at new outcomes, then commit and push the contract before formal consumption.
-- **Any live RTX6 action**: read [references/rtx6-operations.md](references/rtx6-operations.md) immediately before acting. Host policy and live evidence override historical cases and examples.
+- **Any live host action**: read [references/host-cases.md](references/host-cases.md), then the matching host reference ([RTX6 operations](references/rtx6-operations.md) for `whs512`; the parent `zju-server` policy/runbook for `lyg2171`). Host policy and live evidence override historical cases and examples.
 
 The July 2026 phase plans, cases, and `gdkvm-train-launcher` are historical evidence. Reuse demonstrated invariants such as durable `systemd-run` supervision, but do not inherit plaintext credentials, fixed GPU indices, stale branches, fixed five-arm designs, or old approval gates.
 
