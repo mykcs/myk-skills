@@ -71,9 +71,11 @@ Authoritative sources: `/Users/myk/Claude/Projects/zju-server/docs/experiment-ex
   external workload on either host. If ownership cannot be established, leave
   the cell blocked.
 
-Validated experiment payloads on `lyg2171` should use the approved isolated
-non-root runtime (`1001:1001`, no Docker socket/privileged mode); container
-identity does not change the host operator or GPU authorization boundary.
+When the active project/runtime contract selects an isolated payload on
+`lyg2171`, preserve the approved non-root boundary (`1001:1001`, no Docker
+socket, non-privileged). If the contract permits root-direct ordinary execution,
+follow the parent policy and project launcher instead. Container UID never
+changes the host operator or GPU authorization boundary.
 
 ## Evidence and qualification
 
