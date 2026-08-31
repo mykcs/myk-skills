@@ -7,7 +7,14 @@ This is a routing reference, not a resource-authorization list. Read it before l
 **Use for:** GDKVM Hydra/TorchRun work on the direct RTX6 server.
 
 - The user-facing host label is `whs512`; historical verified identity is `rtx6` at `172.31.71.202`.
-- Historical login is `RuiWang2024` through the macOS Keychain item `gdkvm-202-sshpass`; never print or store its secret. Use strict host-key checking and the Keychain→`sshpass -e` path described in [rtx6-operations.md](rtx6-operations.md).
+- Historical login evidence mentions `RuiWang2024` through the macOS Keychain item
+  `gdkvm-202-sshpass`; never print or store its secret. Current Agents must use
+  the parent-approved root/operator path for host-side Git, staging, supervision,
+  and tests. The historical user/key path is not a normal fallback; if root
+  access is unavailable, stop and re-qualify rather than silently selecting it.
+- Read [rtx6-operations.md](rtx6-operations.md) for historical connection and
+  supervision evidence, while treating current parent policy and live identity
+  as authoritative.
 - Hardware observed on 2026-08-11: four NVIDIA GeForce RTX 3090 devices, 24,576 MiB each.
 - Historical GDKVM checkout: `/data/wr2024/Repo/code_modern_v3`; typical runtime shape is Hydra + `torchrun`, supervised by the user systemd manager.
 - A historical 0/1 split and another user’s old 2/3 ownership are not current authorization. Resolve exact allowed GPU UUIDs from the active host/project contract and perform the immediate two-sample live gate.

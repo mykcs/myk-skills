@@ -7,7 +7,8 @@ Read this reference immediately before any live `whs512`/RTX6 inspection or muta
 Last confirmed from this Mac on 2026-08-11:
 
 - host `rtx6` / `172.31.71.202`;
-- login `RuiWang2024`;
+- historical login evidence: `RuiWang2024` (not the default operator for new
+  work; use the current parent-approved root/operator path);
 - four RTX 3090 GPUs;
 - GDKVM checkout historically at `/data/wr2024/Repo/code_modern_v3`;
 - long runs survive SSH through the user systemd manager.
@@ -16,7 +17,10 @@ These are discovery hints. Re-verify them live. Historical GPU 0/1 use and GPU 2
 
 ## Secure connection
 
-The password belongs only in macOS Keychain service `gdkvm-202-sshpass`, account `RuiWang2024@172.31.71.202`. Never place it in a prompt, file, note, process argument, or log.
+The historical password belongs only in macOS Keychain service
+`gdkvm-202-sshpass`, account `RuiWang2024@172.31.71.202`. Never place it in a
+prompt, file, note, process argument, or log. Do not select this legacy path for
+normal new work merely because an old command uses it.
 
 ```bash
 SSHPASS="$(security find-generic-password \
