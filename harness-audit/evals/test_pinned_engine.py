@@ -89,7 +89,7 @@ class TestPinnedHarnessAuditEngine(unittest.TestCase):
             self.assertTrue(report["deterministic"])
             self.assertEqual(report["rubric_version"], EXPECTED_RUBRIC)
             self.assertEqual(report["target_mode"], "consumer")
-            self.assertEqual(Path(report["root_dir"]), root.resolve())
+            self.assertEqual(Path(report["root_dir"]).resolve(), root.resolve())
             self.assertEqual(set(report["categories"]), EXPECTED_CATEGORIES)
             self.assertEqual(len(report["categories"]), 7)
 
