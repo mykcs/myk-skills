@@ -1,15 +1,21 @@
-name: host-self-evolve CI (manual fallback)
+name: Repository CI
 
 on:
+  pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: host-self-evolve-manual-${{ github.ref }}
+  group: repository-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
-    name: Repository validation fallback
+    name: Repository validation
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
