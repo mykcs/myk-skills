@@ -61,7 +61,7 @@ python3 -m pip install -r requirements-ci.txt
 python3 scripts/ci_check.py
 ```
 
-Routine pull-request and `main` validation runs through Cloudflare Workers Builds. GitHub Actions is retained only as a manual fallback; both providers call the same `scripts/ci_check.py` policy entrypoint.
+Routine pull-request and `main` validation runs through GitHub Actions and is enforced by the GitHub `main` ruleset. Cloudflare Workers Builds may remain as non-blocking secondary evidence during the provider cutover; both providers call the same `scripts/ci_check.py` policy entrypoint.
 
 ## Reference Document Organization
 

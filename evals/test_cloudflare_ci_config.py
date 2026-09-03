@@ -1,11 +1,10 @@
-"""Safety regressions for the CI-only Cloudflare Workers configuration."""
+"""Safety regressions for the GitHub-primary / Cloudflare-secondary CI architecture."""
 
 from __future__ import annotations
 
 import json
 import unittest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -34,10 +33,7 @@ class CloudflareCiConfigTests(unittest.TestCase):
             for line in (ROOT / "requirements-ci.txt").read_text(encoding="utf-8").splitlines()
             if line.strip() and not line.lstrip().startswith("#")
         }
-        self.assertEqual(
-            requirements,
-            {"PyYAML==6.0.3", "shellcheck-py==0.11.0.1"},
-        )
+        self.assertEqual(requirements, {"PyYAML==6.0.3", "shellcheck-py==0.11.0.1"})
         self.assertEqual((ROOT / ".python-version").read_text(encoding="utf-8").strip(), "3.12")
 
     def test_generated_cloudflare_state_is_ignored(self) -> None:
@@ -58,29 +54,27 @@ class CloudflareCiConfigTests(unittest.TestCase):
         self.assertIn('"status": "passed"', build)
         self.assertIn("scripts/ci_check.py", build)
 
-    def test_github_actions_is_manual_fallback_only(self) -> None:
-        workflow = (ROOT / ".github" / "workflows" / "rich-audit-ci.yml").read_text(
-            encoding="utf-8"
-        )
+    def test_github_actions_is_routine_gate(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "rich-audit-ci.yml").read_text(encoding="utf-8")
         trigger_block = workflow.split("\non:\n", 1)[1].split("\n\n", 1)[0]
+        self.assertIn("pull_request:", trigger_block)
+        self.assertIn("push:", trigger_block)
+        self.assertIn("branches: [main]", trigger_block)
         self.assertIn("workflow_dispatch:", trigger_block)
-        self.assertNotIn("push:", trigger_block)
-        self.assertNotIn("pull_request:", trigger_block)
+        self.assertIn("name: Repository validation", workflow)
         self.assertIn("python3 scripts/ci_check.py", workflow)
         self.assertIn("requirements-ci.txt", workflow)
+        self.assertRegex(workflow, r"actions/checkout@[0-9a-f]{40}")
+        self.assertRegex(workflow, r"actions/setup-python@[0-9a-f]{40}")
 
-    def test_required_check_policy_accounts_for_skipped_builds(self) -> None:
-        policy = (ROOT / "docs" / "cloudflare-required-check-policy.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("do not configure", policy.lower())
-        self.assertIn("global required status check", policy)
+    def test_cloudflare_is_secondary_not_required(self) -> None:
+        policy = (ROOT / "docs" / "cloudflare-required-check-policy.md").read_text(encoding="utf-8")
+        self.assertIn("GitHub Actions is the canonical required CI provider", policy)
+        self.assertIn("Repository validation", policy)
         self.assertIn("Build watch paths", policy)
         self.assertIn("docs/*", policy)
-        self.assertIn("exact latest head commit", policy)
-        self.assertIn("Cloudflare Workers & Pages GitHub App", policy)
+        self.assertIn("Cloudflare Workers Builds is secondary", policy)
         self.assertIn("scripts/ci_check.py", policy)
-        self.assertIn("not proof of the live dashboard state", policy)
 
 
 if __name__ == "__main__":
