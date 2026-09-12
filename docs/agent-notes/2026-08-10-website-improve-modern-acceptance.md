@@ -91,6 +91,27 @@ Do not remove the legacy website-improve generator mode yet.
 
 Remove compatibility only after a fresh live-consumer scan proves no active caller depends on it.
 
+## 2026-09-12 live-verification closeout addendum
+
+A later multi-site Ponytail-style closeout exposed a gap between the existing
+"fresh evidence" principle and how completion was actually re-checked. The first
+completion verdict leaned too heavily on prior conversation/PR evidence; a fresh
+current-state pass then found new dependency advisories on one site. The durable
+fix is in `website-improve/references/quality-checks.md` and `website-improve/references/validation-checklist.md`.
+
+Coverage ledger:
+
+| Feedback / failure | Repeated? | Reusable lesson | Canonical destination | Why there |
+| --- | --- | --- | --- | --- |
+| Completion was declared from older evidence before a full current-state refresh | **Yes** — same stale-evidence class already warned about here | Prior PASS is comparison evidence only; refresh current integration + provider/check state and rerun relevant evidence | `website-improve/references/quality-checks.md` §1/§8 + `website-improve/references/validation-checklist.md` §4 | These are the active acceptance/check surfaces |
+| A live OSA probe initially guessed an unlocalized poster URL and received 404 | No | Enumerate intended routes from current routing/sitemap before classifying a 404 | `website-improve/references/quality-checks.md` §2 + validation §4 | Route truth belongs to deployed-behavior verification |
+| `npm audit` hit a mirror that did not implement the advisory endpoint | No in this workflow | Treat mirror/API failure as unavailable evidence; rerun against an authoritative advisory source | `website-improve/references/quality-checks.md` §3 + validation §5 | Dependency-security evidence owner |
+| A framework major bump exposed an obsolete experimental flag and stale version prose | Known category; existing guard worked | Keep project check/build/browser gates and doc-version sync; do not add a duplicate rule | existing build-safety guidance + historical §13 doc-sync lesson | Existing rule caught the issue as intended |
+
+Temporary state is intentionally not promoted here: current PR numbers/statuses, CI run
+IDs, preview URLs, local worktree paths, and one-time deployment state must be re-read
+from their live owners in future sessions.
+
 ## Safe next work
 
 There is no remaining required “modern verdict → active skill migration” dependency; that chain is complete.

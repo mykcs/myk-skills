@@ -28,7 +28,11 @@ Useful comparison output:
 - stale findings whose underlying evidence no longer reproduces.
 
 Do not treat an empty text diff alone as proof that the site is globally clean; the
-current audit still needs scope-relevant execution evidence.
+current audit still needs scope-relevant execution evidence. A prior chat verdict, PR
+check, deployment, or security scan is historical comparison evidence, not a reusable
+PASS. For a resumed closeout or a request to confirm that work is *still* complete,
+resolve the current integration ref/SHA and current provider/check state first, then
+rerun the scope-relevant evidence against that state.
 
 ## 2. Deployed behavior checks
 
@@ -43,6 +47,11 @@ Use live HTTP/browser evidence for changes such as:
 - production-only rendering/asset behavior;
 - a requested deployment/release.
 
+Before classifying a live-route failure, derive the intended route set from the current
+router/static-page tree, sitemap, or equivalent project-owned source. A 404 on a guessed
+alias (for example, omitting a required locale prefix) is evidence that the guess may be
+wrong; it is not by itself a site regression.
+
 Do not require deployed curl for a source-only task with publication `NOT_REQUESTED`
 when the requested outcome is fully verifiable locally.
 
@@ -53,7 +62,13 @@ When dependency or vulnerability work is in scope:
 - use the project's current package manager and lockfile;
 - use the authoritative registry/advisory source appropriate to the ecosystem;
 - distinguish runtime vs dev-only risk;
-- record the command/source used so a Verifier can reproduce the claim.
+- record the command/source used so a Verifier can reproduce the claim;
+- treat advisory results as time-sensitive when the user asks for the current security
+  state: refresh them on the current integration tree instead of carrying forward an
+  older clean result;
+- if a configured registry or mirror returns an unsupported-advisory/404-style error,
+  classify the security evidence as unavailable and rerun against an authoritative
+  advisory-capable source before reporting PASS or FAIL.
 
 Historical npm registry workarounds are examples, not universal commands for every
 site.
