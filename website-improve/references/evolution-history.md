@@ -36,6 +36,11 @@
 
 **升级 agent 硬规则**：发现目标版本在黑名单 → 立即停止升级并报告，不继续。
 
+**历史状态说明（2026-09-12）**：上表记录的是 2026-06-02 当时对 `4.3.0` 的
+真实兼容性证据，不是永久的 `4.3.x` 版本禁令。后续补丁版本可以改变 peer/兼容
+状态；未来升级必须重新读取当前 registry/advisory/peer 范围并跑项目自己的
+install/check/build/browser 测试，不能把一个旧小版本事故外推成整条版本线的永恒规则。
+
 **§13 — 文档与代码同步检查（CONTEXT.md/CLAUDE.md vs package.json）**
 
 GDKVM 审计时发现 `CONTEXT.md` 写 `Tailwind CSS ^4.3.0` 但 `package.json` 是 `^4.1.18`（**case 触发**）— 文档漂移是审计的副产品。

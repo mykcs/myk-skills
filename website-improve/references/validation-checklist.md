@@ -39,6 +39,10 @@ benchmark output.
 - [ ] Build/test/browser/curl/native evidence matches the changed layer.
 - [ ] Deployed-layer evidence is required when deployed behavior/publication is part of the requested outcome.
 - [ ] Missing/skipped/unavailable hosted checks are not described as PASS.
+- [ ] A resumed or repeat completion check refreshes the current integration SHA and
+      current PR/CI/deployment state instead of inheriting a prior chat/session PASS.
+- [ ] Live-route acceptance derives expected URLs from current project routing/sitemap
+      evidence before treating a 404 as a regression.
 
 ## 5. Build and dependency safety
 
@@ -46,6 +50,10 @@ benchmark output.
 - [ ] Project-owned install/build/test commands pass after relevant config changes.
 - [ ] Layout/interactive changes receive browser/visual evidence matching declared browser targets.
 - [ ] Findings are based on actual evidence, not speculative “verify X” TODOs.
+- [ ] Dependency-security claims use an authoritative advisory-capable source; a mirror
+      that cannot serve the advisory API is an evidence-source failure, not PASS/FAIL.
+- [ ] Current-security claims refresh advisory data on the current integration tree when
+      earlier audit evidence may have gone stale.
 
 ## 6. Session isolation and ownership
 
