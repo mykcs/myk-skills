@@ -8,6 +8,21 @@ This is the shared semantic source of truth for a durable owner preference:
 
 This lens applies across projects and Agent harnesses. Project repositories keep only a thin pointer plus local product/validation constraints; they must not fork this document into divergent copies.
 
+## Human preference evidence
+
+This file is the reusable web-expression lens, not the storage location for the owner's growing feedback corpus.
+
+Before substantial human-facing copy/design work, also read the current learned evidence in:
+
+- https://github.com/mykcs/.codex/blob/main/website-learning/shared/content/HUMAN_EXPRESSION.md
+- https://github.com/mykcs/.codex/blob/main/website-learning/shared/design/LEARNED_PREFERENCES.md
+
+Direct owner feedback, shared/site-specific learned experience, and conversation closeout are centralized under:
+
+- https://github.com/mykcs/.codex/tree/main/website-learning
+
+Project-specific current truth remains in each project repository. This reference continues to own general semantic HTML / information-flow technique and should not duplicate the RAW or learned preference corpus.
+
 ## Situational trigger
 
 Evaluate this lens whenever a change can alter what a person sees or understands in a rendered web surface, including a request that sounds as small as “add one item/content block to this page.” Typical cues include:
