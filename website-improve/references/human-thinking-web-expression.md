@@ -12,7 +12,11 @@ This lens applies across projects and Agent harnesses. Project repositories keep
 
 This file is the reusable web-expression lens, not the storage location for the owner's growing feedback corpus.
 
-Before substantial human-facing copy/design work, also read the current learned evidence in:
+Before substantial human-facing copy/design work, read the current shared human-expression standard first:
+
+- https://github.com/mykcs/.codex/blob/main/website-governance/HUMAN_EXPRESSION_STANDARD.md
+
+Then load learned evidence when prior owner feedback or failure families matter:
 
 - https://github.com/mykcs/.codex/blob/main/website-learning/shared/content/HUMAN_EXPRESSION.md
 - https://github.com/mykcs/.codex/blob/main/website-learning/shared/design/LEARNED_PREFERENCES.md
