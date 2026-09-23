@@ -50,16 +50,23 @@ Normal development and releases are intended to consume zero Cloudflare Pages Bu
 
 This sequence is an important lesson: an architecture decision is current, not eternal. When the user changes the actual objective, re-read code/config/current docs/live provider state and update the owning decision rather than preserving an obsolete conclusion.
 
-### `mykcs/mykcs.github.io`
+### `mykcs/personal-homepage`
 
-Different topology, intentionally:
+Personal homepage topology, intentionally split by role:
 
 ```text
-GitHub Pages = canonical/indexable Production
-Cloudflare Pages = noindex mirror/review + scoped /api/scholar runtime
+mykcs/personal-homepage (Private)
+  -> source of truth + Cloudflare Pages wangrui92
+  -> canonical/indexable Production + scoped /api/scholar
+
+mykcs/mykcs.github.io (Public)
+  -> redirect-only stable gateway
+
+wangrui2025/wangrui2025.github.io (Public)
+  -> academic compatibility gateway
 ```
 
-Adding Vercel only for Preview would create a third provider without replacing an existing required role, so the `basemodel` topology should not be copied mechanically.
+Do not make the private source public merely to publish `mykcs.github.io`. The public gateway must stay tiny and must not copy the Astro application or private Git history. Both compatibility gateways redirect directly to the current canonical serving host. A future serving-host migration updates the gateway targets and SEO identity together.
 
 ### `mykcs/content2html`
 
