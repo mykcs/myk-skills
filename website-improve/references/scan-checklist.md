@@ -1451,7 +1451,7 @@ done
 **检测命令**（gh api 双侧验证）：
 ```bash
 # 对所有 active site 跑双侧验证
-for repo in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/OSA; do
+for repo in mykcs/personal-homepage wangrui2025/GDKVM wangrui2025/osa mykcs/OSA; do
   status=$(gh api "repos/$repo" -q '.full_name' 2>/dev/null)
   if [ -z "$status" ]; then
     echo "MISSING: $repo (gh api 404 — stale remote or wrong owner)"
@@ -1472,7 +1472,7 @@ done
           set -euo pipefail
           echo "::group::§14.7 Cross-repo owner double-verify"
           failed=0
-          for repo in mykcs/mykcs.github.io wangrui2025/GDKVM wangrui2025/osa mykcs/OSA; do
+          for repo in mykcs/personal-homepage wangrui2025/GDKVM wangrui2025/osa mykcs/OSA; do
             status=$(gh api "repos/$repo" -q '.full_name' 2>/dev/null || echo "")
             if [ -z "$status" ]; then
               echo "::error::MISSING: $repo (gh api 404 — stale remote or wrong owner)"
