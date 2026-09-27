@@ -18,12 +18,12 @@ Before substantial human-facing copy/design work, read the current shared human-
 
 Then load learned evidence when prior owner feedback or failure families matter:
 
-- https://github.com/mykcs/.codex/blob/main/website-learning/shared/content/HUMAN_EXPRESSION.md
-- https://github.com/mykcs/.codex/blob/main/website-learning/shared/design/LEARNED_PREFERENCES.md
+- https://github.com/mykcs/.agents/blob/main/docs/learning/shared/content/HUMAN_EXPRESSION.md
+- https://github.com/mykcs/.agents/blob/main/docs/learning/shared/design/LEARNED_PREFERENCES.md
 
 Direct owner feedback, shared/site-specific learned experience, and conversation closeout are centralized under:
 
-- https://github.com/mykcs/.codex/tree/main/website-learning
+- https://github.com/mykcs/.agents/tree/main/docs/learning
 
 Project-specific current truth remains in each project repository. This reference continues to own general semantic HTML / information-flow technique and should not duplicate the RAW or learned preference corpus.
 
