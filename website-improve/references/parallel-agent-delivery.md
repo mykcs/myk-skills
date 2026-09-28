@@ -35,6 +35,26 @@ Each worker conversation should:
 
 A worker PR may receive provider validation when the repository automatically triggers it. That consumption must be counted honestly; Draft status does not make a provider build disappear.
 
+## Sidecar reviewer mode for an active workline
+
+When one Agent already owns and is actively mutating a live PR branch or workline, and a second Agent is asked to help without disrupting it, the second Agent should default to a **sidecar reviewer** rather than becoming another writer on that same mutable branch.
+
+The sidecar should:
+
+1. refresh the live PR head/base, source-branch tip, mergeability, required checks/ruleset, owning provider state, and relevant overlapping work before acting;
+2. start read-only and review backward from the final acceptance contract to the first missing gate, so diagnosis targets the next real blocker rather than duplicating the active writer's edits;
+3. avoid rebasing, force-pushing, or directly pushing the active writer's branch unless ownership has explicitly transferred;
+4. when a code fix is genuinely useful, prepare it on an isolated assist branch or commit derived from the exact current head, then re-read the live head before handoff; if the head moved, treat the old patch and its acceptance evidence as stale and re-evaluate instead of silently transplanting it;
+5. mutate orthogonal control-plane surfaces such as aliases, provider configuration, or rulesets only when current project/user authority already permits that exact action and the target identity can be verified; helper status never creates new permission;
+6. leave concise exact-head-bound comments or handoffs when coordination is useful, and avoid repeating the same blocker when the task asks for milestone-only notification.
+
+This mode complements the worker/integration pattern above. Independent worklines can still use normal parallel worker branches, and an explicit ownership transfer may make the helper the new writer after live state is refreshed.
+
+Boundary:
+- sidecar review does not authorize bypassing required checks, changing billing, widening release/security/scientific authority, or mutating provider control planes outside existing permission;
+- provider/check names and project-specific acceptance lanes remain local truth rather than shared constants;
+- if the only useful work would collide with the active writer and no isolated or read-only contribution remains, waiting is safer than creating a second writer.
+
 ## Integration-conversation contract
 
 A fresh integration conversation should:
