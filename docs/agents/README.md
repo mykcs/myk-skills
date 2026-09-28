@@ -72,6 +72,10 @@ python3 scripts/ci_check.py
 
 For a changed skill, also run its task-specific tests/evals when present. A skill is not complete merely because the file exists; its trigger, workflow, references and validation path must remain coherent.
 
+## CI contract
+
+This repository uses **STANDARD_CI** under the shared [mykcs/.agents CI standard](https://github.com/mykcs/.agents/blob/main/docs/agents/CI_STANDARD.md). `scripts/ci_check.py` owns the provider-neutral acceptance semantics. The active strict `main` ruleset requires the `Repository validation` context on pull requests; the live rule currently matches the context without an `integration_id` binding. Cloudflare Workers Builds is supplemental and does not replace that required check. Keep the existing provider roles and workflow triggers aligned with the executable owner.
+
 ## Agent notes vs current truth
 
 `docs/agent-notes/` contains durable handoffs such as harness CI cleanup and website-improve migration/acceptance work. These notes explain decisions and regressions, but current code/tests/inventory win if a dated note becomes stale.
