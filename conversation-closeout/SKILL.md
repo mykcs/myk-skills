@@ -40,7 +40,7 @@ Be generous in candidate discovery and strict in what becomes durable.
 
 ## Ownership model
 
-This Skill owns the closeout workflow. It does not own every destination.
+This Skill is the detailed execution/orchestration surface. Canonical cross-tool learning evidence and schema semantics remain owned by mykcs/.agents/docs/learning. The Skill does not own every destination.
 
 Use one-fact-one-owner:
 
