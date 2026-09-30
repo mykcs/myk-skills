@@ -87,16 +87,19 @@ class TestFreshAgentAcceptanceSkill(unittest.TestCase):
         self.assertEqual(
             set(by_id),
             {
+                "originator-general-completed-work",
                 "originator-contrastive-boundary",
-                "originator-fallback-behavior",
                 "evaluator-replicated-results",
             },
         )
         self.assertTrue(
-            by_id["originator-contrastive-boundary"]["expected"]["contrastive_boundary_witness"]
+            by_id["originator-general-completed-work"]["expected"]["infers_target_from_conversation"]
         )
         self.assertFalse(
-            by_id["originator-contrastive-boundary"]["expected"]["prompt_names_changed_rule_or_file"]
+            by_id["originator-general-completed-work"]["expected"]["prompt_reveals_change"]
+        )
+        self.assertTrue(
+            by_id["originator-contrastive-boundary"]["expected"]["contrastive_boundary_witness"]
         )
         self.assertFalse(
             by_id["evaluator-replicated-results"]["expected"]["rubric_rewritten_after_outputs"]
