@@ -29,6 +29,26 @@ class WorkflowEvolutionContractTests(unittest.TestCase):
                 with self.subTest(source=str(path), target=target):
                     self.assertTrue((path.parent / target.split("#", 1)[0]).is_file())
 
+    def test_central_migration_loop_is_closed_and_non_gaming(self):
+        text = (SKILL / "SKILL.md").read_text()
+        reference = (SKILL / "references/adoption-and-review.md").read_text()
+        for marker in [
+            "Change the canonical owner first",
+            "Audit consumers and registry coverage",
+            "Never contaminate a correct project with obsolete wording",
+            "Keep hot routers small without deleting load-bearing discovery",
+            "Treat the auditor as part of the system",
+            "zero unexplained findings",
+            "latest-main re-audit",
+        ]:
+            self.assertIn(marker, text + "\n" + reference)
+
+        payload = json.loads((SKILL / "evals/evals.json").read_text())
+        case = next(case for case in payload["evals"] if case["id"] == 19)
+        self.assertTrue(case["should_trigger"])
+        self.assertIn("stale auditor expectations", case["expected_output"])
+        self.assertIn("machine-tested startup discovery", case["expected_output"])
+
     def test_evaluation_fixtures_are_complete_and_balanced(self):
         payload = json.loads((SKILL / "evals/evals.json").read_text())
         self.assertEqual(payload["skill_name"], SKILL.name)

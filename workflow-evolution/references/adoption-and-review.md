@@ -60,6 +60,32 @@ The skill contains no polling daemon, background subscription or hidden auto-mig
 Recurring invocation is only a future opt-in option through an external scheduler with explicitly
 chosen cadence, scope, authority and notification destination; this draft creates no schedule.
 
+## Central migration closeout
+
+For an account-level semantic change, use this compact sequence:
+
+`canonical owner -> consumer applicability -> registry coverage -> local repair -> audit repair -> exact-head integration -> latest-main re-audit`
+
+Keep a per-target distinction between:
+- aligned;
+- real drift repaired;
+- justified exception;
+- active-writer/dependency blocker;
+- infrastructure/provider blocker;
+- registry/auditor defect.
+
+Do not repair an auditor warning by copying stale wording into a correct project. First decide
+whether the project or the audit expectation is stale. Conversely, do not dismiss a warning just
+because it is inconvenient: a missing stable router, wrong owner link, or overloaded root bootstrap
+is a real adoption defect when the current central contract requires it.
+
+When shrinking root Agent instructions, search repository tests and other executable callers for
+startup-visible contract markers before deleting prose. The goal is progressive disclosure, not
+loss of discoverability.
+
+Close the migration only after a re-audit against the latest integrated state. Preserve justified
+exceptions explicitly; otherwise leave no unexplained finding behind.
+
 ## Applicability before copying
 
 For each relevant consumer, answer:
