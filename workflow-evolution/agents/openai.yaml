@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Evolution"
+  short_description: "Apply central guidance and improve workflows"
+  default_prompt: "Use $workflow-evolution to review my development system, apply current central guidance to each relevant repository, and complete authorized safe improvements."

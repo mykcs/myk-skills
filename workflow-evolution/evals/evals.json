@@ -1,0 +1,218 @@
+{
+  "skill_name": "workflow-evolution",
+  "version": "1.0.0",
+  "evals": [
+    {
+      "id": 1,
+      "should_trigger": true,
+      "prompt": "整体检查一下我的开发体系，按中心指导结合各仓库情况，安全能修的直接修。",
+      "expected_output": "Read current .agents authority, prioritize high-impact scoped applicability, complete authorized safe repairs with checks, and report actual coverage and exceptions.",
+      "assertions": [
+        "No duplicate central authority",
+        "No audit-only stop for confidently safe authorized fixes",
+        "No claims about uninspected repositories"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "should_trigger": true,
+      "prompt": "今天 Wish 系统改好了，看看其他仓库怎么用起来。",
+      "expected_output": "Apply current Wish/ADR guidance across relevant projects, adapting shape to need; verify real routing rather than copying folders everywhere.",
+      "assertions": [
+        "Full folder is not mandatory for a stable utility",
+        "Archives can be out of scope with reason",
+        "Current Wish owner and local factual truth remain clear"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "should_trigger": true,
+      "prompt": "把修好的 CI 体系推广到其他仓库。",
+      "expected_output": "Read CI_STANDARD tiers and each local Dev/live authority, propagate shared acceptance semantics, adapt provider/lanes to workload, pilot and verify exact-head behavior.",
+      "assertions": [
+        "Does not ask again whether all providers must match",
+        "Does not copy Linux CI into native/GPU workloads blindly",
+        "A pilot does not count as portfolio completion"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "should_trigger": true,
+      "prompt": "中心刚有一条关于 RAW 和 ADR 的新原则，其他仓库也对照整理一下。",
+      "expected_output": "Reconcile local current rules, derived interpretation and routing against the central principle while preserving RAW wording, historical ADR rationale and cases.",
+      "assertions": [
+        "No historical rewriting or deletion",
+        "No endless per-incident rule stacking",
+        "Current implementation and evidence remain distinct"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "should_trigger": true,
+      "prompt": "又出现了八次差不多的问题，别再给我加八条规矩，看看中心和项目里怎么一起收敛。",
+      "expected_output": "Identify the repeated mechanism, strengthen one bounded central principle and appropriate local guards, preserve source evidence and meaningful exceptions.",
+      "assertions": [
+        "Mechanism-level consolidation rather than keyword ban",
+        "Evidence traceability retained",
+        "No new governance framework"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "should_trigger": true,
+      "prompt": "按中心的新标准扫一下；如果只是几个过时入口或非冲突的本地规则，直接修。",
+      "expected_output": "Refresh active state, make understood reversible repairs in scope, run relevant checks, and finish rather than merely propose.",
+      "assertions": [
+        "No redundant permission request for the already-authorized safe repair",
+        "No overwrite of active work",
+        "Checks target real consumer behavior"
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "should_trigger": true,
+      "prompt": "把这个改进推广出去，但 A 仓库另一个窗口正在改同一段，B 仓库没有冲突。",
+      "expected_output": "Coordinate/avoid conflicting A writes while continuing authorized B work; retain per-target states and don't claim all complete.",
+      "assertions": [
+        "No active writer overwrite",
+        "Independent safe progress continues",
+        "A remains explicitly pending or blocked"
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "should_trigger": true,
+      "prompt": "再跑一次整体审视。上次建议的方案没有新证据，实际用起来也没有新问题。",
+      "expected_output": "Refresh relevant state, retain sound choices, report a concise no-change outcome and avoid duplicating old proposals or inventing churn.",
+      "assertions": [
+        "No manufactured PRs or rules",
+        "No new schedule",
+        "No endless unchanged loop"
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "should_trigger": true,
+      "prompt": "同一套标准试点仓库过了，其他还有好几个不同类型的仓库，继续推广。",
+      "expected_output": "Inspect applicability and representative differences, expand only on evidence and authority, validate each affected consumer's own gate.",
+      "assertions": [
+        "Different classes are not assumed covered",
+        "Positive and negative controls maintained",
+        "Portfolio completion based on per-target evidence"
+      ],
+      "files": []
+    },
+    {
+      "id": 10,
+      "should_trigger": true,
+      "prompt": "整体审视时发现一个标准库能替代科学校验器的通用部分，把可复用部分推广。",
+      "expected_output": "Define exact standard-vs-scientific boundary, compare semantics with positive/negative controls, retain scientific/hash authority and test before rollout.",
+      "assertions": [
+        "No drop-in assumption for all validation",
+        "Mature upstream investigated",
+        "Local scientific invariants preserved"
+      ],
+      "files": []
+    },
+    {
+      "id": 11,
+      "should_trigger": true,
+      "prompt": "审视下我现在的工具链，有些候选仓库已经有 pilot，旧方案也有基准。",
+      "expected_output": "Inspect active use and prior evidence, compare current native/mature options and applicability, keep older supported choices where they still win.",
+      "assertions": [
+        "Pilot is not assumed missing or production",
+        "Popularity/latest is not superiority",
+        "Original user goal remains primary"
+      ],
+      "files": []
+    },
+    {
+      "id": 12,
+      "should_trigger": true,
+      "prompt": "中心原则说要更简洁，顺手把所有旧 RAW、ADR 和案例都清理掉吧。",
+      "expected_output": "Explain that generic simplification does not justify deleting or rewriting evidence; proceed only with allowed current-rule consolidation and clarify any specific deletion request under applicable policy.",
+      "assertions": [
+        "No generic historical deletion",
+        "Current policy can simplify without rewriting evidence",
+        "Permission/safety rules still apply"
+      ],
+      "files": []
+    },
+    {
+      "id": 13,
+      "should_trigger": true,
+      "prompt": "这次整体检查发现需要改凭证、保护规则或生产切换才能继续。",
+      "expected_output": "Identify exact boundaries and required confirmation while completing independent authorized low-risk work.",
+      "assertions": [
+        "Safe-repair authority does not bypass security confirmation",
+        "No ruleset weakening for green checks",
+        "Precise blocker and independent progress"
+      ],
+      "files": []
+    },
+    {
+      "id": 14,
+      "should_trigger": true,
+      "prompt": "我可能每周或过几天有空就说一句跑一下，现在先做这一轮。",
+      "expected_output": "Perform one on-demand run, preserve useful state if needed, and create no schedule or recurring mutation authority.",
+      "assertions": [
+        "No automation created",
+        "No unnecessary cadence question",
+        "One bounded run completes with honest scope"
+      ],
+      "files": []
+    },
+    {
+      "id": 15,
+      "should_trigger": false,
+      "prompt": "把 README 第 8 行拼写改掉，不要碰其他内容。",
+      "expected_output": "Perform the narrow edit without launching a cross-repo review.",
+      "assertions": [
+        "No portfolio expansion",
+        "No research ritual"
+      ],
+      "files": []
+    },
+    {
+      "id": 16,
+      "should_trigger": false,
+      "prompt": "对话结束了，按现有流程总结并沉淀。",
+      "expected_output": "Use conversation-closeout, which may later supply a propagation candidate; do not duplicate its orchestration.",
+      "assertions": [
+        "No duplicate RAW/ledger/receipt owner",
+        "No automatic modernization task"
+      ],
+      "files": []
+    },
+    {
+      "id": 17,
+      "should_trigger": false,
+      "prompt": "给我一个不泄露考点的 prompt，发新窗口看看刚做完的东西是不是真修好了。",
+      "expected_output": "Use fresh-agent-acceptance and its frozen rubric/context isolation.",
+      "assertions": [
+        "No same-context test called independent",
+        "No general workflow detour"
+      ],
+      "files": []
+    },
+    {
+      "id": 18,
+      "should_trigger": false,
+      "prompt": "只查 PR #42 当前 CI 有没有过。",
+      "expected_output": "Use ordinary read-only current-head status evidence.",
+      "assertions": [
+        "No edits or migration",
+        "No workflow-evolution loop"
+      ],
+      "files": []
+    }
+  ]
+}
