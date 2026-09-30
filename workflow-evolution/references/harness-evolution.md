@@ -26,32 +26,34 @@ permanent policy.
 
 ## 2026-10 refresh: load-bearing current evidence
 
-- OpenAI, *Rethinking skills and prompts for GPT-6 Astra*:
-  https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra
-  - keep skill descriptions short and trigger-specific;
-  - for multi-workflow skills, use a minimal root router plus supporting files/scripts;
-  - remove scaffolding that newer models no longer need;
-  - when a workflow is known safe, explicitly authorize the Agent to execute/fix/rerun rather than
-    forcing repeated approval;
-  - define completion so the Agent does not stop after the first implementation.
+- OpenAI, *Harness engineering: leveraging Codex in an agent-first world*:
+  https://openai.com/index/harness-engineering/
+  - repository knowledge can be the system of record;
+  - progressive disclosure lets Agents begin from a small stable entrypoint and resolve detail on demand;
+  - architecture/documentation drift should be enforced mechanically rather than trusted to prose alone.
+- OpenAI, *The next evolution of the Agents SDK*:
+  https://openai.com/index/the-next-evolution-of-the-agents-sdk/
+  - current agent harnesses combine controlled sandboxes, file/shell tools, MCP, skills and custom instructions;
+  - use platform-native primitives where they cover the job instead of preserving bespoke wrappers by inertia.
 - OpenAI, *Skills*:
   https://developers.openai.com/api/docs/guides/tools-skills
-  - skills are modular reusable instructions;
-  - keep main instructions in SKILL.md and place background/scripts/assets in supporting paths.
-- OpenAI, *Harness engineering*:
-  https://openai.com/index/harness-engineering/
-  - make the environment directly inspectable and enforce architecture through machine invariants;
-  - treat failures as feedback about missing tools, guardrails or legibility.
+  - the model discovers available skills from their name/description and loads the selected `SKILL.md` plus supporting files on demand;
+  - supporting files are therefore the right place for mode-specific depth rather than putting every procedure in hot context.
+- Anthropic, *Equipping agents for the real world with Agent Skills*:
+  https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+  - skills package reusable procedural knowledge in discoverable folders and are intended to be composable rather than monolithic.
 - Anthropic, *Scaling Managed Agents: Decoupling the brain from the hands*:
   https://www.anthropic.com/engineering/managed-agents
-  - harness assumptions go stale as models improve;
-  - prefer stable interfaces and replaceable underlying implementation.
+  - harness assumptions can go stale as models improve;
+  - stable interfaces should survive replaceable underlying harness implementation.
 
 ### Design consequence for this repository
 
-These sources support one canonical evolution workflow with progressive disclosure and fewer
-competing active skill descriptions. They argue **against** copying the old harness-upgrade and
-host-self-evolve bodies into one giant hot prompt.
+Taken together, these sources support a small canonical evolution router with mode-specific supporting
+references, executable guards and stable ownership boundaries. They do **not** imply that every old
+skill must remain active or that one giant prompt is better. For this repository, consolidating the
+semantically overlapping `harness-upgrade` and `host-self-evolve` entrypoints reduces competing
+workflow ownership while preserving their useful mechanisms as supporting material and tests.
 
 ## Design defaults to test, not eternal laws
 
