@@ -11,6 +11,12 @@ last_updated: "2026-07-19"
 
 A skill for creating new skills and iteratively improving them.
 
+Boundary: `skill-creator` owns controlled Skill development/evaluation (with-skill vs baseline or
+old-skill, graders, blind A/B). If the Skill is already completed and the user instead wants to
+know whether an ordinary **brand-new top-level Agent** will naturally behave correctly without the
+source conversation, use `fresh-agent-acceptance`; do not turn that question into another
+with-skill/baseline benchmark.
+
 At a high level, the process of creating a skill goes like this:
 
 - Decide what you want the skill to do and roughly how it should do it
