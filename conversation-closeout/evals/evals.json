@@ -1,0 +1,50 @@
+{
+  "skill": "conversation-closeout",
+  "version": "1.0.0",
+  "description": "End-of-conversation reusable-value routing and anti-overlearning cases",
+  "cases": [
+    {
+      "id": "mixed-value-sweep",
+      "name": "Mixed conversation routes owner preference, engineering lesson, current truth, and temporary state differently",
+      "prompt": "这段对话里我们修了一个 CI 假绿问题，我也明确说以后不要再用这种术语；中间还有一个临时 runner PID 和一个已经结束的 PR 状态。现在对话结束了，帮我收尾并沉淀。",
+      "expected": {
+        "whole_conversation_sweep": true,
+        "direct_owner_feedback_preserved": true,
+        "engineering_mechanism_learned": true,
+        "project_current_truth_written_to_project_when_needed": true,
+        "temporary_pid_not_promoted": true,
+        "transient_pr_state_not_promoted": true,
+        "final_report_fields": [
+          "总结了什么",
+          "记住了什么",
+          "有没有重复犯错",
+          "还有没有 blocker"
+        ]
+      }
+    },
+    {
+      "id": "deduplicate-and-escalate",
+      "name": "Repeated known failure strengthens existing lesson and guard instead of creating a synonym",
+      "prompt": "这个问题以前已经踩过一次，今天又因为同一个根因重复发生，而且其实可以用测试自动发现。对话结束了，帮我把经验沉淀好。",
+      "expected": {
+        "retrieve_before_create": true,
+        "duplicate_lesson_created": false,
+        "repeat_status_strengthened": true,
+        "machine_checkable_guard_considered": true,
+        "literal_token_blacklist_required": false
+      }
+    },
+    {
+      "id": "workflow-and-future-proof",
+      "name": "A newly invented reusable workflow becomes a shared Skill and receives future usability proof",
+      "prompt": "今天我们在项目里临时想出了一套挺通用的工作流，后面别的项目也会用；这个窗口又参与了整个设计，我担心以后新 Agent 不一定会自然用对。现在收尾。",
+      "expected": {
+        "reusable_workflow_owner": "myk-skills",
+        "project_specific_truth_stays_project_local": true,
+        "future_task_retrieval_required": true,
+        "fresh_agent_acceptance_when_context_advantage_material": true,
+        "same_context_self_review_not_independent": true
+      }
+    }
+  ]
+}
