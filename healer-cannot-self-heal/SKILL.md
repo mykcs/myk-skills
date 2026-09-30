@@ -140,6 +140,7 @@ last_updated: "2026-07-19"
 
 | 机制 | 关系 |
 |------|------|
+| `fresh-agent-acceptance` | 修复完成后的黑盒验收；本 skill 只诊断当前 session/子问题，不证明修复在新上下文中有效 |
 | `session-chapter` | 互斥（搬家 vs 急诊） |
 | `audit/run-audit.py` | 不调（避免污染证据纯度） |
 | `record-case` | 只在 next-step hints 中建议，不主动调 |
