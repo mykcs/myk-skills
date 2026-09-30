@@ -1,0 +1,20 @@
+{
+  "skill_name": "blind-fresh-agent-acceptance",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我们刚把一个科研仓库里长期混淆的服务器路径和 CI 入口整理好了。我不想再听一遍规则，我想知道一个完全没看过这次讨论的新 Agent 会不会自己做对。请先检查现在的真实入口是否已经足够，然后给我一段我可以复制到新窗口的小任务 Prompt。不要让那个新窗口知道我们刚改了什么。",
+      "expected_output": "Audits real Agent/current/live entrypoints first; freezes a hidden rubric before writing the prompt; produces a plausible read-only adjacent task with historical/current and host/container or CI contrastive witnesses; separates COPY TO FRESH AGENT from KEEP HIDDEN; does not name the just-edited rule/file/PR in the blind prompt."
+    },
+    {
+      "id": 2,
+      "prompt": "我刚修完一个 fallback 工作流。现在想拿 3 个全新的 ChatGPT/Codex 窗口测一下：正常工具失败以后，它们会不会自己找到已有替代路线，但又不会越过真正需要人工批准的边界。帮我设计这个测试，我会自己复制 Prompt。",
+      "expected_output": "Creates one frozen prompt for all three fresh contexts, records/fixes current routing before testing, freezes the relevant authority state, keeps mutation simulated/read-only, hides the fallback rule and rubric, and grades all returned trials without cherry-picking."
+    },
+    {
+      "id": 3,
+      "prompt": "我们刚调整了一个项目里历史证据和 current authority 的关系。我担心 Agent 以后会把旧记录全部改成新格式，也担心它反过来继续拿旧记录当 current。给我设计一个没有上下文的新窗口验证。",
+      "expected_output": "Uses a contrastive witness that requires preserving a historically correct old value while applying current authority to a new/current action; avoids asking directly about the rule; freezes prompt/rubric/world state; returns compact structured fields plus hidden semantic grading criteria."
+    }
+  ]
+}
