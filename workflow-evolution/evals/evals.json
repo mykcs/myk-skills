@@ -1,6 +1,6 @@
 {
   "skill_name": "workflow-evolution",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "evals": [
     {
       "id": 1,
@@ -211,6 +211,21 @@
       "assertions": [
         "No edits or migration",
         "No workflow-evolution loop"
+      ],
+      "files": []
+    },
+    {
+      "id": 19,
+      "should_trigger": true,
+      "prompt": "刚刚把 Agent/Wish/Dev 中央协议改好了。把长期仓库都对齐，别为了清 warning 往项目里塞旧文案；根 router 该瘦身就瘦身，但别删机器必须发现的入口。最后从最新 main 做一次全账户验收。",
+      "expected_output": "Update/read the canonical owner first, audit consumer applicability plus registry coverage, distinguish real project drift from stale auditor expectations, preserve machine-tested startup discovery while slimming routers, respect exact-head merge gates, repair the auditor itself where stale, and re-audit latest integrated state until no unexplained findings remain.",
+      "assertions": [
+        "Central semantics precede consumer propagation",
+        "Stale audit expectations are repaired instead of copied into projects",
+        "Router slimming preserves machine-enforced startup discovery",
+        "Registry blind spots are considered",
+        "Provider failures are not misclassified as application failures",
+        "Final portfolio claim comes from a latest-main re-audit"
       ],
       "files": []
     }

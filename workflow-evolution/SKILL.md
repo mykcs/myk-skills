@@ -10,7 +10,7 @@ description: >-
   reality and completing authorized safe repairs. Not a routine bug fix, status check,
   closeout-only request or fresh-window acceptance alone.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: workflow-evolution
   owner: mykcs
 ---
@@ -83,6 +83,56 @@ file-presence checks nor arbitrary scores establish that a repository adopted th
 For Wish and CI changes, start from the existing owners linked in
 [adoption-and-review.md](references/adoption-and-review.md). Do not create another Wish lifecycle,
 CI acceptance contract, portfolio progress record or ruleset authority inside this skill.
+
+## Close a central-to-consumer governance migration
+
+When a run changes shared semantics such as Agent routing, Wish/Dev lifecycle, CI ownership,
+knowledge architecture, or another account-level convention, treat the work as a **closed
+migration loop**, not a central-doc edit.
+
+1. **Change the canonical owner first.** Put the new shared semantic rule in its existing central
+   owner before teaching consumers. Preserve historical rationale through superseding ADRs or
+   history; do not rewrite old evidence as if the earlier rule never existed.
+2. **Audit consumers and registry coverage.** Check current default branches for registered
+   long-lived consumers, then detect likely governed repositories that the registry itself missed.
+   Absence from the registry is a possible registry defect, not proof that the repository is out
+   of scope. Classify applicability before creating folders or machinery.
+3. **Classify every finding before repairing it.** Separate real consumer drift from stale
+   auditor/registry expectations, justified local exceptions, active-writer conflicts, and
+   provider/infrastructure failures. Never contaminate a correct project with obsolete wording
+   merely to make an old audit marker green.
+4. **Repair the semantic route, not only the symptom.** Fix stale owner links, missing routers,
+   misused lifecycle directories, registry blind spots and machine guards at the layer that owns
+   them. Preserve valid local shapes; a shared lifecycle does not imply mandatory symmetry.
+5. **Keep hot routers small without deleting load-bearing discovery.** Before slimming a root
+   Agent/bootstrap file, search tests, callers and machine invariants for startup-visible markers.
+   Move detail to scoped owners, but retain compact pointers or exact contract phrases that
+   downstream behavior genuinely depends on.
+6. **Treat the auditor as part of the system.** A mechanical audit can be stale too. After the
+   shared semantic rule changes, update its required paths, references, discovery logic and
+   expected markers so it detects current drift instead of preserving the previous architecture.
+7. **Respect each repository's real merge gate.** Distinguish application/test failure from
+   provider outage, billing/quota, stale-head evidence or missing status propagation. Do not weaken
+   rules to get green; use the repository's qualified fallback or required exact-head path.
+8. **Re-run from latest integrated state.** After consumer and audit fixes merge, refresh central
+   `main` and perform the portfolio audit again. Completion means **zero unexplained findings**:
+   every scoped target is verified aligned, a justified exception, or an explicit blocker. When
+   the audit is designed as exhaustive for that portfolio, zero errors and zero warnings is the
+   strongest clean closeout; do not hide residual warnings simply to report success.
+
+Useful rollout order:
+
+```text
+central semantic owner
+-> consumer applicability + registry discovery
+-> consumer repairs
+-> auditor / machine-guard repair
+-> exact-head merges
+-> latest-main portfolio re-audit
+```
+
+A central rule plus a green pilot is not portfolio completion. A green portfolio audit that was
+made green by weakening checks or copying obsolete text is also not completion.
 
 ## Propagate a proven improvement
 
