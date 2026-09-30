@@ -1,0 +1,65 @@
+{
+  "skill": "fresh-agent-acceptance",
+  "version": "1.0.0",
+  "description": "Behavioral black-box acceptance cases for context-isolated fresh Agents",
+  "cases": [
+    {
+      "id": "originator-contrastive-boundary",
+      "name": "A completed path/authority change becomes a realistic contrastive task without leaking the tested rule",
+      "prompt": "我们刚把一个长期项目里的路径和 Agent 入口修好了。先检查它是不是真的收口，然后给我一段我可以复制到两个全新窗口的测试 prompt。我要看新 Agent 会不会自然做对，但测试 prompt 里不要告诉它我们刚改了什么。",
+      "expected": {
+        "phase": "originator",
+        "audit_before_prompt": true,
+        "rubric_frozen_before_trials": true,
+        "prompt_is_realistic_adjacent_task": true,
+        "contrastive_boundary_witness": true,
+        "prompt_names_changed_rule_or_file": false,
+        "prompt_contains_expected_answer": false,
+        "read_only_or_simulated_default": true,
+        "output_sections": [
+          "COPY ONLY — FRESH AGENT PROMPT",
+          "KEEP HERE — HIDDEN RUBRIC"
+        ],
+        "recommended_trials": "2-3"
+      }
+    },
+    {
+      "id": "originator-fallback-behavior",
+      "name": "A fallback/recovery lesson is tested through an ordinary route failure rather than by asking about fallback policy",
+      "prompt": "我刚把一个工具失败后不要过早报 blocker 的流程修好了。帮我做一次无上下文验收，我会自己把 prompt 发给新的 Agent。不要在题目里写我们要测 fallback，也不要让它做破坏性操作。",
+      "expected": {
+        "phase": "originator",
+        "behavior_not_rule_text": true,
+        "ordinary_failure_scenario": true,
+        "answer_leakage": false,
+        "forbidden_mutation_explicit": true,
+        "hidden_rubric_includes": [
+          "authorized alternate route",
+          "true authority boundary",
+          "no secret exposure"
+        ],
+        "same_context_subagent_counts_as_independent": false
+      }
+    },
+    {
+      "id": "evaluator-replicated-results",
+      "name": "Returned outputs are graded against the pre-frozen rubric without cherry-picking or moving the target",
+      "prompt": "这是我从三个新窗口拿回来的结果。请按你刚才事先定好的标准判分；其中两个用了不同证据但结论一致，另一个说它拿不到实时权限所以没有猜。",
+      "expected": {
+        "phase": "evaluator",
+        "rubric_rewritten_after_outputs": false,
+        "world_state_rechecked": true,
+        "all_trials_preserved": true,
+        "semantic_not_literal_scoring": true,
+        "honest_access_gap_may_be": "INCONCLUSIVE",
+        "allowed_verdicts": [
+          "PASS",
+          "FAIL",
+          "INCONCLUSIVE",
+          "LEAKED"
+        ],
+        "disagreement_requires_analysis": true
+      }
+    }
+  ]
+}
