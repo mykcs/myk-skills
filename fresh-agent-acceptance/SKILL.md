@@ -333,6 +333,28 @@ Never:
 - run GPU/destructive/production actions merely to make the test realistic;
 - strip normal project/global bootstrap that the real future Agent would have.
 
+## Relation to neighboring skills
+
+These workflows are complementary, not aliases:
+
+- **`skill-creator`** owns creating/improving a Skill and controlled with-skill vs baseline/old-skill
+  evaluation. Use `fresh-agent-acceptance` only when the later question is whether a completed
+  Skill/system survives loss of the originating conversation in normal use.
+- **`verify`** owns build/test/security/adversarial implementation evidence. It may be part of
+  Phase A's target check, but a same-context verifier is not a substitute for a fresh-window
+  black-box trial.
+- **`healer-cannot-self-heal`** owns session/sub-problem triage when the current conversation is
+  itself drifting or untrustworthy. It diagnoses the session; it does not certify a completed
+  repair. After a repair, this Skill can test downstream behavior in fresh contexts.
+- **`harness-upgrade`** owns research, design, implementation, and the normal verification
+  portfolio for harness changes. Add this Skill when source-conversation context advantage itself
+  is part of the acceptance risk.
+- **`website-improve`** owns website-specific Planner → Executor → Verifier delivery. Use this
+  Skill only for the separate question of fresh-context behavioral transfer.
+
+Do not merge these workflows merely because they all use words such as “independent”, “fresh”, or
+“verification”. Their tested object and evidence model are different.
+
 ## Relation to other workflows
 
 - `verify` checks whether an artifact/build/test is correct.

@@ -141,6 +141,14 @@ For each finding:
 
 When the `verifier-pass2` skill is available, it is the internal implementation for this mode. Do not chain an unbounded third/fourth review pass.
 
+## Boundary with fresh-context black-box acceptance
+
+`verify` asks whether the implementation/artifact is correct from executable and independent
+review evidence. When the user's concern is specifically that the **originating conversation knows
+too much** and a brand-new window may behave differently, use `fresh-agent-acceptance` in addition
+to or after normal verification. Adversarial reviewers inside the current orchestration do not
+automatically satisfy that stronger context-isolation claim.
+
 ## Cross-harness ownership
 
 - Shared verification semantics live here in `myk-skills` / `~/.agents/skills`.
