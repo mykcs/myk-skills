@@ -346,9 +346,9 @@ These workflows are complementary, not aliases:
 - **`healer-cannot-self-heal`** owns session/sub-problem triage when the current conversation is
   itself drifting or untrustworthy. It diagnoses the session; it does not certify a completed
   repair. After a repair, this Skill can test downstream behavior in fresh contexts.
-- **`harness-upgrade`** owns research, design, implementation, and the normal verification
-  portfolio for harness changes. Add this Skill when source-conversation context advantage itself
-  is part of the acceptance risk.
+- **`workflow-evolution`** owns harness/workflow/host evolution, including current research,
+  design, implementation and the normal verification portfolio. Add this Skill when the completed
+  evolution also needs conversation-isolated behavioral-transfer evidence.
 - **`website-improve`** owns website-specific Planner → Executor → Verifier delivery. Use this
   Skill only for the separate question of fresh-context behavioral transfer.
 

@@ -4,20 +4,23 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-HARNESS_UPGRADE = REPO_ROOT / "harness-upgrade" / "SKILL.md"
+WORKFLOW_EVOLUTION = REPO_ROOT / "workflow-evolution" / "references" / "harness-evolution.md"
+LEGACY_HARNESS = REPO_ROOT / "_archive" / "harness-upgrade" / "SKILL.md"
 CONTEXT_BUDGET = REPO_ROOT / "context-budget" / "SKILL.md"
 VERIFY = REPO_ROOT / "verify" / "SKILL.md"
 
 
 class ResearchGroundedHarnessUpgradeTests(unittest.TestCase):
-    def test_harness_upgrade_requires_fresh_primary_research(self) -> None:
-        text = HARNESS_UPGRADE.read_text(encoding="utf-8")
+    def test_workflow_evolution_harness_mode_requires_fresh_primary_research(self) -> None:
+        text = WORKFLOW_EVOLUTION.read_text(encoding="utf-8")
         self.assertIn("search the web before editing", text.lower())
         self.assertIn("recent primary research", text.lower())
         self.assertIn("disconfirming evidence", text.lower())
         self.assertIn("the research refresh again", text.lower())
         self.assertNotIn("gpt-5.6", text.lower())
         self.assertNotIn("claude opus 4.6", text.lower())
+        self.assertTrue(LEGACY_HARNESS.is_file())
+        self.assertFalse((REPO_ROOT / "harness-upgrade" / "SKILL.md").exists())
 
     def test_context_budget_is_not_a_self_referential_200k_shim(self) -> None:
         text = CONTEXT_BUDGET.read_text(encoding="utf-8")

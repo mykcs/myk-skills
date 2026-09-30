@@ -126,3 +126,10 @@ python3 normalize_v0.3.0.py --doc <DOC_TOKEN>             # append to doc
 | `EVOLUTION_LOG.md` | 本条目 |
 
 2026-07-19 | skill-creator | v1.0 → v1.1 (DEFERRED) | M=100%, M'=100% (持平) | user-confirm A: 等 baseline 退步或新 skill 创建 ≥ 5 时启用 (per CASE-SKILL-EVOLUTION-VBUMP-DEFER-20260719)
+
+
+## 2026-10-01 — Workflow evolution v2.0 consolidation
+
+| ts | skill | verdict | reason |
+|----|-------|---------|--------|
+| 2026-10-01 | workflow-evolution | v1.1.0→v2.0.0 | Absorb harness-upgrade and host-self-evolve into one progressive-disclosure evolution workflow; make safe authorized reversible repair the default; retire duplicated active skill owners while preserving history/tools; refresh against current OpenAI/Anthropic harness/skill guidance. |

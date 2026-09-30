@@ -33,6 +33,11 @@ mykcs/.codex         Codex-native config/hooks/system skills/plugins
 
 A harness command may be a thin UX adapter for a skill owned here. In that case, workflow semantics belong in the skill and must not drift into a second writable command copy.
 
+`workflow-evolution` is the single active owner for cross-workflow evolution, substantive harness
+evolution, and host/local-system self-evolution. The former `harness-upgrade` and
+`host-self-evolve` SKILL documents are archived; remaining host scripts/references are legacy
+implementation/evidence assets, not separate workflow owners.
+
 Codex `skills/.system/*` are platform/runtime-native capabilities. Never merge or replace them with a user skill from this repository solely because names overlap.
 
 ## Repository map

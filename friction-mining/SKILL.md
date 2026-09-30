@@ -9,7 +9,7 @@ when_to_use: |
   Trigger when user says: "摩擦挖掘" / "friction-mining" / "挖一下最近的摩擦" / "扫 session 找复发问题" /
   "自愈闭环" / "把最近踩的坑固化成规则" / "friction". 输入是 session 转录，输出是规则 + 探针 + PR。
   NOT: 单个具体 bug 的修复（走 test-gated-debug 或 bugfix-400）/ 网站改进（走 website-improve）/
-  host 跨层一致性审计（走 host-self-evolve）。
+  host 跨层一致性审计（走 workflow-evolution 的 host/local-system 模式）。
 user-invocable: true
 license: MIT
 ---
@@ -62,5 +62,5 @@ PR/commit: <hashes>
 - `process.md §C.2 / §C.5` — deferred theater / false completion 零容忍（探针必须实测）
 - `rules/cross-session-grep-mandatory.md` — 立新文件/锚点前 6 件套 grep
 - `claudecode-verify-before-act.md §4` — protected path 的 Bash+Python 绕行
-- `host-self-evolve` — 跨层一致性审计（互补：它审结构，本 skill 挖行为摩擦）
+- `workflow-evolution` — host/local-system 与跨工作流演进（互补：它审结构并修安全漂移，本 skill 挖行为摩擦）
 - `feedback-claude-repo-auto-push` — ~/.claude/ 仓改完默认直 push main

@@ -21,7 +21,7 @@ from typing import Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_EVALS = ROOT / "evals"
-HOST_REQUIRED_SCRIPTS = (
+LEGACY_HOST_REQUIRED_SCRIPTS = (
     "dead_code_detector.py",
     "commands_to_skills_migrator.py",
     "lint_runner.py",
@@ -164,22 +164,41 @@ def prepare_host_ci_home(home: Path) -> None:
     )
 
 
-def check_host_modernization(root: Path = ROOT) -> list[str]:
-    """Preserve the file/protocol assertions from the legacy GitHub workflow."""
-    host = root / "host-self-evolve"
+def check_workflow_evolution_modernization(root: Path = ROOT) -> list[str]:
+    """Verify Workflow evolution owns current harness/host semantics and legacy tools remain usable."""
+    workflow = root / "workflow-evolution"
+    legacy_host = root / "host-self-evolve"
     failures: list[str] = []
-    skill_md = host / "SKILL.md"
-    if not skill_md.is_file() or "PER Workflow" not in skill_md.read_text(encoding="utf-8"):
-        failures.append("host-self-evolve/SKILL.md: PER Workflow marker missing")
 
-    consistency = host / "references" / "consistency-6d"
+    skill_md = workflow / "SKILL.md"
+    skill_text = skill_md.read_text(encoding="utf-8") if skill_md.is_file() else ""
+    for marker in (
+        "single active evolution workflow",
+        "safe autonomous repair",
+        "harness-evolution.md",
+        "host-local-evolution.md",
+    ):
+        if marker not in skill_text:
+            failures.append(f"workflow-evolution/SKILL.md: missing marker {marker!r}")
+
+    for legacy in ("host-self-evolve", "harness-upgrade"):
+        if (root / legacy / "SKILL.md").exists():
+            failures.append(f"{legacy}/SKILL.md must not remain an active top-level skill")
+        if not (root / "_archive" / legacy / "SKILL.md").is_file():
+            failures.append(f"_archive/{legacy}/SKILL.md historical owner missing")
+
+    consistency = legacy_host / "references" / "consistency-6d"
     for number in range(1, 7):
         if not list(consistency.glob(f"{number}-*.md")):
-            failures.append(f"host-self-evolve consistency-6d/{number}-*.md missing")
+            failures.append(f"legacy host consistency-6d/{number}-*.md missing")
 
-    for script_name in HOST_REQUIRED_SCRIPTS:
-        if not (host / "scripts" / script_name).is_file():
-            failures.append(f"host-self-evolve/scripts/{script_name} missing")
+    for script_name in LEGACY_HOST_REQUIRED_SCRIPTS:
+        if not (legacy_host / "scripts" / script_name).is_file():
+            failures.append(f"legacy host tool host-self-evolve/scripts/{script_name} missing")
+
+    host_ref = workflow / "references" / "host-local-evolution.md"
+    if not host_ref.is_file() or "legacy implementation/evidence" not in host_ref.read_text(encoding="utf-8"):
+        failures.append("workflow-evolution host-local-evolution reference missing legacy-tool boundary")
     return failures
 
 
@@ -193,12 +212,12 @@ def run_unittest_dir(test_dir: Path, *, cwd: Path = ROOT, env: dict[str, str] | 
     )
 
 
-def run_host_self_evolve_checks(root: Path = ROOT) -> None:
-    """Run the substantive checks currently owned by rich-audit-ci.yml."""
+def run_workflow_evolution_host_checks(root: Path = ROOT) -> None:
+    """Run retained host-tool executable checks under the Workflow evolution owner."""
     host = root / "host-self-evolve"
-    failures = check_host_modernization(root)
+    failures = check_workflow_evolution_modernization(root)
     if failures:
-        raise RuntimeError("Host modernization checks failed:\n- " + "\n- ".join(failures))
+        raise RuntimeError("Workflow evolution host checks failed:\n- " + "\n- ".join(failures))
 
     with tempfile.TemporaryDirectory(prefix="myk-skills-ci-home-") as tmp:
         home = Path(tmp)
@@ -259,8 +278,8 @@ def main() -> int:
         run_unittest_dir(eval_dir, cwd=ROOT)
     print(f"Ran {len(eval_dirs)} active skill eval suites")
 
-    print("\n[5/5] Preserve host-self-evolve CI checks")
-    run_host_self_evolve_checks(ROOT)
+    print("\n[5/5] Verify Workflow evolution host-tool compatibility")
+    run_workflow_evolution_host_checks(ROOT)
 
     print("\nPASS: myk-skills validation complete")
     return 0

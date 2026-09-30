@@ -1,6 +1,6 @@
 {
   "skill_name": "workflow-evolution",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "evals": [
     {
       "id": 1,
@@ -226,6 +226,45 @@
         "Registry blind spots are considered",
         "Provider failures are not misclassified as application failures",
         "Final portfolio claim comes from a latest-main re-audit"
+      ],
+      "files": []
+    },
+    {
+      "id": 20,
+      "should_trigger": true,
+      "prompt": "把 harness upgrade 也一起做掉：看看现在的 Agent/skill/hook/context 设计有没有过时，安全能改的直接改完。",
+      "expected_output": "Use workflow-evolution harness mode, refresh current first-party/research evidence, challenge stale harness assumptions, make safe reversible changes directly, preserve progressive disclosure, and verify behavior/infrastructure rather than delegating to a separate harness-upgrade skill.",
+      "assertions": [
+        "Current web/research refresh for substantive harness changes",
+        "No separate harness-upgrade semantic owner",
+        "Safe authorized changes are implemented rather than only proposed",
+        "Progressive disclosure is preserved"
+      ],
+      "files": []
+    },
+    {
+      "id": 21,
+      "should_trigger": true,
+      "prompt": "跑一次主机自升级，把 ~/.agents、~/.claude、~/.codex、skills/hooks/规则都一起看，安全的直接修到验收。",
+      "expected_output": "Use workflow-evolution host/local-system mode, resolve machine/repository identity and active writers, inspect shared instruction/runtime/skills/hooks/memory/CI lanes as relevant, reuse legacy host tools only as implementation aids, repair safe drift end-to-end, and stop only at real safety/authority boundaries.",
+      "assertions": [
+        "No legacy banner or fixed wall-clock ritual",
+        "No separate host-self-evolve semantic owner",
+        "Safe repairs continue through verification",
+        "Historical tools are evidence/implementation assets, not authority"
+      ],
+      "files": []
+    },
+    {
+      "id": 22,
+      "should_trigger": true,
+      "prompt": "Workflow evolution 全量跑一遍。只要安全、可逆、在我授权范围里就直接改，不要每个小步骤都来问我；真正高风险边界再停。",
+      "expected_output": "Run the heavy general review across relevant governance, harness and host modes using progressive disclosure. Treat safe reversible in-scope repair as authorized, continue after initial implementation through checks and integration, and pause only for destructive, credential, spending, visibility/license, production-cutover, unresolved scientific/ownership, or irreconcilable active-writer boundaries.",
+      "assertions": [
+        "Safe autonomy is explicit",
+        "No audit-only stopping",
+        "No bypass of existing merge/security gates",
+        "Heavy run stops on acceptance or real blocker rather than arbitrary elapsed time"
       ],
       "files": []
     }

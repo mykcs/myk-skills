@@ -33,7 +33,7 @@ def main() -> int:
         "checks": [
             "active top-level SKILL.md structural validation",
             "repository and active-skill Python regression evals",
-            "host-self-evolve compatibility and modernization checks",
+            "workflow-evolution host-tool compatibility checks",
         ],
     }
     (OUTPUT / "status.json").write_text(

@@ -49,6 +49,42 @@ class WorkflowEvolutionContractTests(unittest.TestCase):
         self.assertIn("stale auditor expectations", case["expected_output"])
         self.assertIn("machine-tested startup discovery", case["expected_output"])
 
+    def test_v2_absorbs_harness_and_host_with_safe_autonomy(self):
+        text = (SKILL / "SKILL.md").read_text()
+        for marker in [
+            "single active evolution workflow",
+            "safe autonomous repair",
+            "Safety is a boundary, not a reason to be passive",
+            "harness-evolution.md",
+            "host-local-evolution.md",
+            "former active skills `harness-upgrade` and `host-self-evolve` were absorbed",
+        ]:
+            self.assertIn(marker, text)
+
+        harness = (SKILL / "references/harness-evolution.md").read_text()
+        for marker in [
+            "search the web before editing",
+            "recent primary research",
+            "disconfirming evidence",
+            "the research refresh again",
+            "progressive disclosure",
+        ]:
+            self.assertIn(marker.lower(), harness.lower())
+
+        host = (SKILL / "references/host-local-evolution.md").read_text()
+        self.assertIn("legacy implementation/evidence", host)
+        self.assertIn("Do **not** preserve these as mandatory current behavior", host)
+
+        safe = (SKILL / "references/safe-autonomy.md").read_text()
+        self.assertIn("Proceed without another approval", safe)
+        self.assertIn("Real stop/approval boundaries", safe)
+
+        repo_root = SKILL.parents[0]
+        self.assertFalse((repo_root / "harness-upgrade" / "SKILL.md").exists())
+        self.assertFalse((repo_root / "host-self-evolve" / "SKILL.md").exists())
+        self.assertTrue((repo_root / "_archive" / "harness-upgrade" / "SKILL.md").is_file())
+        self.assertTrue((repo_root / "_archive" / "host-self-evolve" / "SKILL.md").is_file())
+
     def test_evaluation_fixtures_are_complete_and_balanced(self):
         payload = json.loads((SKILL / "evals/evals.json").read_text())
         self.assertEqual(payload["skill_name"], SKILL.name)
