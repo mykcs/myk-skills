@@ -71,7 +71,7 @@ Preferred route:
 
 ## Phase A — Originating window prepares the test
 
-### 1. Define the target behavior privately
+### 1. Freeze the target behavior before writing the prompt
 
 Before writing the test prompt, identify:
 
