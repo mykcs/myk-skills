@@ -17,20 +17,22 @@ class TestFreshAgentAcceptanceSkill(unittest.TestCase):
         cls.skill = SKILL.read_text(encoding="utf-8")
         cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))
 
-    def test_skill_routes_to_canonical_agents_sop(self) -> None:
-        self.assertIn("mykcs/.agents/docs/learning/BLIND_FRESH_AGENT_ACCEPTANCE.md", self.skill)
-        self.assertIn("thin execution surface", self.skill)
-        self.assertIn("must not become a second writable policy", self.skill)
+    def test_skill_is_general_black_box_workflow(self) -> None:
+        self.assertIn("Use a fresh Agent to test whether completed work", self.skill)
+        self.assertIn("The problem is epistemic", self.skill)
+        self.assertIn("code, docs, configuration, websites", self.skill)
+        self.assertIn("Do not force every case into", self.skill)
 
     def test_fresh_context_is_conversation_isolated_not_bootstrap_free(self) -> None:
         self.assertIn("conversation-isolated, not bootstrap-free", self.skill.lower())
         self.assertIn("Do **not** strip normal account/project bootstrap", self.skill)
         self.assertIn("same-context subagent is not strong fresh-Agent evidence", self.skill)
 
-    def test_originator_audits_before_generating_prompt(self) -> None:
-        self.assertIn("Audit the real entry path before testing", self.skill)
-        self.assertIn("fix and validate that gap **before** generating", self.skill)
-        self.assertIn("Freeze the target behavior before writing the prompt", self.skill)
+    def test_originator_infers_success_and_checks_actual_target(self) -> None:
+        self.assertIn("Infer and freeze the real success behavior", self.skill)
+        self.assertIn("what was just changed/fixed/built", self.skill)
+        self.assertIn("Check the thing being tested", self.skill)
+        self.assertIn("Do not assume this means", self.skill)
 
     def test_prompt_design_is_non_leading_and_contrastive(self) -> None:
         self.assertIn("Design an ordinary task, not an exam question", self.skill)
@@ -59,12 +61,19 @@ class TestFreshAgentAcceptanceSkill(unittest.TestCase):
         for verdict in ("PASS", "FAIL", "INCONCLUSIVE", "LEAKED"):
             self.assertIn(verdict, self.skill)
 
-    def test_failure_diagnosis_separates_system_from_prompt_failures(self) -> None:
-        for failure_class in ("ROUTING", "OWNER_TEXT", "GUARD", "PROMPT_DESIGN", "ACCESS"):
+    def test_failure_diagnosis_is_domain_general(self) -> None:
+        for failure_class in (
+            "TARGET_DEFECT",
+            "DISCOVERY",
+            "INTERPRETATION",
+            "GUARD",
+            "PROMPT_DESIGN",
+            "ACCESS_ENVIRONMENT",
+        ):
             with self.subTest(failure_class=failure_class):
                 self.assertIn(f"**{failure_class}**", self.skill)
-        self.assertIn("Repair the real owner", self.skill)
-        self.assertIn("Only rewrite the test when the problem is PROMPT_DESIGN", self.skill)
+        self.assertIn("Fix the real target for the first four classes", self.skill)
+        self.assertIn("Rewrite the test only for **PROMPT_DESIGN**", self.skill)
 
     def test_skill_defaults_to_read_only_acceptance(self) -> None:
         self.assertIn("Default to read-only or simulated acceptance", self.skill)
@@ -73,7 +82,7 @@ class TestFreshAgentAcceptanceSkill(unittest.TestCase):
 
     def test_eval_suite_covers_originator_and_evaluator_modes(self) -> None:
         self.assertEqual(self.evals["skill"], "fresh-agent-acceptance")
-        self.assertEqual(self.evals["version"], "1.0.0")
+        self.assertEqual(self.evals["version"], "1.1.0")
         by_id = {case["id"]: case for case in self.evals["cases"]}
         self.assertEqual(
             set(by_id),
