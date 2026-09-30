@@ -1,0 +1,58 @@
+{
+  "skill": "fresh-agent-acceptance",
+  "version": "1.1.0",
+  "description": "General black-box acceptance cases for completed work under originating-context advantage",
+  "cases": [
+    {
+      "id": "originator-general-completed-work",
+      "name": "A completed change is tested through a normal downstream task without revealing what changed",
+      "prompt": "我刚把一个东西修完，但这个窗口知道太多前因后果，我不确定换个新 Agent 以后还会不会自然做对。给我一个可以发给几个新窗口的短 prompt，不要告诉它我们刚改了什么。",
+      "expected": {
+        "phase": "originator",
+        "infers_target_from_conversation": true,
+        "checks_actual_completed_target": true,
+        "rubric_frozen_before_trials": true,
+        "prompt_is_normal_downstream_task": true,
+        "prompt_reveals_change": false,
+        "prompt_reveals_expected_answer": false,
+        "low_risk_by_default": true
+      }
+    },
+    {
+      "id": "originator-contrastive-boundary",
+      "name": "A boundary fix uses a realistic contrastive witness rather than a keyword-replacement exam",
+      "prompt": "这个修复里面有些旧情况本来就应该继续成立，有些新情况才应该用新的做法。帮我做一次 fresh-Agent 黑盒验收。",
+      "expected": {
+        "phase": "originator",
+        "contrastive_boundary_witness": true,
+        "preserves_valid_legacy_case": true,
+        "exercises_new_behavior": true,
+        "fake_traps_added": false,
+        "output_sections": [
+          "COPY ONLY — FRESH AGENT PROMPT",
+          "KEEP HERE — HIDDEN RUBRIC"
+        ]
+      }
+    },
+    {
+      "id": "evaluator-replicated-results",
+      "name": "Returned outputs are graded against the pre-frozen rubric without cherry-picking or moving the target",
+      "prompt": "这是我从三个新窗口拿回来的结果。请按你刚才事先定好的标准判分；其中两个用了不同证据但结论一致，另一个说它拿不到实时权限所以没有猜。",
+      "expected": {
+        "phase": "evaluator",
+        "rubric_rewritten_after_outputs": false,
+        "mutable_state_rechecked": true,
+        "all_trials_preserved": true,
+        "semantic_not_literal_scoring": true,
+        "honest_access_gap_may_be": "INCONCLUSIVE",
+        "allowed_verdicts": [
+          "PASS",
+          "FAIL",
+          "INCONCLUSIVE",
+          "LEAKED"
+        ],
+        "disagreement_requires_analysis": true
+      }
+    }
+  ]
+}
