@@ -42,6 +42,10 @@ last_updated: "2026-07-19"
 
 # Record Case — 统一知识归档 v3.0
 
+> **边界**：本 Skill 深挖一个已经选中的 Case / Pattern / Decision。若用户是在结束一整段
+> 对话，希望同时回收工程踩坑、显式偏好、项目 current truth、可复用 workflow、重复错误和
+> intentional non-learning，使用 `conversation-closeout`；不要把整段对话压成一个 Case。
+
 ## 何时触发
 
 | 场景 | 信号 | 路由类型 |
