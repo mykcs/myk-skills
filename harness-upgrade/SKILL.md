@@ -90,6 +90,11 @@ Do not assume a fixed context-window size. Read current model/runtime capabiliti
 
 A high-impact harness upgrade should not depend on one fixed verifier or one benchmark. Verification must co-evolve with the generator and the harness.
 
+When the originating upgrade conversation itself has a material context advantage (it knows the
+new routing, workaround, or intended behavior), add `fresh-agent-acceptance` as a **post-upgrade
+behavioral-transfer lane**. It complements this verification portfolio; it does not replace the
+research refresh, executable tests, or independent verifier.
+
 Use a portfolio appropriate to the change:
 
 - **Static/config checks** — schema, ownership, mounts, references, generated-vs-canonical boundaries.
