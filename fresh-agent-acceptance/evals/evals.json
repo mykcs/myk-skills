@@ -1,44 +1,37 @@
 {
   "skill": "fresh-agent-acceptance",
-  "version": "1.0.0",
-  "description": "Behavioral black-box acceptance cases for context-isolated fresh Agents",
+  "version": "1.1.0",
+  "description": "General black-box acceptance cases for completed work under originating-context advantage",
   "cases": [
     {
-      "id": "originator-contrastive-boundary",
-      "name": "A completed path/authority change becomes a realistic contrastive task without leaking the tested rule",
-      "prompt": "我们刚把一个长期项目里的路径和 Agent 入口修好了。先检查它是不是真的收口，然后给我一段我可以复制到两个全新窗口的测试 prompt。我要看新 Agent 会不会自然做对，但测试 prompt 里不要告诉它我们刚改了什么。",
+      "id": "originator-general-completed-work",
+      "name": "A completed change is tested through a normal downstream task without revealing what changed",
+      "prompt": "我刚把一个东西修完，但这个窗口知道太多前因后果，我不确定换个新 Agent 以后还会不会自然做对。给我一个可以发给几个新窗口的短 prompt，不要告诉它我们刚改了什么。",
       "expected": {
         "phase": "originator",
-        "audit_before_prompt": true,
+        "infers_target_from_conversation": true,
+        "checks_actual_completed_target": true,
         "rubric_frozen_before_trials": true,
-        "prompt_is_realistic_adjacent_task": true,
-        "contrastive_boundary_witness": true,
-        "prompt_names_changed_rule_or_file": false,
-        "prompt_contains_expected_answer": false,
-        "read_only_or_simulated_default": true,
-        "output_sections": [
-          "COPY ONLY — FRESH AGENT PROMPT",
-          "KEEP HERE — HIDDEN RUBRIC"
-        ],
-        "recommended_trials": "2-3"
+        "prompt_is_normal_downstream_task": true,
+        "prompt_reveals_change": false,
+        "prompt_reveals_expected_answer": false,
+        "low_risk_by_default": true
       }
     },
     {
-      "id": "originator-fallback-behavior",
-      "name": "A fallback/recovery lesson is tested through an ordinary route failure rather than by asking about fallback policy",
-      "prompt": "我刚把一个工具失败后不要过早报 blocker 的流程修好了。帮我做一次无上下文验收，我会自己把 prompt 发给新的 Agent。不要在题目里写我们要测 fallback，也不要让它做破坏性操作。",
+      "id": "originator-contrastive-boundary",
+      "name": "A boundary fix uses a realistic contrastive witness rather than a keyword-replacement exam",
+      "prompt": "这个修复里面有些旧情况本来就应该继续成立，有些新情况才应该用新的做法。帮我做一次 fresh-Agent 黑盒验收。",
       "expected": {
         "phase": "originator",
-        "behavior_not_rule_text": true,
-        "ordinary_failure_scenario": true,
-        "answer_leakage": false,
-        "forbidden_mutation_explicit": true,
-        "hidden_rubric_includes": [
-          "authorized alternate route",
-          "true authority boundary",
-          "no secret exposure"
-        ],
-        "same_context_subagent_counts_as_independent": false
+        "contrastive_boundary_witness": true,
+        "preserves_valid_legacy_case": true,
+        "exercises_new_behavior": true,
+        "fake_traps_added": false,
+        "output_sections": [
+          "COPY ONLY — FRESH AGENT PROMPT",
+          "KEEP HERE — HIDDEN RUBRIC"
+        ]
       }
     },
     {
@@ -48,7 +41,7 @@
       "expected": {
         "phase": "evaluator",
         "rubric_rewritten_after_outputs": false,
-        "world_state_rechecked": true,
+        "mutable_state_rechecked": true,
         "all_trials_preserved": true,
         "semantic_not_literal_scoring": true,
         "honest_access_gap_may_be": "INCONCLUSIVE",
