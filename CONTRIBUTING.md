@@ -80,7 +80,7 @@ Public Python functions should have useful docstrings, imports should be explici
 - structural validation of active top-level `SKILL.md` files;
 - root regression tests under `evals/`;
 - active skill `evals/test_*.py` suites;
-- preserved `host-self-evolve` compatibility and modernization checks.
+- Workflow evolution host-tool compatibility checks after `host-self-evolve` semantic absorption.
 
 Do not duplicate these checks into provider-specific CI configuration. Provider configuration should invoke the shared entrypoint instead.
 

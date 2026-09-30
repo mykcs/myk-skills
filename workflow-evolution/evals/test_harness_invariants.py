@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "harness_invariants.py"
+SCRIPT = Path(__file__).resolve().parents[2] / "host-self-evolve" / "scripts" / "harness_invariants.py"
 SPEC = importlib.util.spec_from_file_location("harness_invariants", SCRIPT)
 assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -92,7 +92,7 @@ command = "npx"
 [sandbox_workspace_write]
 network_access = false
 
-[projects."{home}"]
+[projects."{home.resolve()}"]
 trust_level = "trusted"
 
 [memories]

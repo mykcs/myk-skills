@@ -91,17 +91,20 @@ class CiCheckRegressionTests(unittest.TestCase):
             skill_md = home / ".agents" / "skills" / "stub-skill" / "SKILL.md"
             self.assertIn("name: stub-skill", skill_md.read_text(encoding="utf-8"))
 
-    def test_host_modernization_reports_missing_contracts(self) -> None:
+    def test_workflow_evolution_modernization_reports_missing_contracts(self) -> None:
         _, root = self._repo_fixture()
         host = root / "host-self-evolve"
         (host / "references" / "consistency-6d").mkdir(parents=True)
         (host / "scripts").mkdir()
-        (host / "SKILL.md").write_text("# no marker\n", encoding="utf-8")
+        workflow = root / "workflow-evolution"
+        workflow.mkdir()
+        (workflow / "SKILL.md").write_text("# no current markers\n", encoding="utf-8")
 
-        failures = ci_check.check_host_modernization(root)
-        self.assertTrue(any("PER Workflow" in failure for failure in failures))
+        failures = ci_check.check_workflow_evolution_modernization(root)
+        self.assertTrue(any("workflow-evolution/SKILL.md" in failure for failure in failures))
         self.assertTrue(any("consistency-6d/1" in failure for failure in failures))
         self.assertTrue(any("dead_code_detector.py" in failure for failure in failures))
+        self.assertTrue(any("_archive/host-self-evolve" in failure for failure in failures))
 
     def test_parse_tool_json_checks_tool_identity(self) -> None:
         good = subprocess.CompletedProcess(
@@ -115,8 +118,8 @@ class CiCheckRegressionTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             ci_check.parse_tool_json(bad, "demo.py")
 
-    def test_current_host_modernization_contract_is_present(self) -> None:
-        self.assertEqual(ci_check.check_host_modernization(ROOT), [])
+    def test_current_workflow_evolution_modernization_contract_is_present(self) -> None:
+        self.assertEqual(ci_check.check_workflow_evolution_modernization(ROOT), [])
 
 
 if __name__ == "__main__":
