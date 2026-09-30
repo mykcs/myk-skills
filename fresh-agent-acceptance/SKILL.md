@@ -1,54 +1,43 @@
 ---
 name: fresh-agent-acceptance
 description: >-
-  Design and evaluate context-isolated behavioral acceptance tests for completed Agent-facing
-  changes. Use whenever the user asks whether a fresh/new Agent would naturally do the right
-  thing, wants a prompt to copy into brand-new windows, asks for a no-context/hidden/blind test,
-  or wants to prove that AGENTS/docs/SOP/routing/authority changes actually changed first-attempt
-  behavior without telling the tested Agent what changed. The workflow audits and repairs real
-  entrypoints first, freezes a hidden rubric and authority snapshot, emits a realistic non-leading
-  prompt for manual copy, and later grades every returned trial without changing the rubric.
+  Black-box acceptance for completed work when the originating conversation may have a context
+  advantage. Use whenever the user says they fixed/built/changed something but is not sure it is
+  really solved for a fresh Agent, wants a short prompt to copy into brand-new windows, wants a
+  no-context/hidden test, or explicitly does not want the tested Agent told what changed. Infer the
+  real success behavior from the current conversation, verify the target is in the state intended
+  for testing, freeze a hidden rubric, generate a normal-looking non-leading task, and later grade
+  all returned fresh-window results against that original rubric.
 when_to_use: >-
-  Trigger for phrases such as “新开一个窗口测试”, “看看新 Agent 会不会自然做对”, “给我一个 prompt
-  拿去不同窗口”, “无上下文验收”, “隐蔽验收”, “不要告诉它我们想测什么”, “blind/fresh-agent
-  acceptance”, or equivalent intent after a workflow/rule/router has been completed.
+  Trigger for phrases such as “新开窗口测一下”, “看看新 Agent 会不会自然做对”, “给我一个 prompt
+  拿去几个新窗口”, “无上下文/黑盒/隐蔽验收”, “不要告诉它我们改了什么”, “我不确定是不是真的
+  修好了”, or equivalent intent after completing code, docs, configuration, workflow, research,
+  product, infrastructure, or Agent-facing work.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: agent-evaluation
   owner: mykcs
 ---
 
 # Fresh Agent Acceptance
 
-Prove **behavioral transfer**, not merely that a rule exists.
+Use a fresh Agent to test whether completed work **really survives loss of the source conversation**.
 
-The canonical acceptance semantics live in:
+The problem is epistemic: the originating window helped create/fix the thing, so it already knows
+what changed, where to look, what the intended answer is, and which awkward details to ignore.
+That context advantage can make a weak implementation look finished.
 
-`mykcs/.agents/docs/learning/BLIND_FRESH_AGENT_ACCEPTANCE.md`
+The real question is:
 
-This skill is the thin execution surface. It must not become a second writable policy.
+> **Can a fresh Agent handle a normal downstream task correctly without being told what we changed?**
 
-## What this workflow is really testing
+This is a shared reusable workflow. Project/local truth still belongs to the project, artifact,
+runtime, product, or live provider being tested. The `.agents` learning system may reference this
+Skill when a conversation closeout needs stronger behavioral evidence.
 
-The user normally wants to know:
-
-> If the original conversation disappeared, would an ordinary fresh Agent encounter a realistic
-> adjacent task and naturally make the right decisions from the current system?
-
-That is stronger than:
-
-- “can it find the Markdown?”;
-- “can it repeat the new rule when asked about the rule?”;
-- “does a reviewer think the docs look correct?”.
-
-The evidence ladder is:
-
-```text
-rule exists
-  -> current routing can expose it
-  -> a fresh Agent naturally applies it
-  -> independent fresh contexts converge on the same invariant
-```
+This workflow can test code, docs, configuration, websites, CI/deployment, research procedures,
+recovery flows, artifact placement, or Agent-facing behavior. Do not force every case into
+“routing/authority” language.
 
 ## Fresh means conversation-isolated, not bootstrap-free
 
@@ -71,36 +60,34 @@ Preferred route:
 
 ## Phase A — Originating window prepares the test
 
-### 1. Freeze the target behavior before writing the prompt
+### 1. Infer and freeze the real success behavior
 
-Before writing the test prompt, identify:
+From the current conversation, privately identify:
 
-- **behavior under test** — what should the next Agent do differently?
-- **critical invariants** — what must be true for PASS?
-- **acceptable variation** — what examples/evidence paths may differ?
-- **hard fails** — what behavior proves the change did not transfer?
-- **forbidden side effects** — what the trial must not mutate or consume?
-- **evidence classes** — which current/live sources could support the answer?
+- what was just changed/fixed/built;
+- what a future Agent would need to accomplish for us to say it really works;
+- what this originating window knows that a fresh Agent would not;
+- critical invariants, acceptable variation, hard fails, forbidden side effects, and useful evidence.
 
-Test behavior, not wording. A rule can be quoted correctly while the task is still handled wrong.
+Test the downstream behavior, not a sentence the fresh Agent should recite.
 
-### 2. Audit the real entry path before testing
+### 2. Check the thing being tested
 
-A black-box trial is useful only after the implementation is actually in place.
+Inspect the strongest current evidence for the completed work:
 
-Inspect, as relevant:
+- the actual artifact/code/docs/config;
+- the normal user or Agent path;
+- relevant runtime/live state;
+- executable tests/guards when they exist.
 
-- shared/account Agent routing;
-- target repository root Agent entrypoint;
-- current topic router/current authority;
-- executable config/tests/guards;
-- live provider/ruleset/runtime state;
-- overlapping PRs or stale branches.
+If you find an obvious unfinished defect and the current task authorizes repairing it, repair and
+validate it before designing the black-box trial.
 
-If a real routing/current-authority gap is found, fix and validate that gap **before** generating
-the blind prompt when the task authority permits it.
+If repair is outside current authority, report that boundary instead of designing a test around a
+known-broken state.
 
-Do not turn a known broken entrypoint into a test and then call the predictable failure “evidence”.
+Do not assume this means “audit Agent entrypoints”. Check whatever surfaces actually determine the
+behavior the user just changed.
 
 ### 3. Choose the acceptance level
 
@@ -108,16 +95,16 @@ Do not turn a known broken entrypoint into a test and then call the predictable 
 - **Level 1 — blind single:** one genuinely fresh context.
 - **Level 2 — blind replicated:** same frozen prompt in two or three independent fresh contexts.
 
-Prefer Level 2 for repository front doors, shared cross-tool behavior, authority boundaries,
-fallback/recovery behavior, or repeated expensive mistakes.
+Prefer Level 2 for important, ambiguous, shared, or expensive-to-get-wrong changes.
 
 ### 4. Freeze the tested world
 
-Record the minimum state that can change the correct answer:
+Record only the state that can materially change the correct answer, for example:
 
-- target repository/ref/SHA;
-- parent/shared authority SHA when relevant;
-- live ruleset/provider/runtime identity when relevant.
+- repository/ref/SHA;
+- deployed artifact/version;
+- dataset/config revision;
+- ruleset/provider/runtime identity when relevant.
 
 For replicated trials, every trial belongs to the same set only while these answer-changing
 authorities remain materially unchanged.
@@ -316,20 +303,21 @@ One passing Agent does not erase another valid failure.
 
 ### 6. Diagnose failure before changing the prompt
 
-Classify a failure as:
+Classify the primary failure as:
 
-- **ROUTING** — Agent never reached the real current owner;
-- **OWNER_TEXT** — reached it but the authority is ambiguous/misleading;
-- **GUARD** — machine-checkable regression is not protected;
-- **PROMPT_DESIGN** — task leaked, was artificial, or had unrelated ambiguity;
-- **ACCESS** — fresh context could not access required current/private/live evidence.
+- **TARGET_DEFECT** — the completed thing is actually incomplete or wrong;
+- **DISCOVERY** — it works, but a fresh Agent/user cannot naturally find or use it;
+- **INTERPRETATION** — the right surface is found but remains ambiguous;
+- **GUARD** — a machine-checkable regression can recur without protection;
+- **PROMPT_DESIGN** — the black-box task itself leaked, was artificial, or had unrelated ambiguity;
+- **ACCESS_ENVIRONMENT** — the fresh context lacked required capability/current evidence.
 
-Repair the real owner when the failure is ROUTING / OWNER_TEXT / GUARD.
+Fix the real target for the first four classes.
 
-Only rewrite the test when the problem is PROMPT_DESIGN.
+Rewrite the test only for **PROMPT_DESIGN**.
 
-After any material repair, start a new trial set. Do not recycle the old PASS/FAIL as proof of the
-new system.
+After any material repair, start a new trial set. Do not recycle old PASS/FAIL as proof of the new
+system.
 
 ## First-principles anti-gaming rules
 
@@ -347,18 +335,18 @@ Never:
 
 ## Relation to other workflows
 
-- `.agents FUTURE_TASK_RETRIEVAL_PROOF` asks whether the lesson is reachable.
-- This skill asks whether the lesson **changes behavior without prompting the answer**.
-- `verify` validates code/artifact correctness; it does not replace a fresh-context behavioral trial.
+- `verify` checks whether an artifact/build/test is correct.
+- `fresh-agent-acceptance` checks whether the completed result still works when the source
+  conversation disappears.
+- `.agents` Future-Task Retrieval Proof checks whether learned guidance is reachable; it may use
+  this Skill when behavioral evidence is valuable.
 - Historical BaseModel cold-read/HPL machinery is evidence only; do not revive it as a second owner.
-- `agent-knowledge-garden` may repair Agent-facing routing discovered by a failed trial.
 
-## Short user-facing trigger
+## Natural trigger
 
-A user should not need to remember the SOP path. Natural language is enough, for example:
+A user should not need to remember the implementation details. For example:
 
-> 这件事做完了。帮我做一次 fresh-Agent 验收：先把该修的入口修好，然后给我一段不泄露
-> 考点的真实任务 Prompt，我会复制到几个全新窗口；等我把结果贴回来后，你按事先冻结的
-> 标准判定它到底有没有真的学会。
+> 这个东西我刚做完，但这个窗口知道太多背景。帮我做一次 fresh-Agent 黑盒验收，给我一个
+> 不泄露考点的短 Prompt，我会发给几个新窗口；结果回来后按你现在先定好的标准一起判断。
 
-The skill should execute the workflow directly rather than asking the user to restate the protocol.
+Infer the rest from the current conversation rather than asking the user to restate what changed.
