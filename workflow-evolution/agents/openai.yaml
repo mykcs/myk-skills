@@ -1,4 +1,4 @@
 interface:
   display_name: "Workflow Evolution"
-  short_description: "Evolve workflows, harnesses, and host systems"
-  default_prompt: "Use $workflow-evolution for a complete on-demand evolution run. Refresh current owners and platform assumptions, directly complete safe authorized reversible improvements, retire duplicated/stale machinery, and verify the integrated result through the owning gates."
+  short_description: "Evolve workflows, CI fit, harnesses and hosts"
+  default_prompt: "Use $workflow-evolution for a complete on-demand evolution run. Refresh current owners and platform assumptions, assess applicable CI efficiency and quota fit, directly complete safe authorized reversible improvements, retire duplicated/stale machinery, and verify the integrated result through the owning gates."

@@ -19,8 +19,8 @@ files and tools. These are lightweight fields and examples, not a new governance
   Current CI policy unifies semantics rather than vendors. Apply that established division without
   asking the user to restate it: each repository chooses the best implementation for its workload.
 - [CI portfolio rollout](https://github.com/mykcs/.agents/blob/main/docs/agents/CI_PORTFOLIO_ROLLOUT.md):
-  existing cross-repository CI progress owner. Refresh it and the relevant active work before
-  starting parallel migration records.
+  existing rollout scope and dated acceptance record. Read it for an applicable migration or
+  provenance gap; a completed rollout is not a live task queue or a reason to replay old builds.
 
 Links and wording were checked on 2026-09-30. Reopen the current owners for a new run; this reference
 does not freeze future policy, active PR state, provider identity or adoption counts.
@@ -129,20 +129,10 @@ and runtime truth. Merely creating four Markdown files does not prove usable ado
 
 ## CI propagation example
 
-Read the central CI contract, then inspect each repository's validation, check identity, command,
-provider and live authority. Follow the existing tiering rather than asking the user to choose a
-universal provider or duplicating acceptance rules in this skill.
-
-A portable Linux validator, native iOS qualification, scientific/GPU acceptance and a static
-redirect can need different execution lanes. If consolidating providers is explicitly selected,
-compare these constraints, current plans/costs/access and replacement coverage before cutover.
-
-Qualify a representative target, then materially different target classes. Use negative controls:
-a failing validator must fail the gate, a skipped run must not masquerade as execution, and
-incorrect head/provider identity must not satisfy acceptance. Follow the existing CI standard
-for exact-head qualification, authority transfer, rollback and predecessor retirement.
-
-Do not start another progress ledger when the current CI portfolio rollout already owns the work.
+Use [ci-modernization.md](ci-modernization.md) for quota/resource diagnosis, measured waste removal,
+provider qualification and actual candidate/main acceptance. It executes the central CI standard
+and local contracts rather than defining a second vendor policy. Keep one existing progress owner
+when a real rollout needs one; ordinary per-repository repairs need no new portfolio ledger.
 
 ## A proportional general review
 

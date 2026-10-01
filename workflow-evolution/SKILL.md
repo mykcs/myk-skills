@@ -1,14 +1,13 @@
 ---
 name: workflow-evolution
 description: >-
-  Heavy on-demand evolution of the user's engineering system across repositories, Agent harnesses,
-  and local host/control planes. Use for workflow evolution, cross-project standard adoption,
-  harness upgrades, host self-evolution, or broad modernization/reassessment. Refresh current
-  authority, research changing platform assumptions when relevant, directly complete safe
-  authorized reversible improvements, and verify the integrated result. Not for a routine narrow
-  bug fix, status check, closeout-only request, or fresh-window acceptance alone.
+  Evolve engineering workflows, CI/resource usage, Agent harnesses and host control planes.
+  Use for workflow evolution, broad modernization, CI quota/cost reassessment, cross-project
+  adoption, harness upgrades or host self-evolution. Refresh authority and changing assumptions,
+  complete safe authorized repairs, and verify integration. Not for a narrow bug fix, single-PR
+  status check, closeout-only request or fresh-window acceptance alone.
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
   category: workflow-evolution
   owner: mykcs
 triggers:
@@ -42,13 +41,17 @@ and load only the mode-specific references needed for the run.
 - **Local Mac/host control planes, shell/runtime, ~/.agents, ~/.claude, ~/.codex, hooks, skills,
   local CI/recovery or host drift** → also read
   [host-local-evolution.md](references/host-local-evolution.md).
+- **CI modernization, free-tier/quota pressure, runners, trigger waste or provider reassessment**
+  → read [ci-modernization.md](references/ci-modernization.md).
 - **Any run that can safely repair findings** → apply
   [safe-autonomy.md](references/safe-autonomy.md).
 - **Replacement / upstream-tool / research choice** → read
   [research-and-reuse.md](references/research-and-reuse.md).
 
 A general "run Workflow evolution" request means inspect all materially relevant modes, but still
-use progressive disclosure rather than loading every archive and reference.
+use progressive disclosure rather than loading every archive and reference. Include a change-aware
+CI/resource screen in a general run when the scoped targets have validation or deployment lanes;
+CI_NONE can be an aligned result. A topical request stays topical.
 
 ## Default: safe autonomous repair
 
@@ -91,6 +94,18 @@ Before writing:
 5. continue an existing valid rollout instead of opening a competing program.
 
 Tool memory and prior conversation summaries are candidate context, not current authority.
+
+## One execution loop
+
+For each selected finding, resolve **owner → violated invariant or wasted work → smallest useful
+repair → proof → integration/read-back**. Compare the existing design against the alternative;
+record the expected user benefit and what evidence would disprove it before implementation.
+
+Separate independent read-only discovery from writes; keep one writer per mutable workline and
+serialize provider cutovers/publication. Refresh head/base and automatic release side effects before
+remote writes. Existing specific approval remains valid; a new publication effect needs authority.
+After a tool failure, follow the current `.agents` engineering-completion protocol and authorized
+fallbacks. Continue independent work when one action is blocked; retain bounded scope and coverage.
 
 ## Close a central-to-consumer governance migration
 
@@ -148,6 +163,10 @@ Match verification to the changed layer:
 
 Classify failures as implementation/regression, policy/ownership drift, infrastructure/environment,
 or insufficient evidence. An unavailable/skipped hosted check never becomes PASS.
+When a test fails, first establish the invariant it measures. Shared-runner startup/wall time is
+not a probe's execution budget: use deterministic contract checks plus real bounded integration
+checks where appropriate. Preserve negative controls; neither blindly retry nor weaken a gate to
+obtain green evidence.
 
 For a portfolio run, re-read latest integrated state after merges. Do not report "all complete"
 from pre-merge snapshots.
@@ -168,14 +187,8 @@ instructions.
 
 ## Finish with the actual outcome
 
-Report:
-
-- **KEEP** — current choices that still win;
-- **CHANGE** — integrated improvements and their owners;
-- **RETIRE** — superseded skills/rules/tools/worklines;
-- **TEST FIRST** — uncertainties that still need discriminating evidence;
-- **VERIFICATION** — what actually passed and on which current state;
-- **BLOCKERS** — only real remaining boundaries.
-
-Distinguish reviewed, proposed, piloted, adopted and integrated states. Link existing owners instead
-of creating another permanent ledger for a one-off run.
+Give a compact outcome: scope/owner; **KEEP / CHANGE / RETIRE / TEST FIRST** decisions that matter;
+actual verification and integrated state; remaining **BLOCKERS** and the smallest next action.
+Omit empty categories and explain approval effects in plain language. Distinguish reviewed,
+proposed, piloted, adopted and integrated states. Link existing owners instead of creating another
+permanent ledger for a one-off run.
