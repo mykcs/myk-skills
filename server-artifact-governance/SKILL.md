@@ -50,6 +50,11 @@ and machine-specific guards.
 For the user's ZJU research server, load
 [references/zju-server.md](references/zju-server.md) after this router.
 
+For experiment-derived scientific assets, also use
+[references/research-asset-lifecycle.md](references/research-asset-lifecycle.md). It distills the
+recovery/disclosure/asset-routing model used by the owner's fuhuo recovery manual without turning
+that website into a second execution-policy owner.
+
 ## Non-negotiable four-gate model
 
 For any scientifically meaningful local object, local destructive removal requires all applicable
@@ -65,6 +70,29 @@ gates to be true at the action boundary:
    target project's current deletion policy.
 
 These gates are conjunctive, not a score. One unknown gate means HOLD.
+
+## Keep recovery, disclosure, and live provider state separate
+
+For project-owned scientific assets, track at least three independent dimensions when the owning
+project supports them:
+
+```text
+recovery_state: SERVER_ONLY -> REMOTE_BACKED_UP -> RECOVERY_VERIFIED
+disclosure_state: PRIVATE | EMBARGOED | PUBLIC | NEVER_PUBLIC
+provider_visibility: live observation, not policy authority
+```
+
+Only evidence moves `recovery_state`. A successful upload may justify `REMOTE_BACKED_UP`; it does
+not become `RECOVERY_VERIFIED` until the target project's immutable identity/readback/restore
+requirements pass.
+
+Disaster recovery never grants publication authority. A private recovery copy may be fully
+`RECOVERY_VERIFIED`; a public provider object may still violate the project's disclosure state.
+Capacity pressure must not silently change visibility, licensing, canonical namespace, or research
+publication intent.
+
+When the project maintains `recoverability_class`, Passport/Registry, asset ledger, or an Artifact
+DAG, update those existing owners rather than inventing a second inventory.
 
 ### What is not ownership evidence
 
@@ -183,6 +211,10 @@ Use one-fact-one-owner:
 - **Hugging Face / scientific object store** — checkpoints, adapters, model-derived state, large
   trajectories/data archives when policy allows;
 - **OCI/GHCR** — complete runtime images when exact runtime preservation is needed;
+- **W&B / observability service** — scalar history, charts and telemetry bindings only when the
+  project uses them; observability is not the scientific asset authority;
+- **pointer** — unchanged upstream/base assets or project-defined no-new-binary states where a
+  durable immutable pointer is the truthful artifact;
 - **pinned upstream** — rebuildable/downloadable external models/data when immutable identity is
   sufficient;
 - **no archive** — explicitly non-scientific temporary/cache data that target policy says can be
@@ -236,7 +268,28 @@ If a liveness check finds one of this workflow's own stale diagnostic/upload pro
 silently ignore it. Identify it, stop/finish only that known process when authorized, then rerun the
 same gate. Unknown references remain a blocker.
 
-## Phase 7 — Produce the owner-facing reclaim proposal
+## Phase 7 — Reconcile scientific identity before a reclaim proposal
+
+When the large object belongs to an experiment/research lifecycle, reclaim starts only after the
+experiment-side identity is coherent enough to explain what the object is.
+
+Use the owning project's existing sequence, which commonly looks like:
+
+```text
+seal / reconcile terminal experiment state
+-> route code / evidence / model-derived state / runtime / observability
+-> verify immutable recovery evidence
+-> update Registry / Passport / asset ledger / Artifact DAG when those exist
+-> exact reclaim proposal
+-> current deletion-authorization gate
+-> point-of-use liveness/identity recheck
+-> exact local thinning + receipt
+```
+
+Do not manufacture a checkpoint merely to make an archive look complete. If the owning project
+defines a pointer/no-update representation, preserve that truthful state instead.
+
+## Phase 8 — Produce the owner-facing reclaim proposal
 
 Before any destructive action that the target policy requires the owner to approve, produce from
 one snapshot:
@@ -272,7 +325,7 @@ Do not ask the user to repeat an approval already given for the exact current ma
 reinterpret a broad historical “整理服务器” instruction as approval for a newly discovered
 destructive set when current policy requires exact approval.
 
-## Phase 8 — Execute precise reclaim only inside current authority
+## Phase 9 — Execute precise reclaim only inside current authority
 
 When the exact action is authorized:
 
@@ -305,7 +358,7 @@ recoverable. Use Git worktree-aware removal for linked worktrees rather than raw
 Shared-daemon `reclaimable` is an observation, not an ownership/deletion list. Separate container
 writable layers from shared image layers and prove exact object provenance/reference state.
 
-## Phase 9 — Verify actual reclaim and system health
+## Phase 10 — Verify actual reclaim and system health
 
 After each meaningful batch:
 
@@ -320,7 +373,7 @@ After each meaningful batch:
 On a shared filesystem, do not attribute the entire session-level `df` delta to this workflow if
 other users/processes can write concurrently.
 
-## Phase 10 — Closeout
+## Phase 11 — Closeout
 
 A complete run reports:
 
