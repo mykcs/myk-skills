@@ -39,6 +39,19 @@
         "The workflow fails closed and keeps the local source if provider quota/transport/remote identity cannot be resolved.",
         "The workflow uses an exact object list and post-delete verification rather than deleting an entire run root by implication."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "我想把一组实验从服务器归档掉。权重已经传 HF，但方法还没发表；W&B 有完整曲线，Registry 里有 Passport。请整理成以后能恢复、也不会误公开的状态，然后给我可回收清单。",
+      "expected_output": "Agent treats recovery and disclosure as separate state dimensions, does not treat W&B as scientific asset authority, reconciles existing Passport/Registry/asset graph, verifies immutable remote recovery before RECOVERY_VERIFIED, preserves unpublished assets as private/embargoed per project policy, and only then produces the exact reclaim proposal.",
+      "files": [],
+      "expectations": [
+        "The response separates recovery state from disclosure/public visibility.",
+        "The response does not treat W&B telemetry as a replacement for checkpoint/model-derived asset recovery.",
+        "The response reconciles existing Passport/Registry or asset-ledger identity rather than inventing a cleanup-only identity system.",
+        "The response requires immutable readback/content identity and project-required fresh restore before RECOVERY_VERIFIED.",
+        "The response produces a reclaim proposal downstream of scientific closeout and does not auto-publish unpublished assets."
+      ]
     }
   ]
 }
