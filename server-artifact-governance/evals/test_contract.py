@@ -75,6 +75,30 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
                 self.assertIn(marker, self.zju)
         self.assertIn("Current project files win if this reference becomes stale", self.zju)
 
+    def test_recovery_disclosure_and_provider_state_are_separate(self) -> None:
+        for marker in (
+            "SERVER_ONLY -> REMOTE_BACKED_UP -> RECOVERY_VERIFIED",
+            "disclosure_state: PRIVATE | EMBARGOED | PUBLIC | NEVER_PUBLIC",
+            "provider_visibility: live observation, not policy authority",
+            "Disaster recovery never grants publication authority",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
+
+    def test_research_asset_lifecycle_bridge_exists(self) -> None:
+        bridge = ROOT / "server-artifact-governance" / "references" / "research-asset-lifecycle.md"
+        text = bridge.read_text(encoding="utf-8")
+        for marker in (
+            "mykcs/fuhuo_20260419",
+            "Experiment Passport",
+            "Passport Artifact DAG",
+            "exact NOT_AUTHORIZED reclaim proposal",
+            "W&B",
+            "pointer",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, text)
+
     def test_evals_cover_name_collision_docker_and_hf_recovery(self) -> None:
         self.assertEqual(self.evals["skill_name"], "server-artifact-governance")
         prompts = "\n".join(case["prompt"] for case in self.evals["evals"])
