@@ -55,7 +55,7 @@ Reusable workflows belong in shared skills. Harness-native command syntax should
 
 ## Validation policy
 
-This section is the local CI owner. Mode: `STANDARD_CI`. It inherits the [shared CI Standard](https://github.com/mykcs/.agents/blob/main/docs/agents/CI_STANDARD.md); repository commands and live provider configuration supply the project-specific implementation.
+The [local CI contract](docs/agents/README.md#ci-contract) declares `STANDARD_CI` and inherits the [shared CI Standard](https://github.com/mykcs/.agents/blob/main/docs/agents/CI_STANDARD.md). Repository commands and live provider configuration supply the project-specific implementation.
 
 Validation is provider-neutral and local-first. `scripts/ci_check.py` is the repository validation entrypoint; GitHub Actions or Cloudflare may call it, but they are not the source of validation policy.
 
