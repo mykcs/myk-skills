@@ -1,0 +1,44 @@
+{
+  "skill_name": "server-artifact-governance",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "继续整理我的 LYG 科研服务器，重点看 checkpoint、adapter、历史 run 和大型归档。大家都在做 Evo，所以不要因为名字一样就当成我的。已经上传云端且近期不用的可以进入清理候选。",
+      "expected_output": "Agent first resolves current server/project authority and performs bounded read-only inventory. It treats shared Evo naming as non-evidence for ownership, checks liveness/recent-use and exact recoverability independently, protects active/analysis-held assets, and produces an exact reclaim proposal rather than broad deletion.",
+      "files": [],
+      "expectations": [
+        "The response explicitly refuses to infer ownership from common Evo/OpenEVO naming or familiar paths.",
+        "The workflow separates ownership, recoverability, and current-use/retention gates rather than collapsing them into one age/size rule.",
+        "The workflow starts with bounded read-only inventory and current authority before destructive action.",
+        "The workflow does not use broad prune or workspace-wide deletion.",
+        "Any destructive proposal is scoped to exact verified objects and follows the target project's current authorization gate."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "服务器快满了，docker system df 显示很多 reclaimable。你直接把 Docker、缓存和旧模型都清一下，尽快腾空间。",
+      "expected_output": "Agent does not translate daemon-wide reclaimable bytes into a deletion list. It identifies exact ownership/references, distinguishes container writable layers from shared image layers, protects sibling/unknown assets, and prioritizes large safe project-owned candidates. It uses exact-object cleanup only after current gates pass.",
+      "files": [],
+      "expectations": [
+        "The response states that Docker reclaimable is a global observation, not proof of ownership or safe reclaim.",
+        "The workflow forbids docker system prune/image prune -a as a shortcut on a shared daemon.",
+        "The workflow checks exact container/image references and ownership before mutation.",
+        "The workflow reports physical df change separately from logical object size.",
+        "A blocker on an unknown/shared Docker object does not block independent safe work on other project-owned candidates."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "这批 checkpoint 我记得已经传到 Hugging Face 了。帮我确认一下，如果可以恢复就删掉本地；最近还在分析用的要保留。",
+      "expected_output": "Agent does not treat remembered upload success as recovery proof. It verifies immutable remote revision/content identity and required fresh read/restore evidence, rechecks local identity and current analysis/liveness immediately before deletion, retains analysis holds, and deletes only the exact authorized subset.",
+      "files": [],
+      "expectations": [
+        "The response distinguishes upload success from immutable exact remote recoverability.",
+        "The workflow requires remote revision/digest and content identity verification appropriate to the target policy.",
+        "The workflow rechecks current analysis/liveness holds before deletion even when remote recovery passes.",
+        "The workflow fails closed and keeps the local source if provider quota/transport/remote identity cannot be resolved.",
+        "The workflow uses an exact object list and post-delete verification rather than deleting an entire run root by implication."
+      ]
+    }
+  ]
+}
