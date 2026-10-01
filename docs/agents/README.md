@@ -79,7 +79,7 @@ For a changed skill, also run its task-specific tests/evals when present. A skil
 
 ## CI contract
 
-This repository uses **STANDARD_CI** under the shared [mykcs/.agents CI standard](https://github.com/mykcs/.agents/blob/main/docs/agents/CI_STANDARD.md). `scripts/ci_check.py` owns the provider-neutral acceptance semantics. The active strict `main` ruleset requires the `Repository validation` context on pull requests; the live rule currently matches the context without an `integration_id` binding. Cloudflare Workers Builds is supplemental and does not replace that required check. Keep the existing provider roles and workflow triggers aligned with the executable owner.
+This repository uses **STANDARD_CI** under the shared [mykcs/.agents CI standard](https://github.com/mykcs/.agents/blob/main/docs/agents/CI_STANDARD.md). `scripts/ci_check.py` owns the provider-neutral acceptance semantics. The active strict `main` ruleset requires the `Repository validation` context on pull requests; the live rule binds that context to GitHub Actions App `15368` via `integration_id`. Cloudflare Workers Builds is supplemental and does not replace that required check. Keep the existing provider roles and workflow triggers aligned with the executable owner.
 
 ## Agent notes vs current truth
 
