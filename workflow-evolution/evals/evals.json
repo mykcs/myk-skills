@@ -1,6 +1,6 @@
 {
   "skill_name": "workflow-evolution",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "evals": [
     {
       "id": 1,
@@ -265,6 +265,69 @@
         "No audit-only stopping",
         "No bypass of existing merge/security gates",
         "Heavy run stops on acceptance or real blocker rather than arbitrary elapsed time"
+      ],
+      "files": []
+    },
+    {
+      "id": 23,
+      "should_trigger": true,
+      "prompt": "Workflow evolution 看看我的 CI 是否现代、简单、适合实际需求。私有 Actions 额度紧，Cloudflare 可用；安全能修的直接修。",
+      "expected_output": "Resolve shared CI/local authority, separate scheduler/compute/account meters, remove measured trigger waste first, qualify eligible alternatives only when needed, and verify actual candidate/integrated state.",
+      "assertions": [
+        "No universal Cloudflare migration",
+        "No assumed free or unlimited account capacity",
+        "Safe fixes implemented with preserved required gate",
+        "Unknown billing is not fabricated savings"
+      ],
+      "files": []
+    },
+    {
+      "id": 24,
+      "should_trigger": true,
+      "prompt": "CI 免费方案看起来很多。这轮整体优化里，A 是旧资料仓，B 是 iOS 项目，C 私有小 Python 校验仓；别让 Mac 一直跑，也别碰科研 GPU。",
+      "expected_output": "Keep lifecycle/CI_NONE and specialized platform distinctions, verify private account/provider eligibility, compare smallest adequate topology and maintenance costs, preserve Mac/GPU boundaries.",
+      "assertions": [
+        "No blind provider template",
+        "Eligibility precedes shadow qualification",
+        "No archive mutation or unwanted deep audit",
+        "No persistent Mac/GPU generic CI"
+      ],
+      "files": []
+    },
+    {
+      "id": 25,
+      "should_trigger": true,
+      "prompt": "再整体优化一轮：CI 文档绿灯但 owning build 没执行；审计要求旧的运行中文字；另一仓正常但每次合并都会发版。",
+      "expected_output": "Diagnose real execution vs routing, fix stale auditor expectations at their owner, complete safe reviewable repairs, inspect automatic release effects and request only missing concrete publication authority.",
+      "assertions": [
+        "No false PASS for missing/skipped execution",
+        "No obsolete wording copied into correct project",
+        "Existing specific approval retained",
+        "No unapproved publication"
+      ],
+      "files": []
+    },
+    {
+      "id": 26,
+      "should_trigger": true,
+      "prompt": "Workflow evolution 的 CI 检查云机器偶尔跑 1.4 秒失败，本地 0.2 秒；真正要测的是单个 probe 的超时。把这轮优化做完。",
+      "expected_output": "Distinguish scheduling/environment timing from actual probe contract; retain deterministic timeout/cleanup negative controls and real bounded integration acceptance instead of retry loops or weakening the gate.",
+      "assertions": [
+        "Invariant diagnosed before threshold change",
+        "No skip or blanket retry",
+        "Real cleanup/hang regression remains detectable"
+      ],
+      "files": []
+    },
+    {
+      "id": 27,
+      "should_trigger": false,
+      "prompt": "只告诉我 Cloudflare 这个账户还剩多少构建额度，不改任何东西。",
+      "expected_output": "Perform authorized read-only live quota retrieval, report unknown honestly, and do not launch modernization, migration or new builds.",
+      "assertions": [
+        "No evolution loop",
+        "No account plan inference from published free tier",
+        "No writes/builds"
       ],
       "files": []
     }

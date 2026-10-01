@@ -26,6 +26,13 @@ Examples include:
 - running local tests, audits and read-only live-state checks;
 - fixing failures introduced by the requested change and rerunning affected checks.
 
+Before push/merge, inspect automatic effects: tags/releases, site publication, runtime deployment,
+Cron activation, public preview and notification delivery. A harmless-looking documentation change
+can publish. Complete the reviewable patch and required checks first; request only the missing
+concrete side-effect approval. Reuse specific existing approval without asking again, then carry
+that action through actual publication and read-back. Invoking this Skill does not grant spending,
+new credentials, public exposure or scientific/GPU execution authority.
+
 ## Continue instead of stopping early
 
 After the first implementation:

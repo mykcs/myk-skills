@@ -17,6 +17,8 @@ class WorkflowEvolutionContractTests(unittest.TestCase):
         metadata = yaml.safe_load(text.split("---", 2)[1])
         self.assertEqual(metadata["name"], SKILL.name)
         self.assertTrue(metadata["description"].strip())
+        payload = json.loads((SKILL / "evals/evals.json").read_text())
+        self.assertEqual(metadata["metadata"]["version"], payload["version"])
         ui = yaml.safe_load((SKILL / "agents/openai.yaml").read_text())
         self.assertIn("$" + metadata["name"], ui["interface"]["default_prompt"])
         self.assertTrue(ui.get("policy", {}).get("allow_implicit_invocation", True))
