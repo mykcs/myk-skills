@@ -44,6 +44,14 @@ Use this whenever a non-root payload writes append-only artifacts such as
 - If receipts prove `0` model calls, `0` carriers, and `0` formal credit, classify
   the attempt as engineering-only and preserve its exact evidence; do not infer
   this classification from an absent log alone.
+- Zero calls are sufficient evidence for the no-consumption case, not a necessary
+  condition for every engineering repair. Qualification may execute model
+  generations or environment actions; preserve them and count every allocated
+  GPU-hour, startup/load and failure against its cumulative engineering budget.
+  A diagnosed fault corrected without selecting on reward may be revalidated
+  under that same authorized contract after a generation/action. Low reward or
+  invalid policy action alone is not an engineering failure; formal scientific
+  cells keep their frozen retry rules and receive no credit from qualification.
 
 ## Test-environment routing
 

@@ -55,6 +55,12 @@ execution:
 
 Do not copy the example’s field names if the repository already has an authoritative schema. Preserve the meaning and validate it with project code.
 
+## Engineering qualification budget
+
+Use the existing project schema to bind engineering acceptance criteria, fixed non-held-out fixture identity, authorized pool, cumulative resource cap, measured usage and a timeout derived from the remaining budget. Count GPU-hours across all allocated UUIDs, including previous failures and startup/model loading; do not reset usage on repair or a new namespace. Plan enough verification for the actual consumer before freezing a cap, and identify any explicit owner stop rules.
+
+Keep engineering validation separate from formal science and its result denominator. A generation/action is evidence and resource consumption, not an automatic stop condition. After a diagnosed fault is repaired without selecting on reward, rerun the affected validation inside the already-authorized cumulative budget. No task/seed/evaluator change, low-score retry, sample replacement or retrospective PASS is permitted. Unchanged failures require diagnosis rather than blind replay; binding historical limits require an owner-authorized prospective amendment, while unapproved Agent estimates are planning inputs, not invented permission boundaries.
+
 ## Material-change test
 
 A new label or session is not a material change. Re-freeze and requalify only to the degree required when changing trainer/evaluator behavior, model/data identity, dependencies affecting execution, treatment/config semantics, task/seed set, metric extraction, retry rules, budget, or claim boundary.
@@ -79,7 +85,7 @@ Continue automatically when all answers are yes:
 
 1. Is the failure operational rather than a measured scientific outcome?
 2. Does the repair keep treatment, data, evaluator, metric, retry semantics, budget, and claim boundary unchanged?
-3. Does the contract authorize the retry/resume and remaining attempts?
+3. Does the applicable engineering or scientific contract authorize this retry/resume within its remaining cumulative budget and any explicit attempt limit?
 4. Are runtime qualification and live resource gates valid for the resumed path?
 5. Can the original failure and repair be preserved in the ledger?
 

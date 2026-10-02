@@ -4,8 +4,8 @@ description: Orchestrate reproducible GDKVM and related GPU experiments from pro
 license: MIT
 metadata:
   type: skill
-  version: "2.2.0"
-  updated: "2026-08-31"
+  version: "2.2.1"
+  updated: "2026-10-02"
   category: ml-experiment-orchestration
   source_of_truth:
     - "The active GDKVM repository protocol and current result ledger"
@@ -97,6 +97,8 @@ On `whs512`, do not use `nohup`, `tmux`, `screen`, `ssh -f`, or a bare backgroun
 ### 6. Recover without changing the science
 
 Continue autonomously for reward-blind, semantics-preserving repairs: reconnect monitoring, fix evidence serialization, correct an output/path wrapper, use a contract-permitted tracking fallback, or exact-resume missing eligible cells within the frozen retry and budget rules. Before exact-resume, recheck manifest/hash/source/runtime/image/selection identities; reuse matching write-once selection receipts, use a fresh monotonic container name and output namespace, and never overwrite/delete failed evidence.
+
+Engineering qualification is separate from scientific outcome retry. A completed generation or environment action alone does not close the engineering repair loop. After a diagnosed fault is corrected, revalidate within the existing cumulative engineering budget, including all earlier GPU startup/loading and failed attempts; preserve raw results and do not award formal scientific credit. Follow the shared `~/.agents/docs/dev/ENGINEERING_COMPLETION_PROTOCOL.md` and the project-owned engineering contract; low reward or invalid policy action alone never authorizes a scientific replay.
 
 Stop and re-freeze before changing an arm, seed set, data split, evaluator, primary metric, retry semantics, decision rule, budget, or claim boundary. Preserve failed attempts and reasons; never erase or relabel them to make the denominator look better.
 
