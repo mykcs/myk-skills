@@ -131,6 +131,19 @@
         "Dirty or untracked sandboxes are excluded/HOLD unless their exact uncommitted state is explicitly captured by a stronger recovery plan.",
         "The recovery pack is stored outside the ephemeral delete root and is materially smaller than the sandbox."
       ]
+    },
+    {
+      "id": 11,
+      "prompt": "我刚删了一批 Q17 checkpoint。它们在 /data/home/wangr 的 GalaxyFS 上，但 deletion receipt 只比较了删除前后的 df -B1 /，看到根盘 overlay 可用空间 +0B。是不是说明还有 hardlink，所以其实没释放空间？",
+      "expected_output": "Agent first identifies the backing-filesystem mismatch instead of inferring hardlinks from the zero root-overlay delta. It binds the deleted candidates to their actual mount/device, verifies any surviving exact inode/path evidence separately, and treats the old df / comparison as a measurement error for GalaxyFS reclaim. Without a correct GalaxyFS pre-delete snapshot it does not invent an exact historical physical-reclaim value.",
+      "files": [],
+      "expectations": [
+        "The response states that df on a different backing filesystem cannot validate physical reclaim for the candidate set.",
+        "A zero delta on root overlay is not treated as evidence that GalaxyFS hardlinks survived.",
+        "The workflow uses mount/device identity and a probe path on the candidate's actual backing filesystem for before/after df.",
+        "Hardlink/inode checks remain a separate diagnostic rather than being inferred from the wrong-filesystem df result.",
+        "If the historical pre-delete snapshot targeted the wrong filesystem, the Agent does not fabricate an exact physical-reclaim number after the fact."
+      ]
     }
   ]
 }
