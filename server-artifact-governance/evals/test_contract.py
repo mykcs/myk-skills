@@ -19,8 +19,8 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         cls.zju = ZJU.read_text(encoding="utf-8")
         cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))
 
-    def test_skill_version_is_v1_2(self) -> None:
-        self.assertIn('version: "1.2.0"', self.skill)
+    def test_skill_version_is_v1_2_1(self) -> None:
+        self.assertIn('version: "1.2.1"', self.skill)
 
     def test_four_gate_model_is_explicit_and_conjunctive(self) -> None:
         for marker in (
@@ -63,6 +63,17 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         self.assertIn("one-object transactions", self.skill)
         self.assertIn("exact paths/object IDs", self.skill)
         self.assertIn("logical bytes separately from observed physical `df` delta", self.skill)
+
+    def test_reclaim_readback_uses_candidate_backing_filesystem(self) -> None:
+        for marker in (
+            "same backing-filesystem probe path",
+            "deleting a GalaxyFS object cannot be validated",
+            "A zero delta on a",
+            "measurement error, not evidence for surviving hardlinks",
+            "do not invent an exact physical-reclaim value after the fact",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
 
     def test_hardlinks_do_not_count_as_physical_reclaim(self) -> None:
         for marker in (
@@ -168,6 +179,8 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         self.assertIn("另一个 Agent", prompts)
         self.assertIn("no live connection", prompts)
         self.assertIn("本地-only", prompts)
+        self.assertIn("GalaxyFS", prompts)
+        self.assertIn("df -B1 /", prompts)
 
 
 if __name__ == "__main__":

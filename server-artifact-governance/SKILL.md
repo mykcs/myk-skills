@@ -15,7 +15,7 @@ when_to_use: >-
   “storage reclaim”, “archive old checkpoints”, or equivalent authorized research-server asset
   governance work.
 metadata:
-  version: "1.2.0"
+  version: "1.2.1"
   category: operations-recovery
   owner: mykcs
 triggers:
@@ -146,7 +146,9 @@ Collect only enough evidence to find the real space owners and build a useful ca
 - remote Git/HF/OCI/upstream evidence already known for those candidates.
 
 When `df` and a namespace-local `du` disagree, resolve mount/backing-filesystem/container namespace
-boundaries before blaming Docker or assuming hidden data is somebody else's.
+boundaries before blaming Docker or assuming hidden data is somebody else's. Bind capacity evidence to
+the filesystem that actually backs the candidate: deleting a GalaxyFS object cannot be validated by
+watching root-overlay `df /`, and deleting an overlay object cannot be validated from GalaxyFS `df`.
 
 Avoid broad recursive `find`, `du`, hashing, or cross-user process crawling when a narrower query
 answers the decision.
@@ -386,7 +388,7 @@ When the exact action is authorized:
 3. process a small batch at a time;
 4. under critical disk pressure, prefer **one-object transactions**:
    archive -> immutable verify -> exact prune -> `df` readback -> next object;
-5. record before/after physical filesystem availability;
+5. record before/after physical filesystem availability on the **same backing-filesystem probe path** as the candidate set, and preserve enough mount/device identity to prove both samples refer to that same filesystem;
 6. preserve active experiments, protected models, controllers, CI, and shared resources;
 7. stop on drift rather than expanding the deletion set.
 
@@ -457,7 +459,7 @@ writable layers from shared image layers and prove exact object provenance/refer
 
 After each meaningful batch:
 
-- re-read physical filesystem availability;
+- re-read physical filesystem availability on the candidate set's same backing filesystem, not a default `/` chosen by habit;
 - record exact deleted/thinned objects;
 - report logical bytes separately from observed physical `df` delta;
 - check protected/active workloads remain healthy;
@@ -465,9 +467,12 @@ After each meaningful batch:
 - preserve recovery receipts and immutable identities;
 - record unexpected changes or concurrent-write uncertainty.
 
-If logical deletion succeeds but physical free space does not increase as expected, check at least:
-remaining hardlinks/link count, deleted-but-open file descriptors, shared/CoW/deduplicated storage,
-and concurrent writes. Do not respond by deleting more scientifically valuable objects merely to
+If logical deletion succeeds but physical free space does not increase as expected, first verify that
+the pre/post samples were taken from the candidate's **same backing filesystem**. A zero delta on a
+different mount is a measurement error, not evidence for surviving hardlinks. Once the measurement
+target is proven correct, check at least: remaining hardlinks/link count, deleted-but-open file
+descriptors, shared/CoW/deduplicated storage, and concurrent writes. If the historical pre-delete
+sample targeted the wrong filesystem, do not invent an exact physical-reclaim value after the fact. Do not respond by deleting more scientifically valuable objects merely to
 make the original reclaim estimate come true.
 
 On a shared filesystem, do not attribute the entire session-level `df` delta to this workflow if
