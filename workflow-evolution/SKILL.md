@@ -8,7 +8,7 @@ description: >-
   complete safe authorized repairs, and verify integration. Not for a narrow bug fix, single-PR
   status check, closeout-only request or fresh-window acceptance alone.
 metadata:
-  version: "2.3.0"
+  version: "2.4.0"
   category: workflow-evolution
   owner: mykcs
 triggers:
@@ -133,8 +133,9 @@ semantic migration:
    registry blind spots, executable guards or audit logic.
 6. **Keep hot routers small without deleting load-bearing discovery**; search tests/callers before
    removing startup-visible markers. Size is not enough: also check whether a small router line
-   forces every run to load a large low-frequency owner. Prefer lightweight HOT behavior plus an
-   explicit semantic trigger for the WARM owner.
+   forces every run to load a large low-frequency owner. Enumerate other heavy owners reachable
+   from the same HOT surface so a one-case repair does not leave sibling preload drift behind.
+   Prefer lightweight HOT behavior plus an explicit semantic trigger for each WARM owner.
 7. **Treat the auditor as part of the system.** Update its expectations when the architecture
    changes instead of freezing the previous design.
 8. Respect every repository's exact-head/current-base merge gate and distinguish implementation
@@ -156,10 +157,14 @@ Also run the [knowledge-buoyancy pass](references/knowledge-buoyancy.md) when ap
 whether important stable mechanisms are trapped in cases/receipts, whether current owners are
 buried under dated detail, whether HOT routers contain low-frequency procedure that should sink,
 and whether a short HOT instruction eagerly loads a much heavier WARM standard for ordinary work.
-Treat line count as a smoke alarm; audit **semantic preload cost and trigger breadth**. When a heavy
-owner is only needed for a special output/workflow, keep the smallest stable invariant HOT, route
-the detailed owner by semantic task/output role, repair active consumers/templates, and add a
-routing regression guard where practical.
+Treat line count as a smoke alarm; audit **semantic preload cost and trigger breadth**. Enumerate
+the substantial owners reached directly from HOT/root instruction surfaces instead of checking only
+the document named by the owner. For each heavy route, classify **KEEP / NARROW TRIGGER / SINK /
+REVIEWED EXCEPTION** and record the semantic loading trigger. When a heavy owner is only needed for
+a special output/workflow, keep the smallest stable invariant HOT, route the detailed owner by
+semantic task/output role, repair active consumers/templates, and add a routing regression guard
+where practical. A new heavy HOT-routed owner without a reviewed loading contract is itself a
+buoyancy finding.
 
 Prioritize by owner effort saved, recurrence, risk, leverage and number of genuinely applicable
 consumers. Compare **keep / adopt / adapt / build narrowly / simplify-retire / test first**.

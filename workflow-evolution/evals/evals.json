@@ -1,6 +1,6 @@
 {
   "skill_name": "workflow-evolution",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "evals": [
     {
       "id": 1,
@@ -357,6 +357,21 @@
         "Consumer and bootstrap routes are audited for trigger broadening",
         "Scientific and safety constraints are not demoted merely for context savings",
         "A practical routing regression guard is added when mechanically feasible"
+      ],
+      "files": []
+    },
+    {
+      "id": 30,
+      "should_trigger": true,
+      "prompt": "今天用 Human Expression 这个案例解释了为什么 AGENTS.md 不能只看行数。继续用同一个原则审计根路由指向的其他重文档；合理的别为了变短乱拆，不合理的触发就收窄，并把这种检查固化。",
+      "expected_output": "Use knowledge-buoyancy semantic-preload review across all substantial owners directly reachable from HOT/root instructions, not only Human Expression. Classify each heavy route as KEEP, NARROW TRIGGER, SINK, or REVIEWED EXCEPTION; preserve cohesive high-consequence owners, repair overly broad routing and consumers, add/update a generic loading-contract guard, and verify latest integrated state.",
+      "assertions": [
+        "Audits sibling heavy HOT routes instead of stopping after the named case",
+        "Line count remains a review signal rather than an automatic split threshold",
+        "Cohesive narrowly triggered heavy owners can remain WARM",
+        "Over-broad root routing is repaired without deleting necessary detail",
+        "New heavy HOT routes require a reviewed semantic loading contract",
+        "Regression coverage is generic rather than hard-coded only to Human Expression"
       ],
       "files": []
     }
