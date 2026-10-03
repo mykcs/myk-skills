@@ -12,9 +12,11 @@ This lens applies across projects and Agent harnesses. Project repositories keep
 
 This file is the reusable web-expression lens, not the storage location for the owner's growing feedback corpus.
 
-Before substantial human-facing copy/design work, read the current shared human-expression standard first:
+Before substantial/durable human-facing content or design work, read the current shared human-expression standard first:
 
-- https://github.com/mykcs/.codex/blob/main/website-governance/HUMAN_EXPRESSION_STANDARD.md
+- https://github.com/mykcs/.agents/blob/main/docs/agents/HUMAN_EXPRESSION_STANDARD.md
+
+Ordinary conversation, a small local wording tweak, or a bounded status explanation should stay on the lightweight root Agent behavior unless the task itself is producing a durable content artifact.
 
 Then load learned evidence when prior owner feedback or failure families matter:
 

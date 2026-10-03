@@ -1,6 +1,6 @@
 {
   "skill_name": "workflow-evolution",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "evals": [
     {
       "id": 1,
@@ -342,6 +342,21 @@
         "Promotes mechanisms rather than one rule per case",
         "Keeps one writable owner and thin routers",
         "Uses knowledge-buoyancy audit when available"
+      ],
+      "files": []
+    },
+    {
+      "id": 29,
+      "should_trigger": true,
+      "prompt": "我的 AGENTS.md 想保持很轻，但有些完整文档/网页写作规则很重。不要只看行数，帮我做一次沉浮检查：日常对话别背整套规则，正式内容产物又要能自动找到完整标准；把其他消费者里同类入口也一起修。",
+      "expected_output": "Use knowledge-buoyancy loading-cost mode: distinguish HOT lightweight conversation invariants from WARM artifact-writing standards by semantic output role, audit active consumers/templates for broadened eager-load triggers, repair safe routing drift, preserve high-consequence constraints, add a regression guard where practical, and verify affected consumers.",
+      "assertions": [
+        "Line count is treated as a heuristic rather than the objective",
+        "Ordinary chat does not eagerly load the full artifact-writing standard",
+        "Durable/substantial content artifacts still discover the full standard",
+        "Consumer and bootstrap routes are audited for trigger broadening",
+        "Scientific and safety constraints are not demoted merely for context savings",
+        "A practical routing regression guard is added when mechanically feasible"
       ],
       "files": []
     }
