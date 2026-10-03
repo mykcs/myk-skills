@@ -15,7 +15,7 @@ when_to_use: >-
   “storage reclaim”, “archive old checkpoints”, or equivalent authorized research-server asset
   governance work.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   category: operations-recovery
   owner: mykcs
 triggers:
@@ -422,6 +422,32 @@ Never use broad cleanup as a shortcut:
 A clean working tree is not remote-recoverability proof. Prove the exact HEAD/dirty state is
 recoverable. Use Git worktree-aware removal for linked worktrees rather than raw directory deletion.
 
+For **temporary Git sandboxes / negative fixtures / verifier clones** whose current HEAD contains
+local-only synthetic commits, do not collapse "clean" into "safe to delete". If current project
+policy classifies the sandbox as rebuildable/non-scientific and the exact final tree matters only
+for reproducing the fixture, an accepted compaction form is:
+
+```text
+reachable immutable base commit
++ binary-capable patch from base -> local HEAD
++ commit metadata / fixture identity
++ task-local qualification or result metadata when relevant
++ durable hashes for the recovery pack
++ fresh replay check on a clean checkout of the base
+```
+
+The recovery pack must live outside the ephemeral delete root and be materially smaller than the
+sandbox it replaces. Verify the base is actually retrievable from the current authoritative remote;
+do not preserve a patch against another local-only parent and call that remote recovery.
+
+Dirty or untracked worktrees are **HOLD by default**. Do not silently flatten unique uncommitted
+state into a "rebuildable" label. Capturing dirty state requires an explicit stronger recovery plan
+that preserves the exact files/diffs and passes its own restore/replay gate.
+
+This compaction pattern is for disposable test/qualification sandboxes. It is not a replacement for
+preserving canonical project history, scientific source authority, or branches whose commit graph
+itself is the artifact.
+
 ### Docker
 
 Shared-daemon `reclaimable` is an observation, not an ownership/deletion list. Separate container
@@ -494,3 +520,8 @@ Default to concise Chinese for this owner's server work:
 
 When the user asks “继续”, continue from durable receipts/current authority rather than restarting the
 whole inventory blindly.
+
+When a real execution exposes a reusable workflow failure or a safer recovery pattern, feed that
+mechanism back into this Skill's contract/evals after the operational task reaches a safe boundary.
+Do not leave a reusable lesson only in one conversation receipt when future cleanup Agents should
+benefit from it.

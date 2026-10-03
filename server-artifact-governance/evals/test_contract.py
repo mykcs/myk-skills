@@ -19,8 +19,8 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         cls.zju = ZJU.read_text(encoding="utf-8")
         cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))
 
-    def test_skill_version_is_v1_1(self) -> None:
-        self.assertIn('version: "1.1.0"', self.skill)
+    def test_skill_version_is_v1_2(self) -> None:
+        self.assertIn('version: "1.2.0"', self.skill)
 
     def test_four_gate_model_is_explicit_and_conjunctive(self) -> None:
         for marker in (
@@ -106,6 +106,17 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, self.skill)
 
+    def test_local_only_git_fixture_compaction_is_replayable_and_dirty_safe(self) -> None:
+        for marker in (
+            "temporary Git sandboxes / negative fixtures / verifier clones",
+            "binary-capable patch from base -> local HEAD",
+            "fresh replay check on a clean checkout of the base",
+            "Dirty or untracked worktrees are **HOLD by default**",
+            "base is actually retrievable from the current authoritative remote",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
+
     def test_zju_adapter_routes_to_current_project_authority(self) -> None:
         for marker in (
             "mykcs/zju-server/AGENTS.md",
@@ -156,6 +167,7 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         self.assertIn("重新检查", prompts)
         self.assertIn("另一个 Agent", prompts)
         self.assertIn("no live connection", prompts)
+        self.assertIn("本地-only", prompts)
 
 
 if __name__ == "__main__":
