@@ -177,6 +177,7 @@ def check_workflow_evolution_modernization(root: Path = ROOT) -> list[str]:
         "safe autonomous repair",
         "harness-evolution.md",
         "host-local-evolution.md",
+        "knowledge-buoyancy.md",
     ):
         if marker not in skill_text:
             failures.append(f"workflow-evolution/SKILL.md: missing marker {marker!r}")

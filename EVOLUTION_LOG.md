@@ -133,3 +133,9 @@ python3 normalize_v0.3.0.py --doc <DOC_TOKEN>             # append to doc
 | ts | skill | verdict | reason |
 |----|-------|---------|--------|
 | 2026-10-01 | workflow-evolution | v1.1.0→v2.0.0 | Absorb harness-upgrade and host-self-evolve into one progressive-disclosure evolution workflow; make safe authorized reversible repair the default; retire duplicated active skill owners while preserving history/tools; refresh against current OpenAI/Anthropic harness/skill guidance. |
+
+## 2026-10-03 — Workflow evolution v2.2 knowledge buoyancy
+
+| ts | skill | verdict | reason |
+|----|-------|---------|--------|
+| 2026-10-03 | workflow-evolution | v2.1.0→v2.2.0 | Add Knowledge buoyancy / 知识沉浮 as a first-class mode: surface stable high-consequence mechanisms toward current owners, parse case/RAW/receipt evidence instead of accumulating unprocessed fragments, demote completed/superseded detail from hot discovery without deleting history, and require repository-native audit/validation. |
