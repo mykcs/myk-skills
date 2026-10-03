@@ -1,13 +1,14 @@
 ---
 name: workflow-evolution
 description: >-
-  Evolve engineering workflows, CI/resource usage, Agent harnesses and host control planes.
-  Use for workflow evolution, broad modernization, CI quota/cost reassessment, cross-project
-  adoption, harness upgrades or host self-evolution. Refresh authority and changing assumptions,
+  Evolve engineering workflows, CI/resource usage, Agent harnesses, host control planes and
+  knowledge hierarchy. Use for workflow evolution, broad modernization, CI quota/cost reassessment,
+  cross-project adoption, harness upgrades, knowledge buoyancy / case distillation or host
+  self-evolution. Refresh authority and changing assumptions,
   complete safe authorized repairs, and verify integration. Not for a narrow bug fix, single-PR
   status check, closeout-only request or fresh-window acceptance alone.
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
   category: workflow-evolution
   owner: mykcs
 triggers:
@@ -21,6 +22,10 @@ triggers:
   - 主机自升级
   - 自我进化
   - 智能体框架升级
+  - 知识沉浮
+  - 浮沉
+  - 规则分层
+  - case 提炼
 ---
 
 # Workflow Evolution
@@ -43,6 +48,8 @@ and load only the mode-specific references needed for the run.
   [host-local-evolution.md](references/host-local-evolution.md).
 - **CI modernization, free-tier/quota pressure, runners, trigger waste or provider reassessment**
   → read [ci-modernization.md](references/ci-modernization.md).
+- **Instruction/rule hierarchy, router slimming, case/receipt distillation, “沉浮 / 浮沉”**
+  → read [knowledge-buoyancy.md](references/knowledge-buoyancy.md).
 - **Any run that can safely repair findings** → apply
   [safe-autonomy.md](references/safe-autonomy.md).
 - **Replacement / upstream-tool / research choice** → read
@@ -50,8 +57,10 @@ and load only the mode-specific references needed for the run.
 
 A general "run Workflow evolution" request means inspect all materially relevant modes, but still
 use progressive disclosure rather than loading every archive and reference. Include a change-aware
-CI/resource screen in a general run when the scoped targets have validation or deployment lanes;
-CI_NONE can be an aligned result. A topical request stays topical.
+CI/resource screen in a general run when the scoped targets have validation or deployment lanes,
+and include a bounded **knowledge-buoyancy screen** when the system contains substantial Agent
+instructions, cases, RAW/receipts or historical governance. CI_NONE and no-change can be aligned
+results. A topical request stays topical.
 
 ## Default: safe autonomous repair
 
@@ -81,7 +90,9 @@ Prefer one writable owner per shared fact. Use thin consumers/adapters and proje
 shapes. Do not force identical folders, providers, hooks or CI lanes merely for symmetry.
 
 Preserve RAW wording, ADR rationale, cases and historical receipts. Evolve current rules and
-enforcement without rewriting history to make today's policy look timeless.
+enforcement without rewriting history to make today's policy look timeless. When evidence volume
+grows, apply knowledge buoyancy: parse reusable mechanisms upward into learned/current owners while
+demoting completed/superseded detail out of routine discovery instead of deleting the evidence.
 
 ## Start from current truth
 
@@ -138,6 +149,10 @@ Review both what should spread and what should disappear. Look for duplicated ow
 instructions, dead compatibility layers, repeated user effort, unnecessary approvals, obsolete
 harness assumptions, weak machine guards, unsupported custom machinery and mature/native
 capabilities that now cover the same responsibility.
+
+Also run the [knowledge-buoyancy pass](references/knowledge-buoyancy.md) when applicable: check
+whether important stable mechanisms are trapped in cases/receipts, whether current owners are
+buried under dated detail, and whether HOT routers contain low-frequency procedure that should sink.
 
 Prioritize by owner effort saved, recurrence, risk, leverage and number of genuinely applicable
 consumers. Compare **keep / adopt / adapt / build narrowly / simplify-retire / test first**.

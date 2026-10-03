@@ -81,11 +81,23 @@ class WorkflowEvolutionContractTests(unittest.TestCase):
         self.assertIn("Proceed without another approval", safe)
         self.assertIn("Real stop/approval boundaries", safe)
 
+        buoyancy = (SKILL / "references/knowledge-buoyancy.md").read_text()
+        for marker in [
+            "Knowledge buoyancy / 知识沉浮",
+            "Parse cold evidence",
+            "Promotion rules",
+            "Demotion rules",
+            "evidence stays deep",
+        ]:
+            self.assertIn(marker.lower(), buoyancy.lower())
+
         repo_root = SKILL.parents[0]
         self.assertFalse((repo_root / "harness-upgrade" / "SKILL.md").exists())
         self.assertFalse((repo_root / "host-self-evolve" / "SKILL.md").exists())
         self.assertTrue((repo_root / "_archive" / "harness-upgrade" / "SKILL.md").is_file())
         self.assertTrue((repo_root / "_archive" / "host-self-evolve" / "SKILL.md").is_file())
+        self.assertIn("knowledge-buoyancy.md", text)
+        self.assertIn("case/receipt distillation", text)
 
     def test_evaluation_fixtures_are_complete_and_balanced(self):
         payload = json.loads((SKILL / "evals/evals.json").read_text())

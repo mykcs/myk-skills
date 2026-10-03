@@ -1,6 +1,6 @@
 {
   "skill_name": "workflow-evolution",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "evals": [
     {
       "id": 1,
@@ -328,6 +328,20 @@
         "No evolution loop",
         "No account plan inference from published free tier",
         "No writes/builds"
+      ],
+      "files": []
+    },
+    {
+      "id": 28,
+      "should_trigger": true,
+      "prompt": "把我的 .agents 里这些规则和 case 做一次“沉浮”：重要、通用、会影响第一步动作的往上浮，零碎历史和一次性细节往下沉。很多 case 里有经验但没有被提炼出来，顺便一起解决。",
+      "expected_output": "Use Workflow evolution knowledge-buoyancy mode: map HOT/WARM/COOL/COLD layers, parse case/RAW/receipt evidence for reusable mechanisms, promote bounded high-consequence current guidance, demote completed/superseded detail from routine discovery without deleting evidence, run repository audit/validation, and report floated/sunk/parsed/unresolved items.",
+      "assertions": [
+        "Does not rank by age or file size alone",
+        "Does not delete RAW/cases/receipts merely to reduce clutter",
+        "Promotes mechanisms rather than one rule per case",
+        "Keeps one writable owner and thin routers",
+        "Uses knowledge-buoyancy audit when available"
       ],
       "files": []
     }
