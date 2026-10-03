@@ -50,14 +50,15 @@ Do not start a heavyweight workflow solely for ceremony. Still decide and verify
 
 1. the reader's immediate goal;
 2. the mental relationship being added or changed;
-3. the semantic HTML form;
-4. the density layer and placement;
-5. the smallest evidence that proves the result reads and works correctly.
+3. the representation/medium that best exposes that relationship;
+4. the semantic HTML form;
+5. the density layer and placement;
+6. the smallest evidence that proves the result reads and works correctly.
 
 Record a compact evidence line in the task log, PR, or completion report when such a surface exists:
 
 ```text
-Web expression: APPLY_LIGHT — goal=<...>; relation=<...>; HTML=<...>; density=<...>; evidence=<...>
+Web expression: APPLY_LIGHT — goal=<...>; relation=<...>; medium=<...>; HTML=<...>; density=<...>; evidence=<...>
 ```
 
 ### `APPLY_FULL`
@@ -72,7 +73,7 @@ Use only when the task has no rendered human-facing consequence. State the reaso
 
 ## The web-expression decision
 
-Before implementation, answer these six questions at the smallest useful level of detail.
+Before implementation, answer these seven questions at the smallest useful level of detail.
 
 ### 1. Reader goal
 
@@ -94,6 +95,24 @@ Which relationship carries the meaning?
 - **decision / branching** — which condition sends the reader to which action.
 
 Do not default every relationship to an undifferentiated card grid.
+
+### 2.5 Representation / medium choice
+
+Choose the **smallest faithful medium** before choosing a component or polishing prose. The same underlying fact can become easier or harder to understand depending on how it is represented.
+
+| Reader task / semantic shape | Default candidate | Use richer media when |
+| --- | --- | --- |
+| fact, instruction, bounded explanation | prose, list, definition/value | another form materially lowers decoding cost |
+| aligned alternatives or repeated dimensions | table, compact comparison figure | the reader benefits from filtering, sorting, or parameter exploration |
+| dependency, topology, branch, feedback, causal path | semantic diagram / SVG / HTML flow | interaction helps inspect paths, states, or evidence without losing the static topology |
+| state exploration, replay, parameter/counterfactual inspection | interactive HTML controls | the control changes a real question the reader can answer, not just presentation |
+| temporal/spatial transformation | step sequence first; animation/video if needed | motion itself carries information that is cumbersome or misleading when frozen |
+
+Do **not** treat this table as a ladder from “basic” to “advanced.” Text can be the best representation; a diagram can be worse; a video can be unnecessary. Pick the form with the clearest semantic return for its complexity.
+
+A purpose-built, disposable web artifact is allowed when it solves one narrow comprehension or verification problem cheaply. Reuse is not a prerequisite for value. Still keep project ownership, accessibility, evidence, and maintenance boundaries honest; do not push a one-off explainer into the shared component system merely to justify creating it.
+
+For a web surface, richer media should preserve a complete static/accessible reading path whenever practical. Interaction or motion may reinforce meaning, but it must not become the only place where a claim, caveat, or evidence boundary exists.
 
 ### 3. Semantic HTML form
 
@@ -176,6 +195,7 @@ Show state, timestamp/provenance when relevant, what the state proves, what it d
 ## Permanent anti-patterns
 
 - ❌ treating “use HTML expressively” as “add more visual decoration”;
+- ❌ choosing a richer medium without a specific comprehension gain merely because generation is cheap;
 - ❌ replacing a mental model with a wall of equally weighted cards;
 - ❌ using headings, spacing, color, arrows, or motion as the only semantic carrier;
 - ❌ hiding the primary path to make the first viewport look cleaner;
