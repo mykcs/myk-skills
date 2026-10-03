@@ -103,6 +103,34 @@ A healthy result should satisfy:
 - large current files are reviewed for cohesion, but line count alone never forces a split;
 - executable invariants are tests/audits where practical.
 
+### 5.1 Audit semantic loading cost, not only line count
+
+Line count is only a warning signal. For every HOT router or automatically injected instruction surface, inspect what it causes a future Agent to load.
+
+For each routed owner, ask:
+
+1. **How often does this rule apply?** Nearly every matching task, or only a special output/workflow?
+2. **What is the cost of omission?** Wrong first action, safety/science failure, or only lower editorial polish?
+3. **Can the root keep a 1–3 line invariant and route the rest on demand?**
+4. **Is the trigger semantic?** Prefer “durable multi-section content artifact” over brittle token/character thresholds.
+5. **Does the consumer accidentally broaden the trigger?** Search project AGENTS/README/bootstrap/templates for wording such as “every human-facing task” when the owner is only needed for a subset.
+
+Reference case: the 2026-10-03 Human Expression migration. Ordinary chat only needed lightweight plain-language / ELI5 / ADHD defaults; the detailed writing standard was useful for complete reports, articles, canonical Notion pages and public page bodies. The repair kept the lightweight behavior HOT and moved the detailed standard to a WARM, output-role-triggered owner.
+
+When this pattern is found, repair it end-to-end:
+
+```text
+identify overloaded HOT rule
+-> preserve the smallest stable first-action invariant
+-> move detailed procedure/style to one WARM owner
+-> define the semantic trigger in the HOT router
+-> update templates and all active consumers
+-> add a mechanical guard for the routing boundary when practical
+-> run fresh-Agent/consumer acceptance when behavior transfer matters
+```
+
+Do not “fix” loading cost by deleting scientific/safety constraints that truly must shape the first action.
+
 Use repository-native audit tooling when available. For `mykcs/.agents`, run
 `python3 scripts/knowledge_buoyancy_audit.py --strict` plus ordinary repository validation.
 ## 6. Acceptance and reporting
