@@ -98,10 +98,10 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
     def test_concurrent_cleanup_and_control_plane_fail_closed(self) -> None:
         for marker in (
             "one cleanup writer at a time",
-            "overlapping exact objects",
+            "overlapping reclaim manifest",
             "least-privilege sidecar",
             "tool-safety denial",
-            "not permission to disguise the same destructive action",
+            "tmpfs, permission changes",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, self.skill)
