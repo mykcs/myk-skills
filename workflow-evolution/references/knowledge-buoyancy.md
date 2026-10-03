@@ -131,6 +131,26 @@ identify overloaded HOT rule
 
 Do not “fix” loading cost by deleting scientific/safety constraints that truly must shape the first action.
 
+### 5.2 Review all heavy HOT routes, not only the reported example
+
+After fixing one concrete preload problem, enumerate the other substantial Markdown/protocol owners
+that the same HOT/root instruction surface can reach directly.
+
+For each route, record one of:
+
+- **KEEP** — frequent/high-consequence first-action constraint; current trigger is already narrow;
+- **NARROW TRIGGER** — owner is valid, but the HOT route is broader than the real task;
+- **SINK** — detail belongs below the router and should no longer compete in routine discovery;
+- **REVIEWED EXCEPTION** — owner is large but cohesive/on-demand; keep it intact with a documented
+  trigger and re-review condition.
+
+A future heavy owner without a reviewed route/loading contract is a finding even if the root file
+itself remains under its line budget.
+
+The second 2026-10-04 reference case is `KNOWLEDGE-ARCHITECTURE.md`: the 400+ line owner remained
+WARM and intact; only the root route changed so ordinary tasks no longer imply that they should
+pre-read it. This is the same mechanism as the Human Expression case with a different domain.
+
 Use repository-native audit tooling when available. For `mykcs/.agents`, run
 `python3 scripts/knowledge_buoyancy_audit.py --strict` plus ordinary repository validation.
 ## 6. Acceptance and reporting
