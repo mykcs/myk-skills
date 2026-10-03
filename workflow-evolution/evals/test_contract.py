@@ -88,6 +88,7 @@ class WorkflowEvolutionContractTests(unittest.TestCase):
             "Promotion rules",
             "Demotion rules",
             "evidence stays deep",
+            "KNOWLEDGE_BUOYANCY.md",
         ]:
             self.assertIn(marker.lower(), buoyancy.lower())
 
