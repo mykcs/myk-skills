@@ -5,8 +5,9 @@ distill cases/receipts/incidents, or run a broad Workflow evolution review where
 is part of the problem.
 
 The semantic owner is the current
-[.agents Knowledge Architecture](https://github.com/mykcs/.agents/blob/main/docs/agents/KNOWLEDGE-ARCHITECTURE.md).
-This reference owns the **review/repair procedure**, not a second hierarchy definition.
+[.agents Knowledge Buoyancy contract](https://github.com/mykcs/.agents/blob/main/docs/agents/KNOWLEDGE_BUOYANCY.md),
+routed from the parent Knowledge Architecture. This reference owns the **review/repair procedure**,
+not a second hierarchy definition.
 
 ## Goal
 
