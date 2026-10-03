@@ -19,6 +19,9 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         cls.zju = ZJU.read_text(encoding="utf-8")
         cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))
 
+    def test_skill_version_is_v1_1(self) -> None:
+        self.assertIn('version: "1.1.0"', self.skill)
+
     def test_four_gate_model_is_explicit_and_conjunctive(self) -> None:
         for marker in (
             "**OWNERSHIP**",
@@ -61,6 +64,48 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         self.assertIn("exact paths/object IDs", self.skill)
         self.assertIn("logical bytes separately from observed physical `df` delta", self.skill)
 
+    def test_hardlinks_do_not_count_as_physical_reclaim(self) -> None:
+        for marker in (
+            "Hardlinks, copy-on-write, deduplication, and physical reclaim",
+            "group hardlinked paths by `(device, inode)`",
+            "deleting one pathname can reclaim",
+            "**0 physical bytes**",
+            "Never sum per-path `st_blocks` across hardlinks",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
+
+    def test_manifest_reclassification_invalidates_old_approval(self) -> None:
+        for marker in (
+            "retention/scientific re-review changes the candidate set",
+            "treat the old approval as **superseded**",
+            "new unique manifest",
+            "must not silently authorize the revised semantic scope",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
+
+    def test_critical_headroom_prefers_low_risk_exact_reclaim(self) -> None:
+        for marker in (
+            "Critical-headroom mode",
+            "P3/rebuildable",
+            "stop long recursive inventory/hash scans",
+            "do not kill/preempt active science",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
+
+    def test_concurrent_cleanup_and_control_plane_fail_closed(self) -> None:
+        for marker in (
+            "one cleanup writer at a time",
+            "overlapping reclaim manifest",
+            "least-privilege sidecar",
+            "tool-safety denial",
+            "tmpfs, permission changes",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, self.skill)
+
     def test_zju_adapter_routes_to_current_project_authority(self) -> None:
         for marker in (
             "mykcs/zju-server/AGENTS.md",
@@ -69,6 +114,8 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
             "docs/research-artifact-lifecycle.md",
             "docs/free-first-backup-policy.md",
             "docs/shared-filesystem-deletion-safety.md",
+            "docs/rdc-sidecar-runbook.md",
+            "docs/workspace-ownership-contract.md",
             "scripts/verify_remote_reclaim_gate.py",
         ):
             with self.subTest(marker=marker):
@@ -105,6 +152,10 @@ class TestServerArtifactGovernanceSkill(unittest.TestCase):
         self.assertIn("大家都在做 Evo", prompts)
         self.assertIn("docker system df", prompts)
         self.assertIn("已经传到 Hugging Face", prompts)
+        self.assertIn("同一个 inode", prompts)
+        self.assertIn("重新检查", prompts)
+        self.assertIn("另一个 Agent", prompts)
+        self.assertIn("no live connection", prompts)
 
 
 if __name__ == "__main__":

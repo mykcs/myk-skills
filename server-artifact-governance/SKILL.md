@@ -15,7 +15,7 @@ when_to_use: >-
   “storage reclaim”, “archive old checkpoints”, or equivalent authorized research-server asset
   governance work.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: operations-recovery
   owner: mykcs
 triggers:
@@ -114,7 +114,8 @@ Before a large inventory or mutation:
 
 1. identify the exact server / namespace / filesystem whose capacity matters;
 2. read that project's current Agent/router and storage/lifecycle/recovery authorities;
-3. inspect current open worklines or active operators when concurrent work could collide;
+3. inspect current open worklines, cleanup manifests/receipts, and active operators when concurrent
+   work could collide; treat one exact object set as having one cleanup writer at a time;
 4. classify the current user request:
    - inventory only;
    - archive/recovery only;
@@ -124,6 +125,10 @@ Before a large inventory or mutation:
 
 Do not use an old closeout, memory, cached provider state, or previous chat approval as current live
 truth when the relevant fact can change.
+
+If another Agent/workline already owns an overlapping reclaim manifest or is actively archiving,
+hashing, or deleting the same exact objects, do not become a second writer. Reconcile the current
+ledger/receipt and work as a read-only sidecar or switch to a non-overlapping candidate set.
 
 ## Phase 1 — Read-only inventory first
 
@@ -146,6 +151,24 @@ boundaries before blaming Docker or assuming hidden data is somebody else's.
 Avoid broad recursive `find`, `du`, hashing, or cross-user process crawling when a narrower query
 answers the decision.
 
+### Critical-headroom mode
+
+When the backing filesystem is close to ENOSPC, change the **order of work**, not the safety gates:
+
+- sample current `df`/write trend with a short bounded check so urgency is real rather than assumed;
+- stop long recursive inventory/hash scans that are not needed for the next decision;
+- prefer already-proven, project-owned **P3/rebuildable** caches, temporary environments, derived
+  arrays, duplicate staging copies, or provider-native caches whose exact bytes are not scientific
+  authority, when current project authorization permits their cleanup;
+- prefer provider/tool-native cache cleanup for rebuildable caches when it is narrower and more
+  auditable than raw directory deletion;
+- do not stage new large archives on the same nearly-full filesystem merely to prepare a cleanup;
+- do not kill/preempt active science, widen permissions, or weaken recovery/approval gates just to
+  create headroom.
+
+The first goal is to restore a small safe operating margin with the lowest-risk exact object, then
+continue normal governance.
+
 ## Phase 2 — Build an exact candidate ledger
 
 Every candidate must be individually identifiable. At minimum capture:
@@ -156,6 +179,10 @@ captured_at
 exact_path_or_object_id
 kind
 size_bytes
+filesystem_or_device
+inode
+nlink
+allocated_blocks_or_bytes
 ownership_evidence
 scientific_role
 active_process_refs
@@ -169,6 +196,7 @@ immutable_remote_revision_or_digest
 remote_content_identity
 fresh_restore_or_reload_evidence
 expected_reclaim_bytes
+physical_reclaim_basis
 reclaim_uncertainty
 decision
 reason
@@ -176,6 +204,24 @@ reason
 
 Do not make a directory-level delete decision from its top-level owner alone when descendants,
 mounts, worktrees, mixed UIDs, or active references can differ.
+
+### Hardlinks, copy-on-write, deduplication, and physical reclaim
+
+Byte identity is a **scientific/content** fact, not automatically a **capacity** fact.
+
+Before advertising reclaim from local duplicates:
+
+1. inspect filesystem/device, inode, link count and allocated blocks/bytes where the filesystem
+   exposes them;
+2. group hardlinked paths by `(device, inode)` before summing allocated space;
+3. if `nlink > 1` and another link to that inode will remain, deleting one pathname can reclaim
+   **0 physical bytes** for that inode even though the logical pathname is hundreds of GB;
+4. distinct inodes may still share CoW/deduplicated backend blocks, so equal hashes or apparent
+   logical duplicates do not guarantee equal physical reclaim;
+5. keep `logical_deleted_bytes`, `unique_allocated_bytes`, `expected_physical_reclaim`, and
+   observed before/after `df` as separate fields.
+
+Never sum per-path `st_blocks` across hardlinks as if every pathname owned distinct blocks.
 
 ## Phase 3 — Classify by independent dimensions
 
@@ -321,6 +367,12 @@ For each candidate include:
 If the target policy uses a versioned deletion manifest, create it with a non-authorized initial
 state and bind approval to the exact version/object identities.
 
+If a later retention/scientific re-review changes the candidate set, protected set, retention class,
+or keep/delete boundary, treat the old approval as **superseded** even when surviving paths/hashes
+are unchanged. Issue a new unique manifest in its non-authorized initial state and obtain whatever
+fresh approval the current project policy requires. A previously approved larger/sibling manifest
+must not silently authorize the revised semantic scope.
+
 Do not ask the user to repeat an approval already given for the exact current manifest. Do not
 reinterpret a broad historical “整理服务器” instruction as approval for a newly discovered
 destructive set when current policy requires exact approval.
@@ -337,6 +389,23 @@ When the exact action is authorized:
 5. record before/after physical filesystem availability;
 6. preserve active experiments, protected models, controllers, CI, and shared resources;
 7. stop on drift rather than expanding the deletion set.
+
+### Concurrent-writer and control-plane failures
+
+Immediately before mutation, refresh the exact manifest/receipt namespace or other current project
+coordination surface. If another workline has superseded the manifest or owns overlapping exact
+objects, stop that object set and reconcile rather than racing two cleanup writers.
+
+If the primary SSH/RDC/tool route fails, treat that as a control-plane route failure, not permission
+to widen a least-privilege sidecar or change file ownership. Consult the target project's current
+recovery authority and use an already-authorized independent control plane when one exists. Ask for
+physical/manual intervention only at a genuine authentication, physical, safety, or unknown-risk
+boundary.
+
+A tool-safety denial on an irreversible primitive is also not permission to disguise the same
+destructive action through tmpfs, permission changes, a different shell, or another equivalent
+route. Use a project-supported executor/reversible placement path when legitimately available, or
+stop with the exact blocker.
 
 Never use broad cleanup as a shortcut:
 
@@ -369,6 +438,11 @@ After each meaningful batch:
 - clean temporary upload/archive staging created by this workflow when safe;
 - preserve recovery receipts and immutable identities;
 - record unexpected changes or concurrent-write uncertainty.
+
+If logical deletion succeeds but physical free space does not increase as expected, check at least:
+remaining hardlinks/link count, deleted-but-open file descriptors, shared/CoW/deduplicated storage,
+and concurrent writes. Do not respond by deleting more scientifically valuable objects merely to
+make the original reclaim estimate come true.
 
 On a shared filesystem, do not attribute the entire session-level `df` delta to this workflow if
 other users/processes can write concurrently.
@@ -404,6 +478,7 @@ Stop destructive progress for the affected object when any of these is unresolve
 - target repository/provider identity;
 - immutable revision/digest;
 - local object drift after verification;
+- a newer overlapping cleanup writer/manifest that supersedes the current object set;
 - exact deletion authority required by current project policy.
 
 A blocker for one object does not block independent safe inventory/archive work on other objects.
